@@ -211,9 +211,14 @@
   <div class="modal-box">
     <div class="modal-title">Add New Location</div>
     <div class="modal-field"><label>Club Name</label><input type="text" id="nl-name" placeholder="My Town Nutrition"/></div>
-    <div class="modal-field"><label>Address</label><input type="text" id="nl-addr" placeholder="123 Main St, City, ST 00000"/></div>
+    <div class="modal-field"><label>Street Address</label><input type="text" id="nl-street" placeholder="123 Main St"/></div>
+    <div class="modal-field" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div><label>City</label><input type="text" id="nl-city" placeholder="City" style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:8px;padding:10px 12px;outline:none;transition:border-color 0.15s"/></div>
+      <div><label>State</label><select id="nl-state" style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:8px;padding:10px 12px;outline:none;-webkit-appearance:auto;"></select></div>
+    </div>
+    <div class="modal-field"><label>Zip Code</label><input type="text" id="nl-zip" placeholder="00000" maxlength="5" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5)"/></div>
     <div class="modal-field"><label>Owner Name</label><input type="text" id="nl-owner" placeholder="Jane Smith"/></div>
-    <div class="modal-field"><label>Owner Phone</label><input type="tel" id="nl-phone" placeholder="(555) 000-0000"/></div>
+    <div class="modal-field"><label>Owner Phone</label><input type="tel" id="nl-phone" placeholder="(555) 000-0000" oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"/></div>
     <div class="modal-field">
       <label>Invite Code</label>
       <div class="modal-invite-row">
@@ -234,7 +239,7 @@
   <div class="modal-box">
     <div class="modal-title">My Profile</div>
     <div class="modal-field"><label>Display Name</label><input type="text" id="p-name" placeholder="Your name"/></div>
-    <div class="modal-field"><label>Phone</label><input type="tel" id="p-phone" placeholder="(555) 000-0000"/></div>
+    <div class="modal-field"><label>Phone</label><input type="tel" id="p-phone" placeholder="(555) 000-0000" oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"/></div>
     <div class="modal-field"><label>Email</label><input type="email" id="p-email" disabled style="opacity:0.5;cursor:not-allowed;"/></div>
     <div class="modal-error" id="p-error"></div>
     <div class="modal-footer">
@@ -253,6 +258,24 @@ const{createClient}=supabase;
 const sb=createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 
 let allLocations=[],allDays=[],currentSession=null,adminProfile={};
+
+// ── SHARED HELPERS ──
+const US_STATES=[['AL','Alabama'],['AK','Alaska'],['AZ','Arizona'],['AR','Arkansas'],['CA','California'],['CO','Colorado'],['CT','Connecticut'],['DE','Delaware'],['FL','Florida'],['GA','Georgia'],['HI','Hawaii'],['ID','Idaho'],['IL','Illinois'],['IN','Indiana'],['IA','Iowa'],['KS','Kansas'],['KY','Kentucky'],['LA','Louisiana'],['ME','Maine'],['MD','Maryland'],['MA','Massachusetts'],['MI','Michigan'],['MN','Minnesota'],['MS','Mississippi'],['MO','Missouri'],['MT','Montana'],['NE','Nebraska'],['NV','Nevada'],['NH','New Hampshire'],['NJ','New Jersey'],['NM','New Mexico'],['NY','New York'],['NC','North Carolina'],['ND','North Dakota'],['OH','Ohio'],['OK','Oklahoma'],['OR','Oregon'],['PA','Pennsylvania'],['RI','Rhode Island'],['SC','South Carolina'],['SD','South Dakota'],['TN','Tennessee'],['TX','Texas'],['UT','Utah'],['VT','Vermont'],['VA','Virginia'],['WA','Washington'],['WV','West Virginia'],['WI','Wisconsin'],['WY','Wyoming']];
+
+function populateStateSelect(id, selected){
+  const el=document.getElementById(id);if(!el)return;
+  el.innerHTML='<option value="">State</option>'+US_STATES.map(([abbr,name])=>`<option value="${abbr}" ${abbr===selected?'selected':''}>${abbr} — ${name}</option>`).join('');
+}
+
+function fmtPhone(input){
+  // Strip all non-numeric characters first
+  let digits=input.value.replace(/\D/g,'').slice(0,10);
+  let fmt='';
+  if(digits.length>0) fmt='('+digits.slice(0,3);
+  if(digits.length>=4) fmt+=') '+digits.slice(3,6);
+  if(digits.length>=7) fmt+='-'+digits.slice(6,10);
+  input.value=fmt;
+}
 
 async function init(){
   const{data:{session}}=await sb.auth.getSession();
@@ -432,8 +455,13 @@ function toggleCard(id){document.getElementById('lc-'+id).classList.toggle('expa
 
 // ADD LOCATION
 function openAddLocation(){
-  document.getElementById('nl-name').value='';document.getElementById('nl-addr').value='';
-  document.getElementById('nl-owner').value='';document.getElementById('nl-phone').value='';
+  document.getElementById('nl-name').value='';
+  document.getElementById('nl-street').value='';
+  document.getElementById('nl-city').value='';
+  document.getElementById('nl-zip').value='';
+  document.getElementById('nl-owner').value='';
+  document.getElementById('nl-phone').value='';
+  populateStateSelect('nl-state','');
   generateCode();
   document.getElementById('nl-error').classList.remove('show');
   document.getElementById('add-loc-modal').classList.add('open');
@@ -445,7 +473,10 @@ function generateCode(){
 }
 async function addLocation(){
   const name=document.getElementById('nl-name').value.trim();
-  const addr=document.getElementById('nl-addr').value.trim();
+  const street=document.getElementById('nl-street').value.trim();
+  const city=document.getElementById('nl-city').value.trim();
+  const state=document.getElementById('nl-state').value;
+  const zip=document.getElementById('nl-zip').value.trim();
   const owner=document.getElementById('nl-owner').value.trim();
   const phone=document.getElementById('nl-phone').value.trim();
   const code=document.getElementById('nl-code').value.trim().toUpperCase();
@@ -453,16 +484,21 @@ async function addLocation(){
   errEl.classList.remove('show');
   if(!name){errEl.textContent='Club name is required.';errEl.classList.add('show');return;}
   if(!code){errEl.textContent='Invite code is required.';errEl.classList.add('show');return;}
-  const{data,error}=await sb.from('locations').insert({name,address:addr,owner_name:owner,owner_phone:phone,invite_code:code,settings:{}}).select().single();
+  // Build formatted address string
+  const addrParts=[street,city?`${city}${state?', '+state:''}${zip?' '+zip:''}`:'']. filter(Boolean);
+  const address=addrParts.join(', ');
+  const{data,error}=await sb.from('locations').insert({name,address,owner_name:owner,owner_phone:phone,invite_code:code,settings:{}}).select().single();
   if(error){errEl.textContent=error.message;errEl.classList.add('show');return;}
   allLocations.push(data);allLocations.sort((a,b)=>a.name.localeCompare(b.name));
-  renderLocations();closeModal('add-loc-modal');showToast('Location added ✓','success');
+  renderLocations();renderAlertBanner();closeModal('add-loc-modal');showToast('Location added ✓','success');
 }
 
 // PROFILE
 function openProfileModal(){
   document.getElementById('p-name').value=adminProfile.display_name||'';
-  document.getElementById('p-phone').value=adminProfile.phone||'';
+  const phoneEl=document.getElementById('p-phone');
+  phoneEl.value=adminProfile.phone||'';
+  if(adminProfile.phone)fmtPhone(phoneEl);
   document.getElementById('p-email').value=currentSession.user.email||'';
   document.getElementById('p-error').classList.remove('show');
   document.getElementById('profile-modal').classList.add('open');
