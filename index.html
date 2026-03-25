@@ -238,6 +238,25 @@
       </div>
     </div>
 
+    <!-- ══ SET NEW PASSWORD PANEL (after clicking email reset link) ══ -->
+    <div id="panel-newpassword" style="display:none;">
+      <div style="text-align:center;margin-bottom:16px;">
+        <div style="font-size:28px;margin-bottom:8px;">🔐</div>
+        <div style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:700;color:var(--text);margin-bottom:4px;">Set New Password</div>
+        <div style="font-size:13px;color:var(--text-muted);">Choose a new password for your account.</div>
+      </div>
+      <div class="msg" id="np-msg"></div>
+      <div class="field">
+        <label>New Password</label>
+        <input type="password" id="np-password" placeholder="At least 6 characters" autocomplete="new-password"/>
+      </div>
+      <div class="field">
+        <label>Confirm New Password</label>
+        <input type="password" id="np-password2" placeholder="Repeat new password" autocomplete="new-password" onkeydown="if(event.key==='Enter')submitNewPassword()"/>
+      </div>
+      <button class="btn-submit" id="np-btn" onclick="submitNewPassword()">Update Password</button>
+    </div>
+
   </div>
 </div>
 
@@ -252,6 +271,27 @@ let selectedRole='owner'; // 'owner' or 'employee'
 let verifiedLocation=null; // {id, name, role} after code verified
 
 async function init(){
+  // Check if this is a password recovery redirect from Supabase email link
+  const hash=window.location.hash;
+  if(hash&&hash.includes('type=recovery')){
+    // Let Supabase process the token, then show the new password panel
+    const{data:{session},error}=await sb.auth.getSession();
+    if(session){
+      showNewPasswordPanel();
+      document.getElementById('loading-overlay').classList.add('hidden');
+      return;
+    }
+    // Token may need a moment — listen for auth state change
+    sb.auth.onAuthStateChange((event,session)=>{
+      if(event==='PASSWORD_RECOVERY'){
+        showNewPasswordPanel();
+        document.getElementById('loading-overlay').classList.add('hidden');
+      }
+    });
+    document.getElementById('loading-overlay').classList.add('hidden');
+    return;
+  }
+
   const{data:{session}}=await sb.auth.getSession();
   if(session){
     // Already logged in — route to correct page
@@ -268,7 +308,35 @@ async function init(){
   }
 }
 
-// ── TABS ──
+function showNewPasswordPanel(){
+  // Hide everything else, show just the new password panel
+  document.getElementById('panel-signin').style.display='none';
+  document.getElementById('panel-register').style.display='none';
+  document.getElementById('panel-forgot').style.display='none';
+  document.getElementById('panel-newpassword').style.display='block';
+  document.querySelectorAll('.auth-tabs').forEach(el=>el.style.display='none');
+}
+
+async function submitNewPassword(){
+  const pw=document.getElementById('np-password').value;
+  const pw2=document.getElementById('np-password2').value;
+  if(!pw||pw.length<6){showMsg('np-msg','Password must be at least 6 characters.','error');return;}
+  if(pw!==pw2){showMsg('np-msg','Passwords do not match.','error');return;}
+  setBtnLoading('np-btn',true,'Updating…');
+  const{error}=await sb.auth.updateUser({password:pw});
+  setBtnLoading('np-btn',false,'Update Password');
+  if(error){showMsg('np-msg',error.message,'error');return;}
+  showMsg('np-msg','Password updated! Signing you in…','success');
+  // Route to correct page after short delay
+  setTimeout(async()=>{
+    const{data:{session}}=await sb.auth.getSession();
+    if(session){
+      const{data:u}=await sb.from('users').select('role,location_id').eq('id',session.user.id).single();
+      if(u?.role==='admin') window.location.href='admin.html';
+      else if(u?.location_id) window.location.href='app.html';
+    }
+  },1500);
+}
 function showTab(tab){
   document.getElementById('panel-signin').style.display=tab==='signin'?'block':'none';
   document.getElementById('panel-register').style.display=tab==='register'?'block':'none';
