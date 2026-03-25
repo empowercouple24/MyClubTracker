@@ -235,10 +235,12 @@
 
       <!-- Step 3: Success -->
       <div id="reg-step-3" style="display:none;text-align:center;padding:12px 0;">
-        <div style="font-size:40px;margin-bottom:14px;">🎉</div>
-        <div style="font-family:'Outfit',sans-serif;font-size:20px;font-weight:700;color:var(--b7);margin-bottom:8px;">You're all set!</div>
-        <div style="font-size:14px;color:var(--text-muted);line-height:1.6;margin-bottom:20px;" id="reg-success-msg">Account created successfully.</div>
-        <button class="btn-submit" onclick="showTab('signin')">Sign In Now →</button>
+        <div style="font-size:40px;margin-bottom:14px;">✉️</div>
+        <div style="font-family:'Outfit',sans-serif;font-size:20px;font-weight:700;color:var(--b7);margin-bottom:8px;">Check Your Email</div>
+        <div style="font-size:14px;color:var(--text-muted);line-height:1.6;margin-bottom:16px;" id="reg-success-msg">Account created successfully.</div>
+        <div style="background:var(--b0);border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;color:var(--text-faint);line-height:1.6;">
+          Click the confirmation link in your email to activate your account. You'll be taken to the sign-in page automatically.
+        </div>
       </div>
     </div>
 
@@ -339,6 +341,14 @@ async function init(){
   if(urlParams.get('msg')==='setup-incomplete'){
     showTab('signin');
     showMsg('si-msg','Your account was confirmed! Please sign in to continue.','success');
+    document.getElementById('loading-overlay').classList.add('hidden');
+    return;
+  }
+  if(urlParams.get('msg')==='confirmed'){
+    showTab('signin');
+    showMsg('si-msg','✓ Email confirmed! You can now sign in.','success');
+    document.getElementById('loading-overlay').classList.add('hidden');
+    return;
   }
 
   const hash=window.location.hash;
@@ -707,7 +717,7 @@ async function register(){
   document.getElementById('reg-step-3').style.display='block';
   const roleLabel=verifiedLocation.role==='owner'?'club owner':'employee';
   document.getElementById('reg-success-msg').textContent=
-    `Welcome, ${displayName}! Your ${roleLabel} account for ${verifiedLocation.name} has been created. Check your email to confirm your address, then sign in.`;
+    `Welcome, ${displayName}! A confirmation link has been sent to your email. Click it to activate your ${roleLabel} account for ${verifiedLocation.name}.`;
 }
 
 // ── HELPERS ──
