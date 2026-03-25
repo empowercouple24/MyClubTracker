@@ -149,10 +149,23 @@
   <div class="section">
     <div class="section-label">My Profile</div>
     <div class="card">
-      <div class="settings-row">
-        <div class="row-label">Display Name</div>
-        <input type="text" class="row-input" id="prof-name" placeholder="Your name" style="text-align:right;"/>
+      <div class="divider-label">Name</div>
+      <div class="settings-row" style="gap:8px;flex-wrap:wrap;">
+        <div class="row-label">First Name</div>
+        <input type="text" class="row-input" id="prof-firstname" placeholder="First name" style="text-align:right;max-width:180px;"/>
       </div>
+      <div class="settings-row" style="gap:8px;flex-wrap:wrap;">
+        <div class="row-label">Last Name</div>
+        <input type="text" class="row-input" id="prof-lastname" placeholder="Last name" style="text-align:right;max-width:180px;"/>
+      </div>
+      <div class="settings-row" style="gap:8px;flex-wrap:wrap;">
+        <div>
+          <div class="row-label">Display Name</div>
+          <div class="row-sub">How your name appears in the app</div>
+        </div>
+        <input type="text" class="row-input" id="prof-name" placeholder="e.g. Jeff" style="text-align:right;max-width:180px;"/>
+      </div>
+      <div class="divider-label">Contact</div>
       <div class="settings-row">
         <div class="row-label">Phone</div>
         <input type="tel" class="row-input" id="prof-phone" placeholder="(555) 000-0000" style="text-align:right;" oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"/>
@@ -277,9 +290,9 @@
     </div>
   </div>
 
-  <!-- ══ ADMIN USERS ══ -->
+  <!-- ══ ALL USERS ══ -->
   <div class="section">
-    <div class="section-label">Admin Users</div>
+    <div class="section-label">All Users</div>
     <div class="card" id="admins-card">
       <div style="padding:16px;text-align:center;color:var(--text-faint);font-size:13px;">Loading…</div>
     </div>
@@ -676,11 +689,13 @@ async function executePush() {
 async function init() {
   const { data:{ session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'index.html'; return; }
-  const { data:u } = await sb.from('users').select('role,display_name,phone').eq('id', session.user.id).single();
+  // Populate profile fields
+  const { data:u } = await sb.from('users').select('role,display_name,first_name,last_name,phone').eq('id', session.user.id).single();
   if (!u || u.role !== 'admin') { window.location.href = 'index.html'; return; }
 
-  // Populate profile fields
-  document.getElementById('prof-name').value  = u.display_name || '';
+  document.getElementById('prof-firstname').value = u.first_name || '';
+  document.getElementById('prof-lastname').value  = u.last_name  || '';
+  document.getElementById('prof-name').value      = u.display_name || '';
   const profPhoneEl = document.getElementById('prof-phone');
   profPhoneEl.value = u.phone || '';
   if (u.phone) fmtPhone(profPhoneEl);
@@ -704,9 +719,16 @@ async function init() {
 async function saveAdminProfile() {
   const { data:{ session } } = await sb.auth.getSession();
   if (!session) return;
-  const name  = document.getElementById('prof-name').value.trim();
-  const phone = document.getElementById('prof-phone').value.trim();
-  const { error } = await sb.from('users').update({ display_name: name, phone }).eq('id', session.user.id);
+  const firstName    = document.getElementById('prof-firstname').value.trim();
+  const lastName     = document.getElementById('prof-lastname').value.trim();
+  const display_name = document.getElementById('prof-name').value.trim();
+  const phone        = document.getElementById('prof-phone').value.trim();
+  const { error } = await sb.from('users').update({
+    first_name: firstName,
+    last_name:  lastName,
+    display_name,
+    phone
+  }).eq('id', session.user.id);
   if (error) { showToast('Save failed: '+error.message, 'error'); return; }
   showToast('Profile saved ✓', 'success');
 }
@@ -770,7 +792,9 @@ async function saveOrgKey(){
 }
 
 async function loadAdmins() {
-  const { data:users } = await sb.from('users').select('id,email,role,location_id,display_name,phone').eq('role','admin');
+  const { data:users } = await sb.from('users')
+    .select('id,email,role,location_id,display_name,first_name,last_name,phone')
+    .order('role').order('display_name');
   allAdmins = users || [];
   renderAdmins();
 }
@@ -848,28 +872,49 @@ function renderCodes() {
   ).join('');
 }
 
-// ── RENDER ADMINS ──
+// ── RENDER ALL USERS ──
 function renderAdmins() {
   const el = document.getElementById('admins-card');
   if (!allAdmins.length) {
-    el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-faint);font-size:14px;">No admin users.</div>';
+    el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-faint);font-size:14px;">No users yet.</div>';
     return;
   }
+  const roleColors = {admin:'var(--b7)',owner:'var(--g5)',employee:'var(--text-muted)'};
+  const roleBg     = {admin:'var(--b1)',owner:'var(--g0)',employee:'var(--b0)'};
   el.innerHTML = allAdmins.map(u => {
-    const letter = (u.display_name||u.email||'?')[0].toUpperCase();
-    const name   = u.display_name || '—';
-    const phone  = u.phone || '—';
+    const letter   = (u.first_name||u.display_name||u.email||'?')[0].toUpperCase();
+    const fullName = [u.first_name,u.last_name].filter(Boolean).join(' ') || u.display_name || '—';
+    const dispTag  = u.display_name ? `<span style="font-size:11px;color:var(--text-faint);margin-left:5px;">(${escHtml(u.display_name)})</span>` : '';
+    const loc      = allLocations.find(l=>l.id===u.location_id);
+    const locTag   = loc ? `<div style="font-size:11px;color:var(--text-faint);">📍 ${escHtml(loc.name)}</div>` : '';
     return `
     <div class="user-row">
-      <div class="user-avatar">${letter}</div>
+      <div class="user-avatar" style="background:${roleBg[u.role]||'var(--b0)'};color:${roleColors[u.role]||'var(--text-muted)'};">${letter}</div>
       <div style="flex:1;min-width:0;">
-        <div style="font-size:14px;font-weight:600;color:var(--text);">${escHtml(name)}</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text);">${escHtml(fullName)}${dispTag}</div>
         <div style="font-size:12px;color:var(--text-faint);margin-top:1px;">${escHtml(u.email)}</div>
-        <div style="font-size:12px;color:var(--text-faint);">${escHtml(phone)}</div>
+        ${locTag}
       </div>
-      <div class="user-badge">Admin</div>
+      <select onchange="changeUserRole('${u.id}',this.value,this)" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:${roleColors[u.role]||'var(--text-muted)'};cursor:pointer;outline:none;flex-shrink:0;">
+        <option value="admin"    ${u.role==='admin'   ?'selected':''}>Admin</option>
+        <option value="owner"    ${u.role==='owner'   ?'selected':''}>Owner</option>
+        <option value="employee" ${u.role==='employee'?'selected':''}>Employee</option>
+      </select>
     </div>`;
   }).join('');
+}
+
+async function changeUserRole(userId, newRole, selectEl) {
+  const { error } = await sb.from('users').update({ role: newRole }).eq('id', userId);
+  if (error) {
+    showToast('Role change failed: '+error.message, 'error');
+    await loadAdmins();
+    return;
+  }
+  const u = allAdmins.find(x=>x.id===userId);
+  if (u) u.role = newRole;
+  renderAdmins();
+  showToast(`Role updated to ${newRole} ✓`, 'success');
 }
 
 // ── ADD LOCATION ──
