@@ -181,7 +181,7 @@
         <select class="row-input" id="d-otherrate"></select>
       </div>
       <div class="settings-row">
-        <div><div class="row-label">Merch Rate</div></div>
+        <div><div class="row-label">Merchandise Rate</div></div>
         <select class="row-input" id="d-merchrate"></select>
       </div>
       <div class="settings-row">
@@ -264,6 +264,7 @@
       <div class="modal-field"><label>Club Name</label><input type="text" id="el-name"/></div>
       <div class="modal-field"><label>Address</label><input type="text" id="el-address"/></div>
       <div class="modal-field"><label>Owner Name</label><input type="text" id="el-owner"/></div>
+      <div class="modal-field"><label>Owner Phone</label><input type="tel" id="el-phone" placeholder="(555) 000-0000"/></div>
     </div>
     <div class="modal-msg" id="el-msg"></div>
     <div class="modal-actions">
@@ -524,6 +525,7 @@ function openEditLocation(locId) {
   document.getElementById('el-name').value    = loc.name;
   document.getElementById('el-address').value = loc.address || '';
   document.getElementById('el-owner').value   = loc.owner_name || '';
+  document.getElementById('el-phone').value   = loc.owner_phone || '';
   clearModalMsg('el-msg');
   openModal('modal-editloc');
 }
@@ -532,6 +534,7 @@ async function submitEditLocation() {
   const name    = document.getElementById('el-name').value.trim();
   const address = document.getElementById('el-address').value.trim();
   const owner   = document.getElementById('el-owner').value.trim();
+  const phone   = document.getElementById('el-phone').value.trim();
   const btn     = document.getElementById('el-btn');
 
   if (!name) { showModalMsg('el-msg','error','Club name is required.'); return; }
@@ -540,7 +543,7 @@ async function submitEditLocation() {
   btn.innerHTML = '<span class="spinner"></span>Saving…';
 
   const { error } = await sb.from('locations').update({
-    name, address, owner_name: owner
+    name, address, owner_name: owner, owner_phone: phone
   }).eq('id', editingLocId);
 
   btn.disabled = false;
