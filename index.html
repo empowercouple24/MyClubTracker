@@ -413,14 +413,13 @@ async function verifyCode(){
     const{data:loc,error}=await sb.from('locations').select('id,name,invite_code').eq('invite_code',code).single();
     setBtnLoading('verify-btn',false,'Verify');
     if(error||!loc){showMsg('reg-step1-msg','Invalid invite code. Check with your admin.','error');return;}
-    // Check no owner already registered for this location
-    const{data:existing}=await sb.from('users').select('id').eq('location_id',loc.id).eq('role','owner');
-    if(existing&&existing.length>0){showMsg('reg-step1-msg','This location already has an owner account. Contact your admin.','error');return;}
+    // Allow multiple owners per location (spouse/business partner scenario)
     verifiedLocation={id:loc.id,name:loc.name,role:'owner'};
   } else {
     // Employee invite code lives in locations.settings.employeeInviteCode
-    const{data:locs}=await sb.from('locations').select('id,name,settings');
+    const{data:locs,error}=await sb.from('locations').select('id,name,settings');
     setBtnLoading('verify-btn',false,'Verify');
+    if(error){showMsg('reg-step1-msg','Could not verify code. Try again.','error');return;}
     const match=(locs||[]).find(l=>l.settings?.employeeInviteCode===code);
     if(!match){showMsg('reg-step1-msg','Invalid employee code. Ask your club owner to check the code in Settings.','error');return;}
     verifiedLocation={id:match.id,name:match.name,role:'employee'};
