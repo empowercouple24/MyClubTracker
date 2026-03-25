@@ -329,6 +329,22 @@
       <div class="modal-field"><label>Zip Code</label><input type="text" id="el-zip" placeholder="00000" maxlength="5" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5)"/></div>
       <div class="modal-field"><label>Owner Name</label><input type="text" id="el-owner"/></div>
       <div class="modal-field"><label>Owner Phone</label><input type="tel" id="el-phone" placeholder="(555) 000-0000" oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"/></div>
+      <div class="modal-field"><label>Owner Email</label><input type="email" id="el-email" placeholder="owner@example.com"/></div>
+      <!-- Second contact toggle -->
+      <div class="modal-field" style="padding:10px 0 4px;">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text-muted);text-transform:none;letter-spacing:0;">
+          <input type="checkbox" id="el-second-toggle" onchange="toggleSecondContact('el')" style="width:16px;height:16px;accent-color:var(--b5);cursor:pointer;"/>
+          Add / edit second contact
+        </label>
+      </div>
+      <div id="el-second-fields" style="display:none;background:var(--b0);border-radius:8px;padding:12px;margin-top:4px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);margin-bottom:10px;">Second Contact</div>
+        <div class="modal-field" style="margin-bottom:10px;"><label>Name</label><input type="text" id="el-owner2" placeholder="John Smith"/></div>
+        <div class="modal-field" style="margin-bottom:10px;"><label>Phone</label><input type="tel" id="el-phone2" placeholder="(555) 000-0000" oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"/></div>
+        <div class="modal-field" style="margin-bottom:0;"><label>Email</label><input type="email" id="el-email2" placeholder="partner@example.com"/>
+          <div style="font-size:11px;color:var(--b6);margin-top:4px;line-height:1.5;">They can register using the same invite code for full app access.</div>
+        </div>
+      </div>
     </div>
     <div class="modal-msg" id="el-msg"></div>
     <div class="modal-actions">
@@ -879,12 +895,18 @@ async function submitAddLocation() {
 }
 
 // ── EDIT LOCATION ──
+function toggleSecondContact(prefix){
+  const checked=document.getElementById(prefix+'-second-toggle').checked;
+  document.getElementById(prefix+'-second-fields').style.display=checked?'block':'none';
+}
+
 function openEditLocation(locId) {
   const loc = allLocations.find(l => l.id === locId);
   if (!loc) return;
   editingLocId = locId;
   document.getElementById('el-name').value  = loc.name;
   document.getElementById('el-owner').value = loc.owner_name || '';
+  document.getElementById('el-email').value = loc.settings?.ownerEmail || '';
   // Parse existing address into parts
   const parts = parseAddress(loc.address || '');
   document.getElementById('el-street').value = parts.street;
@@ -895,6 +917,22 @@ function openEditLocation(locId) {
   const phoneEl = document.getElementById('el-phone');
   phoneEl.value = loc.owner_phone || '';
   if (loc.owner_phone) fmtPhone(phoneEl);
+  // Second contact
+  const sc = loc.settings?.secondContact;
+  const hasSecond = !!(sc && (sc.name||sc.phone||sc.email));
+  document.getElementById('el-second-toggle').checked = hasSecond;
+  document.getElementById('el-second-fields').style.display = hasSecond ? 'block' : 'none';
+  if (sc) {
+    document.getElementById('el-owner2').value = sc.name  || '';
+    document.getElementById('el-email2').value = sc.email || '';
+    const phone2El = document.getElementById('el-phone2');
+    phone2El.value = sc.phone || '';
+    if (sc.phone) fmtPhone(phone2El);
+  } else {
+    document.getElementById('el-owner2').value = '';
+    document.getElementById('el-phone2').value = '';
+    document.getElementById('el-email2').value = '';
+  }
   clearModalMsg('el-msg');
   openModal('modal-editloc');
 }
@@ -907,6 +945,11 @@ async function submitEditLocation() {
   const zip    = document.getElementById('el-zip').value.trim();
   const owner  = document.getElementById('el-owner').value.trim();
   const phone  = document.getElementById('el-phone').value.trim();
+  const email  = document.getElementById('el-email').value.trim();
+  const hasSecond = document.getElementById('el-second-toggle').checked;
+  const owner2 = document.getElementById('el-owner2').value.trim();
+  const phone2 = document.getElementById('el-phone2').value.trim();
+  const email2 = document.getElementById('el-email2').value.trim();
   const btn    = document.getElementById('el-btn');
 
   if (!name) { showModalMsg('el-msg','error','Club name is required.'); return; }
@@ -916,8 +959,18 @@ async function submitEditLocation() {
 
   const address = buildAddress(street, city, state, zip);
 
+  // Merge into existing settings to preserve other fields (products, rates, etc.)
+  const loc = allLocations.find(l => l.id === editingLocId);
+  const settings = { ...(loc?.settings || {}) };
+  if (email) settings.ownerEmail = email; else delete settings.ownerEmail;
+  if (hasSecond && (owner2||phone2||email2)) {
+    settings.secondContact = { name: owner2, phone: phone2, email: email2 };
+  } else {
+    delete settings.secondContact;
+  }
+
   const { error } = await sb.from('locations').update({
-    name, address, owner_name: owner, owner_phone: phone
+    name, address, owner_name: owner, owner_phone: phone, settings
   }).eq('id', editingLocId);
 
   btn.disabled = false;
