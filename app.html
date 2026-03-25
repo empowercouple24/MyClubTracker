@@ -196,12 +196,38 @@
     .date-nav{display:flex;align-items:center;gap:7px;margin-bottom:10px}
     .date-nav input[type="date"]{flex:1;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;outline:none}
     .date-nav input[type="date"]:focus{border-color:var(--b5)}
+    /* HISTORY DETAIL MODAL */
+    .detail-overlay{position:fixed;inset:0;background:rgba(30,45,61,0.45);backdrop-filter:blur(4px);z-index:200;display:none;align-items:flex-end;justify-content:center}
+    .detail-overlay.open{display:flex}
+    .detail-sheet{background:var(--surface);border-radius:18px 18px 0 0;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;padding:0 0 40px;animation:sheetUp 0.3s cubic-bezier(0.16,1,0.3,1)}
+    @keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+    .detail-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0}
+    .detail-header{padding:14px 16px 10px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .detail-date{font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;color:var(--text)}
+    .detail-total{font-family:'Outfit',sans-serif;font-size:20px;font-weight:800;color:var(--g5)}
+    .detail-section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-faint);padding:10px 16px 4px}
+    .detail-row{display:flex;justify-content:space-between;align-items:center;padding:6px 16px;border-bottom:1px solid var(--border-light)}
+    .detail-row:last-child{border-bottom:none}
+    .detail-row-label{font-size:13px;color:var(--text-muted)}
+    .detail-row-val{font-size:13px;font-weight:600;color:var(--text)}
+    .detail-row-val.green{color:var(--g5)}
+    .detail-row-val.dim{color:var(--text-faint);font-weight:400}
+    .detail-summary-box{margin:10px 16px;background:linear-gradient(135deg,var(--b8),var(--b7));border-radius:var(--radius);padding:12px 14px;color:white}
+    .detail-summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 10px}
+    .detail-summary-item-label{font-size:9px;opacity:0.55;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:1px}
+    .detail-summary-item-val{font-family:'Outfit',sans-serif;font-size:15px;font-weight:700;letter-spacing:-0.2px}
+    .detail-summary-item-val.hl{color:#7de88a}
+    .detail-notes-box{margin:0 16px;background:var(--b0);border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;color:var(--text-muted);line-height:1.5;white-space:pre-wrap}
+    .detail-footer{padding:14px 16px 0;display:flex;gap:8px}
+    /* Admin edit banner */
+    .admin-edit-banner{background:linear-gradient(135deg,var(--a6),var(--a4));color:white;font-size:11px;font-weight:700;text-align:center;padding:5px 12px;letter-spacing:0.3px;display:none}
+    .admin-edit-banner.show{display:block}
     .admin-location-banner{background:var(--b8);color:white;font-size:11px;font-weight:600;text-align:center;padding:4px 12px;letter-spacing:0.3px}
-  </style>
 </head>
 <body>
 
 <div id="loading-overlay"><div class="load-spinner"></div><div class="load-text" id="load-text">Loading…</div></div>
+<div class="admin-edit-banner" id="admin-edit-banner">⚠ Admin Edit Mode — changes will be saved to this location's data</div>
 <div class="admin-location-banner" id="admin-banner" style="display:none;"></div>
 
 <nav class="topnav">
@@ -385,6 +411,76 @@
   <div id="payouts-body"></div>
 </div>
 </div><!-- /content-area -->
+
+<!-- HISTORY DETAIL MODAL -->
+<div class="detail-overlay" id="detail-overlay" onclick="closeDetailOnBg(event)">
+  <div class="detail-sheet">
+    <div class="detail-handle"></div>
+    <div class="detail-header">
+      <div class="detail-date" id="detail-date"></div>
+      <div class="detail-total" id="detail-total"></div>
+    </div>
+    <!-- Summary box -->
+    <div class="detail-summary-box">
+      <div class="detail-summary-grid">
+        <div><div class="detail-summary-item-label">Total Sales</div><div class="detail-summary-item-val hl" id="ds-sales"></div></div>
+        <div><div class="detail-summary-item-label">DV</div><div class="detail-summary-item-val" id="ds-dv"></div></div>
+        <div><div class="detail-summary-item-label">$/DV</div><div class="detail-summary-item-val" id="ds-perdv"></div></div>
+        <div><div class="detail-summary-item-label">Tax</div><div class="detail-summary-item-val" id="ds-tax"></div></div>
+        <div><div class="detail-summary-item-label">Overhead</div><div class="detail-summary-item-val" id="ds-oh"></div></div>
+        <div><div class="detail-summary-item-label">Payouts</div><div class="detail-summary-item-val hl" id="ds-payouts"></div></div>
+      </div>
+    </div>
+    <!-- Sales fields -->
+    <div class="detail-section-label">Sales</div>
+    <div class="card" style="margin:0 16px;">
+      <div class="detail-row"><span class="detail-row-label">Cash Sales</span><span class="detail-row-val" id="df-cashSales"></span></div>
+      <div class="detail-row"><span class="detail-row-label">Card Sales</span><span class="detail-row-val" id="df-cardSales"></span></div>
+      <div class="detail-row"><span class="detail-row-label">Card Fees</span><span class="detail-row-val" id="df-cardFees"></span></div>
+      <div class="detail-row"><span class="detail-row-label">Gift Card Redeemed</span><span class="detail-row-val" id="df-giftCardRedeemed"></span></div>
+      <div class="detail-row"><span class="detail-row-label">CashApp Pay (QR)</span><span class="detail-row-val" id="df-cashAppPay"></span></div>
+      <div class="detail-row"><span class="detail-row-label">Venmo/CashApp (App)</span><span class="detail-row-val" id="df-venmo"></span></div>
+      <div class="detail-row"><span class="detail-row-label">Other Sales</span><span class="detail-row-val" id="df-otherSales"></span></div>
+      <div class="detail-row"><span class="detail-row-label">Merchandise</span><span class="detail-row-val" id="df-merchSales"></span></div>
+      <div class="detail-row"><span class="detail-row-label">Gift Card Sales</span><span class="detail-row-val" id="df-giftCardSales"></span></div>
+      <div class="detail-row"><span class="detail-row-label">Gift Card Load Fees</span><span class="detail-row-val" id="df-giftCardLoadFees"></span></div>
+    </div>
+    <!-- Fundraiser -->
+    <div class="detail-section-label">Fundraiser</div>
+    <div class="card" style="margin:0 16px;">
+      <div class="detail-row"><span class="detail-row-label">Cash Donations</span><span class="detail-row-val" id="df-fundraiserCash"></span></div>
+      <div class="detail-row"><span class="detail-row-label">Card Donations</span><span class="detail-row-val" id="df-fundraiserCard"></span></div>
+      <div class="detail-row"><span class="detail-row-label">Donation %</span><span class="detail-row-val" id="df-fundraiserPct"></span></div>
+    </div>
+    <!-- Breakdown -->
+    <div class="detail-section-label">Breakdown</div>
+    <div class="card" style="margin:0 16px;">
+      <div class="detail-row"><span class="detail-row-label">Card Deposits</span><span class="detail-row-val" id="df-cardDeposits"></span></div>
+      <div class="detail-row"><span class="detail-row-label">Total Sales</span><span class="detail-row-val green" id="df-totalSales"></span></div>
+      <div class="detail-row"><span class="detail-row-label">Tax</span><span class="detail-row-val" id="df-tax"></span></div>
+      <div class="detail-row"><span class="detail-row-label">Overhead</span><span class="detail-row-val" id="df-overhead"></span></div>
+      <div class="detail-row"><span class="detail-row-label">Donation</span><span class="detail-row-val" id="df-donation"></span></div>
+      <div class="detail-row"><span class="detail-row-label">Products</span><span class="detail-row-val" id="df-products"></span></div>
+      <div class="detail-row"><span class="detail-row-label">Payouts</span><span class="detail-row-val green" id="df-payouts"></span></div>
+    </div>
+    <!-- Operators -->
+    <div class="detail-section-label">Operators</div>
+    <div class="card" style="margin:0 16px;">
+      <div class="detail-row"><span class="detail-row-label">Operator 1</span><span class="detail-row-val" id="df-op1"></span></div>
+      <div class="detail-row"><span class="detail-row-label">Operator 2</span><span class="detail-row-val" id="df-op2"></span></div>
+    </div>
+    <!-- Notes -->
+    <div id="df-notes-section" style="display:none;">
+      <div class="detail-section-label">Notes</div>
+      <div class="detail-notes-box" id="df-notes"></div>
+    </div>
+    <!-- Footer -->
+    <div class="detail-footer">
+      <button class="btn btn-primary btn-full" id="detail-edit-btn" onclick="editFromDetail()">✏️ Edit This Day</button>
+      <button class="btn btn-ghost" onclick="closeDetail()" style="flex-shrink:0;">Close</button>
+    </div>
+  </div>
+</div>
 
 <!-- SETTINGS MODAL -->
 <div class="modal-overlay" id="settings-modal" onclick="closeSettingsOnBg(event)">
@@ -627,8 +723,12 @@ function init(){
     document.getElementById('nav-back-btn').style.display='block';
     document.getElementById('nav-signout-btn').style.display='none';
     const bn=document.getElementById('admin-banner');bn.style.display='block';bn.textContent='Admin View: '+(loc?.name||LOCATION_ID);
+    document.getElementById('admin-edit-banner').classList.add('show');
     document.getElementById('nav-settings-btn').style.display='block';
     document.getElementById('settings-modal-title').textContent='Settings — '+(loc?.name||'Location');
+    // Change Save button to amber to signal admin edit mode
+    const saveBtn=document.querySelector('button[onclick="saveDay()"]');
+    if(saveBtn){saveBtn.style.background='linear-gradient(135deg,var(--a6),var(--a4))';saveBtn.textContent='Save (Admin)';}
   }
   const{data:days}=await sb.from('days').select('id,date,data').eq('location_id',LOCATION_ID).order('date',{ascending:false});
   ALL_DAYS=days||[];
@@ -728,16 +828,17 @@ function loadDay(){
 }
 
 async function saveDay(){
-  if(IS_ADMIN_VIEW){showToast('Admin view — cannot save','error');return;}
   const date=document.getElementById('entry-date').value;
   if(!date){showToast('Please set a date','error');return;}
   const c=calcAll();
   const data={cashSales:pv('f-cashSales'),cardSales:pv('f-cardSales'),cardFees:pv('f-cardFees'),giftCardRedeemed:pv('f-giftCardRedeemed'),cashAppPay:pv('f-cashAppPay'),venmo:pv('f-venmo'),otherSales:pv('f-otherSales'),merchSales:pv('f-merchSales'),giftCardSales:pv('f-giftCardSales'),giftCardLoadFees:pv('f-giftCardLoadFees'),fundraiserCash:pv('f-fundraiserCash'),fundraiserCard:pv('f-fundraiserCard'),fundraiserPct:pv('f-fundraiserPct'),dv:pv('f-dv'),notes:document.getElementById('f-notes')?.value||'',op1:document.getElementById('f-op1')?.value||'',op2:document.getElementById('f-op2')?.value||'',totalSales:c.totalSales||0,overhead:c.overhead||0,taxes:c.tax||0,products:c.products||0,payouts:c.payouts||0,donation:c.donation||0,perDV:c.perDV||0};
+  if(IS_ADMIN_VIEW) data._adminEdit=new Date().toISOString(); // stamp when admin last edited
   const ex=ALL_DAYS.find(d=>d.date===date);let error;
   if(ex){const{error:e}=await sb.from('days').update({data}).eq('id',ex.id);error=e;if(!e)ex.data=data;}
   else{const{data:nr,error:e}=await sb.from('days').insert({location_id:LOCATION_ID,date,data}).select().single();error=e;if(!e&&nr)ALL_DAYS.unshift(nr);}
   if(error){showToast('Save failed: '+error.message,'error');return;}
-  showToast('Day saved ✓','success');renderHistory();renderProjections();renderPayouts();
+  showToast(IS_ADMIN_VIEW?'Saved (Admin Edit) ✓':'Day saved ✓','success');
+  renderHistory();renderProjections();renderPayouts();
 }
 
 function renderHistory(){
@@ -745,10 +846,92 @@ function renderHistory(){
   if(!ALL_DAYS.length){el.innerHTML='<div class="empty-state">No entries yet.</div>';return;}
   el.innerHTML=ALL_DAYS.map(d=>{
     const data=d.data||{},dt=new Date(d.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'}),ops=[data.op1,data.op2].filter(Boolean).join(', ');
-    return`<div class="history-card" onclick="navToDate('${d.date}')"><div class="hcard-top"><div class="hcard-date">${dt}</div><div class="hcard-sales">${fmt$(data.totalSales||0)}</div></div><div class="hcard-row"><span class="hcard-pill">DV: ${fmtN(data.dv||0)}</span><span class="hcard-pill">$/DV: ${data.dv?fmt$(data.perDV||0):'—'}</span><span class="hcard-pill">OH: ${fmt$(data.overhead||0)}</span>${ops?`<span class="hcard-pill">${ops}</span>`:''}${data.notes?'<span class="hcard-pill">📝</span>':''}</div></div>`;
+    const adminTag=data._adminEdit?'<span class="hcard-pill" style="background:var(--a1);color:var(--a6);">Admin edit</span>':'';
+    return`<div class="history-card" onclick="openDetail('${d.date}')"><div class="hcard-top"><div class="hcard-date">${dt}</div><div class="hcard-sales">${fmt$(data.totalSales||0)}</div></div><div class="hcard-row"><span class="hcard-pill">DV: ${fmtN(data.dv||0)}</span><span class="hcard-pill">$/DV: ${data.dv?fmt$(data.perDV||0):'—'}</span><span class="hcard-pill">OH: ${fmt$(data.overhead||0)}</span>${ops?`<span class="hcard-pill">${ops}</span>`:''}${data.notes?'<span class="hcard-pill">📝</span>':''}${adminTag}</div></div>`;
   }).join('');
 }
 function navToDate(d){document.getElementById('entry-date').value=d;loadDay();switchTab('enter');document.querySelector('.content-area').scrollTo({top:0,behavior:'smooth'});}
+
+let _detailDate=null;
+function openDetail(date){
+  _detailDate=date;
+  const day=ALL_DAYS.find(d=>d.date===date);
+  if(!day)return;
+  const d=day.data||{};
+  const dt=new Date(date+'T00:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  document.getElementById('detail-date').textContent=dt;
+  document.getElementById('detail-total').textContent=fmt$(d.totalSales||0);
+
+  // Summary box
+  setText('ds-sales', fmt$(d.totalSales||0));
+  setText('ds-dv',    fmtN(d.dv||0));
+  setText('ds-perdv', d.dv?fmt$(d.perDV||0):'—');
+  setText('ds-tax',   fmt$(d.taxes||0));
+  setText('ds-oh',    fmt$(d.overhead||0));
+  setText('ds-payouts',fmt$(d.payouts||0));
+
+  // Sales fields — show $0.00 for zeros, dim if empty
+  const sfmt=(v)=>v?fmt$(v):`<span class="detail-row-val dim">—</span>`;
+  document.getElementById('df-cashSales').innerHTML       = fmt$(d.cashSales||0);
+  document.getElementById('df-cardSales').innerHTML       = fmt$(d.cardSales||0);
+  document.getElementById('df-cardFees').innerHTML        = fmt$(d.cardFees||0);
+  document.getElementById('df-giftCardRedeemed').innerHTML= sfmt(d.giftCardRedeemed);
+  document.getElementById('df-cashAppPay').innerHTML      = sfmt(d.cashAppPay);
+  document.getElementById('df-venmo').innerHTML           = sfmt(d.venmo);
+  document.getElementById('df-otherSales').innerHTML      = sfmt(d.otherSales);
+  document.getElementById('df-merchSales').innerHTML      = sfmt(d.merchSales);
+  document.getElementById('df-giftCardSales').innerHTML   = sfmt(d.giftCardSales);
+  document.getElementById('df-giftCardLoadFees').innerHTML= sfmt(d.giftCardLoadFees);
+
+  // Fundraiser
+  document.getElementById('df-fundraiserCash').innerHTML  = sfmt(d.fundraiserCash);
+  document.getElementById('df-fundraiserCard').innerHTML  = sfmt(d.fundraiserCard);
+  document.getElementById('df-fundraiserPct').innerHTML   = d.fundraiserPct?`${d.fundraiserPct}%`:`<span class="detail-row-val dim">—</span>`;
+
+  // Breakdown (recalculate from stored data for accuracy)
+  const taxRate=(SETTINGS.taxRate||1.25)/100,ohRate=(SETTINGS.ohRate||32)/100;
+  const otherRate=(SETTINGS.otherRate||50)/100,merchRate=(SETTINGS.merchRate||100)/100,dvDelta=(SETTINGS.dvDelta||3)/100;
+  const cs=d.cashSales||0,cas=d.cardSales||0,cf=d.cardFees||0,cap=d.cashAppPay||0,vm=d.venmo||0;
+  const gcSales=d.giftCardSales||0,gcFees=d.giftCardLoadFees||0,os=d.otherSales||0,ms=d.merchSales||0;
+  const fCash=d.fundraiserCash||0,fCard=d.fundraiserCard||0,fPct=d.fundraiserPct||0,dv=d.dv||0;
+  const cardDep=cas-cf+cap-gcFees;
+  const totalS=cs+vm+fCash+cardDep;
+  const netS=totalS-fCard-fCash;
+  const tax=(totalS+vm-fCard-fCash)*taxRate;
+  const ohBase=totalS-os-ms-gcSales-fCard-fCash;
+  const ohRaw=ohBase*ohRate+(ms+gcSales)*merchRate+os*otherRate;
+  const don=fPct>0?netS*(fPct/100):0;
+  const oh=ohRaw-don;
+  const prod=dv*(dvDelta+1);
+  const pay=totalS-fCard-fCash-tax-oh-prod;
+
+  document.getElementById('df-cardDeposits').textContent = fmt$(cardDep);
+  document.getElementById('df-totalSales').textContent   = fmt$(totalS);
+  document.getElementById('df-tax').textContent          = fmt$(tax);
+  document.getElementById('df-overhead').textContent     = fmt$(oh);
+  document.getElementById('df-donation').textContent     = don>0?fmt$(don):'—';
+  document.getElementById('df-products').textContent     = fmt$(prod);
+  document.getElementById('df-payouts').textContent      = fmt$(pay);
+
+  // Operators
+  document.getElementById('df-op1').innerHTML = d.op1||`<span class="detail-row-val dim">—</span>`;
+  document.getElementById('df-op2').innerHTML = d.op2||`<span class="detail-row-val dim">—</span>`;
+
+  // Notes
+  const notesSec=document.getElementById('df-notes-section');
+  if(d.notes&&d.notes.trim()){notesSec.style.display='block';document.getElementById('df-notes').textContent=d.notes;}
+  else{notesSec.style.display='none';}
+
+  // Edit button — employees cannot edit
+  const editBtn=document.getElementById('detail-edit-btn');
+  if(USER_ROLE==='employee'){editBtn.style.display='none';}
+  else{editBtn.style.display='block';}
+
+  document.getElementById('detail-overlay').classList.add('open');
+}
+function closeDetail(){document.getElementById('detail-overlay').classList.remove('open');}
+function closeDetailOnBg(e){if(e.target===document.getElementById('detail-overlay'))closeDetail();}
+function editFromDetail(){closeDetail();if(_detailDate)navToDate(_detailDate);}
 
 function renderProjections(){
   const op=parseInt(document.getElementById('proj-opdays')?.value)||26,now=new Date(),y=now.getFullYear(),m=now.getMonth();
