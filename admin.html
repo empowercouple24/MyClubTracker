@@ -232,6 +232,22 @@
       <div class="modal-field"><label>Zip Code</label><input type="text" id="nl-zip" placeholder="00000" maxlength="5" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5)"/></div>
       <div class="modal-field"><label>Owner Name</label><input type="text" id="nl-owner" placeholder="Jane Smith"/></div>
       <div class="modal-field"><label>Owner Phone</label><input type="tel" id="nl-phone" placeholder="(555) 000-0000" oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"/></div>
+      <div class="modal-field"><label>Owner Email</label><input type="email" id="nl-email" placeholder="owner@example.com"/></div>
+      <!-- Second contact toggle -->
+      <div class="modal-field" style="padding:10px 0 4px;">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text-muted);text-transform:none;letter-spacing:0;">
+          <input type="checkbox" id="nl-second-toggle" onchange="toggleSecondContact('nl')" style="width:16px;height:16px;accent-color:var(--b6);cursor:pointer;"/>
+          Add a second contact (spouse / business partner)
+        </label>
+      </div>
+      <div id="nl-second-fields" style="display:none;background:var(--b0);border-radius:8px;padding:12px;margin-top:4px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);margin-bottom:10px;">Second Contact</div>
+        <div class="modal-field" style="margin-bottom:10px;"><label>Name</label><input type="text" id="nl-owner2" placeholder="John Smith"/></div>
+        <div class="modal-field" style="margin-bottom:10px;"><label>Phone</label><input type="tel" id="nl-phone2" placeholder="(555) 000-0000" oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"/></div>
+        <div class="modal-field" style="margin-bottom:0;"><label>Email</label><input type="email" id="nl-email2" placeholder="partner@example.com"/>
+          <div style="font-size:11px;color:var(--b6);margin-top:4px;line-height:1.5;">They can register using the same invite code for full app access.</div>
+        </div>
+      </div>
       <div class="modal-field">
         <label>Invite Code</label>
         <div class="modal-invite-row">
@@ -253,6 +269,13 @@
         <div class="confirm-row"><span class="confirm-label">Address</span><span class="confirm-val" id="cr-addr"></span></div>
         <div class="confirm-row"><span class="confirm-label">Owner</span><span class="confirm-val" id="cr-owner"></span></div>
         <div class="confirm-row"><span class="confirm-label">Phone</span><span class="confirm-val" id="cr-phone"></span></div>
+        <div class="confirm-row"><span class="confirm-label">Email</span><span class="confirm-val" id="cr-email"></span></div>
+        <div id="cr-second-block" style="display:none;">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);padding:8px 0 4px;border-top:1px dashed var(--border-light);margin-top:4px;">Second Contact</div>
+          <div class="confirm-row"><span class="confirm-label">Name</span><span class="confirm-val" id="cr-owner2"></span></div>
+          <div class="confirm-row"><span class="confirm-label">Phone</span><span class="confirm-val" id="cr-phone2"></span></div>
+          <div class="confirm-row"><span class="confirm-label">Email</span><span class="confirm-val" id="cr-email2"></span></div>
+        </div>
         <div class="confirm-row"><span class="confirm-label">Invite Code</span><span class="confirm-val" id="cr-code" style="font-family:monospace;font-size:15px;font-weight:700;color:var(--b7);letter-spacing:2px;"></span></div>
       </div>
       <div style="background:var(--b1);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--b7);line-height:1.6;margin-bottom:16px;">
@@ -485,11 +508,21 @@ function renderLocations(){
 
     const missingBox=missing.length>0?`<div class="missing-box"><div class="missing-box-title">Missing Submissions (last 7 days)</div>${missing.map(d=>`<div class="missing-box-day">${new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}</div>`).join('')}</div>`:'';
     const ownerPhone=loc.owner_phone?`<div class="owner-strip-item">📞 <a href="tel:${escHtml(loc.owner_phone)}">${escHtml(loc.owner_phone)}</a></div>`:'';
-    const ownerStrip=(loc.owner_name||loc.owner_phone||loc.address)?`
+    const ownerEmail=loc.settings?.ownerEmail?`<div class="owner-strip-item">✉️ <a href="mailto:${escHtml(loc.settings.ownerEmail)}">${escHtml(loc.settings.ownerEmail)}</a></div>`:'';
+    const sc=loc.settings?.secondContact;
+    const secondContactStrip=sc?(
+      `<div style="width:100%;border-top:1px dashed var(--border-light);margin:6px 0 2px;"></div>`+
+      (sc.name?`<div class="owner-strip-item">👤 <strong>${escHtml(sc.name)}</strong> <span style="font-size:11px;color:var(--text-faint);margin-left:4px;">2nd contact</span></div>`:'')+
+      (sc.phone?`<div class="owner-strip-item">📞 <a href="tel:${escHtml(sc.phone)}">${escHtml(sc.phone)}</a></div>`:'')+
+      (sc.email?`<div class="owner-strip-item">✉️ <a href="mailto:${escHtml(sc.email)}">${escHtml(sc.email)}</a></div>`:'')
+    ):'';
+    const ownerStrip=(loc.owner_name||loc.owner_phone||loc.settings?.ownerEmail||loc.address||sc)?`
       <div class="owner-strip">
         ${loc.owner_name?`<div class="owner-strip-item">👤 <strong>${escHtml(loc.owner_name)}</strong></div>`:''}
         ${ownerPhone}
+        ${ownerEmail}
         ${loc.address?`<div class="owner-strip-item">📍 ${escHtml(loc.address)}</div>`:''}
+        ${secondContactStrip}
       </div>`:'';
 
     return`<div class="loc-card" id="lc-${loc.id}">
@@ -528,6 +561,11 @@ function renderLocations(){
 
 function toggleCard(id){document.getElementById('lc-'+id).classList.toggle('expanded');}
 
+function toggleSecondContact(prefix){
+  const checked=document.getElementById(prefix+'-second-toggle').checked;
+  document.getElementById(prefix+'-second-fields').style.display=checked?'block':'none';
+}
+
 // ADD LOCATION — form + confirm flow
 function openAddLocation(){
   document.getElementById('nl-name').value='';
@@ -536,11 +574,16 @@ function openAddLocation(){
   document.getElementById('nl-zip').value='';
   document.getElementById('nl-owner').value='';
   document.getElementById('nl-phone').value='';
+  document.getElementById('nl-email').value='';
+  document.getElementById('nl-owner2').value='';
+  document.getElementById('nl-phone2').value='';
+  document.getElementById('nl-email2').value='';
+  document.getElementById('nl-second-toggle').checked=false;
+  document.getElementById('nl-second-fields').style.display='none';
   populateStateSelect('nl-state','');
   generateCode();
   document.getElementById('nl-error').classList.remove('show');
   document.getElementById('nl-confirm-error').classList.remove('show');
-  // Show form panel, hide confirm panel
   document.getElementById('nl-form-panel').classList.remove('hide');
   document.getElementById('nl-confirm-panel').classList.remove('show');
   document.getElementById('add-loc-modal').classList.add('open');
@@ -561,13 +604,25 @@ function reviewLocation(){
   const addr=addrParts.join(', ');
   const owner=document.getElementById('nl-owner').value.trim();
   const phone=document.getElementById('nl-phone').value.trim();
+  const email=document.getElementById('nl-email').value.trim();
+  const hasSecond=document.getElementById('nl-second-toggle').checked;
+  const owner2=document.getElementById('nl-owner2').value.trim();
+  const phone2=document.getElementById('nl-phone2').value.trim();
+  const email2=document.getElementById('nl-email2').value.trim();
   // Populate confirm panel
   document.getElementById('cr-name').textContent=name;
   document.getElementById('cr-addr').textContent=addr||'—';
   document.getElementById('cr-owner').textContent=owner||'—';
   document.getElementById('cr-phone').textContent=phone||'—';
+  document.getElementById('cr-email').textContent=email||'—';
+  const secBlock=document.getElementById('cr-second-block');
+  if(hasSecond&&(owner2||phone2||email2)){
+    secBlock.style.display='block';
+    document.getElementById('cr-owner2').textContent=owner2||'—';
+    document.getElementById('cr-phone2').textContent=phone2||'—';
+    document.getElementById('cr-email2').textContent=email2||'—';
+  } else { secBlock.style.display='none'; }
   document.getElementById('cr-code').textContent=code;
-  // Swap panels
   document.getElementById('nl-form-panel').classList.add('hide');
   document.getElementById('nl-confirm-panel').classList.add('show');
 }
@@ -585,14 +640,25 @@ async function addLocation(){
   const zip=document.getElementById('nl-zip').value.trim();
   const owner=document.getElementById('nl-owner').value.trim();
   const phone=document.getElementById('nl-phone').value.trim();
+  const email=document.getElementById('nl-email').value.trim();
+  const hasSecond=document.getElementById('nl-second-toggle').checked;
+  const owner2=document.getElementById('nl-owner2').value.trim();
+  const phone2=document.getElementById('nl-phone2').value.trim();
+  const email2=document.getElementById('nl-email2').value.trim();
   const code=document.getElementById('nl-code').value.trim().toUpperCase();
   const errEl=document.getElementById('nl-confirm-error');
   errEl.classList.remove('show');
   const addrParts=[street,city?`${city}${state?', '+state:''}${zip?' '+zip:''}`:'']. filter(Boolean);
   const address=addrParts.join(', ');
+  // Build settings — store owner email and optional second contact
+  const settings={};
+  if(email) settings.ownerEmail=email;
+  if(hasSecond&&(owner2||phone2||email2)){
+    settings.secondContact={name:owner2,phone:phone2,email:email2};
+  }
   const btn=document.getElementById('nl-add-btn');
   btn.disabled=true;btn.textContent='Adding…';
-  const{data,error}=await sb.from('locations').insert({name,address,owner_name:owner,owner_phone:phone,invite_code:code,settings:{}}).select().single();
+  const{data,error}=await sb.from('locations').insert({name,address,owner_name:owner,owner_phone:phone,invite_code:code,settings}).select().single();
   btn.disabled=false;btn.textContent='✓ Add Location';
   if(error){errEl.textContent=error.message;errEl.classList.add('show');return;}
   allLocations.push(data);allLocations.sort((a,b)=>a.name.localeCompare(b.name));
