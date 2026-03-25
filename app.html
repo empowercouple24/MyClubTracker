@@ -693,8 +693,8 @@ function init(){
   // Check if this is a post-confirmation redirect (token in URL hash)
   const hash=window.location.hash;
   if(hash&&(hash.includes('access_token')||hash.includes('type=signup'))){
-    // Clear the hash and redirect cleanly to sign-in
-    window.location.href='index.html';
+    // Clear the hash and redirect cleanly to sign-in with confirmed message
+    window.location.href='index.html?msg=confirmed';
     return;
   }
 
