@@ -207,8 +207,10 @@
       <div id="reg-step-2" style="display:none;">
         <div class="msg info show" id="reg-location-name" style="margin-bottom:16px;font-weight:600;"></div>
         <div class="field">
-          <label>Your Full Name</label>
-          <input type="text" id="reg-name" placeholder="Jane Smith" autocomplete="name"/>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div class="field"><label>First Name</label><input type="text" id="reg-firstname" placeholder="Jane" autocomplete="given-name"/></div>
+            <div class="field"><label>Last Name</label><input type="text" id="reg-lastname" placeholder="Smith" autocomplete="family-name"/></div>
+          </div>
         </div>
         <div class="field">
           <label>Phone Number</label>
@@ -291,7 +293,10 @@
           <div><label>State</label><select id="req-state" style="width:100%;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 8px;outline:none;-webkit-appearance:auto;"></select></div>
         </div>
         <div class="field"><label>Zip Code</label><input type="text" id="req-zip" placeholder="00000" maxlength="5" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5)"/></div>
-        <div class="field"><label>Your Name</label><input type="text" id="req-name" placeholder="Jane Smith"/></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div class="field"><label>First Name</label><input type="text" id="req-firstname" placeholder="Jane" style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;outline:none;box-sizing:border-box;"/></div>
+          <div class="field"><label>Last Name</label><input type="text" id="req-lastname" placeholder="Smith" style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;outline:none;box-sizing:border-box;"/></div>
+        </div>
         <div class="field"><label>Phone</label><input type="tel" id="req-phone" placeholder="(555) 000-0000" oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"/></div>
         <div class="field"><label>Email</label><input type="email" id="req-email" placeholder="you@example.com"/></div>
         <div class="field"><label>Notes</label><textarea id="req-notes" placeholder="Tell us about your club, location, and Herbalife background..." style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;outline:none;resize:vertical;min-height:72px;box-sizing:border-box;"></textarea></div>
@@ -506,22 +511,25 @@ async function submitLocationRequest(){
   const city  = document.getElementById('req-city').value.trim();
   const state = document.getElementById('req-state').value;
   const zip   = document.getElementById('req-zip').value.trim();
-  const name  = document.getElementById('req-name').value.trim();
+  const firstName = document.getElementById('req-firstname').value.trim();
+  const lastName  = document.getElementById('req-lastname').value.trim();
+  const name  = [firstName,lastName].filter(Boolean).join(' ');
   const phone = document.getElementById('req-phone').value.trim();
   const email = document.getElementById('req-email').value.trim();
   const notes = document.getElementById('req-notes').value.trim();
 
   // Validate all required fields
   const missing=[];
-  if(!club)   missing.push('Club Name');
-  if(!street) missing.push('Street Address');
-  if(!city)   missing.push('City');
-  if(!state)  missing.push('State');
-  if(!zip)    missing.push('Zip Code');
-  if(!name)   missing.push('Your Name');
+  if(!club)       missing.push('Club Name');
+  if(!street)     missing.push('Street Address');
+  if(!city)       missing.push('City');
+  if(!state)      missing.push('State');
+  if(!zip)        missing.push('Zip Code');
+  if(!firstName)  missing.push('First Name');
+  if(!lastName)   missing.push('Last Name');
   if(!phone||phone.replace(/\D/g,'').length<10) missing.push('Phone (10 digits)');
   if(!email||!email.includes('@')) missing.push('Valid Email');
-  if(!notes)  missing.push('Notes');
+  if(!notes)      missing.push('Notes');
 
   if(missing.length){
     showMsg('req-form-msg','Please fill in all required fields: '+missing.join(', '), 'error');
@@ -667,13 +675,15 @@ function backToStep1(){
 
 // ── REGISTER STEP 2: Create Account ──
 async function register(){
-  const name=document.getElementById('reg-name').value.trim();
+  const firstName=document.getElementById('reg-firstname').value.trim();
+  const lastName=document.getElementById('reg-lastname').value.trim();
+  const name=[firstName,lastName].filter(Boolean).join(' ');
   const phone=document.getElementById('reg-phone').value.trim();
   const email=document.getElementById('reg-email').value.trim();
   const pw=document.getElementById('reg-password').value;
   const pw2=document.getElementById('reg-password2').value;
 
-  if(!name){showMsg('reg-step2-msg','Please enter your full name.','error');return;}
+  if(!firstName||!lastName){showMsg('reg-step2-msg','Please enter your first and last name.','error');return;}
   if(!email){showMsg('reg-step2-msg','Please enter your email.','error');return;}
   if(!pw||pw.length<6){showMsg('reg-step2-msg','Password must be at least 6 characters.','error');return;}
   if(pw!==pw2){showMsg('reg-step2-msg','Passwords do not match.','error');return;}
@@ -710,7 +720,7 @@ async function register(){
     phone:        phone||null,
   },{onConflict:'id',ignoreDuplicates:false});
 
-  const displayName=name.split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join(' ');
+  const displayName=[firstName,lastName].map(w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join(' ');
   // 3. Show success regardless — trigger or upsert will have handled the row
   setBtnLoading('reg-btn',false,'Create Account');
   document.getElementById('reg-step-2').style.display='none';
