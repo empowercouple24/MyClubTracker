@@ -259,16 +259,27 @@ const DEFAULT_PRODUCTS=[
   ["Other","Wild Berry","3108",36.03,1],["Other","Iced Coffee - Macchiato","216K",35.26,1],
 ];
 
-let LOCATION_ID=null,IS_ADMIN=false,SETTINGS={},products=[],unsaved=false,dragSrcIdx=null,dragSrcCat=null;
+let LOCATION_ID=null,IS_ADMIN=false,IS_GLOBAL=false,SETTINGS={},products=[],unsaved=false,dragSrcIdx=null,dragSrcCat=null;
 
 async function init(){
   const{data:{session}}=await sb.auth.getSession();
   if(!session){window.location.href='index.html';return;}
   const params=new URLSearchParams(window.location.search);
   IS_ADMIN=params.get('admin')==='1';
+  IS_GLOBAL=params.get('mode')==='global';
+
+  if(IS_GLOBAL){
+    // Global master list edit mode — load from sessionStorage (passed from admin-settings)
+    document.getElementById('nav-title').textContent='Global Default Products';
+    const stored=sessionStorage.getItem('globalProductsEdit');
+    products=stored?JSON.parse(stored):DEFAULT_PRODUCTS.map(p=>[...p]);
+    buildCatFilter();renderAll();
+    document.getElementById('loading-overlay').classList.add('hidden');
+    return;
+  }
+
   LOCATION_ID=params.get('location_id');
   if(!LOCATION_ID){
-    // fall back to user's location
     const{data:u}=await sb.from('users').select('location_id,role').eq('id',session.user.id).single();
     if(!u){window.location.href='index.html';return;}
     if(u.role==='admin'&&!LOCATION_ID){window.location.href='admin.html';return;}
@@ -279,7 +290,6 @@ async function init(){
     SETTINGS=loc.settings||{};
     document.getElementById('nav-title').textContent=`Products — ${loc.name}`;
   }
-  // Load products: use customProducts if set, else defaults
   products=(SETTINGS.customProducts&&SETTINGS.customProducts.length>0)
     ?SETTINGS.customProducts.map(p=>[...p])
     :DEFAULT_PRODUCTS.map(p=>[...p]);
@@ -437,6 +447,17 @@ function resetToDefaults(){
 
 // ── SAVE ──
 async function saveProducts(){
+  if(IS_GLOBAL){
+    // Save global master list to admin's user metadata via Supabase auth
+    const{error}=await sb.auth.updateUser({data:{globalProducts:products}});
+    if(error){showToast('Save failed: '+error.message,'error');return;}
+    // Also update sessionStorage so admin-settings page can read it back
+    sessionStorage.setItem('globalProductsEdit',JSON.stringify(products));
+    unsaved=false;
+    document.getElementById('nav-count').innerHTML=`${products.length} products`;
+    showToast('Global products saved ✓','success');
+    return;
+  }
   SETTINGS.customProducts=products.map(p=>[...p]);
   const{error}=await sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID);
   if(error){showToast('Save failed: '+error.message,'error');return;}
@@ -450,6 +471,7 @@ function goBack(){
   if(unsaved){
     if(!confirm('You have unsaved changes. Leave without saving?'))return;
   }
+  if(IS_GLOBAL){window.location.href='admin-settings.html';return;}
   const base=IS_ADMIN?`app.html?location_id=${LOCATION_ID}&admin=1`:`app.html?location_id=${LOCATION_ID}`;
   window.location.href=base;
 }
