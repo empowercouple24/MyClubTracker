@@ -542,7 +542,8 @@ async function submitLocationRequest(){
   const{data:req,error:reqErr}=await sb.from('location_requests').insert({
     club_name:club, street, city, state, zip,
     owner_name:name, phone, email, notes,
-    status:'email_unconfirmed'
+    status:'email_unconfirmed',
+    first_name:firstName, last_name:lastName
   }).select().single();
 
   if(reqErr){
@@ -700,6 +701,8 @@ async function register(){
     options:{
       data:{
         display_name: name,
+        first_name:   firstName,
+        last_name:    lastName,
         location_id:  verifiedLocation.id,
         role:         verifiedLocation.role,
       }
@@ -710,13 +713,15 @@ async function register(){
   const userId=authData.user?.id;
   if(!userId){showMsg('reg-step2-msg','Sign-up failed — no user ID returned. Try again.','error');setBtnLoading('reg-btn',false,'Create Account');return;}
 
-  // 2. Upsert the users row as fallback — phone goes here, NOT in auth metadata
+  // 2. Upsert the users row as fallback — phone/names go here, NOT in auth metadata
   await sb.from('users').upsert({
     id:           userId,
     email,
     location_id:  verifiedLocation.id,
     role:         verifiedLocation.role,
     display_name: name,
+    first_name:   firstName,
+    last_name:    lastName,
     phone:        phone||null,
   },{onConflict:'id',ignoreDuplicates:false});
 
