@@ -125,7 +125,18 @@
     .btn-modal-primary:hover{opacity:0.9}
     .btn-modal-cancel{font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;background:none;color:var(--text-muted);border:1px solid var(--border);border-radius:8px;padding:12px 18px;cursor:pointer}
     .btn-modal-cancel:hover{background:var(--b0)}
-    /* Profile modal */
+    .badge-pending{background:#f0f0f0;color:var(--text-faint);border:1px solid var(--border)}
+    .loc-card.pending{opacity:0.6;filter:grayscale(0.3)}
+    .loc-card.pending .loc-avatar{background:linear-gradient(135deg,#8fa3b3,#b0bec8)}
+    /* Confirmation panel inside modal */
+    .confirm-panel{display:none}
+    .confirm-panel.show{display:block}
+    .form-panel{display:block}
+    .form-panel.hide{display:none}
+    .confirm-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-light);gap:12px}
+    .confirm-row:last-child{border-bottom:none}
+    .confirm-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);flex-shrink:0}
+    .confirm-val{font-size:14px;color:var(--text);font-weight:500;text-align:right}
     #loading-overlay{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:300;transition:opacity 0.3s}
     #loading-overlay.hidden{opacity:0;pointer-events:none}
     .load-spinner{width:32px;height:32px;border:3px solid var(--b1);border-top-color:var(--b6);border-radius:50%;animation:spin 0.8s linear infinite}
@@ -209,27 +220,49 @@
 <!-- ADD LOCATION MODAL -->
 <div class="modal-overlay" id="add-loc-modal" onclick="closeModalOnBg(event,'add-loc-modal')">
   <div class="modal-box">
-    <div class="modal-title">Add New Location</div>
-    <div class="modal-field"><label>Club Name</label><input type="text" id="nl-name" placeholder="My Town Nutrition"/></div>
-    <div class="modal-field"><label>Street Address</label><input type="text" id="nl-street" placeholder="123 Main St"/></div>
-    <div class="modal-field" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-      <div><label>City</label><input type="text" id="nl-city" placeholder="City" style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:8px;padding:10px 12px;outline:none;transition:border-color 0.15s"/></div>
-      <div><label>State</label><select id="nl-state" style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:8px;padding:10px 12px;outline:none;-webkit-appearance:auto;"></select></div>
-    </div>
-    <div class="modal-field"><label>Zip Code</label><input type="text" id="nl-zip" placeholder="00000" maxlength="5" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5)"/></div>
-    <div class="modal-field"><label>Owner Name</label><input type="text" id="nl-owner" placeholder="Jane Smith"/></div>
-    <div class="modal-field"><label>Owner Phone</label><input type="tel" id="nl-phone" placeholder="(555) 000-0000" oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"/></div>
-    <div class="modal-field">
-      <label>Invite Code</label>
-      <div class="modal-invite-row">
-        <input type="text" id="nl-code" placeholder="e.g. FIT653"/>
-        <button class="btn-generate" onclick="generateCode()">Generate</button>
+    <!-- FORM PANEL -->
+    <div class="form-panel" id="nl-form-panel">
+      <div class="modal-title">Add New Location</div>
+      <div class="modal-field"><label>Club Name</label><input type="text" id="nl-name" placeholder="My Town Nutrition"/></div>
+      <div class="modal-field"><label>Street Address</label><input type="text" id="nl-street" placeholder="123 Main St"/></div>
+      <div class="modal-field" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div><label>City</label><input type="text" id="nl-city" placeholder="City" style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:8px;padding:10px 12px;outline:none;transition:border-color 0.15s"/></div>
+        <div><label>State</label><select id="nl-state" style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:8px;padding:10px 12px;outline:none;-webkit-appearance:auto;"></select></div>
+      </div>
+      <div class="modal-field"><label>Zip Code</label><input type="text" id="nl-zip" placeholder="00000" maxlength="5" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5)"/></div>
+      <div class="modal-field"><label>Owner Name</label><input type="text" id="nl-owner" placeholder="Jane Smith"/></div>
+      <div class="modal-field"><label>Owner Phone</label><input type="tel" id="nl-phone" placeholder="(555) 000-0000" oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"/></div>
+      <div class="modal-field">
+        <label>Invite Code</label>
+        <div class="modal-invite-row">
+          <input type="text" id="nl-code" placeholder=""/>
+          <button class="btn-generate" onclick="generateCode()">Generate</button>
+        </div>
+      </div>
+      <div class="modal-error" id="nl-error"></div>
+      <div class="modal-footer">
+        <button class="btn-modal-primary" onclick="reviewLocation()">Review →</button>
+        <button class="btn-modal-cancel" onclick="closeModal('add-loc-modal')">Cancel</button>
       </div>
     </div>
-    <div class="modal-error" id="nl-error"></div>
-    <div class="modal-footer">
-      <button class="btn-modal-primary" onclick="addLocation()">Add Location</button>
-      <button class="btn-modal-cancel" onclick="closeModal('add-loc-modal')">Cancel</button>
+    <!-- CONFIRM PANEL -->
+    <div class="confirm-panel" id="nl-confirm-panel">
+      <div class="modal-title">Confirm New Location</div>
+      <div style="background:var(--b0);border-radius:10px;padding:14px 16px;margin-bottom:16px;">
+        <div class="confirm-row"><span class="confirm-label">Club Name</span><span class="confirm-val" id="cr-name"></span></div>
+        <div class="confirm-row"><span class="confirm-label">Address</span><span class="confirm-val" id="cr-addr"></span></div>
+        <div class="confirm-row"><span class="confirm-label">Owner</span><span class="confirm-val" id="cr-owner"></span></div>
+        <div class="confirm-row"><span class="confirm-label">Phone</span><span class="confirm-val" id="cr-phone"></span></div>
+        <div class="confirm-row"><span class="confirm-label">Invite Code</span><span class="confirm-val" id="cr-code" style="font-family:monospace;font-size:15px;font-weight:700;color:var(--b7);letter-spacing:2px;"></span></div>
+      </div>
+      <div style="background:var(--b1);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--b7);line-height:1.6;margin-bottom:16px;">
+        📋 Share the <strong>Invite Code</strong> with the club owner so they can register their account at <strong>nemecekorgclubs.com</strong>. The location will appear as <em>Pending Setup</em> until they register.
+      </div>
+      <div class="modal-error" id="nl-confirm-error"></div>
+      <div class="modal-footer">
+        <button class="btn-modal-primary" onclick="addLocation()" id="nl-add-btn">✓ Add Location</button>
+        <button class="btn-modal-cancel" onclick="backToForm()">← Edit</button>
+      </div>
     </div>
   </div>
 </div>
@@ -257,7 +290,7 @@ const SUPABASE_ANON_KEY='sb_publishable_wO6XM4pC2CcaISQ8OlbkfQ_liqKJbi_';
 const{createClient}=supabase;
 const sb=createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 
-let allLocations=[],allDays=[],currentSession=null,adminProfile={};
+let allLocations=[],allDays=[],allLocationUsers=[],currentSession=null,adminProfile={};
 
 // ── SHARED HELPERS ──
 const US_STATES=[['AL','Alabama'],['AK','Alaska'],['AZ','Arizona'],['AR','Arkansas'],['CA','California'],['CO','Colorado'],['CT','Connecticut'],['DE','Delaware'],['FL','Florida'],['GA','Georgia'],['HI','Hawaii'],['ID','Idaho'],['IL','Illinois'],['IN','Indiana'],['IA','Iowa'],['KS','Kansas'],['KY','Kentucky'],['LA','Louisiana'],['ME','Maine'],['MD','Maryland'],['MA','Massachusetts'],['MI','Michigan'],['MN','Minnesota'],['MS','Mississippi'],['MO','Missouri'],['MT','Montana'],['NE','Nebraska'],['NV','Nevada'],['NH','New Hampshire'],['NJ','New Jersey'],['NM','New Mexico'],['NY','New York'],['NC','North Carolina'],['ND','North Dakota'],['OH','Ohio'],['OK','Oklahoma'],['OR','Oregon'],['PA','Pennsylvania'],['RI','Rhode Island'],['SC','South Carolina'],['SD','South Dakota'],['TN','Tennessee'],['TX','Texas'],['UT','Utah'],['VT','Vermont'],['VA','Virginia'],['WA','Washington'],['WV','West Virginia'],['WI','Wisconsin'],['WY','Wyoming']];
@@ -287,11 +320,14 @@ async function init(){
   const displayName=u.display_name||session.user.email;
   document.getElementById('nav-profile').textContent=displayName;
 
-  const{data:locs}=await sb.from('locations').select('id,name,address,owner_name,owner_phone,settings').order('name');
+  const{data:locs}=await sb.from('locations').select('id,name,address,owner_name,owner_phone,settings,created_at').order('name');
   allLocations=locs||[];
   const since=dateStr(daysAgo(32));
   const{data:days}=await sb.from('days').select('location_id,date,data').gte('date',since);
   allDays=days||[];
+  // Fetch all owner/employee users so we can check which locations have registered accounts
+  const{data:locUsers}=await sb.from('users').select('location_id,role').in('role',['owner','employee']);
+  allLocationUsers=locUsers||[];
   renderKPIs();renderLocations();renderAlertBanner();
   document.getElementById('loading-overlay').classList.add('hidden');
 }
@@ -330,23 +366,33 @@ function getOpDays(loc){return loc.settings?.opDays||[false,true,true,true,true,
 function isMissing(loc,date){const dow=new Date(date+'T12:00:00').getDay();if(!getOpDays(loc)[dow])return false;return!allDays.find(d=>d.location_id===loc.id&&d.date===date);}
 function getMissingDays(loc,n=7){const out=[];for(let i=1;i<=n;i++){const d=dateStr(daysAgo(i));if(isMissing(loc,d))out.push(d);}return out;}
 
+// Returns true if location has a registered owner account
+function isActivated(loc){
+  return allLocationUsers.some(u=>u.location_id===loc.id&&u.role==='owner');
+}
+
+// Returns true if location is still in grace period (added today or yesterday — within 1 full day)
+function inGracePeriod(loc){
+  if(!loc.created_at)return false;
+  const created=new Date(loc.created_at);
+  const twoDaysAgo=new Date();twoDaysAgo.setDate(twoDaysAgo.getDate()-1);twoDaysAgo.setHours(0,0,0,0);
+  return created>=twoDaysAgo;
+}
+
 function renderAlertBanner(){
   const wrap=document.getElementById('alert-banner-wrap');
   if(!allLocations.length){wrap.style.display='none';return;}
 
-  // Collect all locations that have missing days
-  const alerts=allLocations.map(loc=>({
-    loc,
-    missing:getMissingDays(loc,7)
-  })).filter(a=>a.missing.length>0);
+  // Only alert on activated locations that are past their grace period
+  const alerts=allLocations
+    .filter(loc=>isActivated(loc)&&!inGracePeriod(loc))
+    .map(loc=>({loc,missing:getMissingDays(loc,7)}))
+    .filter(a=>a.missing.length>0);
 
   if(!alerts.length){wrap.style.display='none';return;}
 
   const totalMissing=alerts.reduce((s,a)=>s+a.missing.length,0);
   const locCount=alerts.length;
-  const locWord=locCount===1?'location':'locations';
-  const dayWord=totalMissing===1?'day':'days';
-
   const rows=alerts.map(({loc,missing})=>{
     const dayList=missing.map(d=>new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})).join(', ');
     return`<div class="alert-loc-row">
@@ -365,7 +411,7 @@ function renderAlertBanner(){
         <div class="alert-banner-left">
           <div class="alert-icon">⚠️</div>
           <div>
-            <div class="alert-title">${totalMissing} Missing Submission${totalMissing!==1?'s':''} Across ${locCount} ${locWord}</div>
+            <div class="alert-title">${totalMissing} Missing Submission${totalMissing!==1?'s':''} Across ${locCount} Location${locCount!==1?'s':''}</div>
             <div class="alert-sub">Click to see which days are missing — last 7 operating days checked</div>
           </div>
         </div>
@@ -375,13 +421,8 @@ function renderAlertBanner(){
     </div>`;
 }
 
-function toggleAlertBanner(){
-  document.getElementById('alert-banner')?.classList.toggle('expanded');
-}
-
-function goToLocation(locId){
-  window.location.href=`app.html?location_id=${locId}&admin=1`;
-}
+function toggleAlertBanner(){document.getElementById('alert-banner')?.classList.toggle('expanded');}
+function goToLocation(locId){window.location.href=`app.html?location_id=${locId}&admin=1`;}
 
 function renderLocations(){
   const list=document.getElementById('locations-list');
@@ -399,16 +440,49 @@ function renderLocations(){
   list.innerHTML=allLocations.map(loc=>{
     const ld=allDays.filter(d=>d.location_id===loc.id);
     const initials=loc.name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    const activated=isActivated(loc);
+    const grace=inGracePeriod(loc);
+
+    // Pending = no registered owner yet
+    if(!activated){
+      const inviteCode=loc.invite_code?`<div style="margin-top:8px;font-size:12px;color:var(--text-faint);">Invite code: <strong style="font-family:monospace;letter-spacing:1px;color:var(--b7);">${escHtml(loc.invite_code)}</strong></div>`:'';
+      return`<div class="loc-card pending" id="lc-${loc.id}">
+        <div class="loc-card-header" onclick="toggleCard('${loc.id}')">
+          <div class="loc-avatar">${initials}</div>
+          <div class="loc-meta">
+            <div class="loc-name">${escHtml(loc.name)}</div>
+            ${loc.owner_name?`<div class="loc-owner">👤 ${escHtml(loc.owner_name)}</div>`:''}
+            ${loc.address?`<div class="loc-addr">📍 ${escHtml(loc.address)}</div>`:''}
+          </div>
+          <div class="loc-badges"><span class="badge badge-pending">⏳ Pending Setup</span></div>
+          <div class="loc-chevron">▼</div>
+        </div>
+        <div class="loc-expanded">
+          <div style="padding:4px 0 10px;font-size:13px;color:var(--text-muted);line-height:1.6;">
+            Waiting for the club owner to register using their invite code.${inviteCode}
+          </div>
+          <div class="expanded-footer">
+            <div></div>
+            <a class="btn-manage-settings" href="app.html?location_id=${loc.id}&admin=1&settings=1">⚙ Manage Settings</a>
+            <a class="btn-view-app" href="app.html?location_id=${loc.id}&admin=1">View Full App →</a>
+          </div>
+        </div>
+      </div>`;
+    }
+
     const ydaySales=sumField(ld,'totalSales',yday,yday),ydayDV=sumField(ld,'dv',yday,yday);
     const weekSales=sumField(ld,'totalSales',w0,today),weekDV=sumField(ld,'dv',w0,today),weekDays=countDays(ld,w0,today);
     const monthSales=sumField(ld,'totalSales',m0,today),monthDV=sumField(ld,'dv',m0,today),monthDays=countDays(ld,m0,today);
-    const missing=getMissingDays(loc,7);
+    const missing=(!grace)?getMissingDays(loc,7):[];
     const lastDate=ld.sort((a,b)=>b.date.localeCompare(a.date))[0]?.date||null;
     const lastFmt=lastDate?new Date(lastDate+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}):null;
+
     let badge='';
-    if(missing.length>0)badge=`<span class="badge badge-missing">⚠ ${missing.length} missing</span>`;
-    else if(lastDate)badge=`<span class="badge badge-active">✓ Current</span>`;
+    if(grace) badge=`<span class="badge badge-nodata">🕐 Grace Period</span>`;
+    else if(missing.length>0) badge=`<span class="badge badge-missing">⚠ ${missing.length} missing</span>`;
+    else if(lastDate) badge=`<span class="badge badge-active">✓ Current</span>`;
     else badge=`<span class="badge badge-nodata">No data</span>`;
+
     const missingBox=missing.length>0?`<div class="missing-box"><div class="missing-box-title">Missing Submissions (last 7 days)</div>${missing.map(d=>`<div class="missing-box-day">${new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}</div>`).join('')}</div>`:'';
     const ownerPhone=loc.owner_phone?`<div class="owner-strip-item">📞 <a href="tel:${escHtml(loc.owner_phone)}">${escHtml(loc.owner_phone)}</a></div>`:'';
     const ownerStrip=(loc.owner_name||loc.owner_phone||loc.address)?`
@@ -417,6 +491,7 @@ function renderLocations(){
         ${ownerPhone}
         ${loc.address?`<div class="owner-strip-item">📍 ${escHtml(loc.address)}</div>`:''}
       </div>`:'';
+
     return`<div class="loc-card" id="lc-${loc.id}">
       <div class="loc-card-header" onclick="toggleCard('${loc.id}')">
         <div class="loc-avatar">${initials}</div>
@@ -453,7 +528,7 @@ function renderLocations(){
 
 function toggleCard(id){document.getElementById('lc-'+id).classList.toggle('expanded');}
 
-// ADD LOCATION
+// ADD LOCATION — form + confirm flow
 function openAddLocation(){
   document.getElementById('nl-name').value='';
   document.getElementById('nl-street').value='';
@@ -464,13 +539,44 @@ function openAddLocation(){
   populateStateSelect('nl-state','');
   generateCode();
   document.getElementById('nl-error').classList.remove('show');
+  document.getElementById('nl-confirm-error').classList.remove('show');
+  // Show form panel, hide confirm panel
+  document.getElementById('nl-form-panel').classList.remove('hide');
+  document.getElementById('nl-confirm-panel').classList.remove('show');
   document.getElementById('add-loc-modal').classList.add('open');
 }
-function generateCode(){
-  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let code='';for(let i=0;i<6;i++)code+=chars[Math.floor(Math.random()*chars.length)];
-  document.getElementById('nl-code').value=code;
+
+function reviewLocation(){
+  const name=document.getElementById('nl-name').value.trim();
+  const code=document.getElementById('nl-code').value.trim().toUpperCase();
+  const errEl=document.getElementById('nl-error');
+  errEl.classList.remove('show');
+  if(!name){errEl.textContent='Club name is required.';errEl.classList.add('show');return;}
+  if(!code){errEl.textContent='Invite code is required.';errEl.classList.add('show');return;}
+  const street=document.getElementById('nl-street').value.trim();
+  const city=document.getElementById('nl-city').value.trim();
+  const state=document.getElementById('nl-state').value;
+  const zip=document.getElementById('nl-zip').value.trim();
+  const addrParts=[street,city?`${city}${state?', '+state:''}${zip?' '+zip:''}`:'']. filter(Boolean);
+  const addr=addrParts.join(', ');
+  const owner=document.getElementById('nl-owner').value.trim();
+  const phone=document.getElementById('nl-phone').value.trim();
+  // Populate confirm panel
+  document.getElementById('cr-name').textContent=name;
+  document.getElementById('cr-addr').textContent=addr||'—';
+  document.getElementById('cr-owner').textContent=owner||'—';
+  document.getElementById('cr-phone').textContent=phone||'—';
+  document.getElementById('cr-code').textContent=code;
+  // Swap panels
+  document.getElementById('nl-form-panel').classList.add('hide');
+  document.getElementById('nl-confirm-panel').classList.add('show');
 }
+
+function backToForm(){
+  document.getElementById('nl-form-panel').classList.remove('hide');
+  document.getElementById('nl-confirm-panel').classList.remove('show');
+}
+
 async function addLocation(){
   const name=document.getElementById('nl-name').value.trim();
   const street=document.getElementById('nl-street').value.trim();
@@ -480,17 +586,18 @@ async function addLocation(){
   const owner=document.getElementById('nl-owner').value.trim();
   const phone=document.getElementById('nl-phone').value.trim();
   const code=document.getElementById('nl-code').value.trim().toUpperCase();
-  const errEl=document.getElementById('nl-error');
+  const errEl=document.getElementById('nl-confirm-error');
   errEl.classList.remove('show');
-  if(!name){errEl.textContent='Club name is required.';errEl.classList.add('show');return;}
-  if(!code){errEl.textContent='Invite code is required.';errEl.classList.add('show');return;}
-  // Build formatted address string
   const addrParts=[street,city?`${city}${state?', '+state:''}${zip?' '+zip:''}`:'']. filter(Boolean);
   const address=addrParts.join(', ');
+  const btn=document.getElementById('nl-add-btn');
+  btn.disabled=true;btn.textContent='Adding…';
   const{data,error}=await sb.from('locations').insert({name,address,owner_name:owner,owner_phone:phone,invite_code:code,settings:{}}).select().single();
+  btn.disabled=false;btn.textContent='✓ Add Location';
   if(error){errEl.textContent=error.message;errEl.classList.add('show');return;}
   allLocations.push(data);allLocations.sort((a,b)=>a.name.localeCompare(b.name));
-  renderLocations();renderAlertBanner();closeModal('add-loc-modal');showToast('Location added ✓','success');
+  renderLocations();renderAlertBanner();closeModal('add-loc-modal');
+  showToast('Location added ✓ — share the invite code with the owner','success');
 }
 
 // PROFILE
