@@ -167,6 +167,25 @@
     </div>
   </div>
 
+  <!-- ══ CHANGE PASSWORD ══ -->
+  <div class="section">
+    <div class="section-label">Change Password</div>
+    <div class="card">
+      <div class="settings-row">
+        <div><div class="row-label">New Password</div></div>
+        <input type="password" class="row-input" id="cp-new" placeholder="New password" autocomplete="new-password"/>
+      </div>
+      <div class="settings-row">
+        <div><div class="row-label">Confirm Password</div></div>
+        <input type="password" class="row-input" id="cp-confirm" placeholder="Repeat new password" autocomplete="new-password"/>
+      </div>
+      <div id="cp-msg" style="display:none;padding:8px 16px;font-size:13px;border-radius:0 0 var(--radius) var(--radius);"></div>
+    </div>
+    <div style="margin-top:10px;">
+      <button class="btn btn-primary" onclick="changePassword()">Update Password</button>
+    </div>
+  </div>
+
   <!-- ══ DEFAULT SETTINGS ══ -->
   <div class="section">
     <div class="section-label">Default Settings for New Locations</div>
@@ -355,6 +374,35 @@ async function saveAdminProfile() {
   const { error } = await sb.from('users').update({ display_name: name, phone }).eq('id', session.user.id);
   if (error) { showToast('Save failed: '+error.message, 'error'); return; }
   showToast('Profile saved ✓', 'success');
+}
+
+// ── CHANGE PASSWORD ──
+async function changePassword() {
+  const pw      = document.getElementById('cp-new').value;
+  const confirm = document.getElementById('cp-confirm').value;
+  const msgEl   = document.getElementById('cp-msg');
+  msgEl.style.display='none';
+  if (!pw || pw.length < 6) {
+    msgEl.textContent='Password must be at least 6 characters.';
+    msgEl.style.cssText='display:block;padding:8px 16px;font-size:13px;color:var(--r5);background:var(--r0);';
+    return;
+  }
+  if (pw !== confirm) {
+    msgEl.textContent='Passwords do not match.';
+    msgEl.style.cssText='display:block;padding:8px 16px;font-size:13px;color:var(--r5);background:var(--r0);';
+    return;
+  }
+  const { error } = await sb.auth.updateUser({ password: pw });
+  if (error) {
+    msgEl.textContent=error.message;
+    msgEl.style.cssText='display:block;padding:8px 16px;font-size:13px;color:var(--r5);background:var(--r0);';
+    return;
+  }
+  document.getElementById('cp-new').value='';
+  document.getElementById('cp-confirm').value='';
+  msgEl.textContent='Password updated successfully ✓';
+  msgEl.style.cssText='display:block;padding:8px 16px;font-size:13px;color:var(--g5);background:var(--g0);';
+  setTimeout(()=>msgEl.style.display='none', 3000);
 }
 
 // ── LOAD DATA ──
