@@ -521,13 +521,14 @@ async function register(){
     phone:        phone||null,
   },{onConflict:'id',ignoreDuplicates:true});
 
+  const displayName=name.split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join(' ');
   // 3. Show success regardless — trigger or upsert will have handled the row
   setBtnLoading('reg-btn',false,'Create Account');
   document.getElementById('reg-step-2').style.display='none';
   document.getElementById('reg-step-3').style.display='block';
   const roleLabel=verifiedLocation.role==='owner'?'club owner':'employee';
   document.getElementById('reg-success-msg').textContent=
-    `Welcome, ${name}! Your ${roleLabel} account for ${verifiedLocation.name} has been created. Check your email to confirm your address, then sign in.`;
+    `Welcome, ${displayName}! Your ${roleLabel} account for ${verifiedLocation.name} has been created. Check your email to confirm your address, then sign in.`;
 }
 
 // ── HELPERS ──
