@@ -135,6 +135,25 @@
     .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
     .toast.success{background:var(--g5)}.toast.error{background:var(--r5)}
     @media(max-width:640px){.kpi-strip{grid-template-columns:1fr}.expanded-grid{grid-template-columns:1fr}.nav-profile{display:none}}
+
+    /* MISSING DAY ALERT BANNER */
+    .alert-banner{background:linear-gradient(135deg,#7a1f1f,var(--r5));border-radius:var(--radius);padding:14px 16px;margin-bottom:20px;color:white;animation:alertPulse 3s ease-in-out infinite}
+    @keyframes alertPulse{0%,100%{box-shadow:0 4px 20px rgba(192,48,48,0.3)}50%{box-shadow:0 4px 28px rgba(192,48,48,0.55)}}
+    .alert-banner-header{display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;user-select:none}
+    .alert-banner-left{display:flex;align-items:center;gap:10px}
+    .alert-icon{font-size:20px;flex-shrink:0}
+    .alert-title{font-family:'Outfit',sans-serif;font-size:15px;font-weight:700}
+    .alert-sub{font-size:12px;opacity:0.75;margin-top:1px}
+    .alert-chevron{font-size:11px;opacity:0.7;transition:transform 0.2s;flex-shrink:0}
+    .alert-banner.expanded .alert-chevron{transform:rotate(180deg)}
+    .alert-detail{display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.2)}
+    .alert-banner.expanded .alert-detail{display:block}
+    .alert-loc-row{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.12)}
+    .alert-loc-row:last-child{border-bottom:none}
+    .alert-loc-name{font-size:13px;font-weight:700;flex:1}
+    .alert-loc-days{font-size:12px;opacity:0.8;margin-top:2px;line-height:1.5}
+    .alert-loc-action{background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:5px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;flex-shrink:0;transition:background 0.15s}
+    .alert-loc-action:hover{background:rgba(255,255,255,0.3)}
   </style>
 </head>
 <body>
@@ -155,6 +174,9 @@
 </nav>
 
 <div class="page">
+  <!-- MISSING DAY ALERT BANNER — rendered by renderAlertBanner() -->
+  <div id="alert-banner-wrap" style="display:none;"></div>
+
   <div class="section-label" id="kpi-label">Org Overview</div>
   <div class="kpi-strip">
     <div class="kpi-period yesterday">
@@ -247,7 +269,7 @@ async function init(){
   const since=dateStr(daysAgo(32));
   const{data:days}=await sb.from('days').select('location_id,date,data').gte('date',since);
   allDays=days||[];
-  renderKPIs();renderLocations();
+  renderKPIs();renderLocations();renderAlertBanner();
   document.getElementById('loading-overlay').classList.add('hidden');
 }
 
@@ -285,11 +307,72 @@ function getOpDays(loc){return loc.settings?.opDays||[false,true,true,true,true,
 function isMissing(loc,date){const dow=new Date(date+'T12:00:00').getDay();if(!getOpDays(loc)[dow])return false;return!allDays.find(d=>d.location_id===loc.id&&d.date===date);}
 function getMissingDays(loc,n=7){const out=[];for(let i=1;i<=n;i++){const d=dateStr(daysAgo(i));if(isMissing(loc,d))out.push(d);}return out;}
 
+function renderAlertBanner(){
+  const wrap=document.getElementById('alert-banner-wrap');
+  if(!allLocations.length){wrap.style.display='none';return;}
+
+  // Collect all locations that have missing days
+  const alerts=allLocations.map(loc=>({
+    loc,
+    missing:getMissingDays(loc,7)
+  })).filter(a=>a.missing.length>0);
+
+  if(!alerts.length){wrap.style.display='none';return;}
+
+  const totalMissing=alerts.reduce((s,a)=>s+a.missing.length,0);
+  const locCount=alerts.length;
+  const locWord=locCount===1?'location':'locations';
+  const dayWord=totalMissing===1?'day':'days';
+
+  const rows=alerts.map(({loc,missing})=>{
+    const dayList=missing.map(d=>new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})).join(', ');
+    return`<div class="alert-loc-row">
+      <div style="flex:1;min-width:0;">
+        <div class="alert-loc-name">${escHtml(loc.name)}</div>
+        <div class="alert-loc-days">${missing.length} missing: ${dayList}</div>
+      </div>
+      <button class="alert-loc-action" onclick="goToLocation('${loc.id}')">View App →</button>
+    </div>`;
+  }).join('');
+
+  wrap.style.display='block';
+  wrap.innerHTML=`
+    <div class="alert-banner" id="alert-banner">
+      <div class="alert-banner-header" onclick="toggleAlertBanner()">
+        <div class="alert-banner-left">
+          <div class="alert-icon">⚠️</div>
+          <div>
+            <div class="alert-title">${totalMissing} Missing Submission${totalMissing!==1?'s':''} Across ${locCount} ${locWord}</div>
+            <div class="alert-sub">Click to see which days are missing — last 7 operating days checked</div>
+          </div>
+        </div>
+        <div class="alert-chevron">▼</div>
+      </div>
+      <div class="alert-detail">${rows}</div>
+    </div>`;
+}
+
+function toggleAlertBanner(){
+  document.getElementById('alert-banner')?.classList.toggle('expanded');
+}
+
+function goToLocation(locId){
+  window.location.href=`app.html?location_id=${locId}&admin=1`;
+}
+
 function renderLocations(){
   const list=document.getElementById('locations-list');
   const yday=yesterday(),w0=last7Start(),m0=last30Start(),today=todayStr();
   document.getElementById('locs-label').textContent=`Locations (${allLocations.length})`;
-  if(!allLocations.length){list.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-faint);font-size:13px;">No locations yet.</div>';return;}
+  if(!allLocations.length){
+    list.innerHTML=`<div style="text-align:center;padding:48px 24px;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:var(--shadow-sm);">
+      <div style="font-size:36px;margin-bottom:12px;">🏪</div>
+      <div style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px;">No locations added yet</div>
+      <div style="font-size:13px;color:var(--text-faint);margin-bottom:18px;">Add your first location to start tracking club sales and data.</div>
+      <button onclick="openAddLocation()" style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;background:linear-gradient(135deg,var(--b7),var(--b5));color:white;border:none;border-radius:6px;padding:9px 18px;cursor:pointer;">+ Add Your First Location</button>
+    </div>`;
+    return;
+  }
   list.innerHTML=allLocations.map(loc=>{
     const ld=allDays.filter(d=>d.location_id===loc.id);
     const initials=loc.name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
