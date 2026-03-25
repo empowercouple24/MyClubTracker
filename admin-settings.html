@@ -643,9 +643,10 @@ async function init() {
 
   // Populate profile fields
   document.getElementById('prof-name').value  = u.display_name || '';
-  document.getElementById('prof-phone').value = u.phone || '';
+  const profPhoneEl = document.getElementById('prof-phone');
+  profPhoneEl.value = u.phone || '';
+  if (u.phone) fmtPhone(profPhoneEl);
   document.getElementById('prof-email-display').textContent = session.user.email || '';
-  document.getElementById('prof-email-sub').textContent     = session.user.email || '';
 
   // Load defaults from user metadata — strip taxRate if present from old saves
   const meta = session.user.user_metadata || {};
