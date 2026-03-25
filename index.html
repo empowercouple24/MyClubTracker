@@ -129,6 +129,7 @@
     <div class="auth-tabs">
       <button class="auth-tab active" id="tab-signin" onclick="showTab('signin')">Sign In</button>
       <button class="auth-tab" id="tab-register" onclick="showTab('register')">Register</button>
+      <button class="auth-tab" id="tab-request" onclick="showTab('request')">Request to Join</button>
     </div>
 
     <!-- ══ SIGN IN PANEL ══ -->
@@ -260,6 +261,54 @@
       <button class="btn-submit" id="np-btn" onclick="submitNewPassword()">Update Password</button>
     </div>
 
+    <!-- ══ REQUEST TO JOIN PANEL ══ -->
+    <div id="panel-request" style="display:none;">
+
+      <!-- Step 1: Org Key verification -->
+      <div id="req-step-1">
+        <div style="background:var(--b0);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:16px;font-size:13px;color:var(--text-muted);line-height:1.6;">
+          🔐 To submit a location request, enter the <strong>organization key</strong> shared with you by your Herbalife upline or Nemecek Org admin.
+        </div>
+        <div class="field">
+          <label>Organization Key</label>
+          <input type="password" id="req-org-key" placeholder="Enter org key" autocomplete="off" onkeydown="if(event.key==='Enter')verifyOrgKey()"/>
+        </div>
+        <div class="msg" id="req-key-msg"></div>
+        <button class="btn-submit" id="req-key-btn" onclick="verifyOrgKey()">Unlock Request Form →</button>
+      </div>
+
+      <!-- Step 2: Request form -->
+      <div id="req-step-2" style="display:none;">
+        <div style="background:var(--g0);border:1px solid rgba(40,120,70,0.2);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:16px;font-size:13px;color:var(--g6);line-height:1.5;">
+          ✓ Org key verified. Fill in your club details below.
+        </div>
+        <div class="field"><label>Club Name</label><input type="text" id="req-club" placeholder="e.g. Thrive Nutrition Hub"/></div>
+        <div class="field"><label>Street Address</label><input type="text" id="req-street" placeholder="123 Main St"/></div>
+        <div class="field" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div><label>City</label><input type="text" id="req-city" placeholder="City" style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;outline:none;"/></div>
+          <div><label>State</label><select id="req-state" style="width:100%;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 8px;outline:none;-webkit-appearance:auto;"></select></div>
+        </div>
+        <div class="field"><label>Zip Code</label><input type="text" id="req-zip" placeholder="00000" maxlength="5" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5)"/></div>
+        <div class="field"><label>Your Name</label><input type="text" id="req-name" placeholder="Jane Smith"/></div>
+        <div class="field"><label>Phone</label><input type="tel" id="req-phone" placeholder="(555) 000-0000" oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"/></div>
+        <div class="field"><label>Email</label><input type="email" id="req-email" placeholder="you@example.com"/></div>
+        <div class="field"><label>Notes <span style="font-weight:400;color:var(--text-faint);">(optional)</span></label><textarea id="req-notes" placeholder="Anything else you'd like us to know..." style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;outline:none;resize:vertical;min-height:72px;box-sizing:border-box;"></textarea></div>
+        <div class="msg" id="req-form-msg"></div>
+        <button class="btn-submit" id="req-submit-btn" onclick="submitLocationRequest()">Submit Request →</button>
+        <div style="text-align:center;margin-top:10px;">
+          <button onclick="document.getElementById('req-step-2').style.display='none';document.getElementById('req-step-1').style.display='block';" style="background:none;border:none;font-size:12px;color:var(--text-faint);cursor:pointer;">← Back</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Success -->
+      <div id="req-step-3" style="display:none;text-align:center;padding:12px 0;">
+        <div style="font-size:36px;margin-bottom:12px;">📬</div>
+        <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--b7);margin-bottom:8px;">Request Submitted!</div>
+        <div style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:20px;">Your location request has been sent to the admin team. You'll receive an email once it's reviewed — usually within 1-2 business days.</div>
+        <button class="btn-submit" onclick="showTab('signin')">Back to Sign In</button>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -361,9 +410,12 @@ function showTab(tab){
   document.getElementById('panel-signin').style.display=tab==='signin'?'block':'none';
   document.getElementById('panel-register').style.display=tab==='register'?'block':'none';
   document.getElementById('panel-forgot').style.display='none';
+  document.getElementById('panel-request').style.display=tab==='request'?'block':'none';
   document.getElementById('tab-signin').classList.toggle('active',tab==='signin');
   document.getElementById('tab-register').classList.toggle('active',tab==='register');
+  document.getElementById('tab-request').classList.toggle('active',tab==='request');
   clearMsg('si-msg');clearMsg('reg-step1-msg');clearMsg('reg-step2-msg');
+  if(tab==='request'){populateStateSelect('req-state','');}
 }
 
 function showForgotPassword(){
@@ -387,6 +439,43 @@ async function sendReset(){
   setBtnLoading('fp-btn',false,'Send Reset Link');
   if(error){showMsg('fp-msg',error.message,'error');return;}
   showMsg('fp-msg','Reset link sent! Check your email inbox (and spam folder).','success');
+}
+
+// ── REQUEST TO JOIN ──
+async function verifyOrgKey(){
+  const key=document.getElementById('req-org-key').value.trim();
+  if(!key){showMsg('req-key-msg','Please enter the organization key.','error');return;}
+  setBtnLoading('req-key-btn',true,'Checking…');
+  clearMsg('req-key-msg');
+  // Fetch org key from admin settings stored in a dedicated settings row
+  const{data:rows,error}=await sb.from('app_settings').select('value').eq('key','org_key').single();
+  setBtnLoading('req-key-btn',false,'Unlock Request Form →');
+  if(error||!rows){showMsg('req-key-msg','Unable to verify key. Try again later.','error');return;}
+  if(rows.value!==key){showMsg('req-key-msg','Incorrect organization key. Check with your admin.','error');return;}
+  document.getElementById('req-step-1').style.display='none';
+  document.getElementById('req-step-2').style.display='block';
+}
+
+async function submitLocationRequest(){
+  const club=document.getElementById('req-club').value.trim();
+  const street=document.getElementById('req-street').value.trim();
+  const city=document.getElementById('req-city').value.trim();
+  const state=document.getElementById('req-state').value;
+  const zip=document.getElementById('req-zip').value.trim();
+  const name=document.getElementById('req-name').value.trim();
+  const phone=document.getElementById('req-phone').value.trim();
+  const email=document.getElementById('req-email').value.trim();
+  const notes=document.getElementById('req-notes').value.trim();
+  if(!club||!name||!email){showMsg('req-form-msg','Club name, your name, and email are required.','error');return;}
+  setBtnLoading('req-submit-btn',true,'Submitting…');
+  const{error}=await sb.from('location_requests').insert({
+    club_name:club,street,city,state,zip,
+    owner_name:name,phone,email,notes,status:'pending'
+  });
+  setBtnLoading('req-submit-btn',false,'Submit Request →');
+  if(error){showMsg('req-form-msg','Submission failed: '+error.message,'error');return;}
+  document.getElementById('req-step-2').style.display='none';
+  document.getElementById('req-step-3').style.display='block';
 }
 
 // ── SIGN IN ──
