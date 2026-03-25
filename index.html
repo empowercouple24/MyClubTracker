@@ -274,6 +274,13 @@ let selectedRole='owner'; // 'owner' or 'employee'
 let verifiedLocation=null; // {id, name, role} after code verified
 
 async function init(){
+  // Check for redirect messages
+  const urlParams=new URLSearchParams(window.location.search);
+  if(urlParams.get('msg')==='setup-incomplete'){
+    showTab('signin');
+    showMsg('si-msg','Your account was confirmed! Please sign in to continue.','success');
+  }
+
   // Check if this is a password recovery redirect from Supabase email link
   const hash=window.location.hash;
   if(hash&&hash.includes('type=recovery')){
