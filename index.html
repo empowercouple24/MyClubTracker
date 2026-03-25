@@ -280,7 +280,7 @@
       <!-- Step 2: Request form -->
       <div id="req-step-2" style="display:none;">
         <div style="background:var(--g0);border:1px solid rgba(40,120,70,0.2);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:16px;font-size:13px;color:var(--g6);line-height:1.5;">
-          ✓ Org key verified. Fill in your club details below.
+          ✓ Org key verified. All fields are required.
         </div>
         <div class="field"><label>Club Name</label><input type="text" id="req-club" placeholder="e.g. Thrive Nutrition Hub"/></div>
         <div class="field"><label>Street Address</label><input type="text" id="req-street" placeholder="123 Main St"/></div>
@@ -292,7 +292,7 @@
         <div class="field"><label>Your Name</label><input type="text" id="req-name" placeholder="Jane Smith"/></div>
         <div class="field"><label>Phone</label><input type="tel" id="req-phone" placeholder="(555) 000-0000" oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"/></div>
         <div class="field"><label>Email</label><input type="email" id="req-email" placeholder="you@example.com"/></div>
-        <div class="field"><label>Notes <span style="font-weight:400;color:var(--text-faint);">(optional)</span></label><textarea id="req-notes" placeholder="Anything else you'd like us to know..." style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;outline:none;resize:vertical;min-height:72px;box-sizing:border-box;"></textarea></div>
+        <div class="field"><label>Notes</label><textarea id="req-notes" placeholder="Tell us about your club, location, and Herbalife background..." style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;outline:none;resize:vertical;min-height:72px;box-sizing:border-box;"></textarea></div>
         <div class="msg" id="req-form-msg"></div>
         <button class="btn-submit" id="req-submit-btn" onclick="submitLocationRequest()">Submit Request →</button>
         <div style="text-align:center;margin-top:10px;">
@@ -300,11 +300,22 @@
         </div>
       </div>
 
-      <!-- Step 3: Success -->
+      <!-- Step 3: Confirm email -->
       <div id="req-step-3" style="display:none;text-align:center;padding:12px 0;">
+        <div style="font-size:36px;margin-bottom:12px;">✉️</div>
+        <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--b7);margin-bottom:8px;">Confirm Your Email</div>
+        <div style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:16px;">We sent a confirmation link to <strong id="req-confirm-email"></strong>. Click the link in that email to officially submit your request to the admin team.</div>
+        <div style="background:var(--b0);border-radius:var(--radius-sm);padding:12px;font-size:12px;color:var(--text-faint);line-height:1.6;margin-bottom:16px;">
+          Your request won't be visible to the admin until your email is confirmed. Check your spam folder if you don't see it within a few minutes.
+        </div>
+        <button class="btn-submit" onclick="showTab('signin')">Back to Sign In</button>
+      </div>
+
+      <!-- Step 4: Email confirmed (shown after clicking magic link) -->
+      <div id="req-step-4" style="display:none;text-align:center;padding:12px 0;">
         <div style="font-size:36px;margin-bottom:12px;">📬</div>
         <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--b7);margin-bottom:8px;">Request Submitted!</div>
-        <div style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:20px;">Your location request has been sent to the admin team. You'll receive an email once it's reviewed — usually within 1-2 business days.</div>
+        <div style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:20px;">Your email has been confirmed and your location request is now with the admin team. You'll hear back within 1-2 business days.</div>
         <button class="btn-submit" onclick="showTab('signin')">Back to Sign In</button>
       </div>
     </div>
@@ -328,6 +339,29 @@ async function init(){
   if(urlParams.get('msg')==='setup-incomplete'){
     showTab('signin');
     showMsg('si-msg','Your account was confirmed! Please sign in to continue.','success');
+  }
+
+  // Check if this is a request email confirmation return (type=magiclink or type=email)
+  const hash=window.location.hash;
+  if(hash&&(hash.includes('type=magiclink')||hash.includes('type=email'))){
+    // Get the request_id from the URL params
+    const reqId=urlParams.get('request_id');
+    if(reqId){
+      // Mark the request as pending (officially submitted)
+      await sb.from('location_requests').update({status:'pending'}).eq('id',reqId).eq('status','email_unconfirmed');
+      // Sign out the magic link session — requester shouldn't be logged in
+      await sb.auth.signOut();
+    }
+    // Show confirmed success screen
+    showTab('request');
+    document.getElementById('req-step-1').style.display='none';
+    document.getElementById('req-step-2').style.display='none';
+    document.getElementById('req-step-3').style.display='none';
+    document.getElementById('req-step-4').style.display='block';
+    document.getElementById('loading-overlay').classList.add('hidden');
+    // Clean the URL
+    window.history.replaceState({},'',window.location.pathname);
+    return;
   }
 
   // Check if this is a password recovery redirect from Supabase email link
@@ -415,7 +449,14 @@ function showTab(tab){
   document.getElementById('tab-register').classList.toggle('active',tab==='register');
   document.getElementById('tab-request').classList.toggle('active',tab==='request');
   clearMsg('si-msg');clearMsg('reg-step1-msg');clearMsg('reg-step2-msg');
-  if(tab==='request'){populateStateSelect('req-state','');}
+  if(tab==='request'){
+    populateStateSelect('req-state','');
+    // Reset to step 1 when tab is clicked fresh
+    document.getElementById('req-step-1').style.display='block';
+    document.getElementById('req-step-2').style.display='none';
+    document.getElementById('req-step-3').style.display='none';
+    document.getElementById('req-step-4').style.display='none';
+  }
 }
 
 function showForgotPassword(){
@@ -457,23 +498,73 @@ async function verifyOrgKey(){
 }
 
 async function submitLocationRequest(){
-  const club=document.getElementById('req-club').value.trim();
-  const street=document.getElementById('req-street').value.trim();
-  const city=document.getElementById('req-city').value.trim();
-  const state=document.getElementById('req-state').value;
-  const zip=document.getElementById('req-zip').value.trim();
-  const name=document.getElementById('req-name').value.trim();
-  const phone=document.getElementById('req-phone').value.trim();
-  const email=document.getElementById('req-email').value.trim();
-  const notes=document.getElementById('req-notes').value.trim();
-  if(!club||!name||!email){showMsg('req-form-msg','Club name, your name, and email are required.','error');return;}
+  const club  = document.getElementById('req-club').value.trim();
+  const street= document.getElementById('req-street').value.trim();
+  const city  = document.getElementById('req-city').value.trim();
+  const state = document.getElementById('req-state').value;
+  const zip   = document.getElementById('req-zip').value.trim();
+  const name  = document.getElementById('req-name').value.trim();
+  const phone = document.getElementById('req-phone').value.trim();
+  const email = document.getElementById('req-email').value.trim();
+  const notes = document.getElementById('req-notes').value.trim();
+
+  // Validate all required fields
+  const missing=[];
+  if(!club)   missing.push('Club Name');
+  if(!street) missing.push('Street Address');
+  if(!city)   missing.push('City');
+  if(!state)  missing.push('State');
+  if(!zip)    missing.push('Zip Code');
+  if(!name)   missing.push('Your Name');
+  if(!phone||phone.replace(/\D/g,'').length<10) missing.push('Phone (10 digits)');
+  if(!email||!email.includes('@')) missing.push('Valid Email');
+  if(!notes)  missing.push('Notes');
+
+  if(missing.length){
+    showMsg('req-form-msg','Please fill in all required fields: '+missing.join(', '), 'error');
+    return;
+  }
+
   setBtnLoading('req-submit-btn',true,'Submitting…');
-  const{error}=await sb.from('location_requests').insert({
-    club_name:club,street,city,state,zip,
-    owner_name:name,phone,email,notes,status:'pending'
+
+  // 1. Save request as email_unconfirmed — not visible to admin yet
+  const{data:req,error:reqErr}=await sb.from('location_requests').insert({
+    club_name:club, street, city, state, zip,
+    owner_name:name, phone, email, notes,
+    status:'email_unconfirmed'
+  }).select().single();
+
+  if(reqErr){
+    showMsg('req-form-msg','Submission failed: '+reqErr.message,'error');
+    setBtnLoading('req-submit-btn',false,'Submit Request →');
+    return;
+  }
+
+  // 2. Send magic link to confirm email — redirect includes request_id so we can activate it
+  const redirectTo=`${window.location.origin}/index.html?request_id=${req.id}`;
+  const{error:mlErr}=await sb.auth.signInWithOtp({
+    email,
+    options:{
+      shouldCreateUser:false, // Don't create an auth account, just verify email
+      emailRedirectTo:redirectTo,
+      data:{request_id:req.id}
+    }
   });
+
+  // If signInWithOtp fails because user doesn't exist, use signUp flow to send email
+  if(mlErr){
+    // Fallback: send a signup confirmation (creates a temporary account just for verification)
+    await sb.auth.signUp({
+      email,
+      password: Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2),
+      options:{emailRedirectTo:redirectTo, data:{request_id:req.id, temp_request_verify:true}}
+    });
+  }
+
   setBtnLoading('req-submit-btn',false,'Submit Request →');
-  if(error){showMsg('req-form-msg','Submission failed: '+error.message,'error');return;}
+
+  // 3. Show email confirmation screen
+  document.getElementById('req-confirm-email').textContent=email;
   document.getElementById('req-step-2').style.display='none';
   document.getElementById('req-step-3').style.display='block';
 }
