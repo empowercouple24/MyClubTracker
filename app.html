@@ -689,12 +689,43 @@ function init(){
   if(!session){window.location.href='index.html';return;}
   CURRENT_SESSION=session;
   const params=new URLSearchParams(window.location.search);
+
+  // Check if this is a post-confirmation redirect (token in URL hash)
+  const hash=window.location.hash;
+  if(hash&&(hash.includes('access_token')||hash.includes('type=signup'))){
+    // Clear the hash and redirect cleanly to sign-in
+    window.location.href='index.html';
+    return;
+  }
+
   if(params.get('admin')==='1'&&params.get('location_id')){
     IS_ADMIN_VIEW=true;LOCATION_ID=params.get('location_id');OPEN_SETTINGS=params.get('settings')==='1';
     USER_ROLE='admin';
   }else{
-    const{data:u}=await sb.from('users').select('role,location_id,display_name,phone').eq('id',session.user.id).single();
-    if(!u){window.location.href='index.html';return;}
+    const{data:u,error:uErr}=await sb.from('users').select('role,location_id,display_name,phone').eq('id',session.user.id).single();
+
+    // If no users row yet — profile setup is still pending (trigger may not have fired)
+    // Try to upsert from auth metadata then reload
+    if(!u||uErr){
+      const meta=session.user.user_metadata||{};
+      if(meta.location_id&&meta.role){
+        await sb.from('users').upsert({
+          id:           session.user.id,
+          email:        session.user.email,
+          display_name: meta.display_name||'',
+          location_id:  meta.location_id,
+          role:         meta.role,
+        },{onConflict:'id',ignoreDuplicates:false});
+        // Reload to pick up the new row
+        window.location.reload();
+        return;
+      }
+      // No metadata either — send back to sign in with message
+      await sb.auth.signOut();
+      window.location.href='index.html?msg=setup-incomplete';
+      return;
+    }
+
     if(u.role==='admin'&&!LOCATION_ID){window.location.href='admin.html';return;}
     LOCATION_ID=u.location_id;
     USER_ROLE=u.role||'owner';
