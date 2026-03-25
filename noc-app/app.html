@@ -978,6 +978,16 @@
       <div id="s-operators"></div>
     </div>
 
+    <div class="settings-group">
+      <div class="settings-group-title">Products</div>
+      <div style="padding:0 0 4px;">
+        <button class="btn btn-ghost btn-full" onclick="openProductsEditor()" style="width:100%;justify-content:space-between;padding:11px 14px;font-size:14px;">
+          <span>Edit Products List</span>
+          <span style="color:var(--text-faint);font-size:12px;" id="s-prod-count"></span>
+        </button>
+      </div>
+    </div>
+
     <div style="padding:0 18px; display:flex; gap:10px;">
       <button class="btn btn-primary btn-full" onclick="saveSettings()">Save Settings</button>
       <button class="btn btn-ghost" onclick="closeSettings()">Cancel</button>
@@ -1726,6 +1736,9 @@ function resolveAlias(name) {
 //  SETTINGS
 // ════════════════════════════════════════
 function buildSettingsUI() {
+  // Update product count display
+  const countEl = document.getElementById('s-prod-count');
+  if (countEl) countEl.textContent = PRODUCTS.length + ' products →';
   // Tax rate 0–4% in 0.25 steps
   buildSelect('s-taxrate',  range(0, 4, 0.25), SETTINGS.taxRate,   v => v.toFixed(2) + '%');
   buildSelect('s-ohrate',   range(15,40,1),    SETTINGS.ohRate,    v => v + '%');
@@ -1769,6 +1782,14 @@ function openSettings() {
 
 function closeSettings() {
   document.getElementById('settings-modal').classList.remove('open');
+}
+
+function openProductsEditor() {
+  closeSettings();
+  const url = IS_ADMIN_VIEW
+    ? `products.html?location_id=${LOCATION_ID}&admin=1`
+    : `products.html?location_id=${LOCATION_ID}`;
+  window.location.href = url;
 }
 
 function closeSettingsOnBg(e) {
