@@ -168,7 +168,7 @@
         <div class="field">
           <label id="code-label">Owner Invite Code</label>
           <div class="invite-row">
-            <input type="text" id="reg-code" placeholder="e.g. EMPOWER2025" style="text-transform:uppercase;letter-spacing:1px;font-weight:700;" oninput="this.value=this.value.toUpperCase();resetVerify()"/>
+            <input type="text" id="reg-code" placeholder="" style="text-transform:uppercase;letter-spacing:1px;font-weight:700;" oninput="this.value=this.value.toUpperCase();resetVerify()"/>
             <button class="btn-verify" id="verify-btn" onclick="verifyCode()">Verify</button>
           </div>
           <div class="verified-badge" id="verified-badge">
@@ -280,7 +280,7 @@ function selectRole(role){
   document.getElementById('role-owner').classList.toggle('selected',role==='owner');
   document.getElementById('role-employee').classList.toggle('selected',role==='employee');
   document.getElementById('code-label').textContent=role==='owner'?'Owner Invite Code':'Employee Invite Code';
-  document.getElementById('reg-code').placeholder=role==='owner'?'e.g. EMPOWER2025':'e.g. ABC123';
+  document.getElementById('reg-code').placeholder='';
   resetVerify();
 }
 
