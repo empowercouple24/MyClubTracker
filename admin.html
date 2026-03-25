@@ -761,6 +761,12 @@ function toggleSecondContact(prefix){
 }
 
 // ADD LOCATION — form + confirm flow
+function generateCode(){
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code='';for(let i=0;i<6;i++)code+=chars[Math.floor(Math.random()*chars.length)];
+  document.getElementById('nl-code').value=code;
+}
+
 function openAddLocation(){
   document.getElementById('nl-name').value='';
   document.getElementById('nl-street').value='';
