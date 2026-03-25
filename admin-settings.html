@@ -150,15 +150,15 @@
     <div class="section-label">My Profile</div>
     <div class="card">
       <div class="settings-row">
-        <div><div class="row-label">Display Name</div></div>
-        <input type="text" class="row-input" id="prof-name" placeholder="Your name"/>
+        <div class="row-label">Display Name</div>
+        <input type="text" class="row-input" id="prof-name" placeholder="Your name" style="text-align:right;"/>
       </div>
       <div class="settings-row">
-        <div><div class="row-label">Phone</div></div>
-        <input type="tel" class="row-input" id="prof-phone" placeholder="(555) 000-0000"/>
+        <div class="row-label">Phone</div>
+        <input type="tel" class="row-input" id="prof-phone" placeholder="(555) 000-0000" style="text-align:right;"/>
       </div>
       <div class="settings-row">
-        <div><div class="row-label">Email</div><div class="row-sub" id="prof-email-sub"></div></div>
+        <div class="row-label">Email</div>
         <span style="font-size:13px;color:var(--text-faint);" id="prof-email-display"></span>
       </div>
     </div>
@@ -167,44 +167,37 @@
     </div>
   </div>
 
-  <!-- ══ CHANGE PASSWORD ══ -->
-  <div class="section">
-    <div class="section-label">Change Password</div>
-    <div class="card">
-      <div class="settings-row">
-        <div><div class="row-label">New Password</div></div>
-        <input type="password" class="row-input" id="cp-new" placeholder="New password" autocomplete="new-password"/>
-      </div>
-      <div class="settings-row">
-        <div><div class="row-label">Confirm Password</div></div>
-        <input type="password" class="row-input" id="cp-confirm" placeholder="Repeat new password" autocomplete="new-password"/>
-      </div>
-      <div id="cp-msg" style="display:none;padding:8px 16px;font-size:13px;border-radius:0 0 var(--radius) var(--radius);"></div>
-    </div>
-    <div style="margin-top:10px;">
-      <button class="btn btn-primary" onclick="changePassword()">Update Password</button>
-    </div>
-  </div>
-
   <!-- ══ DEFAULT SETTINGS ══ -->
   <div class="section">
     <div class="section-label">Default Settings for New Locations</div>
     <div class="card">
       <div class="divider-label">Rates</div>
-      <div class="settings-row">
-        <div><div class="row-label">Overhead Rate</div></div>
+      <div class="settings-row" style="flex-wrap:wrap;gap:4px;">
+        <div>
+          <div class="row-label">Overhead Rate</div>
+          <div class="row-sub" style="max-width:380px;">How much the club keeps from net sales for club expenses — cups, lids, supplies, hourly employees, etc. — before allocating Operator Payouts.</div>
+        </div>
         <select class="row-input" id="d-ohrate"></select>
       </div>
-      <div class="settings-row">
-        <div><div class="row-label">Other Sales Rate</div></div>
+      <div class="settings-row" style="flex-wrap:wrap;gap:4px;">
+        <div>
+          <div class="row-label">Other Sales Rate</div>
+          <div class="row-sub" style="max-width:380px;">A separate percentage factored into Overhead allocation for items like Protein Bowls and Protein Waffles — higher than standard shake/tea sales.</div>
+        </div>
         <select class="row-input" id="d-otherrate"></select>
       </div>
-      <div class="settings-row">
-        <div><div class="row-label">Merchandise Rate</div></div>
+      <div class="settings-row" style="flex-wrap:wrap;gap:4px;">
+        <div>
+          <div class="row-label">Merchandise Rate</div>
+          <div class="row-sub" style="max-width:380px;">An even higher Overhead allocation rate for merchandise sales — Tumbler cups, clothing, 3rd party vendor items sold through your POS.</div>
+        </div>
         <select class="row-input" id="d-merchrate"></select>
       </div>
-      <div class="settings-row">
-        <div><div class="row-label">DV △ %</div></div>
+      <div class="settings-row" style="flex-wrap:wrap;gap:4px;">
+        <div>
+          <div class="row-label">DV △ Rate</div>
+          <div class="row-sub" style="max-width:380px;">Adjustment factor for Herbalife product replenishment dollars. Example: 100 DV × 10% DV △ Rate = $110.00 allocated toward your next product order.</div>
+        </div>
         <select class="row-input" id="d-dvdelta"></select>
       </div>
       <div class="divider-label">Operating Days</div>
@@ -267,6 +260,25 @@
     <div class="section-label">Admin Users</div>
     <div class="card" id="admins-card">
       <div style="padding:16px;text-align:center;color:var(--text-faint);font-size:13px;">Loading…</div>
+    </div>
+  </div>
+
+  <!-- ══ CHANGE PASSWORD ══ -->
+  <div class="section">
+    <div class="section-label">Change Password</div>
+    <div class="card">
+      <div class="settings-row">
+        <div class="row-label">New Password</div>
+        <input type="password" class="row-input" id="cp-new" placeholder="New password" autocomplete="new-password"/>
+      </div>
+      <div class="settings-row">
+        <div class="row-label">Confirm Password</div>
+        <input type="password" class="row-input" id="cp-confirm" placeholder="Repeat new password" autocomplete="new-password"/>
+      </div>
+      <div id="cp-msg" style="display:none;padding:8px 16px;font-size:13px;border-radius:0 0 var(--radius) var(--radius);"></div>
+    </div>
+    <div style="margin-top:10px;">
+      <button class="btn btn-primary" onclick="changePassword()">Update Password</button>
     </div>
   </div>
 
@@ -652,7 +664,7 @@ async function loadLocations() {
 }
 
 async function loadAdmins() {
-  const { data:users } = await sb.from('users').select('id,email,role,location_id').eq('role','admin');
+  const { data:users } = await sb.from('users').select('id,email,role,location_id,display_name,phone').eq('role','admin');
   allAdmins = users || [];
   renderAdmins();
 }
@@ -738,11 +750,17 @@ function renderAdmins() {
     return;
   }
   el.innerHTML = allAdmins.map(u => {
-    const letter = (u.email||'?')[0].toUpperCase();
+    const letter = (u.display_name||u.email||'?')[0].toUpperCase();
+    const name   = u.display_name || '—';
+    const phone  = u.phone || '—';
     return `
     <div class="user-row">
       <div class="user-avatar">${letter}</div>
-      <div class="user-email">${escHtml(u.email)}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:14px;font-weight:600;color:var(--text);">${escHtml(name)}</div>
+        <div style="font-size:12px;color:var(--text-faint);margin-top:1px;">${escHtml(u.email)}</div>
+        <div style="font-size:12px;color:var(--text-faint);">${escHtml(phone)}</div>
+      </div>
       <div class="user-badge">Admin</div>
     </div>`;
   }).join('');
