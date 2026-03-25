@@ -151,10 +151,6 @@
     <div class="card">
       <div class="divider-label">Rates</div>
       <div class="settings-row">
-        <div><div class="row-label">Tax Rate</div></div>
-        <select class="row-input" id="d-taxrate"></select>
-      </div>
-      <div class="settings-row">
         <div><div class="row-label">Overhead Rate</div></div>
         <select class="row-input" id="d-ohrate"></select>
       </div>
@@ -292,15 +288,8 @@ let allLocations = [];
 let allAdmins    = [];
 let editingLocId = null;
 
-// ── DEFAULT SETTINGS stored in a special 'admin_settings' row in locations table
-// We use a separate key in localStorage + a dedicated Supabase table-less approach:
-// Store in a well-known location row with id 'admin-defaults', OR better: use a
-// simple key in the locations table settings column of a placeholder row.
-// Simplest: store in localStorage with Supabase backup via a dedicated admin user's metadata.
-// We'll use a simple approach: store in Supabase auth user metadata.
-
+// Tax rate removed from defaults entirely
 let DEFAULTS = {
-  taxRate:   1.25,
   ohRate:    32,
   otherRate: 50,
   merchRate: 100,
@@ -315,9 +304,13 @@ async function init() {
   const { data:u } = await sb.from('users').select('role').eq('id', session.user.id).single();
   if (!u || u.role !== 'admin') { window.location.href = 'index.html'; return; }
 
-  // Load defaults from user metadata
+  // Load defaults from user metadata — strip taxRate if present from old saves
   const meta = session.user.user_metadata || {};
-  if (meta.adminDefaults) DEFAULTS = { ...DEFAULTS, ...meta.adminDefaults };
+  if (meta.adminDefaults) {
+    const saved = { ...meta.adminDefaults };
+    delete saved.taxRate; // Remove tax rate from any previously saved defaults
+    DEFAULTS = { ...DEFAULTS, ...saved };
+  }
 
   await Promise.all([loadLocations(), loadAdmins()]);
   buildDefaultsUI();
@@ -340,11 +333,11 @@ async function loadAdmins() {
 
 // ── DEFAULTS UI ──
 function buildDefaultsUI() {
-  buildSelect('d-taxrate',   range(0,4,0.25),   DEFAULTS.taxRate,   v => v.toFixed(2)+'%');
-  buildSelect('d-ohrate',    range(15,40,1),     DEFAULTS.ohRate,    v => v+'%');
-  buildSelect('d-otherrate', range(30,60,2),     DEFAULTS.otherRate, v => v+'%');
-  buildSelect('d-merchrate', range(5,100,5),     DEFAULTS.merchRate, v => v+'%');
-  buildSelect('d-dvdelta',   range(-10,10,1),    DEFAULTS.dvDelta,   v => (v>=0?'+':'')+v+'%');
+  // Tax rate removed — only these four rates
+  buildSelect('d-ohrate',    range(15,40,1),   DEFAULTS.ohRate,    v => v+'%');
+  buildSelect('d-otherrate', range(30,60,2),   DEFAULTS.otherRate, v => v+'%');
+  buildSelect('d-merchrate', range(5,100,5),   DEFAULTS.merchRate, v => v+'%');
+  buildSelect('d-dvdelta',   range(-10,10,1),  DEFAULTS.dvDelta,   v => (v>=0?'+':'')+v+'%');
 
   const dop = document.getElementById('d-opdays');
   dop.innerHTML = DAY_NAMES.map((n,i) =>
@@ -358,13 +351,14 @@ function toggleDefaultDay(i, btn) {
 }
 
 async function saveDefaults() {
-  DEFAULTS.taxRate   = parseFloat(document.getElementById('d-taxrate').value);
   DEFAULTS.ohRate    = parseFloat(document.getElementById('d-ohrate').value);
   DEFAULTS.otherRate = parseFloat(document.getElementById('d-otherrate').value);
   DEFAULTS.merchRate = parseFloat(document.getElementById('d-merchrate').value);
   DEFAULTS.dvDelta   = parseFloat(document.getElementById('d-dvdelta').value);
 
-  // Save to Supabase user metadata
+  // Ensure taxRate is never saved
+  delete DEFAULTS.taxRate;
+
   const { error } = await sb.auth.updateUser({ data: { adminDefaults: DEFAULTS } });
   if (error) { showToast('Save failed: '+error.message, 'error'); return; }
   showToast('Default settings saved ✓', 'success');
@@ -401,16 +395,13 @@ function renderCodes() {
     el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-faint);font-size:14px;">No locations yet.</div>';
     return;
   }
-  el.innerHTML = allLocations.map(loc => {
-    // Check if any user is registered for this location
-    const claimed = false; // We'll check via users table later; for now show code
-    return `
+  el.innerHTML = allLocations.map(loc => `
     <div class="code-row">
       <span class="code-pill">${escHtml(loc.invite_code||'—')}</span>
       <span class="code-loc">${escHtml(loc.name)}</span>
       <span class="code-status open">Active</span>
-    </div>`;
-  }).join('');
+    </div>`
+  ).join('');
 }
 
 // ── RENDER ADMINS ──
@@ -453,9 +444,8 @@ async function submitAddLocation() {
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>Adding…';
 
-  // Apply defaults as initial settings for this location
+  // Apply current defaults as initial settings — no taxRate
   const settings = {
-    taxRate:   DEFAULTS.taxRate,
     ohRate:    DEFAULTS.ohRate,
     otherRate: DEFAULTS.otherRate,
     merchRate: DEFAULTS.merchRate,
