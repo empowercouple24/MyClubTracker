@@ -155,7 +155,7 @@
       </div>
       <div class="settings-row">
         <div class="row-label">Phone</div>
-        <input type="tel" class="row-input" id="prof-phone" placeholder="(555) 000-0000" style="text-align:right;"/>
+        <input type="tel" class="row-input" id="prof-phone" placeholder="(555) 000-0000" style="text-align:right;" oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"/>
       </div>
       <div class="settings-row">
         <div class="row-label">Email</div>
@@ -291,8 +291,14 @@
     <div class="modal-title">Add New Location</div>
     <div class="modal-body">
       <div class="modal-field"><label>Club Name</label><input type="text" id="al-name" placeholder="e.g. Fuel Station Nutrition"/></div>
-      <div class="modal-field"><label>Address</label><input type="text" id="al-address" placeholder="123 Main St, City OH 44000"/></div>
+      <div class="modal-field"><label>Street Address</label><input type="text" id="al-street" placeholder="123 Main St"/></div>
+      <div class="modal-field" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div><label>City</label><input type="text" id="al-city" placeholder="City" style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;outline:none;"/></div>
+        <div><label>State</label><select id="al-state" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 8px;outline:none;-webkit-appearance:auto;"></select></div>
+      </div>
+      <div class="modal-field"><label>Zip Code</label><input type="text" id="al-zip" placeholder="00000" maxlength="5" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5)"/></div>
       <div class="modal-field"><label>Owner Name</label><input type="text" id="al-owner" placeholder="Full name"/></div>
+      <div class="modal-field"><label>Owner Phone</label><input type="tel" id="al-phone" placeholder="(555) 000-0000" oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"/></div>
       <div class="modal-field"><label>Invite Code</label>
         <div style="display:flex;gap:8px;align-items:center;">
           <input type="text" id="al-code" placeholder="AUTO-GENERATED" style="text-transform:uppercase;flex:1"/>
@@ -315,9 +321,14 @@
     <div class="modal-title">Edit Location</div>
     <div class="modal-body">
       <div class="modal-field"><label>Club Name</label><input type="text" id="el-name"/></div>
-      <div class="modal-field"><label>Address</label><input type="text" id="el-address"/></div>
+      <div class="modal-field"><label>Street Address</label><input type="text" id="el-street" placeholder="123 Main St"/></div>
+      <div class="modal-field" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div><label>City</label><input type="text" id="el-city" placeholder="City" style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;outline:none;"/></div>
+        <div><label>State</label><select id="el-state" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 8px;outline:none;-webkit-appearance:auto;"></select></div>
+      </div>
+      <div class="modal-field"><label>Zip Code</label><input type="text" id="el-zip" placeholder="00000" maxlength="5" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5)"/></div>
       <div class="modal-field"><label>Owner Name</label><input type="text" id="el-owner"/></div>
-      <div class="modal-field"><label>Owner Phone</label><input type="tel" id="el-phone" placeholder="(555) 000-0000"/></div>
+      <div class="modal-field"><label>Owner Phone</label><input type="tel" id="el-phone" placeholder="(555) 000-0000" oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"/></div>
     </div>
     <div class="modal-msg" id="el-msg"></div>
     <div class="modal-actions">
@@ -405,6 +416,41 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 let allLocations = [];
+
+// ── SHARED HELPERS ──
+const US_STATES=[['AL','Alabama'],['AK','Alaska'],['AZ','Arizona'],['AR','Arkansas'],['CA','California'],['CO','Colorado'],['CT','Connecticut'],['DE','Delaware'],['FL','Florida'],['GA','Georgia'],['HI','Hawaii'],['ID','Idaho'],['IL','Illinois'],['IN','Indiana'],['IA','Iowa'],['KS','Kansas'],['KY','Kentucky'],['LA','Louisiana'],['ME','Maine'],['MD','Maryland'],['MA','Massachusetts'],['MI','Michigan'],['MN','Minnesota'],['MS','Mississippi'],['MO','Missouri'],['MT','Montana'],['NE','Nebraska'],['NV','Nevada'],['NH','New Hampshire'],['NJ','New Jersey'],['NM','New Mexico'],['NY','New York'],['NC','North Carolina'],['ND','North Dakota'],['OH','Ohio'],['OK','Oklahoma'],['OR','Oregon'],['PA','Pennsylvania'],['RI','Rhode Island'],['SC','South Carolina'],['SD','South Dakota'],['TN','Tennessee'],['TX','Texas'],['UT','Utah'],['VT','Vermont'],['VA','Virginia'],['WA','Washington'],['WV','West Virginia'],['WI','Wisconsin'],['WY','Wyoming']];
+
+function populateStateSelect(id, selected){
+  const el=document.getElementById(id);if(!el)return;
+  el.innerHTML='<option value="">State</option>'+US_STATES.map(([abbr,name])=>`<option value="${abbr}" ${abbr===selected?'selected':''}>${abbr} — ${name}</option>`).join('');
+}
+
+function fmtPhone(input){
+  let digits=input.value.replace(/\D/g,'').slice(0,10);
+  let fmt='';
+  if(digits.length>0) fmt='('+digits.slice(0,3);
+  if(digits.length>=4) fmt+=') '+digits.slice(3,6);
+  if(digits.length>=7) fmt+='-'+digits.slice(6,10);
+  input.value=fmt;
+}
+
+// Parse a stored "Street, City, ST Zip" address back into parts
+function parseAddress(addr){
+  if(!addr)return{street:'',city:'',state:'',zip:''};
+  // Try to match "Street, City, ST Zip" or "Street, City ST Zip"
+  const m=addr.match(/^(.*?),\s*(.*?),?\s+([A-Z]{2})\s+(\d{5})$/);
+  if(m)return{street:m[1].trim(),city:m[2].trim(),state:m[3].trim(),zip:m[4].trim()};
+  // Fallback — put everything in street
+  return{street:addr,city:'',state:'',zip:''};
+}
+
+function buildAddress(street,city,state,zip){
+  const parts=[];
+  if(street)parts.push(street);
+  if(city&&state)parts.push(`${city}, ${state} ${zip}`.trim());
+  else if(city)parts.push(city);
+  return parts.join(', ');
+}
 let allAdmins    = [];
 let editingLocId = null;
 
@@ -768,25 +814,35 @@ function renderAdmins() {
 
 // ── ADD LOCATION ──
 function openAddLocation() {
-  document.getElementById('al-name').value    = '';
-  document.getElementById('al-address').value = '';
-  document.getElementById('al-owner').value   = '';
+  document.getElementById('al-name').value  = '';
+  document.getElementById('al-street').value= '';
+  document.getElementById('al-city').value  = '';
+  document.getElementById('al-zip').value   = '';
+  document.getElementById('al-owner').value = '';
+  document.getElementById('al-phone').value = '';
+  populateStateSelect('al-state','');
   genCode('al-code');
   clearModalMsg('al-msg');
   openModal('modal-addloc');
 }
 
 async function submitAddLocation() {
-  const name    = document.getElementById('al-name').value.trim();
-  const address = document.getElementById('al-address').value.trim();
-  const owner   = document.getElementById('al-owner').value.trim();
-  const code    = document.getElementById('al-code').value.trim().toUpperCase();
-  const btn     = document.getElementById('al-btn');
+  const name   = document.getElementById('al-name').value.trim();
+  const street = document.getElementById('al-street').value.trim();
+  const city   = document.getElementById('al-city').value.trim();
+  const state  = document.getElementById('al-state').value;
+  const zip    = document.getElementById('al-zip').value.trim();
+  const owner  = document.getElementById('al-owner').value.trim();
+  const phone  = document.getElementById('al-phone').value.trim();
+  const code   = document.getElementById('al-code').value.trim().toUpperCase();
+  const btn    = document.getElementById('al-btn');
 
   if (!name || !code) { showModalMsg('al-msg','error','Club name and invite code are required.'); return; }
 
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>Adding…';
+
+  const address = buildAddress(street, city, state, zip);
 
   // Apply current defaults as initial settings — no taxRate
   const settings = {
@@ -805,7 +861,7 @@ async function submitAddLocation() {
   };
 
   const { error } = await sb.from('locations').insert({
-    name, address, owner_name: owner, invite_code: code, settings
+    name, address, owner_name: owner, owner_phone: phone, invite_code: code, settings
   });
 
   btn.disabled = false;
@@ -826,25 +882,38 @@ function openEditLocation(locId) {
   const loc = allLocations.find(l => l.id === locId);
   if (!loc) return;
   editingLocId = locId;
-  document.getElementById('el-name').value    = loc.name;
-  document.getElementById('el-address').value = loc.address || '';
-  document.getElementById('el-owner').value   = loc.owner_name || '';
-  document.getElementById('el-phone').value   = loc.owner_phone || '';
+  document.getElementById('el-name').value  = loc.name;
+  document.getElementById('el-owner').value = loc.owner_name || '';
+  // Parse existing address into parts
+  const parts = parseAddress(loc.address || '');
+  document.getElementById('el-street').value = parts.street;
+  document.getElementById('el-city').value   = parts.city;
+  document.getElementById('el-zip').value    = parts.zip;
+  populateStateSelect('el-state', parts.state);
+  // Format phone
+  const phoneEl = document.getElementById('el-phone');
+  phoneEl.value = loc.owner_phone || '';
+  if (loc.owner_phone) fmtPhone(phoneEl);
   clearModalMsg('el-msg');
   openModal('modal-editloc');
 }
 
 async function submitEditLocation() {
-  const name    = document.getElementById('el-name').value.trim();
-  const address = document.getElementById('el-address').value.trim();
-  const owner   = document.getElementById('el-owner').value.trim();
-  const phone   = document.getElementById('el-phone').value.trim();
-  const btn     = document.getElementById('el-btn');
+  const name   = document.getElementById('el-name').value.trim();
+  const street = document.getElementById('el-street').value.trim();
+  const city   = document.getElementById('el-city').value.trim();
+  const state  = document.getElementById('el-state').value;
+  const zip    = document.getElementById('el-zip').value.trim();
+  const owner  = document.getElementById('el-owner').value.trim();
+  const phone  = document.getElementById('el-phone').value.trim();
+  const btn    = document.getElementById('el-btn');
 
   if (!name) { showModalMsg('el-msg','error','Club name is required.'); return; }
 
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>Saving…';
+
+  const address = buildAddress(street, city, state, zip);
 
   const { error } = await sb.from('locations').update({
     name, address, owner_name: owner, owner_phone: phone
