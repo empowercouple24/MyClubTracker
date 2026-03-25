@@ -1,582 +1,409 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <title>Nemecek Org Clubs</title>
-  <meta name="description" content="Nutrition club management platform" />
-  <meta name="theme-color" content="#e8edf4" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="NOC" />
-  <link rel="manifest" href="manifest.json" />
-  <link rel="apple-touch-icon" href="icon-192.png" />
-
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=Outfit:wght@200;300;400;600;700&display=swap" rel="stylesheet" />
-
+  <meta name="theme-color" content="#1e2d3d"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --b9:#1e2d3d;--b8:#2a3f56;--b7:#3a5470;--b6:#4a6a8a;--b5:#5b80a0;--b4:#7599b8;--b3:#9ab4cc;--b2:#bfd0e0;--b1:#dde7f0;--b0:#f0f4f8;
+      --g5:#2e7a35;--g0:#eaf6eb;
+      --r5:#c03030;--r0:#fff0f0;
+      --bg:#0f1923;
+      --surface:#fff;--border:#cdd6e0;--border-light:#e2e9f0;
+      --text:#1e2d3d;--text-muted:#5b7087;--text-faint:#8fa3b3;
+      --radius:14px;--radius-sm:9px;
+      --shadow-sm:0 1px 4px rgba(30,45,61,0.07),0 2px 10px rgba(30,45,61,0.05);
+      --shadow-md:0 8px 30px rgba(0,0,0,0.18);
+    }
+    html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
 
-    :root {
-      --b9: #1e2d3d;
-      --b8: #2a3f56;
-      --b7: #3a5470;
-      --b6: #4a6a8a;
-      --b5: #5b80a0;
-      --b4: #7599b8;
-      --b3: #9ab4cc;
-      --b2: #bfd0e0;
-      --b1: #dde7f0;
-      --b0: #f0f4f8;
+    /* Background */
+    .bg-gradient{position:fixed;inset:0;background:radial-gradient(ellipse at 30% 20%,rgba(58,84,112,0.35) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(46,122,53,0.12) 0%,transparent 50%),linear-gradient(160deg,#0d1821 0%,#1a2d3e 50%,#0f1923 100%);z-index:0}
 
-      --bg-page: #e8edf4;
-      --bg-page2: #dce3ed;
-      --text: #1e2d3d;
-      --text-muted: #5b7087;
-      --text-faint: #8fa3b3;
-      --surface: #ffffff;
-      --surface-hover: #f5f8fb;
-      --border: #cdd6e0;
-      --border-focus: rgba(74,106,138,0.5);
-      --accent: #3a5470;
-      --accent-light: #5b80a0;
-      --radius: 12px;
-      --radius-sm: 8px;
-    }
+    /* Card wrapper */
+    .screen{position:relative;z-index:1;height:100%;display:flex;align-items:center;justify-content:center;padding:20px}
+    .card{background:rgba(255,255,255,0.97);backdrop-filter:blur(20px);border-radius:var(--radius);padding:32px 28px 28px;width:100%;max-width:400px;box-shadow:var(--shadow-md)}
 
-    html, body {
-      height: 100%;
-      font-family: 'DM Sans', sans-serif;
-      background: var(--bg-page);
-      color: var(--text);
-      overflow: hidden;
-    }
+    /* Logo */
+    .logo-row{display:flex;align-items:center;gap:11px;margin-bottom:26px}
+    .logo-icon{width:42px;height:42px;background:linear-gradient(135deg,var(--b7),var(--b5));border-radius:11px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(58,84,112,0.3);flex-shrink:0}
+    .logo-icon svg{width:18px;height:18px;stroke:white;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+    .logo-text{font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;color:var(--b9);line-height:1.1}
+    .logo-sub{font-size:11px;font-weight:500;color:var(--text-faint);letter-spacing:0.3px}
 
-    /* ── Background ── */
-    .bg {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      overflow: hidden;
-      background: var(--bg-page);
-    }
+    /* Tabs */
+    .auth-tabs{display:flex;background:var(--b0);border-radius:9px;padding:3px;margin-bottom:22px;gap:3px}
+    .auth-tab{flex:1;padding:8px 6px;border:none;background:none;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--text-muted);cursor:pointer;transition:all 0.18s}
+    .auth-tab.active{background:var(--surface);color:var(--b7);box-shadow:0 1px 4px rgba(30,45,61,0.12)}
 
-    .bg::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background:
-        radial-gradient(ellipse 80% 60% at 15% 10%, rgba(90,128,160,0.18) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 70% at 88% 85%, rgba(58,84,112,0.12) 0%, transparent 60%),
-        radial-gradient(ellipse 50% 50% at 55% 40%, rgba(155,180,204,0.1) 0%, transparent 55%);
-    }
+    /* Form */
+    .field{margin-bottom:14px}
+    .field label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-faint);margin-bottom:5px}
+    .field input{width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--b0);border:1.5px solid var(--border-light);border-radius:var(--radius-sm);padding:10px 13px;outline:none;transition:border-color 0.15s,box-shadow 0.15s}
+    .field input:focus{border-color:var(--b5);box-shadow:0 0 0 3px rgba(91,128,160,0.14);background:#fff}
+    .field input::placeholder{color:var(--text-faint)}
+    .field input:disabled{opacity:0.5;cursor:not-allowed}
 
-    .bg-grid {
-      position: absolute;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(74,106,138,0.06) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(74,106,138,0.06) 1px, transparent 1px);
-      background-size: 40px 40px;
-      mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 100%);
-    }
+    /* Invite row */
+    .invite-row{display:flex;gap:8px}
+    .invite-row input{flex:1}
+    .btn-verify{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;background:var(--b0);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;cursor:pointer;color:var(--b7);transition:background 0.15s;white-space:nowrap;flex-shrink:0}
+    .btn-verify:hover{background:var(--b1)}
+    .btn-verify:disabled{opacity:0.5;cursor:not-allowed}
 
-    .bg-orb {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(80px);
-      animation: drift 12s ease-in-out infinite;
-    }
-    .bg-orb-1 {
-      width: 500px; height: 500px;
-      background: radial-gradient(circle, rgba(91,128,160,0.2), transparent 70%);
-      top: -150px; left: -100px;
-      animation-delay: 0s;
-    }
-    .bg-orb-2 {
-      width: 400px; height: 400px;
-      background: radial-gradient(circle, rgba(58,84,112,0.14), transparent 70%);
-      bottom: -100px; right: -80px;
-      animation-delay: -6s;
-    }
+    /* Verified badge */
+    .verified-badge{display:none;align-items:center;gap:6px;padding:8px 12px;background:var(--g0);border:1px solid rgba(46,122,53,0.25);border-radius:var(--radius-sm);font-size:13px;font-weight:600;color:var(--g5);margin-top:6px}
+    .verified-badge.show{display:flex}
+    .verified-badge svg{width:15px;height:15px;stroke:var(--g5);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
 
-    @keyframes drift {
-      0%, 100% { transform: translate(0, 0) scale(1); }
-      33% { transform: translate(30px, -20px) scale(1.05); }
-      66% { transform: translate(-20px, 30px) scale(0.97); }
-    }
+    /* Role selector */
+    .role-selector{display:flex;gap:8px;margin-bottom:14px}
+    .role-option{flex:1;padding:10px 8px;border:1.5px solid var(--border-light);border-radius:var(--radius-sm);cursor:pointer;text-align:center;transition:all 0.15s;background:var(--b0)}
+    .role-option.selected{border-color:var(--b5);background:var(--b1)}
+    .role-option-icon{font-size:18px;margin-bottom:3px}
+    .role-option-label{font-size:12px;font-weight:700;color:var(--text-muted)}
+    .role-option.selected .role-option-label{color:var(--b7)}
+    .role-option-sub{font-size:10px;color:var(--text-faint);margin-top:1px}
 
-    /* ── Layout ── */
-    .page {
-      position: relative;
-      z-index: 1;
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-    }
+    /* Error/Info messages */
+    .msg{padding:10px 13px;border-radius:var(--radius-sm);font-size:13px;line-height:1.5;margin-bottom:12px;display:none}
+    .msg.show{display:block}
+    .msg.error{background:var(--r0);border:1px solid rgba(192,48,48,0.2);color:var(--r5)}
+    .msg.success{background:var(--g0);border:1px solid rgba(46,122,53,0.2);color:var(--g5)}
+    .msg.info{background:var(--b0);border:1px solid var(--b2);color:var(--b7)}
 
-    .card {
-      width: 100%;
-      max-width: 400px;
-      animation: cardIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
-    }
+    /* Submit button */
+    .btn-submit{width:100%;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;background:linear-gradient(135deg,var(--b7),var(--b5));color:white;border:none;border-radius:var(--radius-sm);padding:13px;cursor:pointer;box-shadow:0 3px 14px rgba(58,84,112,0.28);transition:opacity 0.15s,transform 0.12s;margin-top:4px}
+    .btn-submit:hover:not(:disabled){opacity:0.92}
+    .btn-submit:active:not(:disabled){transform:scale(0.98)}
+    .btn-submit:disabled{opacity:0.55;cursor:not-allowed}
 
-    @keyframes cardIn {
-      from { opacity: 0; transform: translateY(24px) scale(0.97); }
-      to   { opacity: 1; transform: translateY(0) scale(1); }
-    }
+    /* Divider */
+    .divider{display:flex;align-items:center;gap:10px;margin:14px 0}
+    .divider-line{flex:1;height:1px;background:var(--border-light)}
+    .divider-text{font-size:11px;color:var(--text-faint);white-space:nowrap}
 
-    /* ── Header ── */
-    .header {
-      text-align: center;
-      margin-bottom: 36px;
-      animation: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
-    }
+    /* Loading overlay */
+    #loading-overlay{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:300;transition:opacity 0.3s}
+    #loading-overlay.hidden{opacity:0;pointer-events:none}
+    .load-spinner{width:32px;height:32px;border:3px solid rgba(255,255,255,0.15);border-top-color:var(--b4);border-radius:50%;animation:spin 0.8s linear infinite}
+    .load-text{font-size:14px;color:rgba(255,255,255,0.6)}
+    @keyframes spin{to{transform:rotate(360deg)}}
 
-    .logo-mark {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 60px;
-      height: 60px;
-      background: linear-gradient(135deg, var(--b7) 0%, var(--b5) 100%);
-      border-radius: 16px;
-      margin-bottom: 16px;
-      box-shadow: 0 8px 32px rgba(58,84,112,0.25), 0 2px 8px rgba(0,0,0,0.1);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .logo-mark::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
-    }
-
-    .logo-mark svg {
-      width: 28px;
-      height: 28px;
-      fill: none;
-      stroke: white;
-      stroke-width: 2;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      position: relative;
-      z-index: 1;
-    }
-
-    .org-name {
-      font-family: 'Outfit', sans-serif;
-      font-size: 22px;
-      font-weight: 700;
-      letter-spacing: -0.3px;
-      color: var(--text);
-      line-height: 1.2;
-      margin-bottom: 4px;
-    }
-
-    .org-sub {
-      font-size: 13px;
-      color: var(--text-muted);
-      font-weight: 400;
-      letter-spacing: 0.3px;
-    }
-
-    /* ── Form panel ── */
-    .panel {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 28px;
-      box-shadow: 0 4px 24px rgba(30,45,61,0.08), 0 1px 4px rgba(30,45,61,0.05);
-      animation: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
-    }
-
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(16px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .panel-title {
-      font-family: 'Outfit', sans-serif;
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 20px;
-    }
-
-    /* ── Inputs ── */
-    .field {
-      margin-bottom: 14px;
-    }
-
-    .field label {
-      display: block;
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      margin-bottom: 6px;
-    }
-
-    .field input {
-      width: 100%;
-      background: var(--b0);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 11px 14px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 15px;
-      color: var(--text);
-      outline: none;
-      transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
-      -webkit-appearance: none;
-    }
-
-    .field input::placeholder {
-      color: var(--text-faint);
-    }
-
-    .field input:focus {
-      border-color: var(--b6);
-      background: #ffffff;
-      box-shadow: 0 0 0 3px rgba(74,106,138,0.12);
-    }
-
-    /* ── Button ── */
-    .btn-primary {
-      width: 100%;
-      padding: 13px;
-      margin-top: 8px;
-      background: linear-gradient(135deg, var(--b7) 0%, var(--b5) 100%);
-      border: none;
-      border-radius: var(--radius-sm);
-      font-family: 'Outfit', sans-serif;
-      font-size: 15px;
-      font-weight: 600;
-      color: white;
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
-      transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
-      box-shadow: 0 4px 16px rgba(58,84,112,0.25);
-      letter-spacing: 0.2px;
-    }
-
-    .btn-primary::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 60%);
-      pointer-events: none;
-    }
-
-    .btn-primary:hover:not(:disabled) {
-      transform: translateY(-1px);
-      box-shadow: 0 8px 24px rgba(58,84,112,0.35);
-    }
-
-    .btn-primary:active:not(:disabled) {
-      transform: translateY(0);
-      box-shadow: 0 2px 8px rgba(58,84,112,0.2);
-    }
-
-    .btn-primary:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    /* ── Error / status ── */
-    .msg {
-      margin-top: 14px;
-      padding: 10px 14px;
-      border-radius: var(--radius-sm);
-      font-size: 13px;
-      line-height: 1.5;
-      display: none;
-    }
-
-    .msg.error {
-      background: rgba(200,50,50,0.07);
-      border: 1px solid rgba(200,50,50,0.2);
-      color: #c03030;
-      display: block;
-    }
-
-    .msg.info {
-      background: rgba(58,84,112,0.07);
-      border: 1px solid rgba(58,84,112,0.2);
-      color: var(--b7);
-      display: block;
-    }
-
-    /* ── Loading spinner ── */
-    .spinner {
-      display: inline-block;
-      width: 14px;
-      height: 14px;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      vertical-align: middle;
-      margin-right: 6px;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    /* ── Register link ── */
-    .register-link {
-      text-align: center;
-      margin-top: 20px;
-      font-size: 13px;
-      color: var(--text-muted);
-      animation: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both;
-    }
-
-    .register-link a {
-      color: var(--b6);
-      text-decoration: none;
-      font-weight: 500;
-      transition: color 0.15s;
-    }
-
-    .register-link a:hover {
-      color: var(--b7);
-    }
-
-    /* ── Redirect screen ── */
-    #redirect-screen {
-      display: none;
-      text-align: center;
-    }
-
-    #redirect-screen.active {
-      display: block;
-    }
-
-    .redirect-icon {
-      width: 64px;
-      height: 64px;
-      background: linear-gradient(135deg, var(--b7), var(--b5));
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 20px;
-      box-shadow: 0 8px 32px rgba(58,84,112,0.25);
-      animation: popIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-    }
-
-    @keyframes popIn {
-      from { transform: scale(0.5); opacity: 0; }
-      to   { transform: scale(1); opacity: 1; }
-    }
-
-    .redirect-icon svg {
-      width: 28px;
-      height: 28px;
-      stroke: white;
-      fill: none;
-      stroke-width: 2.5;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-
-    .redirect-title {
-      font-family: 'Outfit', sans-serif;
-      font-size: 20px;
-      font-weight: 700;
-      margin-bottom: 8px;
-      color: var(--text);
-    }
-
-    .redirect-sub {
-      font-size: 14px;
-      color: var(--text-muted);
-    }
-
-    /* ── Footer ── */
-    .footer {
-      position: fixed;
-      bottom: 16px;
-      left: 0; right: 0;
-      text-align: center;
-      font-size: 11px;
-      color: var(--text-faint);
-      letter-spacing: 0.3px;
-      z-index: 1;
-    }
+    /* Spinner inside button */
+    .btn-spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px}
   </style>
 </head>
 <body>
 
-  <div class="bg">
-    <div class="bg-grid"></div>
-    <div class="bg-orb bg-orb-1"></div>
-    <div class="bg-orb bg-orb-2"></div>
-  </div>
+<div id="loading-overlay">
+  <div class="load-spinner"></div>
+  <div class="load-text" id="load-text">Loading…</div>
+</div>
 
-  <div class="page">
-    <div class="card">
+<div class="bg-gradient"></div>
 
-      <!-- Header -->
-      <div class="header">
-        <div class="logo-mark">
-          <svg viewBox="0 0 24 24">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
-            <path d="M8 12h8M12 8v8"/>
-          </svg>
-        </div>
-        <div class="org-name">Nemecek Org Clubs</div>
-        <div class="org-sub">Club management platform</div>
+<div class="screen">
+  <div class="card">
+    <div class="logo-row">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12h8M12 8v8"/></svg>
       </div>
-
-      <!-- Login form -->
-      <div id="login-screen">
-        <div class="panel">
-          <div class="panel-title">Sign in</div>
-
-          <div class="field">
-            <label>Email</label>
-            <input type="email" id="email" placeholder="you@example.com" autocomplete="email" />
-          </div>
-
-          <div class="field">
-            <label>Password</label>
-            <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" />
-          </div>
-
-          <button class="btn-primary" id="login-btn" onclick="handleLogin()">
-            Sign In
-          </button>
-
-          <div class="msg" id="login-msg"></div>
-        </div>
-
-        <div class="register-link">
-          New location? <a href="register.html">Register with invite code →</a>
-        </div>
+      <div>
+        <div class="logo-text">Nemecek Org Clubs</div>
+        <div class="logo-sub">Nutrition Club Management</div>
       </div>
-
-      <!-- Redirect screen -->
-      <div id="redirect-screen">
-        <div class="panel" style="text-align:center; padding: 40px 28px;">
-          <div class="redirect-icon">
-            <svg viewBox="0 0 24 24">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
-          </div>
-          <div class="redirect-title" id="redirect-title">Welcome back</div>
-          <div class="redirect-sub" id="redirect-sub">Taking you to your dashboard…</div>
-        </div>
-      </div>
-
     </div>
+
+    <!-- TABS -->
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-signin" onclick="showTab('signin')">Sign In</button>
+      <button class="auth-tab" id="tab-register" onclick="showTab('register')">Register</button>
+    </div>
+
+    <!-- ══ SIGN IN PANEL ══ -->
+    <div id="panel-signin">
+      <div class="msg" id="si-msg"></div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="si-email" placeholder="you@example.com" autocomplete="email"/>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="si-password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')signIn()"/>
+      </div>
+      <button class="btn-submit" id="si-btn" onclick="signIn()">Sign In</button>
+      <div class="divider"><div class="divider-line"></div><div class="divider-text">New to the app?</div><div class="divider-line"></div></div>
+      <button class="btn-submit" style="background:linear-gradient(135deg,var(--b8),var(--b7));font-size:13px;padding:10px;" onclick="showTab('register')">Create Account →</button>
+    </div>
+
+    <!-- ══ REGISTER PANEL ══ -->
+    <div id="panel-register" style="display:none;">
+      <!-- Step 1: Choose role -->
+      <div id="reg-step-1">
+        <div class="msg info show" style="margin-bottom:16px;">You'll need an invite code from your club owner or admin.</div>
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-faint);margin-bottom:8px;">I am a…</div>
+        <div class="role-selector">
+          <div class="role-option selected" id="role-owner" onclick="selectRole('owner')">
+            <div class="role-option-icon">🏪</div>
+            <div class="role-option-label">Club Owner</div>
+            <div class="role-option-sub">Manage my club</div>
+          </div>
+          <div class="role-option" id="role-employee" onclick="selectRole('employee')">
+            <div class="role-option-icon">👤</div>
+            <div class="role-option-label">Employee</div>
+            <div class="role-option-sub">Enter daily data</div>
+          </div>
+        </div>
+        <div class="field">
+          <label id="code-label">Owner Invite Code</label>
+          <div class="invite-row">
+            <input type="text" id="reg-code" placeholder="e.g. EMPOWER2025" style="text-transform:uppercase;letter-spacing:1px;font-weight:700;" oninput="this.value=this.value.toUpperCase();resetVerify()"/>
+            <button class="btn-verify" id="verify-btn" onclick="verifyCode()">Verify</button>
+          </div>
+          <div class="verified-badge" id="verified-badge">
+            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            <span id="verified-text">Code verified</span>
+          </div>
+        </div>
+        <div class="msg" id="reg-step1-msg"></div>
+        <button class="btn-submit" id="reg-next-btn" onclick="goToStep2()" disabled>Continue →</button>
+      </div>
+
+      <!-- Step 2: Account details -->
+      <div id="reg-step-2" style="display:none;">
+        <div class="msg info show" id="reg-location-name" style="margin-bottom:16px;font-weight:600;"></div>
+        <div class="field">
+          <label>Your Full Name</label>
+          <input type="text" id="reg-name" placeholder="Jane Smith" autocomplete="name"/>
+        </div>
+        <div class="field">
+          <label>Phone Number</label>
+          <input type="tel" id="reg-phone" placeholder="(555) 000-0000" autocomplete="tel"/>
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="reg-email" placeholder="you@example.com" autocomplete="email"/>
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="reg-password" placeholder="At least 6 characters" autocomplete="new-password"/>
+        </div>
+        <div class="field">
+          <label>Confirm Password</label>
+          <input type="password" id="reg-password2" placeholder="Repeat password" autocomplete="new-password" onkeydown="if(event.key==='Enter')register()"/>
+        </div>
+        <div class="msg" id="reg-step2-msg"></div>
+        <button class="btn-submit" id="reg-btn" onclick="register()">Create Account</button>
+        <div style="margin-top:12px;text-align:center;">
+          <button onclick="backToStep1()" style="background:none;border:none;font-size:13px;color:var(--text-faint);cursor:pointer;">← Back</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Success -->
+      <div id="reg-step-3" style="display:none;text-align:center;padding:12px 0;">
+        <div style="font-size:40px;margin-bottom:14px;">🎉</div>
+        <div style="font-family:'Outfit',sans-serif;font-size:20px;font-weight:700;color:var(--b7);margin-bottom:8px;">You're all set!</div>
+        <div style="font-size:14px;color:var(--text-muted);line-height:1.6;margin-bottom:20px;" id="reg-success-msg">Account created successfully.</div>
+        <button class="btn-submit" onclick="showTab('signin')">Sign In Now →</button>
+      </div>
+    </div>
+
   </div>
+</div>
 
-  <div class="footer">Nemecek Org Clubs · v1.0</div>
+<script>
+const SUPABASE_URL='https://ndaqlamzlaucigvnhgfu.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_wO6XM4pC2CcaISQ8OlbkfQ_liqKJbi_';
+const{createClient}=supabase;
+const sb=createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 
-  <script>
-    // ── Supabase init ──
-    const SUPABASE_URL = 'https://ndaqlamzlaucigvnhgfu.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_wO6XM4pC2CcaISQ8OlbkfQ_liqKJbi_';
-    const { createClient } = supabase;
-    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// State
+let selectedRole='owner'; // 'owner' or 'employee'
+let verifiedLocation=null; // {id, name, role} after code verified
 
-    // ── Check if already logged in ──
-    (async () => {
-      const { data: { session } } = await sb.auth.getSession();
-      if (session) await routeUser(session.user);
-    })();
-
-    // ── Login handler ──
-    async function handleLogin() {
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-      const btn = document.getElementById('login-btn');
-      const msg = document.getElementById('login-msg');
-
-      msg.className = 'msg';
-      msg.textContent = '';
-
-      if (!email || !password) {
-        showMsg('error', 'Please enter your email and password.');
-        return;
-      }
-
-      btn.disabled = true;
-      btn.innerHTML = '<span class="spinner"></span>Signing in…';
-
-      const { data, error } = await sb.auth.signInWithPassword({ email, password });
-
-      if (error) {
-        btn.disabled = false;
-        btn.textContent = 'Sign In';
-        showMsg('error', error.message || 'Sign in failed. Please try again.');
-        return;
-      }
-
-      await routeUser(data.user);
+async function init(){
+  const{data:{session}}=await sb.auth.getSession();
+  if(session){
+    // Already logged in — route to correct page
+    const{data:u}=await sb.from('users').select('role,location_id').eq('id',session.user.id).single();
+    if(u){
+      if(u.role==='admin') window.location.href='admin.html';
+      else if(u.location_id) window.location.href='app.html';
+      else document.getElementById('loading-overlay').classList.add('hidden');
+    } else {
+      document.getElementById('loading-overlay').classList.add('hidden');
     }
+  } else {
+    document.getElementById('loading-overlay').classList.add('hidden');
+  }
+}
 
-    // ── Route based on role ──
-    async function routeUser(user) {
-      const { data: userData, error } = await sb
-        .from('users')
-        .select('role, location_id, locations(name)')
-        .eq('id', user.id)
-        .single();
+// ── TABS ──
+function showTab(tab){
+  document.getElementById('panel-signin').style.display=tab==='signin'?'block':'none';
+  document.getElementById('panel-register').style.display=tab==='register'?'block':'none';
+  document.getElementById('tab-signin').classList.toggle('active',tab==='signin');
+  document.getElementById('tab-register').classList.toggle('active',tab==='register');
+  clearMsg('si-msg');clearMsg('reg-step1-msg');clearMsg('reg-step2-msg');
+}
 
-      if (error || !userData) {
-        showMsg('error', 'Account not found. Contact your administrator.');
-        await sb.auth.signOut();
-        document.getElementById('login-btn').disabled = false;
-        document.getElementById('login-btn').textContent = 'Sign In';
-        return;
-      }
+// ── SIGN IN ──
+async function signIn(){
+  const email=document.getElementById('si-email').value.trim();
+  const password=document.getElementById('si-password').value;
+  if(!email||!password){showMsg('si-msg','Please fill in all fields.','error');return;}
+  setBtnLoading('si-btn',true,'Signing in…');
+  const{data,error}=await sb.auth.signInWithPassword({email,password});
+  if(error){showMsg('si-msg',error.message,'error');setBtnLoading('si-btn',false,'Sign In');return;}
+  // Route by role
+  const{data:u}=await sb.from('users').select('role,location_id').eq('id',data.user.id).single();
+  if(!u){showMsg('si-msg','Account not fully set up. Contact your admin.','error');setBtnLoading('si-btn',false,'Sign In');return;}
+  if(u.role==='admin') window.location.href='admin.html';
+  else if(u.location_id) window.location.href='app.html';
+  else{showMsg('si-msg','No location assigned. Contact your admin.','error');setBtnLoading('si-btn',false,'Sign In');}
+}
 
-      // Show redirect screen
-      document.getElementById('login-screen').style.display = 'none';
-      const rs = document.getElementById('redirect-screen');
-      rs.classList.add('active');
+// ── REGISTER STEP 1: Role + Code ──
+function selectRole(role){
+  selectedRole=role;
+  document.getElementById('role-owner').classList.toggle('selected',role==='owner');
+  document.getElementById('role-employee').classList.toggle('selected',role==='employee');
+  document.getElementById('code-label').textContent=role==='owner'?'Owner Invite Code':'Employee Invite Code';
+  document.getElementById('reg-code').placeholder=role==='owner'?'e.g. EMPOWER2025':'e.g. ABC123';
+  resetVerify();
+}
 
-      if (userData.role === 'admin') {
-        document.getElementById('redirect-title').textContent = 'Welcome, Jeffrey';
-        document.getElementById('redirect-sub').textContent = 'Loading admin dashboard…';
-        setTimeout(() => { window.location.href = 'admin.html'; }, 1200);
-      } else {
-        const clubName = userData.locations?.name || 'your club';
-        document.getElementById('redirect-title').textContent = 'Welcome back!';
-        document.getElementById('redirect-sub').textContent = `Loading ${clubName}…`;
-        setTimeout(() => { window.location.href = 'app.html'; }, 1200);
-      }
-    }
+function resetVerify(){
+  verifiedLocation=null;
+  document.getElementById('verified-badge').classList.remove('show');
+  document.getElementById('reg-next-btn').disabled=true;
+  clearMsg('reg-step1-msg');
+}
 
-    function showMsg(type, text) {
-      const msg = document.getElementById('login-msg');
-      msg.className = `msg ${type}`;
-      msg.textContent = text;
-    }
+async function verifyCode(){
+  const code=document.getElementById('reg-code').value.trim().toUpperCase();
+  if(!code){showMsg('reg-step1-msg','Please enter an invite code.','error');return;}
+  setBtnLoading('verify-btn',true,'Checking…');
+  clearMsg('reg-step1-msg');
 
-    // ── Enter key support ──
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Enter') handleLogin();
-    });
-  </script>
+  if(selectedRole==='owner'){
+    // Owner invite code lives on locations.invite_code
+    const{data:loc,error}=await sb.from('locations').select('id,name,invite_code').eq('invite_code',code).single();
+    setBtnLoading('verify-btn',false,'Verify');
+    if(error||!loc){showMsg('reg-step1-msg','Invalid invite code. Check with your admin.','error');return;}
+    // Check no owner already registered for this location
+    const{data:existing}=await sb.from('users').select('id').eq('location_id',loc.id).eq('role','owner');
+    if(existing&&existing.length>0){showMsg('reg-step1-msg','This location already has an owner account. Contact your admin.','error');return;}
+    verifiedLocation={id:loc.id,name:loc.name,role:'owner'};
+  } else {
+    // Employee invite code lives in locations.settings.employeeInviteCode
+    const{data:locs}=await sb.from('locations').select('id,name,settings');
+    setBtnLoading('verify-btn',false,'Verify');
+    const match=(locs||[]).find(l=>l.settings?.employeeInviteCode===code);
+    if(!match){showMsg('reg-step1-msg','Invalid employee code. Ask your club owner to check the code in Settings.','error');return;}
+    verifiedLocation={id:match.id,name:match.name,role:'employee'};
+  }
 
-  <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}</script>
+  document.getElementById('verified-badge').classList.add('show');
+  document.getElementById('verified-text').textContent=`✓ ${verifiedLocation.name}`;
+  document.getElementById('reg-next-btn').disabled=false;
+  clearMsg('reg-step1-msg');
+}
+
+function goToStep2(){
+  if(!verifiedLocation)return;
+  document.getElementById('reg-location-name').textContent=
+    `${selectedRole==='owner'?'🏪 Club Owner':'👤 Employee'} — ${verifiedLocation.name}`;
+  document.getElementById('reg-step-1').style.display='none';
+  document.getElementById('reg-step-2').style.display='block';
+}
+
+function backToStep1(){
+  document.getElementById('reg-step-1').style.display='block';
+  document.getElementById('reg-step-2').style.display='none';
+  clearMsg('reg-step2-msg');
+}
+
+// ── REGISTER STEP 2: Create Account ──
+async function register(){
+  const name=document.getElementById('reg-name').value.trim();
+  const phone=document.getElementById('reg-phone').value.trim();
+  const email=document.getElementById('reg-email').value.trim();
+  const pw=document.getElementById('reg-password').value;
+  const pw2=document.getElementById('reg-password2').value;
+
+  if(!name){showMsg('reg-step2-msg','Please enter your full name.','error');return;}
+  if(!email){showMsg('reg-step2-msg','Please enter your email.','error');return;}
+  if(!pw||pw.length<6){showMsg('reg-step2-msg','Password must be at least 6 characters.','error');return;}
+  if(pw!==pw2){showMsg('reg-step2-msg','Passwords do not match.','error');return;}
+  if(!verifiedLocation){showMsg('reg-step2-msg','Invite code error. Please go back and re-verify.','error');return;}
+
+  setBtnLoading('reg-btn',true,'Creating account…');
+
+  // 1. Create auth user
+  const{data:authData,error:authError}=await sb.auth.signUp({email,password:pw});
+  if(authError){showMsg('reg-step2-msg',authError.message,'error');setBtnLoading('reg-btn',false,'Create Account');return;}
+
+  const userId=authData.user?.id;
+  if(!userId){showMsg('reg-step2-msg','Sign-up failed — no user ID returned. Try again.','error');setBtnLoading('reg-btn',false,'Create Account');return;}
+
+  // 2. Insert users row
+  const{error:userError}=await sb.from('users').insert({
+    id: userId,
+    email,
+    location_id: verifiedLocation.id,
+    role: verifiedLocation.role,
+    display_name: name,
+    phone: phone||null,
+  });
+
+  if(userError){
+    showMsg('reg-step2-msg','Account created but profile setup failed: '+userError.message+'. Contact your admin.','error');
+    setBtnLoading('reg-btn',false,'Create Account');
+    return;
+  }
+
+  // 3. Show success
+  setBtnLoading('reg-btn',false,'Create Account');
+  document.getElementById('reg-step-2').style.display='none';
+  document.getElementById('reg-step-3').style.display='block';
+  const roleLabel=verifiedLocation.role==='owner'?'club owner':'employee';
+  document.getElementById('reg-success-msg').textContent=
+    `Welcome, ${name}! Your ${roleLabel} account for ${verifiedLocation.name} has been created. Check your email to confirm your address, then sign in.`;
+}
+
+// ── HELPERS ──
+function showMsg(id,text,type){
+  const el=document.getElementById(id);
+  el.textContent=text;el.className='msg '+type+' show';
+}
+function clearMsg(id){
+  const el=document.getElementById(id);
+  if(el){el.textContent='';el.className='msg';}
+}
+function setBtnLoading(id,loading,text){
+  const btn=document.getElementById(id);
+  if(!btn)return;
+  btn.disabled=loading;
+  btn.innerHTML=loading?`<span class="btn-spinner"></span>${text}`:text;
+}
+
+// URL param shortcut — if ?tab=register in URL, open register tab
+if(new URLSearchParams(window.location.search).get('tab')==='register') showTab('register');
+
+init();
+</script>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}</script>
 </body>
 </html>
