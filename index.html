@@ -491,15 +491,15 @@ async function register(){
 
   setBtnLoading('reg-btn',true,'Creating account…');
 
-  // 1. Create auth user — pass all profile data as metadata
-  // The DB trigger will automatically insert the users row
+  // 1. Create auth user — pass profile data as metadata
+  // NOTE: phone is NOT passed to auth metadata to avoid unique constraint conflicts
+  // Phone is stored only in public.users via the DB trigger
   const{data:authData,error:authError}=await sb.auth.signUp({
     email,
     password:pw,
     options:{
       data:{
         display_name: name,
-        phone:        phone||null,
         location_id:  verifiedLocation.id,
         role:         verifiedLocation.role,
       }
@@ -510,8 +510,7 @@ async function register(){
   const userId=authData.user?.id;
   if(!userId){showMsg('reg-step2-msg','Sign-up failed — no user ID returned. Try again.','error');setBtnLoading('reg-btn',false,'Create Account');return;}
 
-  // 2. Try to upsert the users row as a fallback in case the trigger hasn't fired yet
-  // (trigger is the primary path; this is a safety net)
+  // 2. Upsert the users row as fallback — phone goes here, NOT in auth metadata
   await sb.from('users').upsert({
     id:           userId,
     email,
@@ -519,7 +518,7 @@ async function register(){
     role:         verifiedLocation.role,
     display_name: name,
     phone:        phone||null,
-  },{onConflict:'id',ignoreDuplicates:true});
+  },{onConflict:'id',ignoreDuplicates:false});
 
   const displayName=name.split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join(' ');
   // 3. Show success regardless — trigger or upsert will have handled the row
