@@ -259,13 +259,8 @@
           <div style="font-size:11px;color:var(--b6);margin-top:4px;line-height:1.5;">They can register using the same invite code for full app access.</div>
         </div>
       </div>
-      <div class="modal-field">
-        <label>Invite Code</label>
-        <div class="modal-invite-row">
-          <input type="text" id="nl-code" placeholder=""/>
-          <button class="btn-generate" onclick="generateCode()">Generate</button>
-        </div>
-      </div>
+      <!-- Hidden auto-generated invite code -->
+      <input type="hidden" id="nl-code"/>
       <div class="modal-error" id="nl-error"></div>
       <div class="modal-footer">
         <button class="btn-modal-primary" onclick="reviewLocation()">Review →</button>
@@ -287,10 +282,14 @@
           <div class="confirm-row"><span class="confirm-label">Phone</span><span class="confirm-val" id="cr-phone2"></span></div>
           <div class="confirm-row"><span class="confirm-label">Email</span><span class="confirm-val" id="cr-email2"></span></div>
         </div>
-        <div class="confirm-row"><span class="confirm-label">Invite Code</span><span class="confirm-val" id="cr-code" style="font-family:monospace;font-size:15px;font-weight:700;color:var(--b7);letter-spacing:2px;"></span></div>
+        <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border-light);text-align:center;">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-faint);margin-bottom:4px;">Auto-Generated Invite Code</div>
+          <div id="cr-code" style="font-family:monospace;font-size:22px;font-weight:700;color:var(--b7);letter-spacing:4px;"></div>
+          <div style="font-size:11px;color:var(--text-faint);margin-top:4px;">Share this with the owner after saving</div>
+        </div>
       </div>
       <div style="background:var(--b1);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--b7);line-height:1.6;margin-bottom:16px;">
-        📋 Share the <strong>Invite Code</strong> with the club owner so they can register their account at <strong>nemecekorgclubs.com</strong>. The location will appear as <em>Pending Setup</em> until they register.
+        📋 After saving, share the <strong>Invite Code</strong> above with the club owner so they can register their account at <strong>nemecekorgclubs.com</strong>. The location will appear as <em>Pending Setup</em> until they register.
       </div>
       <div class="modal-error" id="nl-confirm-error"></div>
       <div class="modal-footer">
@@ -781,7 +780,7 @@ function openAddLocation(){
   document.getElementById('nl-second-toggle').checked=false;
   document.getElementById('nl-second-fields').style.display='none';
   populateStateSelect('nl-state','');
-  generateCode();
+  generateCode(); // silently auto-generate
   document.getElementById('nl-error').classList.remove('show');
   document.getElementById('nl-confirm-error').classList.remove('show');
   document.getElementById('nl-form-panel').classList.remove('hide');
@@ -791,11 +790,9 @@ function openAddLocation(){
 
 function reviewLocation(){
   const name=document.getElementById('nl-name').value.trim();
-  const code=document.getElementById('nl-code').value.trim().toUpperCase();
   const errEl=document.getElementById('nl-error');
   errEl.classList.remove('show');
   if(!name){errEl.textContent='Club name is required.';errEl.classList.add('show');return;}
-  if(!code){errEl.textContent='Invite code is required.';errEl.classList.add('show');return;}
   const street=document.getElementById('nl-street').value.trim();
   const city=document.getElementById('nl-city').value.trim();
   const state=document.getElementById('nl-state').value;
@@ -805,6 +802,7 @@ function reviewLocation(){
   const owner=document.getElementById('nl-owner').value.trim();
   const phone=document.getElementById('nl-phone').value.trim();
   const email=document.getElementById('nl-email').value.trim();
+  const code=document.getElementById('nl-code').value; // already auto-generated
   const hasSecond=document.getElementById('nl-second-toggle').checked;
   const owner2=document.getElementById('nl-owner2').value.trim();
   const phone2=document.getElementById('nl-phone2').value.trim();
@@ -815,6 +813,7 @@ function reviewLocation(){
   document.getElementById('cr-owner').textContent=owner||'—';
   document.getElementById('cr-phone').textContent=phone||'—';
   document.getElementById('cr-email').textContent=email||'—';
+  document.getElementById('cr-code').textContent=code;
   const secBlock=document.getElementById('cr-second-block');
   if(hasSecond&&(owner2||phone2||email2)){
     secBlock.style.display='block';
@@ -822,7 +821,6 @@ function reviewLocation(){
     document.getElementById('cr-phone2').textContent=phone2||'—';
     document.getElementById('cr-email2').textContent=email2||'—';
   } else { secBlock.style.display='none'; }
-  document.getElementById('cr-code').textContent=code;
   document.getElementById('nl-form-panel').classList.add('hide');
   document.getElementById('nl-confirm-panel').classList.add('show');
 }
