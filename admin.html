@@ -32,9 +32,9 @@
     .nav-badge{font-size:13px;font-weight:700;background:var(--b7);color:white;padding:2px 7px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase}
     .nav-right{display:flex;align-items:center;gap:10px}
     .nav-email{font-size:15px;color:var(--text-muted)}
-    .btn-sm{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text-muted);background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer;transition:background 0.15s}
+    .btn-sm{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text-muted);background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer;transition:background 0.15s;text-decoration:none;display:inline-block}
     .btn-sm:hover{background:var(--b0);color:var(--text)}
-    .page{max-width:1080px;margin:0 auto;padding:24px max(20px, env(safe-area-inset-left,20px)) calc(64px + env(safe-area-inset-bottom,0px)) max(20px, env(safe-area-inset-right,20px))}
+    .page{max-width:1080px;margin:0 auto;padding:24px max(20px,env(safe-area-inset-left,20px)) calc(64px + env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-right,20px))}
     .section-label{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.9px;color:var(--text-faint);margin-bottom:12px;margin-top:28px}
     .section-label:first-child{margin-top:0}
     .kpi-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
@@ -89,16 +89,12 @@
     .exp-row:last-child{margin-bottom:0}
     .exp-label{font-size:14px;color:var(--text-muted)}
     .exp-val{font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;color:var(--text)}
-    .expanded-footer{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px}
-    .op-days-label{font-size:15px;color:var(--text-muted);font-weight:600;margin-bottom:6px}
-    .op-days-row{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
-    .day-toggle{width:36px;height:34px;border-radius:6px;border:1px solid var(--border);background:var(--surface);font-size:12px;font-weight:700;color:var(--text-faint);cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif}
-    .day-toggle.on{background:var(--b7);border-color:var(--b7);color:white}
-    .btn-save-days{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;background:var(--surface);color:var(--text-muted);border:1px solid var(--border);border-radius:6px;padding:5px 10px;cursor:pointer;transition:background 0.15s;margin-left:4px}
-    .btn-save-days:hover{background:var(--b1);color:var(--text)}
-    .btn-view-app{font-family:'Outfit',sans-serif;font-size:15px;font-weight:600;background:linear-gradient(135deg,var(--b7),var(--b5));color:white;border:none;border-radius:6px;padding:8px 16px;cursor:pointer;box-shadow:0 2px 8px rgba(58,84,112,0.2);transition:transform 0.12s,box-shadow 0.12s;white-space:nowrap;text-decoration:none;display:inline-block}
+    .expanded-footer{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:14px}
+    .btn-view-app{font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;background:linear-gradient(135deg,var(--b7),var(--b5));color:white;border:none;border-radius:6px;padding:8px 16px;cursor:pointer;box-shadow:0 2px 8px rgba(58,84,112,0.2);transition:transform 0.12s,box-shadow 0.12s;white-space:nowrap;text-decoration:none;display:inline-block}
     .btn-view-app:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(58,84,112,0.28)}
-    .last-entry-note{font-size:13px;color:var(--text-faint);margin-top:5px}
+    .btn-manage-settings{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;background:var(--surface);color:var(--b7);border:1px solid var(--b3);border-radius:6px;padding:7px 14px;cursor:pointer;transition:background 0.15s;white-space:nowrap;text-decoration:none;display:inline-block}
+    .btn-manage-settings:hover{background:var(--b1)}
+    .last-entry-note{font-size:13px;color:var(--text-faint);margin-right:auto}
     .missing-box{margin-bottom:12px;padding:10px 12px;background:var(--r0);border:1px solid rgba(192,48,48,0.15);border-radius:8px}
     .missing-box-title{font-size:14px;font-weight:700;color:var(--r5);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px}
     .missing-box-day{font-size:15px;color:#c03030;margin-bottom:2px}
@@ -129,7 +125,8 @@
   </div>
   <div class="nav-right">
     <div class="nav-email" id="nav-email"></div>
-    <a href="admin-settings.html" style="font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text-muted);background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer;text-decoration:none;transition:background 0.15s;">⚙ Settings</a><button class="btn-sm" onclick="handleSignOut()">Sign out</button>
+    <a href="admin-settings.html" class="btn-sm">⚙ Settings</a>
+    <button class="btn-sm" onclick="handleSignOut()">Sign out</button>
   </div>
 </nav>
 
@@ -168,10 +165,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_wO6XM4pC2CcaISQ8OlbkfQ_liqKJbi_';
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-let locOpDays = {};
-let allLocations = [];
-let allDays = [];
+let allLocations = [], allDays = [];
 
 async function init() {
   const { data:{ session } } = await sb.auth.getSession();
@@ -187,90 +181,78 @@ async function init() {
   const { data:days } = await sb.from('days').select('location_id,date,data').gte('date', since);
   allDays = days || [];
 
-  allLocations.forEach(loc => {
-    locOpDays[loc.id] = loc.settings?.opDays || [false,true,true,true,true,true,true];
-  });
-
   renderKPIs();
   renderLocations();
   document.getElementById('loading-overlay').classList.add('hidden');
 }
 
 function dateStr(d) { return d.toISOString().slice(0,10); }
-function daysAgo(n) { const d = new Date(); d.setDate(d.getDate() - n); return d; }
-function yesterday()  { return dateStr(daysAgo(1)); }
-function last7Start() { return dateStr(daysAgo(7)); }
-function last30Start(){ return dateStr(daysAgo(30)); }
-function todayStr()   { return dateStr(new Date()); }
+function daysAgo(n) { const d = new Date(); d.setDate(d.getDate()-n); return d; }
+function yesterday()   { return dateStr(daysAgo(1)); }
+function last7Start()  { return dateStr(daysAgo(7)); }
+function last30Start() { return dateStr(daysAgo(30)); }
+function todayStr()    { return dateStr(new Date()); }
 
 function fmt$(n) {
-  if (n === 0 || !n || isNaN(n)) return '—';
-  return '$' + n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  if (!n || isNaN(n)) return '—';
+  return '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 }
 function fmtN(n) {
-  if (n === 0 || !n || isNaN(n)) return '—';
+  if (!n || isNaN(n)) return '—';
   return n.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:1});
 }
 function fmt$z(n) {
   if (!n || isNaN(n)) return '$0.00';
-  return '$' + n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  return '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 }
 
 function sumField(days, field, from, to) {
-  return days.filter(d => d.date >= from && d.date <= to)
-    .reduce((s,d) => s + (parseFloat(d.data?.[field]) || 0), 0);
+  return days.filter(d=>d.date>=from&&d.date<=to).reduce((s,d)=>s+(parseFloat(d.data?.[field])||0),0);
 }
 function countDays(days, from, to) {
-  return days.filter(d => d.date >= from && d.date <= to).length;
+  return days.filter(d=>d.date>=from&&d.date<=to).length;
 }
 
 function renderKPIs() {
-  const yday = yesterday(), w0 = last7Start(), m0 = last30Start(), today = todayStr();
-  const periods = [{from:yday,to:yday},{from:w0,to:today},{from:m0,to:today}];
-  const ids = ['yday','week','month'];
-  periods.forEach((p,i) => {
+  const yday=yesterday(), w0=last7Start(), m0=last30Start(), today=todayStr();
+  [{from:yday,to:yday},{from:w0,to:today},{from:m0,to:today}].forEach((p,i)=>{
+    const id = ['yday','week','month'][i];
     const sales = allDays.filter(d=>d.date>=p.from&&d.date<=p.to).reduce((s,d)=>s+(parseFloat(d.data?.totalSales)||0),0);
     const dv    = allDays.filter(d=>d.date>=p.from&&d.date<=p.to).reduce((s,d)=>s+(parseFloat(d.data?.dv)||0),0);
-    const locsReporting = new Set(allDays.filter(d=>d.date>=p.from&&d.date<=p.to).map(d=>d.location_id)).size;
-    document.getElementById(`kpi-${ids[i]}-sales`).textContent = fmt$(sales);
-    document.getElementById(`kpi-${ids[i]}-dv`).textContent    = fmtN(dv);
-    document.getElementById(`kpi-${ids[i]}-sub`).textContent   = locsReporting > 0 ? `${locsReporting} location${locsReporting!==1?'s':''} reporting` : 'No data';
+    const locs  = new Set(allDays.filter(d=>d.date>=p.from&&d.date<=p.to).map(d=>d.location_id)).size;
+    document.getElementById(`kpi-${id}-sales`).textContent = fmt$(sales);
+    document.getElementById(`kpi-${id}-dv`).textContent    = fmtN(dv);
+    document.getElementById(`kpi-${id}-sub`).textContent   = locs>0?`${locs} location${locs!==1?'s':''} reporting`:'No data';
   });
   const now = new Date();
   document.getElementById('kpi-label').textContent = `Org Overview — ${now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}`;
 }
 
-function isMissing(locId, date) {
-  const opDays = locOpDays[locId] || [false,true,true,true,true,true,true];
-  const dow = new Date(date + 'T12:00:00').getDay();
-  if (!opDays[dow]) return false;
-  return !allDays.find(d => d.location_id === locId && d.date === date);
+function getOpDays(loc) { return loc.settings?.opDays || [false,true,true,true,true,true,true]; }
+
+function isMissing(loc, date) {
+  const dow = new Date(date+'T12:00:00').getDay();
+  if (!getOpDays(loc)[dow]) return false;
+  return !allDays.find(d=>d.location_id===loc.id&&d.date===date);
 }
 
-function getMissingDays(locId, n=7) {
-  const out = [];
-  for (let i = 1; i <= n; i++) {
-    const d = dateStr(daysAgo(i));
-    if (isMissing(locId, d)) out.push(d);
-  }
+function getMissingDays(loc, n=7) {
+  const out=[];
+  for(let i=1;i<=n;i++){const d=dateStr(daysAgo(i));if(isMissing(loc,d))out.push(d);}
   return out;
-}
-
-function getLastEntry(locId) {
-  return allDays.filter(d=>d.location_id===locId).sort((a,b)=>b.date.localeCompare(a.date))[0]?.date || null;
 }
 
 function renderLocations() {
   const list = document.getElementById('locations-list');
-  const yday = yesterday(), w0 = last7Start(), m0 = last30Start(), today = todayStr();
+  const yday=yesterday(), w0=last7Start(), m0=last30Start(), today=todayStr();
   document.getElementById('locs-label').textContent = `Locations (${allLocations.length})`;
 
   if (!allLocations.length) {
-    list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-faint);font-size:13px;">No locations yet.</div>';
+    list.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-faint);font-size:13px;">No locations yet.</div>';
     return;
   }
 
-  list.innerHTML = allLocations.map(loc => {
+  list.innerHTML = allLocations.map(loc=>{
     const ld = allDays.filter(d=>d.location_id===loc.id);
     const initials = loc.name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
 
@@ -283,21 +265,16 @@ function renderLocations() {
     const monthDV    = sumField(ld,'dv',m0,today);
     const monthDays  = countDays(ld,m0,today);
 
-    const missing  = getMissingDays(loc.id, 7);
-    const lastDate = getLastEntry(loc.id);
+    const missing  = getMissingDays(loc,7);
+    const lastDate = ld.sort((a,b)=>b.date.localeCompare(a.date))[0]?.date || null;
     const lastFmt  = lastDate ? new Date(lastDate+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) : null;
 
     let badge = '';
-    if (missing.length > 0)      badge = `<span class="badge badge-missing">⚠ ${missing.length} missing</span>`;
-    else if (lastDate)            badge = `<span class="badge badge-active">✓ Current</span>`;
-    else                          badge = `<span class="badge badge-nodata">No data</span>`;
+    if (missing.length>0)  badge=`<span class="badge badge-missing">⚠ ${missing.length} missing</span>`;
+    else if (lastDate)     badge=`<span class="badge badge-active">✓ Current</span>`;
+    else                   badge=`<span class="badge badge-nodata">No data</span>`;
 
-    const opDays = locOpDays[loc.id] || [false,true,true,true,true,true,true];
-    const toggles = DAY_NAMES.map((n,i) =>
-      `<button class="day-toggle ${opDays[i]?'on':''}" onclick="toggleOpDay('${loc.id}',${i},this)">${n}</button>`
-    ).join('');
-
-    const missingBox = missing.length > 0 ? `
+    const missingBox = missing.length>0 ? `
       <div class="missing-box">
         <div class="missing-box-title">Missing Submissions (last 7 days)</div>
         ${missing.map(d=>`<div class="missing-box-day">${new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}</div>`).join('')}
@@ -353,14 +330,8 @@ function renderLocations() {
           </div>
         </div>
         <div class="expanded-footer">
-          <div>
-            <div class="op-days-label">Operating Days</div>
-            <div class="op-days-row">
-              ${toggles}
-              <button class="btn-save-days" onclick="saveOpDays('${loc.id}',event)">Save</button>
-            </div>
-            ${lastFmt ? `<div class="last-entry-note">Last entry: ${lastFmt}</div>` : ''}
-          </div>
+          ${lastFmt?`<div class="last-entry-note">Last entry: ${lastFmt}</div>`:'<div></div>'}
+          <a class="btn-manage-settings" href="app.html?location_id=${loc.id}&admin=1&settings=1">⚙ Manage Settings</a>
           <a class="btn-view-app" href="app.html?location_id=${loc.id}&admin=1">View Full App →</a>
         </div>
       </div>
@@ -372,44 +343,24 @@ function toggleCard(id) {
   document.getElementById('lc-'+id).classList.toggle('expanded');
 }
 
-function toggleOpDay(locId, idx, btn) {
-  const od = locOpDays[locId] || [false,true,true,true,true,true,true];
-  od[idx] = !od[idx];
-  locOpDays[locId] = od;
-  btn.classList.toggle('on', od[idx]);
-}
-
-async function saveOpDays(locId, e) {
-  e.stopPropagation();
-  const loc = allLocations.find(l=>l.id===locId);
-  if (!loc) return;
-  const settings = { ...(loc.settings||{}), opDays: locOpDays[locId] };
-  const { error } = await sb.from('locations').update({ settings }).eq('id', locId);
-  if (error) { showToast('Save failed','error'); return; }
-  loc.settings = settings;
-  showToast('Operating days saved ✓','success');
-}
-
 async function handleSignOut() {
   await sb.auth.signOut();
   window.location.href = 'index.html';
 }
 
 let toastTimer;
-function showToast(msg, type='') {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast show' + (type?' '+type:'');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>t.classList.remove('show'), 2400);
+function showToast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast show'+(type?' '+type:'');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2400);
 }
 
-function escHtml(s) {
+function escHtml(s){
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 init();
 </script>
-  <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}</script>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}</script>
 </body>
 </html>
