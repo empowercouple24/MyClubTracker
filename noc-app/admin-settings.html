@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>Admin Settings — Nemecek Org Clubs</title>
+  <meta name="theme-color" content="#e8edf4"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --b9:#1e2d3d;--b8:#2a3f56;--b7:#3a5470;--b6:#4a6a8a;--b5:#5b80a0;--b4:#7599b8;--b3:#9ab4cc;--b2:#bfd0e0;--b1:#dde7f0;--b0:#f0f4f8;
+      --g5:#2e7a35;--g0:#eaf6eb;
+      --r5:#c03030;--r0:#fff0f0;
+      --a5:#c47c0a;--a0:#fef7e8;
+      --bg:#e8edf4;--surface:#fff;--border:#cdd6e0;--border-light:#e2e9f0;
+      --text:#1e2d3d;--text-muted:#5b7087;--text-faint:#8fa3b3;
+      --radius:12px;--radius-sm:8px;
+      --shadow-sm:0 1px 4px rgba(30,45,61,0.06),0 2px 10px rgba(30,45,61,0.04);
+      --shadow-md:0 4px 20px rgba(30,45,61,0.09);
+    }
+    html,body{min-height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text)}
+
+    /* NAV */
+    .topnav{position:sticky;top:0;z-index:100;background:rgba(232,237,244,0.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border-light);padding:env(safe-area-inset-top,0px) 20px 0;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:calc(54px + env(safe-area-inset-top,0px))}
+    .nav-inner{display:flex;align-items:center;gap:10px;padding-bottom:12px;padding-top:12px;width:100%}
+    .btn-back{background:none;border:none;cursor:pointer;font-size:22px;color:var(--b6);padding:0 4px;line-height:1;display:flex;align-items:center}
+    .btn-back:hover{color:var(--b8)}
+    .nav-title{font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--text);flex:1}
+    .nav-badge{font-size:12px;font-weight:700;background:var(--b7);color:white;padding:3px 8px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase}
+
+    /* PAGE */
+    .page{max-width:680px;margin:0 auto;padding:24px 20px calc(64px + env(safe-area-inset-bottom,0px))}
+
+    /* SECTION */
+    .section{margin-bottom:32px}
+    .section-label{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.9px;color:var(--text-faint);margin-bottom:12px}
+
+    /* CARD */
+    .card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden}
+
+    /* ROWS */
+    .settings-row{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--border-light);gap:12px}
+    .settings-row:last-child{border-bottom:none}
+    .row-label{font-size:15px;color:var(--text);flex:1}
+    .row-sub{font-size:12px;color:var(--text-faint);margin-top:2px}
+
+    select.row-input,input.row-input{font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;outline:none;transition:border-color 0.15s;min-width:110px}
+    select.row-input:focus,input.row-input:focus{border-color:var(--b5)}
+    input.row-input{width:180px}
+
+    /* DAY TOGGLES */
+    .day-toggles{display:flex;gap:5px;flex-wrap:wrap}
+    .day-toggle{width:36px;height:32px;border-radius:6px;border:1px solid var(--border);background:var(--surface);font-size:11px;font-weight:700;color:var(--text-faint);cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif}
+    .day-toggle.on{background:var(--b7);border-color:var(--b7);color:white}
+
+    /* BUTTONS */
+    .btn{font-family:'DM Sans',sans-serif;border:none;border-radius:var(--radius-sm);cursor:pointer;font-weight:600;transition:transform 0.12s,box-shadow 0.12s,opacity 0.12s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+    .btn:active{transform:scale(0.97)}
+    .btn:disabled{opacity:0.5;cursor:not-allowed}
+    .btn-primary{background:linear-gradient(135deg,var(--b7),var(--b5));color:white;font-size:14px;padding:10px 20px;box-shadow:0 3px 12px rgba(58,84,112,0.22)}
+    .btn-primary:hover:not(:disabled){box-shadow:0 6px 20px rgba(58,84,112,0.3)}
+    .btn-ghost{background:var(--surface);color:var(--text-muted);border:1px solid var(--border);font-size:13px;padding:7px 14px}
+    .btn-ghost:hover{background:var(--b0);color:var(--text)}
+    .btn-danger{background:var(--r0);color:var(--r5);border:1px solid rgba(192,48,48,0.2);font-size:13px;padding:7px 14px}
+    .btn-danger:hover{background:#ffe0e0}
+    .btn-green{background:linear-gradient(135deg,var(--g5),#3d9e46);color:white;font-size:13px;padding:7px 16px;box-shadow:0 2px 8px rgba(46,122,53,0.2)}
+    .btn-full{width:100%;padding:12px}
+    .btn-sm{font-size:12px;padding:5px 12px}
+
+    /* LOCATIONS TABLE */
+    .loc-table-row{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border-light)}
+    .loc-table-row:last-child{border-bottom:none}
+    .loc-table-avatar{width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,var(--b7),var(--b4));display:flex;align-items:center;justify-content:center;font-family:'Outfit',sans-serif;font-size:13px;font-weight:800;color:white;flex-shrink:0}
+    .loc-table-info{flex:1;min-width:0}
+    .loc-table-name{font-size:15px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .loc-table-addr{font-size:12px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .loc-table-actions{display:flex;gap:6px;flex-shrink:0}
+
+    /* INVITE CODES TABLE */
+    .code-row{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--border-light)}
+    .code-row:last-child{border-bottom:none}
+    .code-pill{font-family:monospace;font-size:14px;font-weight:700;background:var(--b0);color:var(--b7);border:1px solid var(--b2);border-radius:6px;padding:4px 10px;flex-shrink:0}
+    .code-loc{font-size:13px;color:var(--text-muted);flex:1}
+    .code-status{font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px}
+    .code-status.claimed{background:var(--g0);color:var(--g5);border:1px solid rgba(46,122,53,0.2)}
+    .code-status.open{background:var(--a0);color:var(--a5);border:1px solid rgba(196,124,10,0.2)}
+
+    /* ADMIN USERS */
+    .user-row{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border-light)}
+    .user-row:last-child{border-bottom:none}
+    .user-avatar{width:34px;height:34px;border-radius:50%;background:var(--b1);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--b7);flex-shrink:0}
+    .user-email{font-size:14px;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .user-badge{font-size:11px;font-weight:700;background:var(--b7);color:white;padding:2px 8px;border-radius:20px;flex-shrink:0}
+
+    /* MODAL */
+    .modal-overlay{position:fixed;inset:0;background:rgba(30,45,61,0.4);backdrop-filter:blur(4px);z-index:200;display:none;align-items:flex-end;justify-content:center}
+    .modal-overlay.open{display:flex}
+    .modal-sheet{background:var(--surface);border-radius:18px 18px 0 0;width:100%;max-width:520px;max-height:88vh;overflow-y:auto;padding:0 0 40px;animation:sheetUp 0.28s cubic-bezier(0.16,1,0.3,1)}
+    @keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+    .modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0}
+    .modal-title{font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--text);padding:16px 20px 0}
+    .modal-body{padding:16px 20px 0}
+    .modal-field{margin-bottom:14px}
+    .modal-field label{display:block;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);margin-bottom:6px}
+    .modal-field input,.modal-field select{width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;outline:none;transition:border-color 0.15s}
+    .modal-field input:focus,.modal-field select:focus{border-color:var(--b5);background:#fff;box-shadow:0 0 0 3px rgba(74,106,138,0.1)}
+    .modal-actions{display:flex;gap:10px;padding:16px 20px 0}
+    .modal-msg{margin:0 20px;padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;line-height:1.5;display:none}
+    .modal-msg.error{background:rgba(192,48,48,0.07);border:1px solid rgba(192,48,48,0.2);color:var(--r5);display:block}
+    .modal-msg.success{background:var(--g0);border:1px solid rgba(46,122,53,0.2);color:var(--g5);display:block}
+
+    /* LOADING */
+    #loading-overlay{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:300;transition:opacity 0.3s}
+    #loading-overlay.hidden{opacity:0;pointer-events:none}
+    .load-spinner{width:32px;height:32px;border:3px solid var(--b1);border-top-color:var(--b6);border-radius:50%;animation:spin 0.8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* TOAST */
+    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--b8);color:white;padding:10px 20px;border-radius:24px;font-size:14px;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,0.2);z-index:400;transition:transform 0.3s cubic-bezier(0.16,1,0.3,1),opacity 0.3s;opacity:0;white-space:nowrap}
+    .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+    .toast.success{background:var(--g5)}
+    .toast.error{background:var(--r5)}
+
+    .spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:5px}
+    .divider-label{padding:8px 16px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);background:var(--b0);border-bottom:1px solid var(--border-light)}
+  </style>
+</head>
+<body>
+
+<div id="loading-overlay">
+  <div class="load-spinner"></div>
+</div>
+
+<nav class="topnav">
+  <div class="nav-inner">
+    <button class="btn-back" onclick="window.location.href='admin.html'">←</button>
+    <div class="nav-title">Admin Settings</div>
+    <div class="nav-badge">Admin</div>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- ══ DEFAULT SETTINGS ══ -->
+  <div class="section">
+    <div class="section-label">Default Settings for New Locations</div>
+    <div class="card">
+      <div class="divider-label">Rates</div>
+      <div class="settings-row">
+        <div><div class="row-label">Tax Rate</div></div>
+        <select class="row-input" id="d-taxrate"></select>
+      </div>
+      <div class="settings-row">
+        <div><div class="row-label">Overhead Rate</div></div>
+        <select class="row-input" id="d-ohrate"></select>
+      </div>
+      <div class="settings-row">
+        <div><div class="row-label">Other Sales Rate</div></div>
+        <select class="row-input" id="d-otherrate"></select>
+      </div>
+      <div class="settings-row">
+        <div><div class="row-label">Merch Rate</div></div>
+        <select class="row-input" id="d-merchrate"></select>
+      </div>
+      <div class="settings-row">
+        <div><div class="row-label">DV △ %</div></div>
+        <select class="row-input" id="d-dvdelta"></select>
+      </div>
+      <div class="divider-label">Operating Days</div>
+      <div class="settings-row" style="flex-wrap:wrap;gap:10px;">
+        <div class="row-label">Default Operating Days</div>
+        <div class="day-toggles" id="d-opdays"></div>
+      </div>
+    </div>
+    <div style="margin-top:10px;">
+      <button class="btn btn-primary" onclick="saveDefaults()">Save Default Settings</button>
+    </div>
+  </div>
+
+  <!-- ══ LOCATIONS ══ -->
+  <div class="section">
+    <div class="section-label">Locations</div>
+    <div class="card" id="locations-card">
+      <div style="padding:16px;text-align:center;color:var(--text-faint);font-size:13px;">Loading…</div>
+    </div>
+    <div style="margin-top:10px;">
+      <button class="btn btn-green" onclick="openAddLocation()">+ Add Location</button>
+    </div>
+  </div>
+
+  <!-- ══ INVITE CODES ══ -->
+  <div class="section">
+    <div class="section-label">Invite Codes</div>
+    <div class="card" id="codes-card">
+      <div style="padding:16px;text-align:center;color:var(--text-faint);font-size:13px;">Loading…</div>
+    </div>
+    <div style="margin-top:10px;">
+      <button class="btn btn-primary" onclick="openGenerateCode()">+ Generate Invite Code</button>
+    </div>
+  </div>
+
+  <!-- ══ ADMIN USERS ══ -->
+  <div class="section">
+    <div class="section-label">Admin Users</div>
+    <div class="card" id="admins-card">
+      <div style="padding:16px;text-align:center;color:var(--text-faint);font-size:13px;">Loading…</div>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<!-- ══ ADD LOCATION MODAL ══ -->
+<div class="modal-overlay" id="modal-addloc" onclick="closeMOnBg(event,'modal-addloc')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Add New Location</div>
+    <div class="modal-body">
+      <div class="modal-field"><label>Club Name</label><input type="text" id="al-name" placeholder="e.g. Fuel Station Nutrition"/></div>
+      <div class="modal-field"><label>Address</label><input type="text" id="al-address" placeholder="123 Main St, City OH 44000"/></div>
+      <div class="modal-field"><label>Owner Name</label><input type="text" id="al-owner" placeholder="Full name"/></div>
+      <div class="modal-field"><label>Invite Code</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="text" id="al-code" placeholder="AUTO-GENERATED" style="text-transform:uppercase;flex:1"/>
+          <button class="btn btn-ghost btn-sm" onclick="genCode()">Generate</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-msg" id="al-msg"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-full" id="al-btn" onclick="submitAddLocation()">Add Location</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-addloc')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ EDIT LOCATION MODAL ══ -->
+<div class="modal-overlay" id="modal-editloc" onclick="closeMOnBg(event,'modal-editloc')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Edit Location</div>
+    <div class="modal-body">
+      <div class="modal-field"><label>Club Name</label><input type="text" id="el-name"/></div>
+      <div class="modal-field"><label>Address</label><input type="text" id="el-address"/></div>
+      <div class="modal-field"><label>Owner Name</label><input type="text" id="el-owner"/></div>
+    </div>
+    <div class="modal-msg" id="el-msg"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-full" id="el-btn" onclick="submitEditLocation()">Save Changes</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-editloc')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ GENERATE CODE MODAL ══ -->
+<div class="modal-overlay" id="modal-gencode" onclick="closeMOnBg(event,'modal-gencode')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Generate Invite Code</div>
+    <div class="modal-body">
+      <div class="modal-field"><label>For Location</label>
+        <select id="gc-loc"></select>
+      </div>
+      <div class="modal-field"><label>Invite Code</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="text" id="gc-code" placeholder="AUTO-GENERATED" style="text-transform:uppercase;flex:1"/>
+          <button class="btn btn-ghost btn-sm" onclick="genCode('gc-code')">Generate</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-msg" id="gc-msg"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-full" id="gc-btn" onclick="submitGenCode()">Save Code</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-gencode')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL      = 'https://ndaqlamzlaucigvnhgfu.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_wO6XM4pC2CcaISQ8OlbkfQ_liqKJbi_';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+let allLocations = [];
+let allAdmins    = [];
+let editingLocId = null;
+
+// ── DEFAULT SETTINGS stored in a special 'admin_settings' row in locations table
+// We use a separate key in localStorage + a dedicated Supabase table-less approach:
+// Store in a well-known location row with id 'admin-defaults', OR better: use a
+// simple key in the locations table settings column of a placeholder row.
+// Simplest: store in localStorage with Supabase backup via a dedicated admin user's metadata.
+// We'll use a simple approach: store in Supabase auth user metadata.
+
+let DEFAULTS = {
+  taxRate:   1.25,
+  ohRate:    32,
+  otherRate: 50,
+  merchRate: 100,
+  dvDelta:   3,
+  opDays:    [false,true,true,true,true,true,true],
+};
+
+// ── INIT ──
+async function init() {
+  const { data:{ session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'index.html'; return; }
+  const { data:u } = await sb.from('users').select('role').eq('id', session.user.id).single();
+  if (!u || u.role !== 'admin') { window.location.href = 'index.html'; return; }
+
+  // Load defaults from user metadata
+  const meta = session.user.user_metadata || {};
+  if (meta.adminDefaults) DEFAULTS = { ...DEFAULTS, ...meta.adminDefaults };
+
+  await Promise.all([loadLocations(), loadAdmins()]);
+  buildDefaultsUI();
+  document.getElementById('loading-overlay').classList.add('hidden');
+}
+
+// ── LOAD DATA ──
+async function loadLocations() {
+  const { data:locs } = await sb.from('locations').select('id,name,address,owner_name,invite_code,settings').order('name');
+  allLocations = locs || [];
+  renderLocations();
+  renderCodes();
+}
+
+async function loadAdmins() {
+  const { data:users } = await sb.from('users').select('id,email,role,location_id').eq('role','admin');
+  allAdmins = users || [];
+  renderAdmins();
+}
+
+// ── DEFAULTS UI ──
+function buildDefaultsUI() {
+  buildSelect('d-taxrate',   range(0,4,0.25),   DEFAULTS.taxRate,   v => v.toFixed(2)+'%');
+  buildSelect('d-ohrate',    range(15,40,1),     DEFAULTS.ohRate,    v => v+'%');
+  buildSelect('d-otherrate', range(30,60,2),     DEFAULTS.otherRate, v => v+'%');
+  buildSelect('d-merchrate', range(5,100,5),     DEFAULTS.merchRate, v => v+'%');
+  buildSelect('d-dvdelta',   range(-10,10,1),    DEFAULTS.dvDelta,   v => (v>=0?'+':'')+v+'%');
+
+  const dop = document.getElementById('d-opdays');
+  dop.innerHTML = DAY_NAMES.map((n,i) =>
+    `<button class="day-toggle ${DEFAULTS.opDays[i]?'on':''}" onclick="toggleDefaultDay(${i},this)">${n}</button>`
+  ).join('');
+}
+
+function toggleDefaultDay(i, btn) {
+  DEFAULTS.opDays[i] = !DEFAULTS.opDays[i];
+  btn.classList.toggle('on', DEFAULTS.opDays[i]);
+}
+
+async function saveDefaults() {
+  DEFAULTS.taxRate   = parseFloat(document.getElementById('d-taxrate').value);
+  DEFAULTS.ohRate    = parseFloat(document.getElementById('d-ohrate').value);
+  DEFAULTS.otherRate = parseFloat(document.getElementById('d-otherrate').value);
+  DEFAULTS.merchRate = parseFloat(document.getElementById('d-merchrate').value);
+  DEFAULTS.dvDelta   = parseFloat(document.getElementById('d-dvdelta').value);
+
+  // Save to Supabase user metadata
+  const { error } = await sb.auth.updateUser({ data: { adminDefaults: DEFAULTS } });
+  if (error) { showToast('Save failed: '+error.message, 'error'); return; }
+  showToast('Default settings saved ✓', 'success');
+}
+
+// ── RENDER LOCATIONS ──
+function renderLocations() {
+  const el = document.getElementById('locations-card');
+  if (!allLocations.length) {
+    el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-faint);font-size:14px;">No locations yet.</div>';
+    return;
+  }
+  el.innerHTML = allLocations.map(loc => {
+    const initials = loc.name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    return `
+    <div class="loc-table-row">
+      <div class="loc-table-avatar">${initials}</div>
+      <div class="loc-table-info">
+        <div class="loc-table-name">${escHtml(loc.name)}</div>
+        <div class="loc-table-addr">${escHtml(loc.address||'—')}</div>
+      </div>
+      <div class="loc-table-actions">
+        <button class="btn btn-ghost btn-sm" onclick="openEditLocation('${loc.id}')">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="confirmRemoveLocation('${loc.id}','${escHtml(loc.name)}')">Remove</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── RENDER CODES ──
+function renderCodes() {
+  const el = document.getElementById('codes-card');
+  if (!allLocations.length) {
+    el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-faint);font-size:14px;">No locations yet.</div>';
+    return;
+  }
+  el.innerHTML = allLocations.map(loc => {
+    // Check if any user is registered for this location
+    const claimed = false; // We'll check via users table later; for now show code
+    return `
+    <div class="code-row">
+      <span class="code-pill">${escHtml(loc.invite_code||'—')}</span>
+      <span class="code-loc">${escHtml(loc.name)}</span>
+      <span class="code-status open">Active</span>
+    </div>`;
+  }).join('');
+}
+
+// ── RENDER ADMINS ──
+function renderAdmins() {
+  const el = document.getElementById('admins-card');
+  if (!allAdmins.length) {
+    el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-faint);font-size:14px;">No admin users.</div>';
+    return;
+  }
+  el.innerHTML = allAdmins.map(u => {
+    const letter = (u.email||'?')[0].toUpperCase();
+    return `
+    <div class="user-row">
+      <div class="user-avatar">${letter}</div>
+      <div class="user-email">${escHtml(u.email)}</div>
+      <div class="user-badge">Admin</div>
+    </div>`;
+  }).join('');
+}
+
+// ── ADD LOCATION ──
+function openAddLocation() {
+  document.getElementById('al-name').value    = '';
+  document.getElementById('al-address').value = '';
+  document.getElementById('al-owner').value   = '';
+  genCode('al-code');
+  clearModalMsg('al-msg');
+  openModal('modal-addloc');
+}
+
+async function submitAddLocation() {
+  const name    = document.getElementById('al-name').value.trim();
+  const address = document.getElementById('al-address').value.trim();
+  const owner   = document.getElementById('al-owner').value.trim();
+  const code    = document.getElementById('al-code').value.trim().toUpperCase();
+  const btn     = document.getElementById('al-btn');
+
+  if (!name || !code) { showModalMsg('al-msg','error','Club name and invite code are required.'); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Adding…';
+
+  // Apply defaults as initial settings for this location
+  const settings = {
+    taxRate:   DEFAULTS.taxRate,
+    ohRate:    DEFAULTS.ohRate,
+    otherRate: DEFAULTS.otherRate,
+    merchRate: DEFAULTS.merchRate,
+    dvDelta:   DEFAULTS.dvDelta,
+    opDays:    DEFAULTS.opDays,
+    clubName:  name,
+    operators: [
+      {name:'Operator 1',visible:true,aliases:''},
+      {name:'Operator 2',visible:true,aliases:''},
+      {name:'Operator 3',visible:false,aliases:''},
+      {name:'Operator 4',visible:false,aliases:''},
+    ]
+  };
+
+  const { error } = await sb.from('locations').insert({
+    name, address, owner_name: owner, invite_code: code, settings
+  });
+
+  btn.disabled = false;
+  btn.textContent = 'Add Location';
+
+  if (error) {
+    showModalMsg('al-msg','error', error.code === '23505' ? 'That invite code is already in use.' : error.message);
+    return;
+  }
+
+  closeModal('modal-addloc');
+  showToast(`${name} added ✓`, 'success');
+  await loadLocations();
+}
+
+// ── EDIT LOCATION ──
+function openEditLocation(locId) {
+  const loc = allLocations.find(l => l.id === locId);
+  if (!loc) return;
+  editingLocId = locId;
+  document.getElementById('el-name').value    = loc.name;
+  document.getElementById('el-address').value = loc.address || '';
+  document.getElementById('el-owner').value   = loc.owner_name || '';
+  clearModalMsg('el-msg');
+  openModal('modal-editloc');
+}
+
+async function submitEditLocation() {
+  const name    = document.getElementById('el-name').value.trim();
+  const address = document.getElementById('el-address').value.trim();
+  const owner   = document.getElementById('el-owner').value.trim();
+  const btn     = document.getElementById('el-btn');
+
+  if (!name) { showModalMsg('el-msg','error','Club name is required.'); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Saving…';
+
+  const { error } = await sb.from('locations').update({
+    name, address, owner_name: owner
+  }).eq('id', editingLocId);
+
+  btn.disabled = false;
+  btn.textContent = 'Save Changes';
+
+  if (error) { showModalMsg('el-msg','error',error.message); return; }
+
+  closeModal('modal-editloc');
+  showToast('Location updated ✓', 'success');
+  await loadLocations();
+}
+
+// ── REMOVE LOCATION ──
+async function confirmRemoveLocation(locId, locName) {
+  if (!confirm(`Remove "${locName}"?\n\nThis will delete the location and all its data. This cannot be undone.`)) return;
+
+  const { error } = await sb.from('locations').delete().eq('id', locId);
+  if (error) { showToast('Remove failed: '+error.message, 'error'); return; }
+  showToast(`${locName} removed`, '');
+  await loadLocations();
+}
+
+// ── GENERATE CODE MODAL ──
+function openGenerateCode() {
+  const sel = document.getElementById('gc-loc');
+  sel.innerHTML = allLocations.map(l =>
+    `<option value="${l.id}">${escHtml(l.name)}</option>`
+  ).join('');
+  genCode('gc-code');
+  clearModalMsg('gc-msg');
+  openModal('modal-gencode');
+}
+
+async function submitGenCode() {
+  const locId = document.getElementById('gc-loc').value;
+  const code  = document.getElementById('gc-code').value.trim().toUpperCase();
+  const btn   = document.getElementById('gc-btn');
+
+  if (!code) { showModalMsg('gc-msg','error','Please enter or generate a code.'); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Saving…';
+
+  const { error } = await sb.from('locations').update({ invite_code: code }).eq('id', locId);
+
+  btn.disabled = false;
+  btn.textContent = 'Save Code';
+
+  if (error) {
+    showModalMsg('gc-msg','error', error.code === '23505' ? 'That code is already in use.' : error.message);
+    return;
+  }
+
+  closeModal('modal-gencode');
+  showToast('Invite code updated ✓', 'success');
+  await loadLocations();
+}
+
+// ── HELPERS ──
+function genCode(inputId = 'al-code') {
+  const words = ['FUEL','BOOST','POWER','CLUB','FIT','RISE','THRIVE','ENERGY','VITAL','APEX'];
+  const word  = words[Math.floor(Math.random() * words.length)];
+  const num   = Math.floor(100 + Math.random() * 900);
+  document.getElementById(inputId).value = `${word}${num}`;
+}
+
+function range(from, to, step) {
+  const r = [];
+  for (let v = from; v <= to + 0.001; v = Math.round((v+step)*1000)/1000) r.push(v);
+  return r;
+}
+
+function buildSelect(id, values, current, labelFn) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = values.map(v =>
+    `<option value="${v}" ${Math.abs(v-current)<0.001?'selected':''}>${labelFn(v)}</option>`
+  ).join('');
+}
+
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function closeMOnBg(e, id) { if (e.target === document.getElementById(id)) closeModal(id); }
+
+function showModalMsg(id, type, msg) {
+  const el = document.getElementById(id);
+  el.className = 'modal-msg ' + type;
+  el.textContent = msg;
+}
+function clearModalMsg(id) {
+  const el = document.getElementById(id);
+  el.className = 'modal-msg';
+  el.textContent = '';
+}
+
+let toastTimer;
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show'+(type?' '+type:'');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2600);
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+init();
+</script>
+</body>
+</html>
