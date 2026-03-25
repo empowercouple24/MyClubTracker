@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Admin — Nemecek Org Clubs</title>
+  <meta name="theme-color" content="#e8edf4" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --b9:#1e2d3d;--b8:#2a3f56;--b7:#3a5470;--b6:#4a6a8a;--b5:#5b80a0;--b4:#7599b8;--b3:#9ab4cc;--b2:#bfd0e0;--b1:#dde7f0;--b0:#f0f4f8;
+      --g5:#2e7a35;--g4:#3d9e46;--g0:#eaf6eb;
+      --r5:#c03030;--r0:#fff0f0;
+      --a5:#c47c0a;--a0:#fef7e8;
+      --bg:#e8edf4;--surface:#fff;--border:#cdd6e0;--border-light:#e2e9f0;
+      --text:#1e2d3d;--text-muted:#5b7087;--text-faint:#8fa3b3;
+      --radius:12px;--radius-sm:8px;
+      --shadow-sm:0 1px 4px rgba(30,45,61,0.06),0 2px 10px rgba(30,45,61,0.04);
+      --shadow-md:0 4px 20px rgba(30,45,61,0.09);
+    }
+    html,body{min-height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text)}
+    .topnav{position:sticky;top:0;z-index:100;background:rgba(232,237,244,0.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border-light);padding:env(safe-area-inset-top,0px) 20px 12px;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:calc(54px + env(safe-area-inset-top,0px))}
+    .nav-left{display:flex;align-items:center;gap:9px}
+    .nav-logo{width:30px;height:30px;background:linear-gradient(135deg,var(--b7),var(--b5));border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(58,84,112,0.2);flex-shrink:0}
+    .nav-logo svg{width:14px;height:14px;stroke:white;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+    .nav-title{font-family:'Outfit',sans-serif;font-size:19px;font-weight:700;color:var(--text)}
+    .nav-badge{font-size:13px;font-weight:700;background:var(--b7);color:white;padding:2px 7px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase}
+    .nav-right{display:flex;align-items:center;gap:10px}
+    .nav-email{font-size:15px;color:var(--text-muted)}
+    .btn-sm{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text-muted);background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer;transition:background 0.15s}
+    .btn-sm:hover{background:var(--b0);color:var(--text)}
+    .page{max-width:1080px;margin:0 auto;padding:24px max(20px, env(safe-area-inset-left,20px)) calc(64px + env(safe-area-inset-bottom,0px)) max(20px, env(safe-area-inset-right,20px))}
+    .section-label{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.9px;color:var(--text-faint);margin-bottom:12px;margin-top:28px}
+    .section-label:first-child{margin-top:0}
+    .kpi-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .kpi-period{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+    .kpi-period::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--radius) var(--radius) 0 0}
+    .kpi-period.yesterday::before{background:var(--b6)}
+    .kpi-period.week::before{background:var(--g5)}
+    .kpi-period.month::before{background:var(--a5)}
+    .kpi-period-label{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:10px}
+    .kpi-period.yesterday .kpi-period-label{color:var(--b6)}
+    .kpi-period.week .kpi-period-label{color:var(--g5)}
+    .kpi-period.month .kpi-period-label{color:var(--a5)}
+    .kpi-row{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:4px}
+    .kpi-row:last-child{margin-bottom:0}
+    .kpi-metric-label{font-size:15px;color:var(--text-muted)}
+    .kpi-metric-val{font-family:'Outfit',sans-serif;font-size:21px;font-weight:700;color:var(--text);letter-spacing:-0.3px}
+    .kpi-metric-val.big{font-size:28px}
+    .kpi-sub{font-size:13px;color:var(--text-faint);margin-top:6px}
+    .locations-list{display:flex;flex-direction:column;gap:10px}
+    .loc-card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden;transition:box-shadow 0.18s,border-color 0.18s}
+    .loc-card:hover{box-shadow:var(--shadow-md)}
+    .loc-card.expanded{border-color:var(--b3);box-shadow:var(--shadow-md)}
+    .loc-card-header{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;user-select:none}
+    .loc-avatar{width:46px;height:46px;border-radius:11px;background:linear-gradient(135deg,var(--b7),var(--b4));display:flex;align-items:center;justify-content:center;font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;color:white;flex-shrink:0;box-shadow:0 2px 8px rgba(58,84,112,0.18)}
+    .loc-meta{flex:1;min-width:0}
+    .loc-name{font-family:'Outfit',sans-serif;font-size:17px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .loc-addr{font-size:13px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .loc-badges{display:flex;align-items:center;gap:6px;flex-shrink:0}
+    .badge{font-size:12px;font-weight:700;letter-spacing:0.3px;padding:3px 8px;border-radius:20px;white-space:nowrap}
+    .badge-missing{background:#fff0f0;color:var(--r5);border:1px solid rgba(192,48,48,0.2)}
+    .badge-active{background:var(--g0);color:var(--g5);border:1px solid rgba(46,122,53,0.2)}
+    .badge-nodata{background:var(--b0);color:var(--text-faint);border:1px solid var(--border)}
+    .loc-chevron{font-size:11px;color:var(--text-faint);transition:transform 0.2s;flex-shrink:0}
+    .loc-card.expanded .loc-chevron{transform:rotate(180deg)}
+    .loc-stat-strip{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--border-light)}
+    .loc-stat-cell{padding:10px 14px;border-right:1px solid var(--border-light);text-align:center}
+    .loc-stat-cell:last-child{border-right:none}
+    .loc-stat-period{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:3px}
+    .loc-stat-val{font-family:'Outfit',sans-serif;font-size:17px;font-weight:700;color:var(--text);letter-spacing:-0.2px}
+    .loc-stat-val.dim{color:var(--text-faint);font-weight:400;font-size:15px}
+    .loc-stat-dv{font-size:12px;color:var(--text-faint);margin-top:1px}
+    .loc-expanded{display:none;padding:16px;border-top:1px solid var(--border-light);background:var(--b0);animation:expandIn 0.2s ease}
+    @keyframes expandIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+    .loc-card.expanded .loc-expanded{display:block}
+    .expanded-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+    .expanded-period{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:12px 14px;box-shadow:var(--shadow-sm)}
+    .exp-period-label{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px}
+    .exp-period-label.yday{color:var(--b6)}
+    .exp-period-label.week{color:var(--g5)}
+    .exp-period-label.month{color:var(--a5)}
+    .exp-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+    .exp-row:last-child{margin-bottom:0}
+    .exp-label{font-size:14px;color:var(--text-muted)}
+    .exp-val{font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;color:var(--text)}
+    .expanded-footer{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px}
+    .op-days-label{font-size:15px;color:var(--text-muted);font-weight:600;margin-bottom:6px}
+    .op-days-row{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+    .day-toggle{width:36px;height:34px;border-radius:6px;border:1px solid var(--border);background:var(--surface);font-size:12px;font-weight:700;color:var(--text-faint);cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif}
+    .day-toggle.on{background:var(--b7);border-color:var(--b7);color:white}
+    .btn-save-days{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;background:var(--surface);color:var(--text-muted);border:1px solid var(--border);border-radius:6px;padding:5px 10px;cursor:pointer;transition:background 0.15s;margin-left:4px}
+    .btn-save-days:hover{background:var(--b1);color:var(--text)}
+    .btn-view-app{font-family:'Outfit',sans-serif;font-size:15px;font-weight:600;background:linear-gradient(135deg,var(--b7),var(--b5));color:white;border:none;border-radius:6px;padding:8px 16px;cursor:pointer;box-shadow:0 2px 8px rgba(58,84,112,0.2);transition:transform 0.12s,box-shadow 0.12s;white-space:nowrap;text-decoration:none;display:inline-block}
+    .btn-view-app:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(58,84,112,0.28)}
+    .last-entry-note{font-size:13px;color:var(--text-faint);margin-top:5px}
+    .missing-box{margin-bottom:12px;padding:10px 12px;background:var(--r0);border:1px solid rgba(192,48,48,0.15);border-radius:8px}
+    .missing-box-title{font-size:14px;font-weight:700;color:var(--r5);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px}
+    .missing-box-day{font-size:15px;color:#c03030;margin-bottom:2px}
+    #loading-overlay{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:200;transition:opacity 0.3s}
+    #loading-overlay.hidden{opacity:0;pointer-events:none}
+    .load-spinner{width:32px;height:32px;border:3px solid var(--b1);border-top-color:var(--b6);border-radius:50%;animation:spin 0.8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .load-text{font-size:16px;color:var(--text-muted)}
+    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--b8);color:white;padding:11px 20px;border-radius:24px;font-size:15px;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,0.2);z-index:400;transition:transform 0.3s cubic-bezier(0.16,1,0.3,1),opacity 0.3s;opacity:0;white-space:nowrap}
+    .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+    .toast.success{background:var(--g5)}
+    .toast.error{background:var(--r5)}
+    @media(max-width:640px){.kpi-strip{grid-template-columns:1fr}.expanded-grid{grid-template-columns:1fr}.nav-email{display:none}}
+  </style>
+</head>
+<body>
+
+<div id="loading-overlay">
+  <div class="load-spinner"></div>
+  <div class="load-text">Loading dashboard…</div>
+</div>
+
+<nav class="topnav">
+  <div class="nav-left">
+    <div class="nav-logo"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12h8M12 8v8"/></svg></div>
+    <div class="nav-title">Nemecek Org Clubs</div>
+    <div class="nav-badge">Admin</div>
+  </div>
+  <div class="nav-right">
+    <div class="nav-email" id="nav-email"></div>
+    <a href="admin-settings.html" style="font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text-muted);background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer;text-decoration:none;transition:background 0.15s;">⚙ Settings</a><button class="btn-sm" onclick="handleSignOut()">Sign out</button>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="section-label" id="kpi-label">Org Overview</div>
+  <div class="kpi-strip">
+    <div class="kpi-period yesterday">
+      <div class="kpi-period-label">Yesterday</div>
+      <div class="kpi-row"><span class="kpi-metric-label">Sales</span><span class="kpi-metric-val big" id="kpi-yday-sales">—</span></div>
+      <div class="kpi-row"><span class="kpi-metric-label">DV</span><span class="kpi-metric-val" id="kpi-yday-dv">—</span></div>
+      <div class="kpi-sub" id="kpi-yday-sub"></div>
+    </div>
+    <div class="kpi-period week">
+      <div class="kpi-period-label">Last 7 Days</div>
+      <div class="kpi-row"><span class="kpi-metric-label">Sales</span><span class="kpi-metric-val big" id="kpi-week-sales">—</span></div>
+      <div class="kpi-row"><span class="kpi-metric-label">DV</span><span class="kpi-metric-val" id="kpi-week-dv">—</span></div>
+      <div class="kpi-sub" id="kpi-week-sub"></div>
+    </div>
+    <div class="kpi-period month">
+      <div class="kpi-period-label">Last 30 Days</div>
+      <div class="kpi-row"><span class="kpi-metric-label">Sales</span><span class="kpi-metric-val big" id="kpi-month-sales">—</span></div>
+      <div class="kpi-row"><span class="kpi-metric-label">DV</span><span class="kpi-metric-val" id="kpi-month-dv">—</span></div>
+      <div class="kpi-sub" id="kpi-month-sub"></div>
+    </div>
+  </div>
+
+  <div class="section-label" style="margin-top:28px" id="locs-label">Locations</div>
+  <div class="locations-list" id="locations-list"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL      = 'https://ndaqlamzlaucigvnhgfu.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_wO6XM4pC2CcaISQ8OlbkfQ_liqKJbi_';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+let locOpDays = {};
+let allLocations = [];
+let allDays = [];
+
+async function init() {
+  const { data:{ session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'index.html'; return; }
+  const { data:u } = await sb.from('users').select('role').eq('id', session.user.id).single();
+  if (!u || u.role !== 'admin') { window.location.href = 'index.html'; return; }
+  document.getElementById('nav-email').textContent = session.user.email;
+
+  const { data:locs } = await sb.from('locations').select('id,name,address,owner_name,settings').order('name');
+  allLocations = locs || [];
+
+  const since = dateStr(daysAgo(32));
+  const { data:days } = await sb.from('days').select('location_id,date,data').gte('date', since);
+  allDays = days || [];
+
+  allLocations.forEach(loc => {
+    locOpDays[loc.id] = loc.settings?.opDays || [false,true,true,true,true,true,true];
+  });
+
+  renderKPIs();
+  renderLocations();
+  document.getElementById('loading-overlay').classList.add('hidden');
+}
+
+function dateStr(d) { return d.toISOString().slice(0,10); }
+function daysAgo(n) { const d = new Date(); d.setDate(d.getDate() - n); return d; }
+function yesterday()  { return dateStr(daysAgo(1)); }
+function last7Start() { return dateStr(daysAgo(7)); }
+function last30Start(){ return dateStr(daysAgo(30)); }
+function todayStr()   { return dateStr(new Date()); }
+
+function fmt$(n) {
+  if (n === 0 || !n || isNaN(n)) return '—';
+  return '$' + n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function fmtN(n) {
+  if (n === 0 || !n || isNaN(n)) return '—';
+  return n.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:1});
+}
+function fmt$z(n) {
+  if (!n || isNaN(n)) return '$0.00';
+  return '$' + n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+function sumField(days, field, from, to) {
+  return days.filter(d => d.date >= from && d.date <= to)
+    .reduce((s,d) => s + (parseFloat(d.data?.[field]) || 0), 0);
+}
+function countDays(days, from, to) {
+  return days.filter(d => d.date >= from && d.date <= to).length;
+}
+
+function renderKPIs() {
+  const yday = yesterday(), w0 = last7Start(), m0 = last30Start(), today = todayStr();
+  const periods = [{from:yday,to:yday},{from:w0,to:today},{from:m0,to:today}];
+  const ids = ['yday','week','month'];
+  periods.forEach((p,i) => {
+    const sales = allDays.filter(d=>d.date>=p.from&&d.date<=p.to).reduce((s,d)=>s+(parseFloat(d.data?.totalSales)||0),0);
+    const dv    = allDays.filter(d=>d.date>=p.from&&d.date<=p.to).reduce((s,d)=>s+(parseFloat(d.data?.dv)||0),0);
+    const locsReporting = new Set(allDays.filter(d=>d.date>=p.from&&d.date<=p.to).map(d=>d.location_id)).size;
+    document.getElementById(`kpi-${ids[i]}-sales`).textContent = fmt$(sales);
+    document.getElementById(`kpi-${ids[i]}-dv`).textContent    = fmtN(dv);
+    document.getElementById(`kpi-${ids[i]}-sub`).textContent   = locsReporting > 0 ? `${locsReporting} location${locsReporting!==1?'s':''} reporting` : 'No data';
+  });
+  const now = new Date();
+  document.getElementById('kpi-label').textContent = `Org Overview — ${now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}`;
+}
+
+function isMissing(locId, date) {
+  const opDays = locOpDays[locId] || [false,true,true,true,true,true,true];
+  const dow = new Date(date + 'T12:00:00').getDay();
+  if (!opDays[dow]) return false;
+  return !allDays.find(d => d.location_id === locId && d.date === date);
+}
+
+function getMissingDays(locId, n=7) {
+  const out = [];
+  for (let i = 1; i <= n; i++) {
+    const d = dateStr(daysAgo(i));
+    if (isMissing(locId, d)) out.push(d);
+  }
+  return out;
+}
+
+function getLastEntry(locId) {
+  return allDays.filter(d=>d.location_id===locId).sort((a,b)=>b.date.localeCompare(a.date))[0]?.date || null;
+}
+
+function renderLocations() {
+  const list = document.getElementById('locations-list');
+  const yday = yesterday(), w0 = last7Start(), m0 = last30Start(), today = todayStr();
+  document.getElementById('locs-label').textContent = `Locations (${allLocations.length})`;
+
+  if (!allLocations.length) {
+    list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-faint);font-size:13px;">No locations yet.</div>';
+    return;
+  }
+
+  list.innerHTML = allLocations.map(loc => {
+    const ld = allDays.filter(d=>d.location_id===loc.id);
+    const initials = loc.name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+
+    const ydaySales  = sumField(ld,'totalSales',yday,yday);
+    const ydayDV     = sumField(ld,'dv',yday,yday);
+    const weekSales  = sumField(ld,'totalSales',w0,today);
+    const weekDV     = sumField(ld,'dv',w0,today);
+    const weekDays   = countDays(ld,w0,today);
+    const monthSales = sumField(ld,'totalSales',m0,today);
+    const monthDV    = sumField(ld,'dv',m0,today);
+    const monthDays  = countDays(ld,m0,today);
+
+    const missing  = getMissingDays(loc.id, 7);
+    const lastDate = getLastEntry(loc.id);
+    const lastFmt  = lastDate ? new Date(lastDate+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) : null;
+
+    let badge = '';
+    if (missing.length > 0)      badge = `<span class="badge badge-missing">⚠ ${missing.length} missing</span>`;
+    else if (lastDate)            badge = `<span class="badge badge-active">✓ Current</span>`;
+    else                          badge = `<span class="badge badge-nodata">No data</span>`;
+
+    const opDays = locOpDays[loc.id] || [false,true,true,true,true,true,true];
+    const toggles = DAY_NAMES.map((n,i) =>
+      `<button class="day-toggle ${opDays[i]?'on':''}" onclick="toggleOpDay('${loc.id}',${i},this)">${n}</button>`
+    ).join('');
+
+    const missingBox = missing.length > 0 ? `
+      <div class="missing-box">
+        <div class="missing-box-title">Missing Submissions (last 7 days)</div>
+        ${missing.map(d=>`<div class="missing-box-day">${new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}</div>`).join('')}
+      </div>` : '';
+
+    return `
+    <div class="loc-card" id="lc-${loc.id}">
+      <div class="loc-card-header" onclick="toggleCard('${loc.id}')">
+        <div class="loc-avatar">${initials}</div>
+        <div class="loc-meta">
+          <div class="loc-name">${escHtml(loc.name)}</div>
+          <div class="loc-addr">${escHtml(loc.address||'—')}</div>
+        </div>
+        <div class="loc-badges">${badge}</div>
+        <div class="loc-chevron">▼</div>
+      </div>
+      <div class="loc-stat-strip">
+        <div class="loc-stat-cell">
+          <div class="loc-stat-period">Yesterday</div>
+          <div class="loc-stat-val ${!ydaySales?'dim':''}">${ydaySales?fmt$z(ydaySales):'—'}</div>
+          <div class="loc-stat-dv">${ydayDV?'DV '+fmtN(ydayDV):''}</div>
+        </div>
+        <div class="loc-stat-cell">
+          <div class="loc-stat-period">Last 7 Days</div>
+          <div class="loc-stat-val ${!weekSales?'dim':''}">${weekSales?fmt$z(weekSales):'—'}</div>
+          <div class="loc-stat-dv">${weekDays?weekDays+' days':''}</div>
+        </div>
+        <div class="loc-stat-cell">
+          <div class="loc-stat-period">Last 30 Days</div>
+          <div class="loc-stat-val ${!monthSales?'dim':''}">${monthSales?fmt$z(monthSales):'—'}</div>
+          <div class="loc-stat-dv">${monthDays?monthDays+' days':''}</div>
+        </div>
+      </div>
+      <div class="loc-expanded">
+        ${missingBox}
+        <div class="expanded-grid">
+          <div class="expanded-period">
+            <div class="exp-period-label yday">Yesterday</div>
+            <div class="exp-row"><span class="exp-label">Sales</span><span class="exp-val">${fmt$z(ydaySales)}</span></div>
+            <div class="exp-row"><span class="exp-label">DV</span><span class="exp-val">${fmtN(ydayDV)||'—'}</span></div>
+          </div>
+          <div class="expanded-period">
+            <div class="exp-period-label week">Last 7 Days</div>
+            <div class="exp-row"><span class="exp-label">Sales</span><span class="exp-val">${fmt$z(weekSales)}</span></div>
+            <div class="exp-row"><span class="exp-label">DV</span><span class="exp-val">${fmtN(weekDV)||'—'}</span></div>
+            <div class="exp-row"><span class="exp-label">Days</span><span class="exp-val">${weekDays||'—'}</span></div>
+          </div>
+          <div class="expanded-period">
+            <div class="exp-period-label month">Last 30 Days</div>
+            <div class="exp-row"><span class="exp-label">Sales</span><span class="exp-val">${fmt$z(monthSales)}</span></div>
+            <div class="exp-row"><span class="exp-label">DV</span><span class="exp-val">${fmtN(monthDV)||'—'}</span></div>
+            <div class="exp-row"><span class="exp-label">Days</span><span class="exp-val">${monthDays||'—'}</span></div>
+          </div>
+        </div>
+        <div class="expanded-footer">
+          <div>
+            <div class="op-days-label">Operating Days</div>
+            <div class="op-days-row">
+              ${toggles}
+              <button class="btn-save-days" onclick="saveOpDays('${loc.id}',event)">Save</button>
+            </div>
+            ${lastFmt ? `<div class="last-entry-note">Last entry: ${lastFmt}</div>` : ''}
+          </div>
+          <a class="btn-view-app" href="app.html?location_id=${loc.id}&admin=1">View Full App →</a>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleCard(id) {
+  document.getElementById('lc-'+id).classList.toggle('expanded');
+}
+
+function toggleOpDay(locId, idx, btn) {
+  const od = locOpDays[locId] || [false,true,true,true,true,true,true];
+  od[idx] = !od[idx];
+  locOpDays[locId] = od;
+  btn.classList.toggle('on', od[idx]);
+}
+
+async function saveOpDays(locId, e) {
+  e.stopPropagation();
+  const loc = allLocations.find(l=>l.id===locId);
+  if (!loc) return;
+  const settings = { ...(loc.settings||{}), opDays: locOpDays[locId] };
+  const { error } = await sb.from('locations').update({ settings }).eq('id', locId);
+  if (error) { showToast('Save failed','error'); return; }
+  loc.settings = settings;
+  showToast('Operating days saved ✓','success');
+}
+
+async function handleSignOut() {
+  await sb.auth.signOut();
+  window.location.href = 'index.html';
+}
+
+let toastTimer;
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type?' '+type:'');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2400);
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+init();
+</script>
+  <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}</script>
+</body>
+</html>
