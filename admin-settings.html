@@ -145,6 +145,28 @@
 
 <div class="page">
 
+  <!-- ══ MY PROFILE ══ -->
+  <div class="section">
+    <div class="section-label">My Profile</div>
+    <div class="card">
+      <div class="settings-row">
+        <div><div class="row-label">Display Name</div></div>
+        <input type="text" class="row-input" id="prof-name" placeholder="Your name"/>
+      </div>
+      <div class="settings-row">
+        <div><div class="row-label">Phone</div></div>
+        <input type="tel" class="row-input" id="prof-phone" placeholder="(555) 000-0000"/>
+      </div>
+      <div class="settings-row">
+        <div><div class="row-label">Email</div><div class="row-sub" id="prof-email-sub"></div></div>
+        <span style="font-size:13px;color:var(--text-faint);" id="prof-email-display"></span>
+      </div>
+    </div>
+    <div style="margin-top:10px;">
+      <button class="btn btn-primary" onclick="saveAdminProfile()">Save Profile</button>
+    </div>
+  </div>
+
   <!-- ══ DEFAULT SETTINGS ══ -->
   <div class="section">
     <div class="section-label">Default Settings for New Locations</div>
@@ -301,20 +323,37 @@ let DEFAULTS = {
 async function init() {
   const { data:{ session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'index.html'; return; }
-  const { data:u } = await sb.from('users').select('role').eq('id', session.user.id).single();
+  const { data:u } = await sb.from('users').select('role,display_name,phone').eq('id', session.user.id).single();
   if (!u || u.role !== 'admin') { window.location.href = 'index.html'; return; }
+
+  // Populate profile fields
+  document.getElementById('prof-name').value  = u.display_name || '';
+  document.getElementById('prof-phone').value = u.phone || '';
+  document.getElementById('prof-email-display').textContent = session.user.email || '';
+  document.getElementById('prof-email-sub').textContent     = session.user.email || '';
 
   // Load defaults from user metadata — strip taxRate if present from old saves
   const meta = session.user.user_metadata || {};
   if (meta.adminDefaults) {
     const saved = { ...meta.adminDefaults };
-    delete saved.taxRate; // Remove tax rate from any previously saved defaults
+    delete saved.taxRate;
     DEFAULTS = { ...DEFAULTS, ...saved };
   }
 
   await Promise.all([loadLocations(), loadAdmins()]);
   buildDefaultsUI();
   document.getElementById('loading-overlay').classList.add('hidden');
+}
+
+// ── ADMIN PROFILE ──
+async function saveAdminProfile() {
+  const { data:{ session } } = await sb.auth.getSession();
+  if (!session) return;
+  const name  = document.getElementById('prof-name').value.trim();
+  const phone = document.getElementById('prof-phone').value.trim();
+  const { error } = await sb.from('users').update({ display_name: name, phone }).eq('id', session.user.id);
+  if (error) { showToast('Save failed: '+error.message, 'error'); return; }
+  showToast('Profile saved ✓', 'success');
 }
 
 // ── LOAD DATA ──
