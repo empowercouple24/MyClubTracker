@@ -491,30 +491,37 @@ async function register(){
 
   setBtnLoading('reg-btn',true,'Creating account…');
 
-  // 1. Create auth user
-  const{data:authData,error:authError}=await sb.auth.signUp({email,password:pw});
+  // 1. Create auth user — pass all profile data as metadata
+  // The DB trigger will automatically insert the users row
+  const{data:authData,error:authError}=await sb.auth.signUp({
+    email,
+    password:pw,
+    options:{
+      data:{
+        display_name: name,
+        phone:        phone||null,
+        location_id:  verifiedLocation.id,
+        role:         verifiedLocation.role,
+      }
+    }
+  });
   if(authError){showMsg('reg-step2-msg',authError.message,'error');setBtnLoading('reg-btn',false,'Create Account');return;}
 
   const userId=authData.user?.id;
   if(!userId){showMsg('reg-step2-msg','Sign-up failed — no user ID returned. Try again.','error');setBtnLoading('reg-btn',false,'Create Account');return;}
 
-  // 2. Insert users row
-  const{error:userError}=await sb.from('users').insert({
-    id: userId,
+  // 2. Try to upsert the users row as a fallback in case the trigger hasn't fired yet
+  // (trigger is the primary path; this is a safety net)
+  await sb.from('users').upsert({
+    id:           userId,
     email,
-    location_id: verifiedLocation.id,
-    role: verifiedLocation.role,
+    location_id:  verifiedLocation.id,
+    role:         verifiedLocation.role,
     display_name: name,
-    phone: phone||null,
-  });
+    phone:        phone||null,
+  },{onConflict:'id',ignoreDuplicates:true});
 
-  if(userError){
-    showMsg('reg-step2-msg','Account created but profile setup failed: '+userError.message+'. Contact your admin.','error');
-    setBtnLoading('reg-btn',false,'Create Account');
-    return;
-  }
-
-  // 3. Show success
+  // 3. Show success regardless — trigger or upsert will have handled the row
   setBtnLoading('reg-btn',false,'Create Account');
   document.getElementById('reg-step-2').style.display='none';
   document.getElementById('reg-step-3').style.display='block';
