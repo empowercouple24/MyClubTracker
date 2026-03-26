@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 07:47:04 -->
+<!-- CACHE BUST: 2026-03-26 07:52:28 -->
 <html lang="en">
 <head>
 <script>
@@ -917,7 +917,7 @@ function renderAlertBanner(){
 }
 
 function toggleAlertBanner(){document.getElementById('alert-banner')?.classList.toggle('expanded');}
-function goToLocation(locId){window.location.href=`club.html?location_id=${locId}&admin=1`;}
+function goToLocation(locId){window.location.href=`app2.html?location_id=${locId}&admin=1`;}
 
 function renderLocations(){
   const list=document.getElementById('locations-list');
@@ -967,8 +967,8 @@ function renderLocations(){
           </div>
           <div class="expanded-footer">
             <div></div>
-            <a class="btn-manage-settings" href="club.html?location_id=${loc.id}&admin=1&settings=1">⚙ Manage Settings</a>
-            <a class="btn-view-app" href="club.html?location_id=${loc.id}&admin=1">View Full App →</a>
+            <a class="btn-manage-settings" href="app2.html?location_id=${loc.id}&admin=1&settings=1">⚙ Manage Settings</a>
+            <a class="btn-view-app" href="app2.html?location_id=${loc.id}&admin=1">View Full App →</a>
           </div>
         </div>
       </div>`;
@@ -1032,8 +1032,8 @@ function renderLocations(){
         </div>
         <div class="expanded-footer">
           ${lastFmt?`<div class="last-entry-note">Last entry: ${lastFmt}</div>`:'<div></div>'}
-          <a class="btn-manage-settings" href="club.html?location_id=${loc.id}&admin=1&settings=1">⚙ Manage Settings</a>
-          <a class="btn-view-app" href="club.html?location_id=${loc.id}&admin=1">View Full App →</a>
+          <a class="btn-manage-settings" href="app2.html?location_id=${loc.id}&admin=1&settings=1">⚙ Manage Settings</a>
+          <a class="btn-view-app" href="app2.html?location_id=${loc.id}&admin=1">View Full App →</a>
         </div>
       </div>
     </div>`;
