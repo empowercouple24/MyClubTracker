@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 04:38:03 -->
+<!-- CACHE BUST: 2026-03-26 04:44:21 -->
 <html lang="en">
 <head>
 <script>
@@ -93,7 +93,21 @@ if('serviceWorker' in navigator){
     @media(min-width:700px){.enter-sales-row{grid-template-columns:1fr 1fr;align-items:start}}
     .enter-sales-right{display:flex;flex-direction:column;gap:10px}
     .enter-ops-row{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:10px}
-    @media(min-width:700px){.enter-ops-row{grid-template-columns:1fr 1fr;align-items:start}}
+    @media(min-width:700px){.enter-ops-row{grid-template-columns:1fr 1fr;align-items:start}
+
+    /* ── DARK MODE ── */
+    html.dark{--bg:#0f1923;--surface:#1a2736;--border:#2a3f56;--border-light:#243347;--text:#e8edf4;--text-muted:#8fa3b3;--text-faint:#5b7087;--b0:#1e2d3d;--b1:#243347;--b2:#2a3f56;}
+    html.dark .topnav{background:rgba(15,25,35,0.96);}
+    html.dark .tabbar{background:var(--surface);border-color:var(--border);}
+    html.dark .tab-panel{background:var(--bg);}
+    html.dark .field-row{background:var(--surface);border-color:var(--border);}
+    html.dark .hcard{background:var(--surface);}
+    html.dark .dv-box{background:linear-gradient(135deg,#2a3f56,#3a5470);}
+    html.dark .modal-sheet{background:var(--surface);}
+    html.dark .settings-row{border-color:var(--border);}
+    html.dark input,html.dark select,html.dark textarea{background:var(--b0)!important;color:var(--text)!important;border-color:var(--border)!important;}
+    .dark-toggle{background:none;border:1px solid var(--border);border-radius:20px;padding:3px 8px;cursor:pointer;font-size:12px;color:var(--text-muted);transition:all 0.2s;}
+}
     /* SUMMARY BOX */
     .summary-box{background:linear-gradient(135deg,var(--b8) 0%,var(--b7) 100%);border-radius:var(--radius);padding:12px 14px;color:white;margin-bottom:10px}
     .summary-title{font-family:'Outfit',sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;opacity:0.6;margin-bottom:8px}
@@ -257,6 +271,7 @@ if('serviceWorker' in navigator){
   <button class="nav-btn" id="nav-settings-btn" onclick="openSettings()">⚙</button>
   <span id="nav-display-name" style="font-size:13px;font-weight:600;color:var(--text-muted);display:none;"></span>
   <button class="nav-btn" id="nav-profile-btn" style="display:none;" onclick="openProfileModal()">👤</button>
+  <button class="dark-toggle" id="dark-toggle-btn" onclick="toggleDarkMode()">🌙</button>
   <button class="nav-btn" onclick="handleSignOut()" id="nav-signout-btn">Sign out</button>
 </nav>
 
@@ -810,6 +825,23 @@ function generateEmpCode(){
   document.getElementById('s-emp-code').value=code;
   // Will be saved when user clicks Save Settings
 }
+
+// ── DARK MODE ──
+function initDarkMode(){
+  const saved=localStorage.getItem('noc-dark');
+  if(saved==='1'||(saved===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){
+    document.documentElement.classList.add('dark');
+    const btn=document.getElementById('dark-toggle-btn');
+    if(btn)btn.innerHTML='☀️';
+  }
+}
+function toggleDarkMode(){
+  const isDark=document.documentElement.classList.toggle('dark');
+  localStorage.setItem('noc-dark',isDark?'1':'0');
+  const btn=document.getElementById('dark-toggle-btn');
+  if(btn)btn.innerHTML=isDark?'☀️':'🌙';
+}
+initDarkMode();
 
 async function init(){
   setLoadText('Authenticating…');
