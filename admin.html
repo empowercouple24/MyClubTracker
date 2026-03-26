@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 05:20:34 -->
+<!-- CACHE BUST: 2026-03-26 05:25:59 -->
 <html lang="en">
 <head>
 <script>
@@ -320,7 +320,7 @@ if('serviceWorker' in navigator){
     <div class="form-panel" id="nl-form-panel">
       <div class="modal-title">Add New Location</div>
       <div class="modal-field"><label>Club Name</label><input type="text" id="nl-name" placeholder="My Town Nutrition"/></div>
-      <div class="modal-field"><label>Street Address</label><input type="text" id="nl-street" placeholder="Start typing address…" autocomplete="new-password" role="presentation"/></div>
+      <div class="modal-field"><label>Street Address</label><input type="text" id="nl-street" placeholder="Start typing address…" autocomplete="off" data-lpignore="true" data-form-type="other"/></div>
       <div class="modal-field"><label>Address Line 2 <span style="font-size:11px;font-weight:400;color:var(--text-faint);">Suite, Unit, Apt (optional)</span></label><input type="text" id="nl-street2" placeholder="e.g. Suite 100"/></div>
       <div class="modal-field"><label>Zip Code</label><input type="text" id="nl-zip" placeholder="00000" maxlength="5" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5);if(this.value.length===5)lookupZip(this.value,'nl-city','nl-state')"/></div>
       <div class="modal-field" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
@@ -410,7 +410,7 @@ if('serviceWorker' in navigator){
     <div class="modal-title">✅ Approve Location Request</div>
     <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.5;">Review and edit the details before creating the location. An invite code will be generated and shown to you.</div>
     <div class="modal-field"><label>Club Name</label><input type="text" id="ap-name"/></div>
-    <div class="modal-field"><label>Street Address</label><input type="text" id="ap-street" autocomplete="new-password" role="presentation"/></div>
+    <div class="modal-field"><label>Street Address</label><input type="text" id="ap-street" autocomplete="off" data-lpignore="true" data-form-type="other"/></div>
     <div class="modal-field"><label>Address Line 2 <span style="font-size:11px;font-weight:400;color:var(--text-faint);">Suite, Unit, Apt (optional)</span></label><input type="text" id="ap-street2" placeholder="e.g. Suite 100"/></div>
     <div class="modal-field"><label>Zip</label><input type="text" id="ap-zip" maxlength="5" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5);if(this.value.length===5)lookupZip(this.value,'ap-city','ap-state')"/></div>
     <div class="modal-field" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
@@ -487,14 +487,20 @@ function attachPlacesAutocomplete(streetInputId, cityId, stateId, zipId) {
     }
     var input = document.getElementById(streetInputId);
     if (!input) return;
-    input.setAttribute('autocomplete', 'new-password');
+    input.setAttribute('autocomplete', 'off');
+    input.setAttribute('data-lpignore', 'true');
+    input.setAttribute('data-form-type', 'other');
     var ac = new google.maps.places.Autocomplete(input, {
       types: ['address'],
       componentRestrictions: { country: 'us' }
     });
-    // Prevent Enter from submitting form when dropdown is open
     input.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') e.preventDefault();
+      if (e.key === 'Enter') {
+        var pac = document.querySelector('.pac-container');
+        if (pac && pac.style.display !== 'none' && pac.offsetHeight > 0) {
+          e.preventDefault();
+        }
+      }
     });
     ac.addListener('place_changed', function() {
       var place = ac.getPlace();
