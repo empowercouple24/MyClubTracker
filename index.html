@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 05:38:11 -->
+<!-- CACHE BUST: 2026-03-26 06:12:15 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -273,7 +273,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
   </div>
 
 </div>
-<div style="text-align:center;margin-top:8px;"><button class="dark-toggle" id="dark-toggle-btn" onclick="toggleDarkMode()" style="background:none;border:1px solid rgba(255,255,255,0.2);border-radius:20px;padding:4px 12px;cursor:pointer;font-size:12px;color:rgba(255,255,255,0.55);">🌙 Dark mode</button></div>
+
 <div class="version" id="version-tag">Nemecek Org Clubs · v1.4.1</div>
 <script>
 // Auto-set timestamp from when this file was last served by the server
@@ -458,21 +458,8 @@ function attachPlacesAutocomplete(streetInputId, cityId, stateId, zipId) {
 }
 
 // ── DARK MODE ──
-function initDarkMode(){
-  const saved=localStorage.getItem('noc-dark');
-  if(saved==='1'||(saved===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){
-    document.documentElement.classList.add('dark');
-    const btn=document.getElementById('dark-toggle-btn');
-    if(btn)btn.innerHTML='☀️';
-  }
-}
-function toggleDarkMode(){
-  const isDark=document.documentElement.classList.toggle('dark');
-  localStorage.setItem('noc-dark',isDark?'1':'0');
-  const btn=document.getElementById('dark-toggle-btn');
-  if(btn)btn.innerHTML=isDark?'☀️':'🌙';
-}
-initDarkMode();
+// Login page always shows in light mode
+document.documentElement.classList.remove('dark');
 
 if(new URLSearchParams(window.location.search).get('tab')==='register')showTab('register');
 
