@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 06:45:30 -->
+<!-- CACHE BUST: 2026-03-26 06:47:55 NULL-SAFE -->
 <html lang="en">
 <head>
 <script>
@@ -932,19 +932,18 @@ async function init(){
   setLoadText('Loading club data…');
   const{data:loc}=await sb.from('locations').select('name,settings').eq('id',LOCATION_ID).single();
   if(loc){
-    document.getElementById('nav-club-name').textContent=loc.name;
+    const _ncn=document.getElementById('nav-club-name');if(_ncn)_ncn.textContent=loc.name;
     if(loc.settings&&Object.keys(loc.settings).length>0){SETTINGS={...SETTINGS,...loc.settings};}
     else{SETTINGS.clubName=loc.name;}
   }
   if(IS_ADMIN_VIEW){
-    document.getElementById('nav-admin-badge').style.display='block';
-    document.getElementById('nav-back-btn').style.display='block';
+    const _nab=document.getElementById('nav-admin-badge');if(_nab)_nab.style.display='block';
+    const _nbb=document.getElementById('nav-back-btn');if(_nbb)_nbb.style.display='block';
     const _so=document.getElementById('nav-signout-btn');if(_so)_so.style.display='none';
-    const bn=document.getElementById('admin-banner');bn.style.display='block';bn.textContent='Admin View: '+(loc?.name||LOCATION_ID);
-    document.getElementById('admin-edit-banner').classList.add('show');
-    document.getElementById('nav-settings-btn').style.display='block';
-    document.getElementById('settings-modal-title').textContent='Settings — '+(loc?.name||'Location');
-    // Change Save button to amber to signal admin edit mode
+    const bn=document.getElementById('admin-banner');if(bn){bn.style.display='block';bn.textContent='Admin View: '+(loc?.name||LOCATION_ID);}
+    const _aeb=document.getElementById('admin-edit-banner');if(_aeb)_aeb.classList.add('show');
+    const _nsb=document.getElementById('nav-settings-btn');if(_nsb)_nsb.style.display='block';
+    const _smt=document.getElementById('settings-modal-title');if(_smt)_smt.textContent='Settings — '+(loc?.name||'Location');
     const saveBtn=document.querySelector('button[onclick="saveDay()"]');
     if(saveBtn){saveBtn.style.background='linear-gradient(135deg,var(--a6),var(--a4))';saveBtn.textContent='Save (Admin)';}
   }
@@ -954,10 +953,10 @@ async function init(){
   INV_SNAPSHOTS=snaps||[];
   if(SETTINGS.customProducts)PRODUCTS=SETTINGS.customProducts;
   const today=new Date().toISOString().slice(0,10);
-  document.getElementById('entry-date').value=today;
+  const _ed=document.getElementById('entry-date');if(_ed)_ed.value=today;
   const now=new Date();
-  document.getElementById('payout-from').value=new Date(now.getFullYear(),now.getMonth(),1).toISOString().slice(0,10);
-  document.getElementById('payout-to').value=new Date(now.getFullYear(),now.getMonth()+1,0).toISOString().slice(0,10);
+  const _pf=document.getElementById('payout-from');if(_pf)_pf.value=new Date(now.getFullYear(),now.getMonth(),1).toISOString().slice(0,10);
+  const _pt=document.getElementById('payout-to');if(_pt)_pt.value=new Date(now.getFullYear(),now.getMonth()+1,0).toISOString().slice(0,10);
   populateOperatorDropdowns();buildSettingsUI();loadDay();renderHistory();renderInventory();renderInventoryHistory();renderProjections();renderPayouts();
   /* overlay hidden by default */
   if(OPEN_SETTINGS)setTimeout(()=>openSettings(),300);
