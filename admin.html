@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 07:21:52 -->
+<!-- CACHE BUST: 2026-03-26 07:30:25 -->
 <html lang="en">
 <head>
 <script>
@@ -940,7 +940,7 @@ function renderLocations(){
 
     // Pending = no registered owner yet
     if(!activated){
-      const inviteCode=loc.invite_code?`<div style="margin-top:8px;font-size:12px;color:var(--text-faint);">Invite code: <strong style="font-family:monospace;letter-spacing:1px;color:var(--b7);">${escHtml(loc.invite_code)}</strong></div>`:'';
+      const codeDisplay=loc.invite_code||'—';
       return`<div class="loc-card pending" id="lc-${loc.id}">
         <div class="loc-card-header" onclick="toggleCard('${loc.id}')">
           <div class="loc-avatar">${initials}</div>
@@ -949,12 +949,18 @@ function renderLocations(){
             ${loc.owner_name?`<div class="loc-owner">👤 ${escHtml(loc.owner_name)}</div>`:''}
             ${loc.address?`<div class="loc-addr">📍 ${escHtml(loc.address)}</div>`:''}
           </div>
-          <div class="loc-badges"><span class="badge badge-pending">⏳ Pending Setup</span></div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
+            <span class="badge badge-pending">⏳ Pending Setup</span>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-size:11px;color:var(--text-faint);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Invite Code</span>
+              <span onclick="event.stopPropagation();navigator.clipboard&&navigator.clipboard.writeText('${escHtml(codeDisplay)}').then(()=>showToast('Invite code copied ✓','success'))" title="Click to copy" style="font-family:monospace;font-size:15px;font-weight:800;letter-spacing:3px;color:white;background:var(--b7);border-radius:7px;padding:4px 10px;cursor:pointer;">${escHtml(codeDisplay)}</span>
+            </div>
+          </div>
           <div class="loc-chevron">▼</div>
         </div>
         <div class="loc-expanded">
           <div style="padding:4px 0 10px;font-size:13px;color:var(--text-muted);line-height:1.6;">
-            Waiting for the club owner to register using their invite code.${inviteCode}
+            Waiting for the club owner to register at <strong>nemecekorgclubs.com</strong> using the invite code above.
           </div>
           <div class="expanded-footer">
             <div></div>
