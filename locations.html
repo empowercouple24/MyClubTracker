@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 06:15:05 -->
+<!-- CACHE BUST: 2026-03-26 06:21:21 -->
 <html lang="en">
 <head>
 <script>
@@ -230,7 +230,7 @@ html.dark body{background:var(--bg);}
       <div class="modal-field"><label>Address Line 2 <span style="font-size:11px;font-weight:400;color:var(--text-faint);">Suite, Unit, Apt (optional)</span></label><input type="text" id="el-street2" placeholder="e.g. Suite 100"/></div>
       <div class="modal-field"><label>Zip Code</label><input type="text" id="el-zip" placeholder="00000" maxlength="5" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5);if(this.value.length===5)lookupZip(this.value,'el-city','el-state')"/></div>
       <div class="modal-field" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <div><label>City <span style="font-size:10px;font-weight:400;color:var(--text-faint);">auto-fills</span></label><input type="text" id="el-city" placeholder="Auto-filled" style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--b6);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;outline:none;"/></div>
+        <div><label>City <span style="font-size:10px;font-weight:400;color:var(--text-faint);">auto-fills</span></label><input type="text" id="el-city" placeholder="Auto-filled" readonly style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--b6);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;outline:none;" readonly/></div>
         <div><label>State <span style="font-size:10px;font-weight:400;color:var(--text-faint);">auto-fills</span></label><input type="text" id="el-state" placeholder="Auto" readonly style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--b6);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;outline:none;"/></div>
       </div>
       <div class="modal-field"><label>Owner Name</label><input type="text" id="el-owner"/></div>
@@ -268,7 +268,7 @@ html.dark body{background:var(--bg);}
       <div class="modal-field"><label>Address Line 2 <span style="font-size:11px;font-weight:400;color:var(--text-faint);">Suite, Unit, Apt (optional)</span></label><input type="text" id="al-street2" placeholder="e.g. Suite 100"/></div>
       <div class="modal-field"><label>Zip Code</label><input type="text" id="al-zip" placeholder="00000" maxlength="5" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5);if(this.value.length===5)lookupZip(this.value,'al-city','al-state')"/></div>
       <div class="modal-field" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <div><label>City <span style="font-size:10px;font-weight:400;color:var(--text-faint);">auto-fills</span></label><input type="text" id="al-city" placeholder="Auto-filled" style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--b6);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;outline:none;"/></div>
+        <div><label>City <span style="font-size:10px;font-weight:400;color:var(--text-faint);">auto-fills</span></label><input type="text" id="al-city" placeholder="Auto-filled" readonly style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--b6);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;outline:none;" readonly/></div>
         <div><label>State <span style="font-size:10px;font-weight:400;color:var(--text-faint);">auto-fills</span></label><input type="text" id="al-state" placeholder="Auto" readonly style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--b6);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;outline:none;"/></div>
       </div>
       <div class="modal-field"><label>Owner Name</label><input type="text" id="al-owner" placeholder="Full name"/></div>
