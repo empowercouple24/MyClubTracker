@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 06:00:01 NEW-FILE -->
+<!-- CACHE BUST: 2026-03-26 06:09:12 FINAL -->
 <html lang="en">
 <head>
 <script>
@@ -260,6 +260,13 @@ if('serviceWorker' in navigator){
       <div class="divider-label">Rates</div>
       <div class="settings-row" style="flex-wrap:wrap;gap:4px;">
         <div>
+          <div class="row-label">Tax Rate</div>
+          <div class="row-sub" style="max-width:380px;">Sales tax percentage applied to taxable sales.</div>
+        </div>
+        <select class="row-input" id="d-taxrate"></select>
+      </div>
+      <div class="settings-row" style="flex-wrap:wrap;gap:4px;">
+        <div>
           <div class="row-label">Overhead Rate</div>
           <div class="row-sub" style="max-width:380px;">How much the club keeps from net sales for club expenses — cups, lids, supplies, hourly employees, etc. — before allocating Operator Payouts.</div>
         </div>
@@ -286,11 +293,7 @@ if('serviceWorker' in navigator){
         </div>
         <select class="row-input" id="d-dvdelta"></select>
       </div>
-      <div class="divider-label">Operating Days</div>
-      <div class="settings-row" style="flex-wrap:wrap;gap:10px;">
-        <div class="row-label">Default Operating Days</div>
-        <div class="day-toggles" id="d-opdays"></div>
-      </div>
+
     </div>
     <div style="margin-top:10px;">
       <button class="btn btn-primary" onclick="saveDefaults()">Save Default Settings</button>
@@ -582,11 +585,11 @@ let editingLocId = null;
 
 // Tax rate removed from defaults entirely
 let DEFAULTS = {
+  taxRate:   1.25,
   ohRate:    32,
   otherRate: 50,
   merchRate: 100,
   dvDelta:   3,
-  opDays:    [false,true,true,true,true,true,true],
 };
 
 // ── GLOBAL DEFAULT PRODUCTS ──
@@ -830,7 +833,6 @@ async function init() {
   const meta = session.user.user_metadata || {};
   if (meta.adminDefaults) {
     const saved = { ...meta.adminDefaults };
-    delete saved.taxRate;
     DEFAULTS = { ...DEFAULTS, ...saved };
   }
 
@@ -985,31 +987,19 @@ async function loadAdmins() {
 
 // ── DEFAULTS UI ──
 function buildDefaultsUI() {
-  // Tax rate removed — only these four rates
-  buildSelect('d-ohrate',    range(15,40,1),   DEFAULTS.ohRate,    v => v+'%');
-  buildSelect('d-otherrate', range(30,60,2),   DEFAULTS.otherRate, v => v+'%');
-  buildSelect('d-merchrate', range(5,100,5),   DEFAULTS.merchRate, v => v+'%');
-  buildSelect('d-dvdelta',   range(-10,10,1),  DEFAULTS.dvDelta,   v => (v>=0?'+':'')+v+'%');
-
-  const dop = document.getElementById('d-opdays');
-  dop.innerHTML = DAY_NAMES.map((n,i) =>
-    `<button class="day-toggle ${DEFAULTS.opDays[i]?'on':''}" onclick="toggleDefaultDay(${i},this)">${n}</button>`
-  ).join('');
-}
-
-function toggleDefaultDay(i, btn) {
-  DEFAULTS.opDays[i] = !DEFAULTS.opDays[i];
-  btn.classList.toggle('on', DEFAULTS.opDays[i]);
+  buildSelect('d-taxrate',   [0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,3], DEFAULTS.taxRate,   v => v+'%');
+  buildSelect('d-ohrate',    range(15,50,1),   DEFAULTS.ohRate,    v => v+'%');
+  buildSelect('d-otherrate', range(30,80,1),   DEFAULTS.otherRate, v => v+'%');
+  buildSelect('d-merchrate', range(50,150,5),  DEFAULTS.merchRate, v => v+'%');
+  buildSelect('d-dvdelta',   range(-10,20,1),  DEFAULTS.dvDelta,   v => (v>=0?'+':'')+v+'%');
 }
 
 async function saveDefaults() {
+  DEFAULTS.taxRate   = parseFloat(document.getElementById('d-taxrate').value);
   DEFAULTS.ohRate    = parseFloat(document.getElementById('d-ohrate').value);
   DEFAULTS.otherRate = parseFloat(document.getElementById('d-otherrate').value);
   DEFAULTS.merchRate = parseFloat(document.getElementById('d-merchrate').value);
   DEFAULTS.dvDelta   = parseFloat(document.getElementById('d-dvdelta').value);
-
-  // Ensure taxRate is never saved
-  delete DEFAULTS.taxRate;
 
   const { error } = await sb.auth.updateUser({ data: { adminDefaults: DEFAULTS } });
   if (error) { showToast('Save failed: '+error.message, 'error'); return; }
@@ -1138,11 +1128,11 @@ async function submitAddLocation() {
 
   // Apply current defaults as initial settings — no taxRate
   const settings = {
+    taxRate:   DEFAULTS.taxRate,
     ohRate:    DEFAULTS.ohRate,
     otherRate: DEFAULTS.otherRate,
     merchRate: DEFAULTS.merchRate,
     dvDelta:   DEFAULTS.dvDelta,
-    opDays:    DEFAULTS.opDays,
     clubName:  name,
     operators: [
       {name:'Operator 1',visible:true,aliases:''},
@@ -1380,6 +1370,8 @@ function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+// Render product count immediately — no server call needed
+renderGlobalProductSummary();
 init();
 </script>
 </body>
