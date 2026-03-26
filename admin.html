@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 06:35:47 -->
+<!-- CACHE BUST: 2026-03-26 07:21:52 -->
 <html lang="en">
 <head>
 <script>
@@ -1131,8 +1131,21 @@ async function addLocation(){
   errEl.classList.remove('show');
   const addrParts=[street,city?`${city}${state?', '+state:''}${zip?' '+zip:''}`:'']. filter(Boolean);
   const address=addrParts.join(', ');
-  // Build settings — store owner email and optional second contact
-  const settings={};
+  // Build settings with full defaults so new locations work immediately
+  const settings={
+    taxRate:   1.25,
+    ohRate:    32,
+    otherRate: 50,
+    merchRate: 100,
+    dvDelta:   3,
+    clubName:  name,
+    operators: [
+      {name:'Operator 1',visible:true,aliases:''},
+      {name:'Operator 2',visible:true,aliases:''},
+      {name:'Operator 3',visible:false,aliases:''},
+      {name:'Operator 4',visible:false,aliases:''},
+    ]
+  };
   if(email) settings.ownerEmail=email;
   if(hasSecond&&(owner2||phone2||email2)){
     settings.secondContact={name:owner2,phone:phone2,email:email2};
