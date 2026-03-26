@@ -99,9 +99,9 @@ if(location.protocol==='http:'&&location.hostname!=='localhost'){
     .divider-line{flex:1;height:1px;background:var(--border-light)}
     .divider-text{font-size:11px;color:var(--text-faint);white-space:nowrap}
 
-    /* Loading overlay */
-    #loading-overlay{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:300;transition:opacity 0.3s}
-    #loading-overlay.hidden{opacity:0;pointer-events:none}
+    /* Loading overlay — hidden by default, only shown when redirecting */
+    #loading-overlay{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:300;transition:opacity 0.3s;opacity:0;pointer-events:none;}
+    #loading-overlay.visible{opacity:1;pointer-events:all;}
     .load-spinner{width:32px;height:32px;border:3px solid rgba(255,255,255,0.15);border-top-color:var(--b4);border-radius:50%;animation:spin 0.8s linear infinite}
     .load-text{font-size:14px;color:rgba(255,255,255,0.6)}
     @keyframes spin{to{transform:rotate(360deg)}}
@@ -365,20 +365,20 @@ async function init(){
   // In sandboxed preview environments (Claude artifacts, offline iframes),
   // skip all Supabase calls and just show the UI
   if(isPreviewMode()){
-    document.getElementById('loading-overlay').classList.add('hidden');
+    /* overlay already hidden */
     return;
   }
   const urlParams=new URLSearchParams(window.location.search);
   if(urlParams.get('msg')==='setup-incomplete'){
     showTab('signin');
     showMsg('si-msg','Your account was confirmed! Please sign in to continue.','success');
-    document.getElementById('loading-overlay').classList.add('hidden');
+    /* overlay already hidden */
     return;
   }
   if(urlParams.get('msg')==='confirmed'){
     showTab('signin');
     showMsg('si-msg','✓ Email confirmed! You can now sign in.','success');
-    document.getElementById('loading-overlay').classList.add('hidden');
+    /* overlay already hidden */
     return;
   }
 
@@ -396,7 +396,7 @@ async function init(){
     document.getElementById('req-step-2').style.display='none';
     document.getElementById('req-step-3').style.display='none';
     document.getElementById('req-step-4').style.display='block';
-    document.getElementById('loading-overlay').classList.add('hidden');
+    /* overlay already hidden */
     window.history.replaceState({},'',window.location.pathname);
     return;
   }
@@ -406,33 +406,32 @@ async function init(){
     const{data:{session}}=await sb.auth.getSession();
     if(session){
       showNewPasswordPanel();
-      document.getElementById('loading-overlay').classList.add('hidden');
+      /* overlay already hidden */
       return;
     }
     sb.auth.onAuthStateChange((event,session)=>{
       if(event==='PASSWORD_RECOVERY'){
         showNewPasswordPanel();
-        document.getElementById('loading-overlay').classList.add('hidden');
+        /* overlay already hidden */
       }
     });
-    document.getElementById('loading-overlay').classList.add('hidden');
+    /* overlay already hidden */
     return;
   }
 
   const{data:{session}}=await sb.auth.getSession();
   if(session){
-    // Already logged in — route to correct page
+    // Already logged in — show overlay briefly while redirecting
+    document.getElementById('loading-overlay').classList.add('visible');
     const{data:u}=await sb.from('users').select('role,location_id').eq('id',session.user.id).single();
     if(u){
-      if(u.role==='admin') window.location.href='admin.html';
-      else if(u.location_id) window.location.href='app.html';
-      else document.getElementById('loading-overlay').classList.add('hidden');
-    } else {
-      document.getElementById('loading-overlay').classList.add('hidden');
+      if(u.role==='admin'){window.location.href='admin.html';return;}
+      else if(u.location_id){window.location.href='app.html';return;}
     }
-  } else {
-    document.getElementById('loading-overlay').classList.add('hidden');
+    // No redirect needed — hide overlay
+    document.getElementById('loading-overlay').classList.remove('visible');
   }
+  // Not logged in — overlay stays hidden, show login form
 }
 
 // ── PHONE AUTO-FORMAT ──
@@ -787,15 +786,6 @@ function setBtnLoading(id,loading,text){
 
 // URL param shortcut — if ?tab=register in URL, open register tab
 if(new URLSearchParams(window.location.search).get('tab')==='register') showTab('register');
-
-// Hard timeout — if init() hangs for any reason, clear the spinner after 8s
-setTimeout(()=>{
-  const ov=document.getElementById('loading-overlay');
-  if(ov&&!ov.classList.contains('hidden')){
-    ov.classList.add('hidden');
-    console.warn('Loading timeout — overlay force-cleared');
-  }
-},8000);
 
 init();
 </script>
