@@ -539,10 +539,10 @@ async function init(){
   const{data:{session}}=await sb.auth.getSession();
   if(!session){window.location.href='index.html';return;}
   currentSession=session;
-  const{data:u}=await sb.from('users').select('role,display_name,phone').eq('id',session.user.id).single();
+  const{data:u}=await sb.from('users').select('role,display_name,first_name,last_name,phone').eq('id',session.user.id).single();
   if(!u||u.role!=='admin'){window.location.href='index.html';return;}
   adminProfile={display_name:u.display_name||'',phone:u.phone||''};
-  const displayName=u.display_name||session.user.email;
+  const displayName=u.display_name||[u.first_name,u.last_name].filter(Boolean).join(' ')||session.user.email;
   document.getElementById('nav-profile').textContent=displayName;
 
   const{data:locs}=await sb.from('locations').select('id,name,address,owner_name,owner_phone,settings,created_at').order('name');
