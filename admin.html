@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 06:00:01 -->
+<!-- CACHE BUST: 2026-03-26 06:15:05 -->
 <html lang="en">
 <head>
 <script>
@@ -229,7 +229,7 @@ if('serviceWorker' in navigator){
     .alert-loc-action{background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:5px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;flex-shrink:0;transition:background 0.15s}
     .alert-loc-action:hover{background:rgba(255,255,255,0.3)}
   </style>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDqxYi2YqAWc4rTHhPnHtgYLz0GXSn-HEM&libraries=places" async></script>
+
 </head>
 <body>
 <div id="loading-overlay"><div class="load-spinner"></div><div class="load-text">Loading dashboard…</div></div>
@@ -337,7 +337,7 @@ if('serviceWorker' in navigator){
     <div class="form-panel" id="nl-form-panel">
       <div class="modal-title">Add New Location</div>
       <div class="modal-field"><label>Club Name</label><input type="text" id="nl-name" placeholder="My Town Nutrition"/></div>
-      <div class="modal-field"><label>Street Address</label><input type="text" id="nl-street" placeholder="Start typing address…" autocomplete="off" data-lpignore="true" data-form-type="other"/></div>
+      <div class="modal-field"><label>Street Address</label><input type="text" id="nl-street" placeholder="123 Main St" autocomplete="off" data-lpignore="true" data-form-type="other"/></div>
       <div class="modal-field"><label>Address Line 2 <span style="font-size:11px;font-weight:400;color:var(--text-faint);">Suite, Unit, Apt (optional)</span></label><input type="text" id="nl-street2" placeholder="e.g. Suite 100"/></div>
       <div class="modal-field"><label>Zip Code</label><input type="text" id="nl-zip" placeholder="00000" maxlength="5" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5);if(this.value.length===5)lookupZip(this.value,'nl-city','nl-state')"/></div>
       <div class="modal-field" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
@@ -495,49 +495,7 @@ const sb=createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 
 // ── GOOGLE PLACES AUTOCOMPLETE ──
 function attachPlacesAutocomplete(streetInputId, cityId, stateId, zipId) {
-  var attempts = 0;
-  function tryAttach() {
-    attempts++;
-    if (typeof google === 'undefined' || !google.maps || !google.maps.places) {
-      if (attempts < 20) setTimeout(tryAttach, 300);
-      return;
-    }
-    var input = document.getElementById(streetInputId);
-    if (!input) return;
-    input.setAttribute('autocomplete', 'off');
-    input.setAttribute('data-lpignore', 'true');
-    input.setAttribute('data-form-type', 'other');
-    var ac = new google.maps.places.Autocomplete(input, {
-      types: ['address'],
-      componentRestrictions: { country: 'us' }
-    });
-    input.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') {
-        var pac = document.querySelector('.pac-container');
-        if (pac && pac.style.display !== 'none' && pac.offsetHeight > 0) {
-          e.preventDefault();
-        }
-      }
-    });
-    ac.addListener('place_changed', function() {
-      var place = ac.getPlace();
-      if (!place || !place.address_components) return;
-      var sn='', rt='', city='', state='', zip='';
-      place.address_components.forEach(function(comp) {
-        var t = comp.types[0];
-        if (t === 'street_number') sn = comp.long_name;
-        if (t === 'route')         rt = comp.long_name;
-        if (t === 'locality')      city = comp.long_name;
-        if (t === 'administrative_area_level_1') state = comp.short_name;
-        if (t === 'postal_code')   zip = comp.long_name;
-      });
-      input.value = [sn, rt].filter(Boolean).join(' ');
-      var ce = document.getElementById(cityId);  if (ce) ce.value = city;
-      var se = document.getElementById(stateId); if (se) se.value = state;
-      var ze = document.getElementById(zipId);   if (ze) ze.value = zip.slice(0, 5);
-    });
-  }
-  tryAttach();
+  // Google Places removed — using manual entry + zip auto-fill only
 }
 
 let allRequests=[];
