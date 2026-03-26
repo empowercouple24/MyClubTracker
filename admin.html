@@ -270,11 +270,11 @@ window._placesReady = false;
       <div class="modal-field"><label>Club Name</label><input type="text" id="nl-name" placeholder="My Town Nutrition"/></div>
       <div class="modal-field"><label>Street Address</label><input type="text" id="nl-street" placeholder="Start typing address…" autocomplete="new-password" role="presentation"/></div>
       <div class="modal-field"><label>Address Line 2 <span style="font-size:11px;font-weight:400;color:var(--text-faint);">Suite, Unit, Apt (optional)</span></label><input type="text" id="nl-street2" placeholder="e.g. Suite 100"/></div>
+      <div class="modal-field"><label>Zip Code</label><input type="text" id="nl-zip" placeholder="00000" maxlength="5" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5);if(this.value.length===5)lookupZip(this.value,'nl-city','nl-state')"/></div>
       <div class="modal-field" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <div><label>City</label><input type="text" id="nl-city" placeholder="City" style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:8px;padding:10px 12px;outline:none;transition:border-color 0.15s"/></div>
-        <div><label>State</label><select id="nl-state" style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:8px;padding:10px 12px;outline:none;-webkit-appearance:auto;"></select></div>
+        <div><label>City <span style="font-size:10px;font-weight:400;color:var(--text-faint);">auto-fills</span></label><input type="text" id="nl-city" placeholder="Auto-filled from zip" style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--b6);background:var(--b0);border:1px solid var(--border);border-radius:8px;padding:10px 12px;outline:none;"/></div>
+        <div><label>State <span style="font-size:10px;font-weight:400;color:var(--text-faint);">auto-fills</span></label><input type="text" id="nl-state" placeholder="Auto" readonly style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--b6);background:var(--b0);border:1px solid var(--border);border-radius:8px;padding:10px 12px;outline:none;"/></div>
       </div>
-      <div class="modal-field"><label>Zip Code</label><input type="text" id="nl-zip" placeholder="00000" maxlength="5" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5)"/></div>
       <div class="modal-field"><label>Owner Name</label><input type="text" id="nl-owner" placeholder="Jane Smith"/></div>
       <div class="modal-field"><label>Owner Phone</label><input type="tel" id="nl-phone" placeholder="(555) 000-0000" oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"/></div>
       <div class="modal-field"><label>Owner Email</label><input type="email" id="nl-email" placeholder="owner@example.com"/></div>
@@ -360,11 +360,11 @@ window._placesReady = false;
     <div class="modal-field"><label>Club Name</label><input type="text" id="ap-name"/></div>
     <div class="modal-field"><label>Street Address</label><input type="text" id="ap-street" autocomplete="new-password" role="presentation"/></div>
     <div class="modal-field"><label>Address Line 2 <span style="font-size:11px;font-weight:400;color:var(--text-faint);">Suite, Unit, Apt (optional)</span></label><input type="text" id="ap-street2" placeholder="e.g. Suite 100"/></div>
+    <div class="modal-field"><label>Zip</label><input type="text" id="ap-zip" maxlength="5" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5);if(this.value.length===5)lookupZip(this.value,'ap-city','ap-state')"/></div>
     <div class="modal-field" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-      <div><label>City</label><input type="text" id="ap-city" style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:8px;padding:10px 12px;outline:none;"/></div>
-      <div><label>State</label><select id="ap-state" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:8px;padding:10px 8px;outline:none;-webkit-appearance:auto;"></select></div>
+      <div><label>City <span style="font-size:10px;font-weight:400;color:var(--text-faint);">auto-fills</span></label><input type="text" id="ap-city" placeholder="Auto-filled from zip" style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--b6);background:var(--b0);border:1px solid var(--border);border-radius:8px;padding:10px 12px;outline:none;"/></div>
+      <div><label>State <span style="font-size:10px;font-weight:400;color:var(--text-faint);">auto-fills</span></label><input type="text" id="ap-state" placeholder="Auto" readonly style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--b6);background:var(--b0);border:1px solid var(--border);border-radius:8px;padding:10px 12px;outline:none;"/></div>
     </div>
-    <div class="modal-field"><label>Zip</label><input type="text" id="ap-zip" maxlength="5" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5)"/></div>
     <div class="modal-field"><label>Owner Name</label><input type="text" id="ap-owner"/></div>
     <div class="modal-field"><label>Owner Phone</label><input type="tel" id="ap-phone" oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"/></div>
     <div class="modal-field"><label>Owner Email</label><input type="email" id="ap-email"/></div>
@@ -512,7 +512,7 @@ function openApproveModal(reqId){
   document.getElementById('ap-zip').value=r.zip||'';
   document.getElementById('ap-owner').value=r.owner_name||'';
   document.getElementById('ap-email').value=r.email||'';
-  populateStateSelect('ap-state',r.state||'');
+  document.getElementById('ap-state').value = r.state||'';
   const phoneEl=document.getElementById('ap-phone');
   phoneEl.value=r.phone||'';
   if(r.phone)fmtPhone(phoneEl);
@@ -861,7 +861,7 @@ function openAddLocation(){
   document.getElementById('nl-email2').value='';
   document.getElementById('nl-second-toggle').checked=false;
   document.getElementById('nl-second-fields').style.display='none';
-  populateStateSelect('nl-state','');
+  document.getElementById('nl-state').value = '';
   generateCode(); // silently auto-generate
   attachPlacesAutocomplete('nl-street','nl-city','nl-state','nl-zip');
   document.getElementById('nl-error').classList.remove('show');
@@ -978,6 +978,24 @@ async function handleSignOut(){await sb.auth.signOut();window.location.href='ind
 
 let toastTimer;
 function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(type?' '+type:'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2400);}
+
+
+// ── ZIP CODE AUTO-FILL ──
+async function lookupZip(zip, cityId, stateId) {
+  if (!zip || zip.length !== 5) return;
+  try {
+    var res = await fetch('https://api.zippopotam.us/us/' + zip);
+    if (!res.ok) return;
+    var data = await res.json();
+    if (data.places && data.places.length > 0) {
+      var place = data.places[0];
+      var cityEl  = document.getElementById(cityId);
+      var stateEl = document.getElementById(stateId);
+      if (cityEl)  cityEl.value  = place['place name'];
+      if (stateEl) stateEl.value = place['state abbreviation'];
+    }
+  } catch(e) {}
+}
 
 init();
 </script>
