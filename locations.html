@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 05:31:25 -->
+<!-- CACHE BUST: 2026-03-26 05:34:00 -->
 <html lang="en">
 <head>
 <script>
@@ -42,6 +42,20 @@ html,body{min-height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);
 .nav-title{font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--text);flex:1}
 .nav-badge{font-size:12px;font-weight:700;background:var(--b7);color:white;padding:3px 8px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase}
 .dark-toggle{background:none;border:1px solid var(--border);border-radius:20px;padding:4px 10px;cursor:pointer;font-size:13px;color:var(--text-muted);}
+.nav-menu-wrap{position:relative;}
+.nav-menu-btn{display:flex;align-items:center;gap:7px;background:none;border:1px solid var(--border);border-radius:20px;padding:4px 12px 4px 8px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text-muted);font-family:'DM Sans',sans-serif;transition:all 0.15s;}
+.nav-menu-btn:hover{background:var(--b0);color:var(--text);}
+.nav-menu-badge{font-size:11px;font-weight:700;background:var(--b7);color:white;padding:2px 7px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase;}
+.nav-dropdown{position:absolute;top:calc(100% + 6px);right:0;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);box-shadow:0 4px 20px rgba(30,45,61,0.12);min-width:160px;z-index:999;display:none;}
+.nav-dropdown.open{display:block;animation:dropIn 0.15s ease;}
+@keyframes dropIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.nav-dropdown-item{display:flex;align-items:center;gap:8px;width:100%;padding:11px 16px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text);background:none;border:none;cursor:pointer;text-align:left;transition:background 0.12s;}
+.nav-dropdown-item:hover{background:var(--b0);}
+.nav-dropdown-item:first-child{border-radius:var(--radius-sm) var(--radius-sm) 0 0;}
+.nav-dropdown-item:last-child{border-radius:0 0 var(--radius-sm) var(--radius-sm);}
+.nav-dropdown-divider{height:1px;background:var(--border-light);margin:2px 0;}
+html.dark .nav-dropdown{background:var(--surface);border-color:var(--border);}
+html.dark .nav-dropdown-item:hover{background:var(--b1);}
 
 /* PAGE */
 .page{max-width:760px;margin:0 auto;padding:24px 20px calc(80px + env(safe-area-inset-bottom,0px))}
@@ -159,10 +173,29 @@ html.dark body{background:var(--bg);}
 <nav class="topnav">
   <div class="nav-inner">
     <button class="btn-back" onclick="window.location.href='admin-settings.html'">←</button>
-    <div class="nav-title">Locations</div>
+    <div class="nav-title" onclick="window.location.href='admin-settings.html'" style="cursor:pointer;transition:color 0.15s;" onmouseover="this.style.color='var(--b5)'" onmouseout="this.style.color='var(--text)'">Locations</div>
     <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
-      <div class="nav-badge">Admin</div>
-      <button class="dark-toggle" id="dark-toggle-btn" onclick="toggleDarkMode()">🌙</button>
+      <div class="nav-menu-wrap">
+        <button class="nav-menu-btn" onclick="toggleNavMenu()" id="nav-menu-btn">
+          <span class="nav-menu-badge">Admin</span>
+          <span id="nav-menu-arrow" style="font-size:10px;">▾</span>
+        </button>
+        <div class="nav-dropdown" id="nav-dropdown">
+          <button class="nav-dropdown-item" onclick="toggleDarkMode();closeNavMenu()">
+            <span id="dark-icon">🌙</span> Dark mode
+          </button>
+          <button class="nav-dropdown-item" onclick="window.location.href='admin.html'">
+            🏠 Dashboard
+          </button>
+          <button class="nav-dropdown-item" onclick="window.location.href='admin-settings.html'">
+            ⚙️ Settings
+          </button>
+          <div class="nav-dropdown-divider"></div>
+          <button class="nav-dropdown-item" onclick="handleSignOut()" style="color:var(--r5);">
+            ↪ Sign out
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </nav>
@@ -407,20 +440,38 @@ function attachPlacesAutocomplete(streetInputId, cityId, stateId, zipId) {
   tryAttach();
 }
 
+// ── NAV MENU ──
+function toggleNavMenu(){
+  var dd=document.getElementById('nav-dropdown');
+  dd.classList.toggle('open');
+}
+function closeNavMenu(){
+  document.getElementById('nav-dropdown').classList.remove('open');
+}
+// Close dropdown when clicking outside
+document.addEventListener('click',function(e){
+  var wrap=document.querySelector('.nav-menu-wrap');
+  if(wrap&&!wrap.contains(e.target))closeNavMenu();
+});
+async function handleSignOut(){
+  await sb.auth.signOut();
+  window.location.href='index.html';
+}
+
 // ── DARK MODE ──
 function initDarkMode(){
   var saved=localStorage.getItem('noc-dark');
   if(saved==='1'||(saved===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){
     document.documentElement.classList.add('dark');
-    var btn=document.getElementById('dark-toggle-btn');
-    if(btn)btn.innerHTML='☀️';
+    var icon=document.getElementById('dark-icon');
+    if(icon)icon.textContent='☀️';
   }
 }
 function toggleDarkMode(){
   var isDark=document.documentElement.classList.toggle('dark');
   localStorage.setItem('noc-dark',isDark?'1':'0');
-  var btn=document.getElementById('dark-toggle-btn');
-  if(btn)btn.innerHTML=isDark?'☀️':'🌙';
+  var icon=document.getElementById('dark-icon');
+  if(icon)icon.textContent=isDark?'☀️':'🌙';
 }
 initDarkMode();
 
