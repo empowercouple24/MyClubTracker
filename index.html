@@ -6,6 +6,12 @@
 if(location.protocol==='http:'&&location.hostname!=='localhost'){
   location.replace('https://'+location.host+location.pathname+location.search+location.hash);
 }
+// Unregister any stale service workers that may be serving cached old versions
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.getRegistrations().then(regs=>{
+    regs.forEach(r=>r.unregister());
+  });
+}
 </script>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
@@ -789,6 +795,5 @@ if(new URLSearchParams(window.location.search).get('tab')==='register') showTab(
 
 init();
 </script>
-<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}</script>
 </body>
 </html>
