@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 08:11:05 -->
+<!-- CACHE BUST: 2026-03-26 08:24:36 -->
 <html lang="en">
 <head>
 <script>
@@ -653,7 +653,6 @@ const sb=createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 let LOCATION_ID=null,IS_ADMIN_VIEW=false,OPEN_SETTINGS=false,ALL_DAYS=[],INV_SNAPSHOTS=[],USER_ROLE='owner',CURRENT_SESSION=null;
 const DAY_NAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 let SETTINGS={clubName:'',taxRate:1.25,ohRate:32,otherRate:50,merchRate:100,dvDelta:3,
-  opDays:[false,true,true,true,true,true,true],
   operators:[{name:'Operator 1',visible:true,aliases:''},{name:'Operator 2',visible:true,aliases:''},{name:'Operator 3',visible:false,aliases:''},{name:'Operator 4',visible:false,aliases:''}]};
 
 // ── CANONICAL PRODUCT LIST — matches Google Sheet exactly
@@ -946,6 +945,9 @@ async function init(){
     else{SETTINGS.clubName=loc.name;}
   }
   if(IS_ADMIN_VIEW){
+    // Carry location name from admin drill-in before DB fetch
+    const _urlLocName=params.get('locationName');
+    if(_urlLocName){const _ncn=document.getElementById('nav-club-name');if(_ncn)_ncn.textContent=decodeURIComponent(_urlLocName);document.title=decodeURIComponent(_urlLocName)+' — Club App';}
     const _nab=document.getElementById('nav-admin-badge');if(_nab)_nab.style.display='block';
     const _nbb=document.getElementById('nav-back-btn');if(_nbb)_nbb.style.display='block';
     const _so=document.getElementById('nav-signout-btn');if(_so)_so.style.display='none';
@@ -1237,7 +1239,7 @@ function buildSettingsUI(){
   const locName=navClubName?navClubName.textContent:'';
   document.getElementById('s-clubname').value=SETTINGS.clubName||locName||'';
 
-  document.getElementById('s-operators').innerHTML=SETTINGS.operators.map((op,i)=>`<div class="settings-row" style="gap:8px;"><label style="min-width:80px;">Operator ${i+1}</label><input type="text" id="s-op-${i}" value="${op.name||''}" placeholder="Name" style="flex:1;"/><input type="text" id="s-alias-${i}" value="${op.aliases||''}" placeholder="Aliases e.g. MN" style="flex:1;"/></div>`).join('');
+  document.getElementById('s-operators').innerHTML=SETTINGS.operators.map((op,i)=>`<div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid var(--border-light);"><span style="font-size:11px;font-weight:700;color:var(--text-faint);min-width:20px;text-align:center;flex-shrink:0;">${i+1}</span><input type="text" id="s-op-${i}" value="${op.name||''}" placeholder="Name" style="flex:1;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:6px;padding:5px 8px;outline:none;min-width:0;"/><input type="text" id="s-alias-${i}" value="${op.aliases||''}" placeholder="Aliases e.g. MN, Mary" style="flex:1.5;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--text-muted);background:var(--b0);border:1px solid var(--border);border-radius:6px;padding:5px 8px;outline:none;min-width:0;"/></div>`).join('');
   // Employee invite code
   const empEl=document.getElementById('s-emp-code');
   if(empEl)empEl.value=SETTINGS.employeeInviteCode||'';
