@@ -348,16 +348,16 @@ let selectedRole='owner'; // 'owner' or 'employee'
 let verifiedLocation=null; // {id, name, role} after code verified
 
 // ── INIT ──
-// Detect sandboxed preview environment (Claude artifacts, iframes without network)
+// Detect sandboxed preview environment (Claude artifacts without network)
 function isPreviewMode(){
+  // Only bail out if we're on about:srcdoc or truly offline with no Supabase URL
+  // Do NOT check window.self !== window.top — Namecheap redirect uses iframes
   try {
-    return window.self !== window.top || // inside an iframe
-           !window.navigator.onLine ||   // no network
-           window.location.protocol === 'about:' ||
-           window.location.href.includes('claude.ai') ||
-           window.location.href === 'about:srcdoc';
+    return window.location.protocol === 'about:' ||
+           window.location.href === 'about:srcdoc' ||
+           window.location.href.startsWith('blob:');
   } catch(e) {
-    return true; // cross-origin frame — treat as preview
+    return false;
   }
 }
 
@@ -787,6 +787,15 @@ function setBtnLoading(id,loading,text){
 
 // URL param shortcut — if ?tab=register in URL, open register tab
 if(new URLSearchParams(window.location.search).get('tab')==='register') showTab('register');
+
+// Hard timeout — if init() hangs for any reason, clear the spinner after 8s
+setTimeout(()=>{
+  const ov=document.getElementById('loading-overlay');
+  if(ov&&!ov.classList.contains('hidden')){
+    ov.classList.add('hidden');
+    console.warn('Loading timeout — overlay force-cleared');
+  }
+},8000);
 
 init();
 </script>
