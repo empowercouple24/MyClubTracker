@@ -797,7 +797,7 @@ function generateEmpCode(){
   // Will be saved when user clicks Save Settings
 }
 
-function init(){
+async function init(){
   setLoadText('Authenticating…');
   const{data:{session}}=await sb.auth.getSession();
   if(!session){window.location.href='index.html';return;}
@@ -854,7 +854,7 @@ function init(){
     // Show profile button for owners and employees (not admin view)
     document.getElementById('nav-profile-btn').style.display='block';
     const navDN = document.getElementById('nav-display-name');
-    if(navDN){ navDN.style.display='inline'; navDN.textContent = u.display_name || [meta.first_name,meta.last_name].filter(Boolean).join(' ') || ''; }
+    if(navDN){ navDN.style.display='inline'; navDN.textContent = u.display_name || [u.first_name,u.last_name].filter(Boolean).join(' ') || ''; }
     document.getElementById('nav-profile-btn').title=u.display_name||session.user.email;
   }
   if(!LOCATION_ID){window.location.href='index.html';return;}
@@ -1177,7 +1177,7 @@ async function saveSettings(){
   SETTINGS.merchRate=parseFloat(document.getElementById('s-merchrate').value);
   SETTINGS.dvDelta=parseFloat(document.getElementById('s-dvdelta').value);
   SETTINGS.operators=[0,1,2,3].map(i=>({name:document.getElementById(`s-op-${i}`)?.value.trim()||'',visible:true,aliases:document.getElementById(`s-alias-${i}`)?.value.trim()||''}));
-  const empCode=document.getElementById('s-emp-code')?.value.trim();
+  const empCode=document.getElementById('s-emp-code')?.value.trim().toUpperCase();
   if(empCode)SETTINGS.employeeInviteCode=empCode;
   const{error}=await sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID);
   if(error){showToast('Settings save failed','error');return;}
@@ -1190,6 +1190,5 @@ let toastTimer;
 function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(type?' '+type:'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2400);}
 init();
 </script>
-<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}</script>
 </body>
 </html>
