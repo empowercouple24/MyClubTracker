@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 05:34:52 -->
+<!-- CACHE BUST: 2026-03-26 05:43:59 -->
 <html lang="en">
 <head>
 <script>
@@ -59,6 +59,8 @@ if('serviceWorker' in navigator){
     .row-sub{font-size:12px;color:var(--text-faint);margin-top:2px}
 
     select.row-input,input.row-input{font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;outline:none;transition:border-color 0.15s;min-width:110px}
+    select.row-input option{color:var(--text);background:var(--surface);}
+    html.dark select.row-input option{color:#e8edf4 !important;background:#1a2736 !important;}
     select.row-input:focus,input.row-input:focus{border-color:var(--b5)}
     input.row-input{width:180px}
 
@@ -222,6 +224,19 @@ if('serviceWorker' in navigator){
           <div class="row-sub">How your name appears in the app</div>
         </div>
         <input type="text" class="row-input" id="prof-name" placeholder="e.g. Jeff" style="text-align:right;max-width:180px;"/>
+      </div>
+      <div class="divider-label">Preferences</div>
+      <div class="settings-row">
+        <div>
+          <div class="row-label">Dark Mode</div>
+          <div class="row-sub">Applies across all pages</div>
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <span style="font-size:13px;color:var(--text-faint);" id="dark-mode-label">Off</span>
+          <div id="dark-mode-toggle" onclick="toggleDarkModeSetting()" style="width:44px;height:24px;border-radius:12px;background:var(--border);cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0;">
+            <div id="dark-mode-knob" style="position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:white;transition:transform 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.2);"></div>
+          </div>
+        </label>
       </div>
       <div class="divider-label">Contact</div>
       <div class="settings-row">
@@ -748,19 +763,33 @@ async function executePush() {
 // ── INIT ──
 
 // ── DARK MODE ──
+function updateDarkModeToggleUI(isDark){
+  var toggle=document.getElementById('dark-mode-toggle');
+  var knob=document.getElementById('dark-mode-knob');
+  var label=document.getElementById('dark-mode-label');
+  var icon=document.getElementById('dark-icon');
+  if(toggle)toggle.style.background=isDark?'var(--b5)':'var(--border)';
+  if(knob)knob.style.transform=isDark?'translateX(20px)':'translateX(0)';
+  if(label)label.textContent=isDark?'On':'Off';
+  if(icon)icon.textContent=isDark?'☀️':'🌙';
+}
 function initDarkMode(){
   const saved=localStorage.getItem('noc-dark');
-  if(saved==='1'||(saved===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){
-    document.documentElement.classList.add('dark');
-    const btn=document.getElementById('dark-toggle-btn');
-    var icon=document.getElementById('dark-icon');if(icon)icon.textContent='☀️';
-  }
+  const isDark=saved==='1'||(saved===null&&window.matchMedia('(prefers-color-scheme:dark)').matches);
+  if(isDark)document.documentElement.classList.add('dark');
+  updateDarkModeToggleUI(isDark);
 }
 function toggleDarkMode(){
   const isDark=document.documentElement.classList.toggle('dark');
   localStorage.setItem('noc-dark',isDark?'1':'0');
-  const btn=document.getElementById('dark-toggle-btn');
-  var icon=document.getElementById('dark-icon');if(icon)icon.textContent=isDark?'☀️':'🌙';
+  updateDarkModeToggleUI(isDark);
+  buildDefaultsUI();
+}
+function toggleDarkModeSetting(){
+  const isDark=document.documentElement.classList.toggle('dark');
+  localStorage.setItem('noc-dark',isDark?'1':'0');
+  updateDarkModeToggleUI(isDark);
+  buildDefaultsUI();
 }
 initDarkMode();
 
@@ -1315,8 +1344,11 @@ function range(from, to, step) {
 function buildSelect(id, values, current, labelFn) {
   const el = document.getElementById(id);
   if (!el) return;
+  const isDark = document.documentElement.classList.contains('dark');
+  el.style.color = isDark ? '#e8edf4' : 'var(--text)';
+  el.style.background = isDark ? '#1e2d3d' : 'var(--b0)';
   el.innerHTML = values.map(v =>
-    `<option value="${v}" ${Math.abs(v-current)<0.001?'selected':''}>${labelFn(v)}</option>`
+    `<option value="${v}" ${Math.abs(v-current)<0.001?'selected':''} style="color:${isDark?'#e8edf4':'inherit'};background:${isDark?'#1a2736':'inherit'};">${labelFn(v)}</option>`
   ).join('');
 }
 
