@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 05:26:12 -->
+<!-- CACHE BUST: 2026-03-26 05:34:52 -->
 <html lang="en">
 <head>
 <script>
@@ -147,6 +147,20 @@ if('serviceWorker' in navigator){
     html.dark input,html.dark select,html.dark textarea{background:var(--b0) !important;color:var(--text) !important;}
     html.dark body{background:var(--bg);}
     .dark-toggle{background:none;border:1px solid var(--border);border-radius:20px;padding:4px 10px;cursor:pointer;font-size:13px;color:var(--text-muted);}
+    .nav-menu-wrap{position:relative;}
+    .nav-menu-btn{display:flex;align-items:center;gap:7px;background:none;border:1px solid var(--border);border-radius:20px;padding:4px 12px 4px 8px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text-muted);font-family:'DM Sans',sans-serif;transition:all 0.15s;}
+    .nav-menu-btn:hover{background:var(--b0);color:var(--text);}
+    .nav-menu-badge{font-size:11px;font-weight:700;background:var(--b7);color:white;padding:2px 7px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase;}
+    .nav-dropdown{position:absolute;top:calc(100% + 6px);right:0;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);box-shadow:0 4px 20px rgba(30,45,61,0.12);min-width:160px;z-index:999;display:none;}
+    .nav-dropdown.open{display:block;animation:dropIn 0.15s ease;}
+    @keyframes dropIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+    .nav-dropdown-item{display:flex;align-items:center;gap:8px;width:100%;padding:11px 16px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text);background:none;border:none;cursor:pointer;text-align:left;transition:background 0.12s;}
+    .nav-dropdown-item:hover{background:var(--b0);}
+    .nav-dropdown-item:first-child{border-radius:var(--radius-sm) var(--radius-sm) 0 0;}
+    .nav-dropdown-item:last-child{border-radius:0 0 var(--radius-sm) var(--radius-sm);}
+    .nav-dropdown-divider{height:1px;background:var(--border-light);margin:2px 0;}
+    html.dark .nav-dropdown{background:var(--surface);border-color:var(--border);}
+    html.dark .nav-dropdown-item:hover{background:var(--b1);}
 </style>
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDqxYi2YqAWc4rTHhPnHtgYLz0GXSn-HEM&libraries=places" async></script>
 </head>
@@ -162,8 +176,27 @@ if('serviceWorker' in navigator){
     <div class="nav-title">Admin Settings</div>
     <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
       <span id="nav-display-name" style="font-size:13px;font-weight:600;color:var(--text-muted);"></span>
-      <div class="nav-badge">Admin</div>
-      <button class="dark-toggle" id="dark-toggle-btn" onclick="toggleDarkMode()" style="margin-left:4px;">🌙</button>
+      <div class="nav-menu-wrap">
+        <button class="nav-menu-btn" onclick="toggleNavMenu()">
+          <span class="nav-menu-badge">Admin</span>
+          <span style="font-size:10px;">▾</span>
+        </button>
+        <div class="nav-dropdown" id="nav-dropdown">
+          <button class="nav-dropdown-item" onclick="toggleDarkMode();closeNavMenu()">
+            <span id="dark-icon">🌙</span> Dark mode
+          </button>
+          <button class="nav-dropdown-item" onclick="window.location.href='admin.html';closeNavMenu()">
+            🏠 Dashboard
+          </button>
+          <button class="nav-dropdown-item" onclick="window.location.href='locations.html';closeNavMenu()">
+            🏪 Locations
+          </button>
+          <div class="nav-dropdown-divider"></div>
+          <button class="nav-dropdown-item" onclick="handleSignOut()" style="color:var(--r5);">
+            ↪ Sign out
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </nav>
@@ -720,16 +753,33 @@ function initDarkMode(){
   if(saved==='1'||(saved===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){
     document.documentElement.classList.add('dark');
     const btn=document.getElementById('dark-toggle-btn');
-    if(btn)btn.innerHTML='☀️';
+    var icon=document.getElementById('dark-icon');if(icon)icon.textContent='☀️';
   }
 }
 function toggleDarkMode(){
   const isDark=document.documentElement.classList.toggle('dark');
   localStorage.setItem('noc-dark',isDark?'1':'0');
   const btn=document.getElementById('dark-toggle-btn');
-  if(btn)btn.innerHTML=isDark?'☀️':'🌙';
+  var icon=document.getElementById('dark-icon');if(icon)icon.textContent=isDark?'☀️':'🌙';
 }
 initDarkMode();
+
+
+// ── NAV MENU ──
+function toggleNavMenu(){
+  var dd=document.getElementById('nav-dropdown');
+  dd.classList.toggle('open');
+}
+function closeNavMenu(){
+  var dd=document.getElementById('nav-dropdown');
+  if(dd)dd.classList.remove('open');
+}
+document.addEventListener('click',function(e){
+  var wrap=document.querySelector('.nav-menu-wrap');
+  if(wrap&&!wrap.contains(e.target))closeNavMenu();
+});
+
+async function handleSignOut(){await sb.auth.signOut();window.location.href='index.html';}
 
 async function init() {
   const { data:{ session } } = await sb.auth.getSession();
