@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 07:58:32 STYLE-FIX -->
+<!-- CACHE BUST: 2026-03-26 08:11:05 -->
 <html lang="en">
 <head>
 <script>
@@ -251,11 +251,11 @@ if('serviceWorker' in navigator){
 <body>
 
 <div id="loading-overlay"><div class="load-spinner"></div><div class="load-text" id="load-text">Loading…</div></div>
-<div class="admin-edit-banner" id="admin-edit-banner">⚠ Admin Edit Mode — changes will be saved to this location's data</div>
+<div class="admin-edit-banner" id="admin-edit-banner" style="cursor:pointer;" onclick="goBackToAdmin()" title="Click to return to dashboard">⚠ Admin Edit Mode — click to return to Dashboard</div>
 <div class="admin-location-banner" id="admin-banner" style="display:none;"></div>
 
 <nav class="topnav">
-  <button class="nav-btn back" id="nav-back-btn" style="display:none;" onclick="goBackToAdmin()">← Dashboard</button>
+  <button class="nav-btn back" id="nav-back-btn" style="display:none;font-weight:700;color:var(--b5);font-size:13px;padding:4px 10px;background:var(--b0);border-radius:8px;border:1px solid var(--border);" onclick="goBackToAdmin()">← Dashboard</button>
   <div class="nav-logo"><svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
   <g transform="rotate(-18, 16, 36)">
     <rect x="8" y="24" width="16" height="20" rx="2" fill="#1a5c2a"/>
@@ -288,6 +288,15 @@ if('serviceWorker' in navigator){
         👤 Profile
       </button>
       <div style="height:1px;background:var(--border-light);margin:2px 0;"></div>
+      <div id="admin-nav-items" style="display:none;">
+        <button onclick="goBackToAdmin();closeNavMenu()" style="display:flex;align-items:center;gap:8px;width:100%;padding:11px 16px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text);background:none;border:none;cursor:pointer;text-align:left;" onmouseover="this.style.background='var(--b0)'" onmouseout="this.style.background='none'">
+          🏠 Admin Dashboard
+        </button>
+        <button onclick="window.location.href='locations.html';closeNavMenu()" style="display:flex;align-items:center;gap:8px;width:100%;padding:11px 16px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text);background:none;border:none;cursor:pointer;text-align:left;" onmouseover="this.style.background='var(--b0)'" onmouseout="this.style.background='none'">
+          🏪 All Locations
+        </button>
+        <div style="height:1px;background:var(--border-light);margin:2px 0;"></div>
+      </div>
       <button onclick="handleSignOut()" style="display:flex;align-items:center;gap:8px;width:100%;padding:11px 16px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--r5);background:none;border:none;cursor:pointer;text-align:left;border-radius:0 0 8px 8px;" onmouseover="this.style.background='var(--b0)'" onmouseout="this.style.background='none'">
         ↪ Sign out
       </button>
@@ -554,13 +563,7 @@ if('serviceWorker' in navigator){
       <div class="settings-row"><label>Merchandise Rate</label><select id="s-merchrate"></select></div>
       <div class="settings-row"><label>DV △ Rate</label><select id="s-dvdelta"></select></div>
     </div>
-    <div class="settings-group">
-      <div class="settings-group-title">Operating Days</div>
-      <div class="settings-row" style="flex-wrap:wrap;gap:8px;">
-        <label style="flex:none;width:100%;font-size:12px;color:var(--text-faint);">Which days does this location operate?</label>
-        <div style="display:flex;gap:5px;flex-wrap:wrap;" id="s-opdays"></div>
-      </div>
-    </div>
+
     <div class="settings-group">
       <div class="settings-group-title">Operators</div>
       <div id="s-operators"></div>
@@ -952,6 +955,8 @@ async function init(){
     const _smt=document.getElementById('settings-modal-title');if(_smt)_smt.textContent='Settings — '+(loc?.name||'Location');
     const saveBtn=document.querySelector('button[onclick="saveDay()"]');
     if(saveBtn){saveBtn.style.background='linear-gradient(135deg,var(--a6),var(--a4))';saveBtn.textContent='Save (Admin)';}
+    // Show admin nav items in dropdown
+    const _ani=document.getElementById('admin-nav-items');if(_ani)_ani.style.display='block';
   }
   const{data:days}=await sb.from('days').select('id,date,data').eq('location_id',LOCATION_ID).order('date',{ascending:false});
   ALL_DAYS=days||[];
@@ -1227,10 +1232,12 @@ function buildSettingsUI(){
   buildSelect('s-otherrate',range(30,60,2), SETTINGS.otherRate,v=>v+'%');
   buildSelect('s-merchrate',range(5,100,5), SETTINGS.merchRate,v=>v+'%');
   buildSelect('s-dvdelta', range(-10,10,1), SETTINGS.dvDelta,  v=>(v>=0?'+':'')+v+'%');
-  document.getElementById('s-clubname').value=SETTINGS.clubName||'';
-  const od=SETTINGS.opDays||[false,true,true,true,true,true,true];
-  document.getElementById('s-opdays').innerHTML=DAY_NAMES.map((n,i)=>`<button type="button" style="width:34px;height:30px;border-radius:5px;border:1px solid var(--border);background:${od[i]?'var(--b7)':'var(--surface)'};color:${od[i]?'white':'var(--text-faint)'};font-size:11px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;" onclick="toggleSettingsDay(${i},this)">${n}</button>`).join('');
-  document.getElementById('s-operators').innerHTML=SETTINGS.operators.map((op,i)=>`<div class="settings-row"><label>Operator ${i+1}</label><input type="text" id="s-op-${i}" value="${op.name||''}" placeholder="Name"/></div><div class="settings-row"><label style="font-size:11px;color:var(--text-faint);">Aliases</label><input type="text" id="s-alias-${i}" value="${op.aliases||''}" placeholder="e.g. MN, Mary"/></div>`).join('');
+  // Pre-fill club name from location name if not set
+  const navClubName=document.getElementById('nav-club-name');
+  const locName=navClubName?navClubName.textContent:'';
+  document.getElementById('s-clubname').value=SETTINGS.clubName||locName||'';
+
+  document.getElementById('s-operators').innerHTML=SETTINGS.operators.map((op,i)=>`<div class="settings-row" style="gap:8px;"><label style="min-width:80px;">Operator ${i+1}</label><input type="text" id="s-op-${i}" value="${op.name||''}" placeholder="Name" style="flex:1;"/><input type="text" id="s-alias-${i}" value="${op.aliases||''}" placeholder="Aliases e.g. MN" style="flex:1;"/></div>`).join('');
   // Employee invite code
   const empEl=document.getElementById('s-emp-code');
   if(empEl)empEl.value=SETTINGS.employeeInviteCode||'';
@@ -1238,7 +1245,7 @@ function buildSettingsUI(){
   const empSection=document.getElementById('s-employee-section');
   if(empSection&&USER_ROLE==='employee')empSection.style.display='none';
 }
-function toggleSettingsDay(i,btn){const od=SETTINGS.opDays||[false,true,true,true,true,true,true];od[i]=!od[i];SETTINGS.opDays=od;btn.style.background=od[i]?'var(--b7)':'var(--surface)';btn.style.color=od[i]?'white':'var(--text-faint)';}
+
 function range(f,t,s){const r=[];for(let v=f;v<=t+0.001;v=Math.round((v+s)*1000)/1000)r.push(v);return r;}
 function buildSelect(id,vals,cur,fn){const el=document.getElementById(id);if(!el)return;el.innerHTML=vals.map(v=>`<option value="${v}" ${Math.abs(v-cur)<0.001?'selected':''}>${fn(v)}</option>`).join('');}
 function openSettings(){buildSettingsUI();document.getElementById('settings-modal').classList.add('open');}
@@ -1255,9 +1262,12 @@ async function saveSettings(){
   SETTINGS.operators=[0,1,2,3].map(i=>({name:document.getElementById(`s-op-${i}`)?.value.trim()||'',visible:true,aliases:document.getElementById(`s-alias-${i}`)?.value.trim()||''}));
   const empCode=document.getElementById('s-emp-code')?.value.trim().toUpperCase();
   if(empCode)SETTINGS.employeeInviteCode=empCode;
-  const{error}=await sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID);
+  const clubName=SETTINGS.clubName||'';
+  const updatePayload={settings:SETTINGS};
+  if(clubName)updatePayload.name=clubName;
+  const{error}=await sb.from('locations').update(updatePayload).eq('id',LOCATION_ID);
   if(error){showToast('Settings save failed','error');return;}
-  document.getElementById('nav-club-name').textContent=SETTINGS.clubName||'Club';
+  document.getElementById('nav-club-name').textContent=clubName||'Club';
   populateOperatorDropdowns();closeSettings();recalc();showToast('Settings saved ✓','success');
 }
 function populateOperatorDropdowns(){const ops=SETTINGS.operators.filter(o=>o.name),blank='<option value="">—</option>';['f-op1','f-op2'].forEach(id=>{const el=document.getElementById(id);if(!el)return;const cur=el.value;el.innerHTML=blank+ops.map(o=>`<option value="${o.name}">${o.name}</option>`).join('');el.value=cur;});}
