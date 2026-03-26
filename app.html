@@ -241,6 +241,7 @@ if('serviceWorker' in navigator){
   <div class="nav-club-name" id="nav-club-name">Loading…</div>
   <div class="nav-admin-badge" id="nav-admin-badge" style="display:none;">Admin View</div>
   <button class="nav-btn" id="nav-settings-btn" onclick="openSettings()">⚙</button>
+  <span id="nav-display-name" style="font-size:13px;font-weight:600;color:var(--text-muted);display:none;"></span>
   <button class="nav-btn" id="nav-profile-btn" style="display:none;" onclick="openProfileModal()">👤</button>
   <button class="nav-btn" onclick="handleSignOut()" id="nav-signout-btn">Sign out</button>
 </nav>
@@ -569,7 +570,20 @@ if('serviceWorker' in navigator){
         <div id="prof-team-list" style="font-size:13px;color:var(--text-muted);padding:8px 0;">Loading…</div>
       </div>
     </div>
-    <div style="padding:0 16px;display:flex;gap:8px;">
+    <!-- Change Password collapsible -->
+    <div style="padding:0 16px 12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--border-light);">
+        <span style="font-size:13px;font-weight:600;color:var(--text-muted);">Change Password</span>
+        <button id="app-cp-toggle" class="btn btn-ghost btn-sm" onclick="toggleAppCP()" style="font-size:12px;">Change →</button>
+      </div>
+      <div id="app-cp-panel" style="display:none;">
+        <div class="settings-row"><label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);">New Password</label><input type="password" id="app-cp-new" placeholder="New password" style="font-family:'DM Sans',sans-serif;font-size:14px;background:var(--b0);border:1px solid var(--border);border-radius:6px;padding:8px 10px;outline:none;flex:1;text-align:right;"/></div>
+        <div class="settings-row"><label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);">Confirm Password</label><input type="password" id="app-cp-confirm" placeholder="Repeat new password" style="font-family:'DM Sans',sans-serif;font-size:14px;background:var(--b0);border:1px solid var(--border);border-radius:6px;padding:8px 10px;outline:none;flex:1;text-align:right;"/></div>
+        <div id="app-cp-msg" style="display:none;padding:8px;font-size:12px;border-radius:6px;margin-top:4px;"></div>
+        <button class="btn btn-primary btn-full" onclick="doAppChangePassword()" style="margin-top:8px;">Update Password</button>
+      </div>
+    </div>
+    <div style="padding:0 16px 16px;display:flex;gap:8px;">
       <button class="btn btn-primary btn-full" onclick="saveProfile()">Save Profile</button>
       <button class="btn btn-ghost" onclick="closeProfileModal()">Cancel</button>
     </div>
@@ -746,9 +760,32 @@ async function saveProfile(){
   }).eq('id',CURRENT_SESSION.user.id);
   if(error){showToast('Save failed: '+error.message,'error');return;}
   document.getElementById('nav-profile-btn').title=dispName||[firstName,lastName].filter(Boolean).join(' ')||CURRENT_SESSION.user.email;
+  // Sync display name to nav
+  const navDN = document.getElementById('nav-display-name');
+  if(navDN) navDN.textContent = dispName || [firstName,lastName].filter(Boolean).join(' ') || '';
   closeProfileModal();
   showToast('Profile saved ✓','success');
 }
+function toggleAppCP(){
+  const panel=document.getElementById('app-cp-panel');
+  const btn=document.getElementById('app-cp-toggle');
+  const open=panel.style.display==='none';
+  panel.style.display=open?'block':'none';
+  btn.textContent=open?'Cancel':'Change →';
+  if(!open){document.getElementById('app-cp-new').value='';document.getElementById('app-cp-confirm').value='';document.getElementById('app-cp-msg').style.display='none';}
+}
+async function doAppChangePassword(){
+  const pw=document.getElementById('app-cp-new').value;
+  const pw2=document.getElementById('app-cp-confirm').value;
+  const msgEl=document.getElementById('app-cp-msg');
+  if(!pw||pw.length<6){msgEl.style.display='block';msgEl.style.background='#fff0f0';msgEl.style.color='#c03030';msgEl.textContent='Password must be at least 6 characters.';return;}
+  if(pw!==pw2){msgEl.style.display='block';msgEl.style.background='#fff0f0';msgEl.style.color='#c03030';msgEl.textContent='Passwords do not match.';return;}
+  const{error}=await sb.auth.updateUser({password:pw});
+  if(error){msgEl.style.display='block';msgEl.style.background='#fff0f0';msgEl.style.color='#c03030';msgEl.textContent=error.message;return;}
+  msgEl.style.display='block';msgEl.style.background='#eaf6eb';msgEl.style.color='#2e7a35';msgEl.textContent='Password updated ✓';
+  setTimeout(function(){toggleAppCP();},1500);
+}
+
 function closeProfileModal(){document.getElementById('profile-modal').classList.remove('open');}
 function closeProfileOnBg(e){if(e.target===document.getElementById('profile-modal'))closeProfileModal();}
 
@@ -816,6 +853,8 @@ function init(){
     }
     // Show profile button for owners and employees (not admin view)
     document.getElementById('nav-profile-btn').style.display='block';
+    const navDN = document.getElementById('nav-display-name');
+    if(navDN){ navDN.style.display='inline'; navDN.textContent = u.display_name || [meta.first_name,meta.last_name].filter(Boolean).join(' ') || ''; }
     document.getElementById('nav-profile-btn').title=u.display_name||session.user.email;
   }
   if(!LOCATION_ID){window.location.href='index.html';return;}
