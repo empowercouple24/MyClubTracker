@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 05:37:43 v2 -->
+<!-- CACHE BUST: 2026-03-26 06:27:39 -->
 <html lang="en">
 <head>
 <script>
@@ -272,7 +272,6 @@ if('serviceWorker' in navigator){
   <div class="nav-club-name" id="nav-club-name">Loading…</div>
   <div class="nav-admin-badge" id="nav-admin-badge" style="display:none;">Admin View</div>
   <button class="nav-btn" id="nav-settings-btn" onclick="openSettings()">⚙</button>
-  <span id="nav-display-name" style="font-size:13px;font-weight:600;color:var(--text-muted);display:none;"></span>
   <button class="nav-btn" id="nav-profile-btn" style="display:none;" onclick="openProfileModal()">👤</button>
   <div class="nav-menu-wrap" style="position:relative;">
     <button class="nav-menu-btn" onclick="toggleNavMenu()" style="display:flex;align-items:center;gap:6px;background:none;border:1px solid var(--border);border-radius:20px;padding:4px 10px;cursor:pointer;font-size:13px;color:var(--text-muted);font-family:'DM Sans',sans-serif;">
@@ -922,10 +921,10 @@ async function init(){
       document.querySelectorAll('.tab-divider')[1].style.display='none';
     }
     // Show profile button for owners and employees (not admin view)
-    document.getElementById('nav-profile-btn').style.display='flex';
+    const _pb=document.getElementById('nav-profile-btn');if(_pb)_pb.style.display='flex';
     const navDN = document.getElementById('nav-display-name');
     if(navDN){ navDN.style.display='inline'; navDN.textContent = u.display_name || [u.first_name,u.last_name].filter(Boolean).join(' ') || ''; }
-    document.getElementById('nav-profile-btn').title=u.display_name||session.user.email;
+    const _pb2=document.getElementById('nav-profile-btn');if(_pb2)_pb2.title=u.display_name||session.user.email;
   }
   if(!LOCATION_ID){window.location.href='index.html';return;}
   setLoadText('Loading club data…');
@@ -938,7 +937,7 @@ async function init(){
   if(IS_ADMIN_VIEW){
     document.getElementById('nav-admin-badge').style.display='block';
     document.getElementById('nav-back-btn').style.display='block';
-    document.getElementById('nav-signout-btn').style.display='none';
+    const _so=document.getElementById('nav-signout-btn');if(_so)_so.style.display='none';
     const bn=document.getElementById('admin-banner');bn.style.display='block';bn.textContent='Admin View: '+(loc?.name||LOCATION_ID);
     document.getElementById('admin-edit-banner').classList.add('show');
     document.getElementById('nav-settings-btn').style.display='block';
