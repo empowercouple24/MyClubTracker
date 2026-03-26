@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- CACHE BUST: 2026-03-26 04:38:03 -->
 <html lang="en">
 <head>
 <script>
@@ -136,6 +137,7 @@ if('serviceWorker' in navigator){
     .spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:5px}
     .divider-label{padding:8px 16px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);background:var(--b0);border-bottom:1px solid var(--border-light)}
   </style>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBBiYB5ueXXP5HSp8wFhDY1o6ssOo5x6dg&libraries=places" async></script>
 </head>
 <body>
 
@@ -373,12 +375,13 @@ if('serviceWorker' in navigator){
     <div class="modal-title">Edit Location</div>
     <div class="modal-body">
       <div class="modal-field"><label>Club Name</label><input type="text" id="el-name"/></div>
-      <div class="modal-field"><label>Street Address</label><input type="text" id="el-street" placeholder="123 Main St"/></div>
+      <div class="modal-field"><label>Street Address</label><input type="text" id="el-street" placeholder="Start typing address…" autocomplete="new-password"/></div>
+      <div class="modal-field"><label>Address Line 2 <span style="font-size:11px;font-weight:400;color:var(--text-faint);">Suite, Unit, Apt (optional)</span></label><input type="text" id="el-street2" placeholder="e.g. Suite 100"/></div>
+      <div class="modal-field"><label>Zip Code</label><input type="text" id="el-zip" placeholder="00000" maxlength="5" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5);if(this.value.length===5)lookupZip(this.value,'el-city','el-state')"/></div>
       <div class="modal-field" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <div><label>City</label><input type="text" id="el-city" placeholder="City" style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;outline:none;"/></div>
-        <div><label>State</label><select id="el-state" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 8px;outline:none;-webkit-appearance:auto;"></select></div>
+        <div><label>City <span style="font-size:10px;font-weight:400;color:var(--text-faint);">auto-fills</span></label><input type="text" id="el-city" placeholder="Auto-filled from zip" style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--b6);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;outline:none;"/></div>
+        <div><label>State <span style="font-size:10px;font-weight:400;color:var(--text-faint);">auto-fills</span></label><input type="text" id="el-state" placeholder="Auto" readonly style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--b6);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;outline:none;"/></div>
       </div>
-      <div class="modal-field"><label>Zip Code</label><input type="text" id="el-zip" placeholder="00000" maxlength="5" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5)"/></div>
       <div class="modal-field"><label>Owner Name</label><input type="text" id="el-owner"/></div>
       <div class="modal-field"><label>Owner Phone</label><input type="tel" id="el-phone" placeholder="(555) 000-0000" oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"/></div>
       <div class="modal-field"><label>Owner Email</label><input type="email" id="el-email" placeholder="owner@example.com"/></div>
@@ -1033,7 +1036,9 @@ function openEditLocation(locId) {
   document.getElementById('el-street').value = parts.street;
   document.getElementById('el-city').value   = parts.city;
   document.getElementById('el-zip').value    = parts.zip;
-  populateStateSelect('el-state', parts.state);
+  document.getElementById('el-state').value = parts.state || '';
+  // Attach Places autocomplete
+  attachPlacesAutocomplete('el-street','el-city','el-state','el-zip');
   // Format phone
   const phoneEl = document.getElementById('el-phone');
   phoneEl.value = loc.owner_phone || '';
