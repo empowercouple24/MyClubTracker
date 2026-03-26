@@ -206,7 +206,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
   <div class="panel" id="panel-request">
     <div id="req-s1">
       <div class="msg info show" style="margin-bottom:14px;">🔐 Enter the <strong>organization key</strong> shared by your Herbalife upline or Nemecek Org admin.</div>
-      <div class="field"><label>Organization Key</label><input type="password" id="req-org-key" placeholder="Enter org key" autocomplete="off" onkeydown="if(event.key==='Enter')doVerifyOrgKey()"></div>
+      <div class="field"><label>Organization Key</label><input type="password" id="req-org-key" placeholder="Enter org key" autocomplete="off" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')doVerifyOrgKey()"></div>
       <div class="msg" id="req-msg-key"></div>
       <button class="btn-p" id="req-key-btn" onclick="doVerifyOrgKey()">Unlock Request Form →</button>
     </div>
@@ -317,7 +317,7 @@ async function doVerifyCode(){
   if(!code){showMsg('reg-msg1','Please enter an invite code.','error');return;}
   setBtn('verify-btn',true,'Checking…');clearMsg('reg-msg1');
   if(selectedRole==='owner'){var res=await sb.from('locations').select('id,name,invite_code').eq('invite_code',code).single();setBtn('verify-btn',false,'Verify');if(res.error||!res.data){showMsg('reg-msg1','Invalid invite code. Check with your admin.','error');return;}verifiedLocation={id:res.data.id,name:res.data.name,role:'owner'};}
-  else{var lr=await sb.from('locations').select('id,name,settings');setBtn('verify-btn',false,'Verify');if(lr.error){showMsg('reg-msg1','Could not verify code. Try again.','error');return;}var m=(lr.data||[]).find(function(l){return l.settings&&l.settings.employeeInviteCode===code;});if(!m){showMsg('reg-msg1','Invalid employee code.','error');return;}verifiedLocation={id:m.id,name:m.name,role:'employee'};}
+  else{var lr=await sb.from('locations').select('id,name,settings');setBtn('verify-btn',false,'Verify');if(lr.error){showMsg('reg-msg1','Could not verify code. Try again.','error');return;}var m=(lr.data||[]).find(function(l){return l.settings&&l.settings.employeeInviteCode&&l.settings.employeeInviteCode.toUpperCase()===code.toUpperCase();});if(!m){showMsg('reg-msg1','Invalid employee code.','error');return;}verifiedLocation={id:m.id,name:m.name,role:'employee'};}
   document.getElementById('verified-badge').classList.add('show');document.getElementById('verified-text').textContent=verifiedLocation.name;document.getElementById('reg-next-btn').disabled=false;
 }
 function goRegStep2(){if(!verifiedLocation)return;document.getElementById('reg-location-name').textContent=(selectedRole==='owner'?'🏪 Club Owner':'👤 Employee')+' — '+verifiedLocation.name;document.getElementById('reg-s1').style.display='none';document.getElementById('reg-s2').style.display='block';}
@@ -345,7 +345,7 @@ async function doRegister(){
   document.getElementById('reg-success-msg').textContent='Welcome, '+dn+'! A confirmation link has been sent to your email. Click it to activate your '+rl+' account for '+verifiedLocation.name+'.';
 }
 function showReqStep(n){[1,2,3,4].forEach(function(i){var el=document.getElementById('req-s'+i);if(el)el.style.display=i===n?'block':'none';});}
-async function doVerifyOrgKey(){var key=document.getElementById('req-org-key').value.trim();if(!key){showMsg('req-msg-key','Please enter the organization key.','error');return;}setBtn('req-key-btn',true,'Checking…');clearMsg('req-msg-key');var res=await sb.from('app_settings').select('value').eq('key','org_key').single();setBtn('req-key-btn',false,'Unlock Request Form →');if(res.error||!res.data){showMsg('req-msg-key','Unable to verify key. Try again later.','error');return;}if(res.data.value!==key){showMsg('req-msg-key','Incorrect organization key.','error');return;}showReqStep(2);}
+async function doVerifyOrgKey(){var key=document.getElementById('req-org-key').value.trim();if(!key){showMsg('req-msg-key','Please enter the organization key.','error');return;}setBtn('req-key-btn',true,'Checking…');clearMsg('req-msg-key');var res=await sb.from('app_settings').select('value').eq('key','org_key').single();setBtn('req-key-btn',false,'Unlock Request Form →');if(res.error||!res.data){showMsg('req-msg-key','Unable to verify key. Try again later.','error');return;}if(res.data.value.toUpperCase()!==key.toUpperCase()){showMsg('req-msg-key','Incorrect organization key.','error');return;}showReqStep(2);}
 async function doSubmitRequest(){
   var club=document.getElementById('req-club').value.trim();var street=document.getElementById('req-street').value.trim();var city=document.getElementById('req-city').value.trim();var state=document.getElementById('req-state').value;var zip=document.getElementById('req-zip').value.trim();
   var fn=document.getElementById('req-firstname').value.trim();var ln=document.getElementById('req-lastname').value.trim();var ph=document.getElementById('req-phone').value.trim();var em=document.getElementById('req-email').value.trim();var notes=document.getElementById('req-notes').value.trim();
