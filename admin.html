@@ -173,6 +173,7 @@ if('serviceWorker' in navigator){
     .alert-loc-action{background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:5px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;flex-shrink:0;transition:background 0.15s}
     .alert-loc-action:hover{background:rgba(255,255,255,0.3)}
   </style>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBBiYB5ueXXP5HSp8wFhDY1o6ssOo5x6dg&libraries=places&callback=initGooglePlaces" async defer></script>
 </head>
 <body>
 <div id="loading-overlay"><div class="load-spinner"></div><div class="load-text">Loading dashboard…</div></div>
@@ -242,7 +243,8 @@ if('serviceWorker' in navigator){
     <div class="form-panel" id="nl-form-panel">
       <div class="modal-title">Add New Location</div>
       <div class="modal-field"><label>Club Name</label><input type="text" id="nl-name" placeholder="My Town Nutrition"/></div>
-      <div class="modal-field"><label>Street Address</label><input type="text" id="nl-street" placeholder="123 Main St"/></div>
+      <div class="modal-field"><label>Street Address</label><input type="text" id="nl-street" placeholder="Start typing address…" autocomplete="off"/></div>
+      <div class="modal-field"><label>Address Line 2 <span style="font-size:11px;font-weight:400;color:var(--text-faint);">Suite, Unit, Apt (optional)</span></label><input type="text" id="nl-street2" placeholder="e.g. Suite 100"/></div>
       <div class="modal-field" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
         <div><label>City</label><input type="text" id="nl-city" placeholder="City" style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:8px;padding:10px 12px;outline:none;transition:border-color 0.15s"/></div>
         <div><label>State</label><select id="nl-state" style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:8px;padding:10px 12px;outline:none;-webkit-appearance:auto;"></select></div>
@@ -331,7 +333,8 @@ if('serviceWorker' in navigator){
     <div class="modal-title">✅ Approve Location Request</div>
     <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.5;">Review and edit the details before creating the location. An invite code will be generated and shown to you.</div>
     <div class="modal-field"><label>Club Name</label><input type="text" id="ap-name"/></div>
-    <div class="modal-field"><label>Street Address</label><input type="text" id="ap-street"/></div>
+    <div class="modal-field"><label>Street Address</label><input type="text" id="ap-street" autocomplete="off"/></div>
+    <div class="modal-field"><label>Address Line 2 <span style="font-size:11px;font-weight:400;color:var(--text-faint);">Suite, Unit, Apt (optional)</span></label><input type="text" id="ap-street2" placeholder="e.g. Suite 100"/></div>
     <div class="modal-field" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
       <div><label>City</label><input type="text" id="ap-city" style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:8px;padding:10px 12px;outline:none;"/></div>
       <div><label>State</label><select id="ap-state" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:8px;padding:10px 8px;outline:none;-webkit-appearance:auto;"></select></div>
@@ -395,6 +398,45 @@ const SUPABASE_ANON_KEY='sb_publishable_wO6XM4pC2CcaISQ8OlbkfQ_liqKJbi_';
 const{createClient}=supabase;
 const sb=createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 
+
+// ── GOOGLE PLACES AUTOCOMPLETE ──
+var placesInitQueue = [];
+function initGooglePlaces() {
+  placesInitQueue.forEach(function(fn){ fn(); });
+  placesInitQueue = [];
+}
+function attachPlacesAutocomplete(streetInputId, cityId, stateId, zipId) {
+  function doAttach() {
+    var input = document.getElementById(streetInputId);
+    if (!input) return;
+    // Prevent browser autocomplete from covering Places dropdown
+    input.setAttribute('autocomplete','off');
+    var ac = new google.maps.places.Autocomplete(input, {
+      types: ['address'],
+      componentRestrictions: { country: 'us' }
+    });
+    ac.addListener('place_changed', function() {
+      var place = ac.getPlace();
+      if (!place.address_components) return;
+      var sn='', rt='', city='', state='', zip='';
+      place.address_components.forEach(function(c) {
+        var t = c.types[0];
+        if(t==='street_number') sn=c.long_name;
+        if(t==='route')         rt=c.long_name;
+        if(t==='locality')      city=c.long_name;
+        if(t==='administrative_area_level_1') state=c.short_name;
+        if(t==='postal_code')   zip=c.long_name;
+      });
+      input.value = [sn,rt].filter(Boolean).join(' ');
+      var ce=document.getElementById(cityId);   if(ce)ce.value=city;
+      var se=document.getElementById(stateId);  if(se){se.value=state;}
+      var ze=document.getElementById(zipId);    if(ze)ze.value=zip.slice(0,5);
+    });
+  }
+  if(typeof google!=='undefined'&&google.maps&&google.maps.places) doAttach();
+  else placesInitQueue.push(doAttach);
+}
+
 let allRequests=[];
 let approvingRequestId=null;
 let denyingRequestId=null;
@@ -440,6 +482,7 @@ function openApproveModal(reqId){
   approvingRequestId=reqId;
   document.getElementById('ap-name').value=r.club_name||'';
   document.getElementById('ap-street').value=r.street||'';
+  document.getElementById('ap-street2').value=r.street2||'';
   document.getElementById('ap-city').value=r.city||'';
   document.getElementById('ap-zip').value=r.zip||'';
   document.getElementById('ap-owner').value=r.owner_name||'';
@@ -453,6 +496,7 @@ function openApproveModal(reqId){
   let code='';for(let i=0;i<6;i++)code+=chars[Math.floor(Math.random()*chars.length)];
   document.getElementById('ap-code').value=code;
   document.getElementById('ap-error').classList.remove('show');
+  attachPlacesAutocomplete('ap-street','ap-city','ap-state','ap-zip');
   document.getElementById('approve-modal').classList.add('open');
 }
 
@@ -470,7 +514,9 @@ async function executeApprove(){
   if(!name||!code){errEl.textContent='Club name and invite code are required.';errEl.classList.add('show');return;}
   const btn=document.getElementById('ap-btn');
   btn.disabled=true;btn.textContent='Creating…';
-  const addrParts=[street,city?`${city}${state?', '+state:''}${zip?' '+zip:''}`:'']. filter(Boolean);
+  const street2=document.getElementById('ap-street2').value.trim();
+  const streetFull=street+(street2?' '+street2:'');
+  const addrParts=[streetFull,city?`${city}${state?', '+state:''}${zip?' '+zip:''}`:'']. filter(Boolean);
   const address=addrParts.join(', ');
   const settings={};
   if(email)settings.ownerEmail=email;
@@ -779,6 +825,7 @@ function generateCode(){
 function openAddLocation(){
   document.getElementById('nl-name').value='';
   document.getElementById('nl-street').value='';
+  document.getElementById('nl-street2').value='';
   document.getElementById('nl-city').value='';
   document.getElementById('nl-zip').value='';
   document.getElementById('nl-owner').value='';
@@ -791,6 +838,7 @@ function openAddLocation(){
   document.getElementById('nl-second-fields').style.display='none';
   populateStateSelect('nl-state','');
   generateCode(); // silently auto-generate
+  attachPlacesAutocomplete('nl-street','nl-city','nl-state','nl-zip');
   document.getElementById('nl-error').classList.remove('show');
   document.getElementById('nl-confirm-error').classList.remove('show');
   document.getElementById('nl-form-panel').classList.remove('hide');
@@ -807,7 +855,9 @@ function reviewLocation(){
   const city=document.getElementById('nl-city').value.trim();
   const state=document.getElementById('nl-state').value;
   const zip=document.getElementById('nl-zip').value.trim();
-  const addrParts=[street,city?`${city}${state?', '+state:''}${zip?' '+zip:''}`:'']. filter(Boolean);
+  const street2=document.getElementById('nl-street2').value.trim();
+  const streetFull=street+(street2?' '+street2:'');
+  const addrParts=[streetFull,city?`${city}${state?', '+state:''}${zip?' '+zip:''}`:'']. filter(Boolean);
   const addr=addrParts.join(', ');
   const owner=document.getElementById('nl-owner').value.trim();
   const phone=document.getElementById('nl-phone').value.trim();
@@ -906,6 +956,5 @@ function showToast(msg,type=''){const t=document.getElementById('toast');t.textC
 
 init();
 </script>
-<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}</script>
 </body>
 </html>
