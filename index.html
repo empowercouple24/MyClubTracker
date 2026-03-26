@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 06:35:47 -->
+<!-- CACHE BUST: 2026-03-26 06:45:30 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -321,6 +321,14 @@ async function init(){
     var rid=params.get('request_id');
     if(rid){await sb.from('location_requests').update({status:'pending'}).eq('id',rid).eq('status','email_unconfirmed');await sb.auth.signOut();}
     showTab('request');showReqStep(4);window.history.replaceState({},'',window.location.pathname);return;
+  }
+  // Handle registration email confirmation — sign out and show success message
+  if(hash&&hash.includes('type=signup')){
+    await sb.auth.signOut();
+    window.history.replaceState({},'',window.location.pathname);
+    showTab('signin');
+    showMsg('si-msg','✓ Email confirmed! You can now sign in.','success');
+    return;
   }
   if(params.get('msg')==='confirmed'){showTab('signin');showMsg('si-msg','✓ Email confirmed! You can now sign in.','success');return;}
   if(params.get('msg')==='setup-incomplete'){showTab('signin');showMsg('si-msg','Account confirmed! Please sign in.','success');return;}
