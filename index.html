@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 06:45:30 -->
+<!-- CACHE BUST: 2026-03-26 07:12:43 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -311,6 +311,17 @@ function showNPPanel(){showTab('newpassword');document.querySelector('.tabs').st
 async function init(){
   var hash=window.location.hash;
   var params=new URLSearchParams(window.location.search);
+  // Show error passed from club.html
+  if(params.get('err')){
+    showTab('signin');
+    showMsg('si-msg','Sign in error: '+decodeURIComponent(params.get('err')),'error');
+    return;
+  }
+  if(params.get('msg')==='nolocation'){
+    showTab('signin');
+    showMsg('si-msg','Your account is not linked to a location. Contact your admin.','error');
+    return;
+  }
   if(hash&&hash.includes('type=recovery')){
     var s=(await sb.auth.getSession()).data.session;
     if(s){showNPPanel();return;}
@@ -336,8 +347,26 @@ async function init(){
   if(session){
     var r=await sb.from('users').select('role,location_id').eq('id',session.user.id).single();
     var u=r.data;
-    if(u&&u.role==='admin'){window.location.href='admin.html';return;}
-    if(u&&u.location_id){window.location.href='club.html';return;}
+    // Only auto-redirect if not coming from a failed app load (no ?from=app param)
+    var fromApp=params.get('from')==='app';
+    if(!fromApp){
+      if(u&&u.role==='admin'){window.location.href='admin.html';return;}
+      if(u&&u.location_id){window.location.href='club.html';return;}
+    }
+    // User has no location, or came from failed app load — sign out and show message
+    if(u&&!u.location_id){
+      await sb.auth.signOut();
+      showTab('signin');
+      showMsg('si-msg','Your account is not linked to a location yet. Contact your admin.','error');
+      return;
+    }
+    // Came back from failed app — show sign-in with signed-out option
+    if(fromApp){
+      await sb.auth.signOut();
+      showTab('signin');
+      showMsg('si-msg','You have been signed out. Please sign in again.','info');
+      return;
+    }
   }
 }
 async function doSignIn(){
