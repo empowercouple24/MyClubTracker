@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 06:15:05 -->
+<!-- CACHE BUST: 2026-03-26 06:21:38 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -243,7 +243,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
       <div class="field"><label>Address Line 2 <span style="font-weight:400;color:var(--gf);text-transform:none;letter-spacing:0;">Suite, Unit, Apt, Floor (optional)</span></label><input type="text" id="req-street2" placeholder="e.g. Suite 100"></div>
       <div class="field"><label>Zip Code</label><input type="text" id="req-zip" placeholder="00000" maxlength="5" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5);if(this.value.length===5)lookupZip(this.value,'req-city','req-state')"></div>
       <div class="field-row">
-        <div class="field"><label>City <span style="font-weight:400;color:var(--gf);text-transform:none;letter-spacing:0;">auto-fills</span></label><input type="text" id="req-city" placeholder="Auto-filled from zip" style="color:var(--bmd);"></div>
+        <div class="field"><label>City <span style="font-weight:400;color:var(--gf);text-transform:none;letter-spacing:0;">auto-fills</span></label><input type="text" id="req-city" placeholder="Auto-filled from zip" readonly style="color:var(--bmd);"></div>
         <div class="field"><label>State <span style="font-weight:400;color:var(--gf);text-transform:none;letter-spacing:0;">auto-fills</span></label><input type="text" id="req-state" placeholder="Auto-filled" style="color:var(--bmd);" readonly></div>
       </div>
       <div class="field-row">
