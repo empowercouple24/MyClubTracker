@@ -272,7 +272,20 @@ window._placesReady = false;
   </div>
 
 </div>
-<div class="version">Nemecek Org Clubs · v1.4.1 · Updated Mar 26, 2026 at 12:04 AM ET</div>
+<div class="version" id="version-tag">Nemecek Org Clubs · v1.4.1</div>
+<script>
+// Auto-set timestamp from when this file was last served by the server
+fetch(window.location.href, {method:'HEAD'}).then(function(r){
+  var lastMod = r.headers.get('last-modified');
+  if(lastMod){
+    var d = new Date(lastMod);
+    var tag = document.getElementById('version-tag');
+    if(tag) tag.textContent = 'Nemecek Org Clubs · v1.4.1 · Updated ' +
+      d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) + ' at ' +
+      d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZoneName:'short'});
+  }
+});
+</script>
 </div>
 
 <script>
