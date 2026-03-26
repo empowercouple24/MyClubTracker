@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 08:28:54 -->
+<!-- CACHE BUST: 2026-03-26 08:35:23 -->
 <html lang="en">
 <head>
 <script>
@@ -252,7 +252,17 @@ if('serviceWorker' in navigator){
 
 <div id="loading-overlay"><div class="load-spinner"></div><div class="load-text" id="load-text">Loading…</div></div>
 <div class="admin-edit-banner" id="admin-edit-banner" style="cursor:pointer;" onclick="goBackToAdmin()" title="Click to return to dashboard">⚠ Admin Edit Mode — click to return to Dashboard</div>
-<div class="admin-location-banner" id="admin-banner" style="display:none;"></div>
+<div class="admin-location-banner" id="admin-banner" style="display:none;align-items:center;justify-content:space-between;gap:8px;padding:5px 12px;">
+  <div style="display:flex;align-items:center;gap:7px;min-width:0;">
+    <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;opacity:0.65;">Admin View</span>
+    <span style="opacity:0.4;font-size:10px;">|</span>
+    <span id="admin-banner-name" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;"></span>
+  </div>
+  <div style="display:flex;gap:5px;flex-shrink:0;">
+    <button onclick="goBackToAdmin()" style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:5px;padding:3px 8px;cursor:pointer;">← Dashboard</button>
+    <button onclick="window.location.href='locations.html'" style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:5px;padding:3px 8px;cursor:pointer;">🏪 Locations</button>
+  </div>
+</div>
 
 <nav class="topnav">
   <div id="nav-admin-btns" style="display:none;flex-shrink:0;gap:5px;align-items:center;"><button class="nav-btn back" id="nav-back-btn" style="font-weight:700;color:var(--b5);font-size:12px;padding:4px 9px;background:var(--b0);border-radius:8px;border:1px solid var(--border);" onclick="goBackToAdmin()">← Dashboard</button><button class="nav-btn back" id="nav-locs-btn" style="font-weight:700;color:var(--b5);font-size:12px;padding:4px 9px;background:var(--b0);border-radius:8px;border:1px solid var(--border);" onclick="window.location.href='locations.html'">🏪 Locations</button></div>
@@ -947,11 +957,11 @@ async function init(){
   if(IS_ADMIN_VIEW){
     // Carry location name from admin drill-in before DB fetch
     const _urlLocName=params.get('locationName');
-    if(_urlLocName){const _ncn=document.getElementById('nav-club-name');if(_ncn)_ncn.textContent=decodeURIComponent(_urlLocName);document.title=decodeURIComponent(_urlLocName)+' — Club App';}
+    if(_urlLocName){const _decodedName=decodeURIComponent(_urlLocName);const _ncn=document.getElementById('nav-club-name');if(_ncn)_ncn.textContent=_decodedName;document.title=_decodedName+' — Club App';const _bns=document.getElementById('admin-banner-name');if(_bns)_bns.textContent=_decodedName;const _bn=document.getElementById('admin-banner');if(_bn)_bn.style.display='flex';}
     const _nab=document.getElementById('nav-admin-badge');if(_nab)_nab.style.display='block';
     const _nbb=document.getElementById('nav-admin-btns');if(_nbb){_nbb.style.display='flex';}
     const _so=document.getElementById('nav-signout-btn');if(_so)_so.style.display='none';
-    const bn=document.getElementById('admin-banner');if(bn){bn.style.display='block';bn.textContent='Admin View: '+(loc?.name||decodeURIComponent(params.get('locationName')||'')||LOCATION_ID);}
+    const bn=document.getElementById('admin-banner');if(bn){const bnName=loc?.name||decodeURIComponent(params.get('locationName')||'')||LOCATION_ID;bn.style.display='flex';const bnSpan=document.getElementById('admin-banner-name');if(bnSpan)bnSpan.textContent=bnName;}
     const _aeb=document.getElementById('admin-edit-banner');if(_aeb)_aeb.classList.add('show');
     const _nsb=document.getElementById('nav-settings-btn');if(_nsb)_nsb.style.display='block';
     const _smt=document.getElementById('settings-modal-title');if(_smt)_smt.textContent='Settings — '+(loc?.name||'Location');
