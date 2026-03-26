@@ -240,11 +240,11 @@ window._placesReady = false;
       <div class="field"><label>Club Name</label><input type="text" id="req-club" placeholder="e.g. Thrive Nutrition Hub"></div>
       <div class="field"><label>Street Address</label><input type="text" id="req-street" placeholder="Start typing address…" autocomplete="new-password" role="presentation"></div>
       <div class="field"><label>Address Line 2 <span style="font-weight:400;color:var(--gf);text-transform:none;letter-spacing:0;">Suite, Unit, Apt, Floor (optional)</span></label><input type="text" id="req-street2" placeholder="e.g. Suite 100"></div>
+      <div class="field"><label>Zip Code</label><input type="text" id="req-zip" placeholder="00000" maxlength="5" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5);if(this.value.length===5)lookupZip(this.value,'req-city','req-state')"></div>
       <div class="field-row">
-        <div class="field"><label>City</label><input type="text" id="req-city" placeholder="City"></div>
-        <div class="field"><label>State</label><select id="req-state"><option value="">State</option></select></div>
+        <div class="field"><label>City <span style="font-weight:400;color:var(--gf);text-transform:none;letter-spacing:0;">auto-fills</span></label><input type="text" id="req-city" placeholder="Auto-filled from zip" style="color:var(--bmd);"></div>
+        <div class="field"><label>State <span style="font-weight:400;color:var(--gf);text-transform:none;letter-spacing:0;">auto-fills</span></label><input type="text" id="req-state" placeholder="Auto-filled" style="color:var(--bmd);" readonly></div>
       </div>
-      <div class="field"><label>Zip Code</label><input type="text" id="req-zip" placeholder="00000" maxlength="5" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5)"></div>
       <div class="field-row">
         <div class="field"><label>First Name</label><input type="text" id="req-firstname" placeholder="Jane"></div>
         <div class="field"><label>Last Name</label><input type="text" id="req-lastname" placeholder="Smith"></div>
@@ -302,7 +302,7 @@ function showTab(tab){
   var panel=document.getElementById('panel-'+tab);if(panel){panel.classList.add('active');panel.style.display='block';}
   var tb=document.getElementById('tab-'+tab);if(tb)tb.classList.add('active');
   document.querySelector('.tabs').style.display='';
-  if(tab==='request'){showReqStep(1);buildStateSelect('req-state','');attachPlacesAutocomplete('req-street','req-city','req-state','req-zip');}
+  if(tab==='request'){showReqStep(1);attachPlacesAutocomplete('req-street','req-city','req-state','req-zip');}
   clearMsg('si-msg');clearMsg('fp-msg');clearMsg('reg-msg1');clearMsg('reg-msg2');
 }
 function showNPPanel(){showTab('newpassword');document.querySelector('.tabs').style.display='none';}
@@ -442,6 +442,24 @@ function attachPlacesAutocomplete(streetInputId, cityId, stateId, zipId) {
 }
 
 if(new URLSearchParams(window.location.search).get('tab')==='register')showTab('register');
+
+// ── ZIP CODE AUTO-FILL ──
+async function lookupZip(zip, cityId, stateId) {
+  if (!zip || zip.length !== 5) return;
+  try {
+    var res = await fetch('https://api.zippopotam.us/us/' + zip);
+    if (!res.ok) return;
+    var data = await res.json();
+    if (data.places && data.places.length > 0) {
+      var place = data.places[0];
+      var cityEl  = document.getElementById(cityId);
+      var stateEl = document.getElementById(stateId);
+      if (cityEl)  cityEl.value  = place['place name'];
+      if (stateEl) stateEl.value = place['state abbreviation'];
+    }
+  } catch(e) {}
+}
+
 init();
 </script>
 </body>
