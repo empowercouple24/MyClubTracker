@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 07:12:43 -->
+<!-- CACHE BUST: 2026-03-26 07:44:28 SHOW-ERROR -->
 <html lang="en">
 <head>
 <script>
@@ -1268,9 +1268,21 @@ async function safeInit() {
   try {
     await init();
   } catch(e) {
-    // Sign out and go back to login with error info
-    try { await sb.auth.signOut(); } catch(e2) {}
-    window.location.href = 'index.html?from=app&err=' + encodeURIComponent(e.message);
+    // Show error directly on screen — never redirect (avoids loops)
+    document.body.style.cssText = 'margin:0;padding:0;font-family:DM Sans,sans-serif;background:#e8edf4;min-height:100vh;';
+    document.body.innerHTML =
+      '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;">' +
+      '<div style="background:white;border-radius:16px;padding:32px;max-width:480px;width:100%;box-shadow:0 4px 20px rgba(0,0,0,0.1);">' +
+      '<div style="font-size:32px;margin-bottom:12px;">⚠️</div>' +
+      '<h2 style="font-size:18px;font-weight:700;color:#c03030;margin-bottom:12px;">App failed to load</h2>' +
+      '<p style="font-size:14px;color:#5b7087;margin-bottom:8px;font-family:monospace;background:#fff0f0;padding:10px;border-radius:8px;word-break:break-all;">' + e.message + '</p>' +
+      '<details style="margin-top:8px;"><summary style="font-size:12px;color:#8fa3b3;cursor:pointer;">Stack trace</summary>' +
+      '<pre style="font-size:11px;color:#8fa3b3;white-space:pre-wrap;margin-top:8px;">' + (e.stack||'') + '</pre></details>' +
+      '<div style="margin-top:20px;display:flex;gap:10px;">' +
+      '<a href="admin.html" style="background:#3a5470;color:white;padding:10px 18px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">Dashboard</a>' +
+      '<a href="index.html" style="background:#e8edf4;color:#3a5470;padding:10px 18px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">Sign In</a>' +
+      '</div>' +
+      '</div></div>';
   }
 }
 safeInit();
