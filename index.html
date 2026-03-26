@@ -91,6 +91,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 .spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:sp 0.7s linear infinite;vertical-align:middle;margin-right:5px;}
 @keyframes sp{to{transform:rotate(360deg);}}
 </style>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBBiYB5ueXXP5HSp8wFhDY1o6ssOo5x6dg&libraries=places&callback=initGooglePlaces" async defer></script>
 </head>
 <body>
 <div class="page-bg"></div>
@@ -212,7 +213,8 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
     <div id="req-s2" style="display:none;">
       <div class="msg success show" style="margin-bottom:12px;">✓ Org key verified. All fields required.</div>
       <div class="field"><label>Club Name</label><input type="text" id="req-club" placeholder="e.g. Thrive Nutrition Hub"></div>
-      <div class="field"><label>Street Address</label><input type="text" id="req-street" placeholder="123 Main St"></div>
+      <div class="field"><label>Street Address</label><input type="text" id="req-street" placeholder="Start typing address…" autocomplete="off"></div>
+      <div class="field"><label>Address Line 2 <span style="font-weight:400;color:var(--gf);text-transform:none;letter-spacing:0;">Suite, Unit, Apt, Floor (optional)</span></label><input type="text" id="req-street2" placeholder="e.g. Suite 100"></div>
       <div class="field-row">
         <div class="field"><label>City</label><input type="text" id="req-city" placeholder="City"></div>
         <div class="field"><label>State</label><select id="req-state"><option value="">State</option></select></div>
@@ -262,7 +264,7 @@ function showTab(tab){
   var panel=document.getElementById('panel-'+tab);if(panel){panel.classList.add('active');panel.style.display='block';}
   var tb=document.getElementById('tab-'+tab);if(tb)tb.classList.add('active');
   document.querySelector('.tabs').style.display='';
-  if(tab==='request'){showReqStep(1);buildStateSelect('req-state','');}
+  if(tab==='request'){showReqStep(1);buildStateSelect('req-state','');attachPlacesAutocomplete('req-street','req-city','req-state','req-zip');}
   clearMsg('si-msg');clearMsg('fp-msg');clearMsg('reg-msg1');clearMsg('reg-msg2');
 }
 function showNPPanel(){showTab('newpassword');document.querySelector('.tabs').style.display='none';}
@@ -353,7 +355,7 @@ async function doSubmitRequest(){
   if(!fn)missing.push('First Name');if(!ln)missing.push('Last Name');if(!ph||ph.replace(/\D/g,'').length<10)missing.push('Phone');if(!em||!em.includes('@'))missing.push('Email');if(!notes)missing.push('Notes');
   if(missing.length){showMsg('req-msg-form','Please fill in: '+missing.join(', '),'error');return;}
   setBtn('req-submit-btn',true,'Submitting…');
-  var ins=await sb.from('location_requests').insert({club_name:club,street:street,city:city,state:state,zip:zip,owner_name:name,phone:ph,email:em,notes:notes,status:'email_unconfirmed',first_name:fn,last_name:ln}).select().single();
+  var ins=await sb.from('location_requests').insert({club_name:club,street:street+(street2?' | '+street2:''),city:city,state:state,zip:zip,owner_name:name,phone:ph,email:em,notes:notes,status:'email_unconfirmed',first_name:fn,last_name:ln}).select().single();
   if(ins.error){showMsg('req-msg-form','Submission failed: '+ins.error.message,'error');setBtn('req-submit-btn',false,'Submit Request →');return;}
   var rto=window.location.origin+'/index.html?request_id='+ins.data.id;
   var otp=await sb.auth.signInWithOtp({email:em,options:{shouldCreateUser:false,emailRedirectTo:rto}});
@@ -364,6 +366,43 @@ function fmtPhone(el){var d=el.value.replace(/\D/g,'').slice(0,10);var f='';if(d
 function showMsg(id,text,type){var el=document.getElementById(id);if(!el)return;el.textContent=text;el.className='msg '+type+' show';}
 function clearMsg(id){var el=document.getElementById(id);if(el){el.textContent='';el.className='msg';}}
 function setBtn(id,loading,text){var btn=document.getElementById(id);if(!btn)return;btn.disabled=loading;btn.innerHTML=loading?'<span class="spin"></span>'+text:text;}
+
+// ── GOOGLE PLACES AUTOCOMPLETE ──
+var placesInitQueue = [];
+function initGooglePlaces() {
+  placesInitQueue.forEach(function(fn){ fn(); });
+  placesInitQueue = [];
+}
+function attachPlacesAutocomplete(streetInputId, cityId, stateId, zipId) {
+  function doAttach() {
+    var input = document.getElementById(streetInputId);
+    if (!input) return;
+    var ac = new google.maps.places.Autocomplete(input, {
+      types: ['address'],
+      componentRestrictions: { country: 'us' }
+    });
+    ac.addListener('place_changed', function() {
+      var place = ac.getPlace();
+      if (!place.address_components) return;
+      var sn='', rt='', city='', state='', zip='';
+      place.address_components.forEach(function(c) {
+        var t = c.types[0];
+        if(t==='street_number') sn=c.long_name;
+        if(t==='route')         rt=c.long_name;
+        if(t==='locality')      city=c.long_name;
+        if(t==='administrative_area_level_1') state=c.short_name;
+        if(t==='postal_code')   zip=c.long_name;
+      });
+      input.value = [sn,rt].filter(Boolean).join(' ');
+      var ce=document.getElementById(cityId);   if(ce)ce.value=city;
+      var se=document.getElementById(stateId);  if(se)se.value=state;
+      var ze=document.getElementById(zipId);    if(ze)ze.value=zip.slice(0,5);
+    });
+  }
+  if(typeof google!=='undefined'&&google.maps&&google.maps.places) doAttach();
+  else placesInitQueue.push(doAttach);
+}
+
 if(new URLSearchParams(window.location.search).get('tab')==='register')showTab('register');
 init();
 </script>
