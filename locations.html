@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 07:52:28 -->
+<!-- CACHE BUST: 2026-03-26 08:35:53 -->
 <html lang="en">
 <head>
 <script>
@@ -173,10 +173,21 @@ html.dark body{background:var(--bg);}
 <body>
 <div id="loading-overlay"><div class="load-spinner"></div></div>
 
+<div id="admin-widget-bar" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 12px;background:var(--b8);color:white;font-size:12px;">
+  <div style="display:flex;align-items:center;gap:6px;">
+    <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;opacity:0.65;">Admin</span>
+    <span style="opacity:0.35;font-size:10px;">|</span>
+    <span style="font-weight:600;">All Locations</span>
+  </div>
+  <div style="display:flex;gap:5px;">
+    <button onclick="window.location.href='admin.html'" style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:5px;padding:3px 8px;cursor:pointer;">← Dashboard</button>
+    <button onclick="window.location.href='settings.html'" style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:5px;padding:3px 8px;cursor:pointer;">⚙ Settings</button>
+  </div>
+</div>
 <nav class="topnav">
   <div class="nav-inner">
-    <button class="btn-back" onclick="window.location.href='settings.html'">←</button>
-    <div class="nav-title" onclick="window.location.href='settings.html'" style="cursor:pointer;transition:color 0.15s;" onmouseover="this.style.color='var(--b5)'" onmouseout="this.style.color='var(--text)'">Locations</div>
+    <button class="btn-back" onclick="window.location.href='admin.html'">←</button>
+    <div class="nav-title" onclick="window.location.href='admin.html'" style="cursor:pointer;transition:color 0.15s;" onmouseover="this.style.color='var(--b5)'" onmouseout="this.style.color='var(--text)'">Locations</div>
     <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
       <div class="nav-menu-wrap">
         <button class="nav-menu-btn" onclick="toggleNavMenu()" id="nav-menu-btn">
@@ -548,7 +559,8 @@ function copyCode(code){
 }
 
 function goToApp(locId){
-  window.location.href='app2.html?location_id='+locId+'&admin=1';
+  const _loc=allLocations.find(l=>l.id===locId);
+  window.location.href='app2.html?location_id='+locId+'&admin=1'+((_loc&&_loc.name)?'&locationName='+encodeURIComponent(_loc.name):'');
 }
 
 // ── LOAD DATA ──
