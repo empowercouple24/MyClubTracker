@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 07:30:25 -->
+<!-- CACHE BUST: 2026-03-26 07:40:08 -->
 <html lang="en">
 <head>
 <script>
@@ -953,7 +953,10 @@ function renderLocations(){
             <span class="badge badge-pending">⏳ Pending Setup</span>
             <div style="display:flex;align-items:center;gap:6px;">
               <span style="font-size:11px;color:var(--text-faint);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Invite Code</span>
-              <span onclick="event.stopPropagation();navigator.clipboard&&navigator.clipboard.writeText('${escHtml(codeDisplay)}').then(()=>showToast('Invite code copied ✓','success'))" title="Click to copy" style="font-family:monospace;font-size:15px;font-weight:800;letter-spacing:3px;color:white;background:var(--b7);border-radius:7px;padding:4px 10px;cursor:pointer;">${escHtml(codeDisplay)}</span>
+              ${loc.invite_code
+                ? `<span onclick="event.stopPropagation();navigator.clipboard&&navigator.clipboard.writeText('${escHtml(loc.invite_code)}').then(()=>showToast('Invite code copied ✓','success'))" title="Click to copy" style="font-family:monospace;font-size:15px;font-weight:800;letter-spacing:3px;color:white;background:var(--b7);border-radius:7px;padding:4px 10px;cursor:pointer;">${escHtml(loc.invite_code)}</span>`
+                : `<button onclick="event.stopPropagation();assignCode('${loc.id}')" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:white;background:var(--a5);border:none;border-radius:7px;padding:4px 10px;cursor:pointer;">+ Assign Code</button>`
+              }
             </div>
           </div>
           <div class="loc-chevron">▼</div>
@@ -1045,6 +1048,16 @@ function toggleSecondContact(prefix){
 }
 
 // ADD LOCATION — form + confirm flow
+async function assignCode(locId){
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code='';for(let i=0;i<6;i++)code+=chars[Math.floor(Math.random()*chars.length)];
+  const{error}=await sb.from('locations').update({invite_code:code}).eq('id',locId);
+  if(error){showToast('Failed to assign code: '+error.message,'error');return;}
+  const loc=allLocations.find(l=>l.id===locId);
+  if(loc)loc.invite_code=code;
+  renderLocations();
+  showToast('Invite code '+code+' assigned ✓ — click to copy','success');
+}
 function generateCode(){
   const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code='';for(let i=0;i<6;i++)code+=chars[Math.floor(Math.random()*chars.length)];
