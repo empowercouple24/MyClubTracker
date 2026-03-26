@@ -173,6 +173,18 @@ if('serviceWorker' in navigator){
     .alert-loc-action{background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:5px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;flex-shrink:0;transition:background 0.15s}
     .alert-loc-action:hover{background:rgba(255,255,255,0.3)}
   </style>
+<script>
+// Define Google Maps callback before the script loads
+window.initGooglePlaces = function() {
+  if (window._placesInitQueue) {
+    window._placesInitQueue.forEach(function(fn){ fn(); });
+    window._placesInitQueue = [];
+  }
+  window._placesReady = true;
+};
+window._placesInitQueue = [];
+window._placesReady = false;
+</script>
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBBiYB5ueXXP5HSp8wFhDY1o6ssOo5x6dg&libraries=places&callback=initGooglePlaces" async defer></script>
 </head>
 <body>
@@ -433,8 +445,8 @@ function attachPlacesAutocomplete(streetInputId, cityId, stateId, zipId) {
       var ze=document.getElementById(zipId);    if(ze)ze.value=zip.slice(0,5);
     });
   }
-  if(typeof google!=='undefined'&&google.maps&&google.maps.places) doAttach();
-  else placesInitQueue.push(doAttach);
+  if(window._placesReady && typeof google!=='undefined'&&google.maps&&google.maps.places) doAttach();
+  else { window._placesInitQueue = window._placesInitQueue||[]; window._placesInitQueue.push(doAttach); }
 }
 
 let allRequests=[];
