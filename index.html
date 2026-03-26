@@ -347,8 +347,27 @@ const sb=createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 let selectedRole='owner'; // 'owner' or 'employee'
 let verifiedLocation=null; // {id, name, role} after code verified
 
+// ── INIT ──
+// Detect sandboxed preview environment (Claude artifacts, iframes without network)
+function isPreviewMode(){
+  try {
+    return window.self !== window.top || // inside an iframe
+           !window.navigator.onLine ||   // no network
+           window.location.protocol === 'about:' ||
+           window.location.href.includes('claude.ai') ||
+           window.location.href === 'about:srcdoc';
+  } catch(e) {
+    return true; // cross-origin frame — treat as preview
+  }
+}
+
 async function init(){
-  // Check for redirect messages
+  // In sandboxed preview environments (Claude artifacts, offline iframes),
+  // skip all Supabase calls and just show the UI
+  if(isPreviewMode()){
+    document.getElementById('loading-overlay').classList.add('hidden');
+    return;
+  }
   const urlParams=new URLSearchParams(window.location.search);
   if(urlParams.get('msg')==='setup-incomplete'){
     showTab('signin');
