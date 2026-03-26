@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<!-- CACHE BUST: 2026-03-26 05:10:00 -->
+<html lang="en">
+<head>
+<script>
+if(location.protocol==='http:'&&location.hostname!=='localhost'){
+  location.replace('https://'+location.host+location.pathname+location.search+location.hash);
+}
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.getRegistrations().then(function(regs){regs.forEach(function(r){r.unregister();});});
+}
+</script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>Locations — Nemecek Org Clubs</title>
+<meta name="theme-color" content="#e8edf4"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBBiYB5ueXXP5HSp8wFhDY1o6ssOo5x6dg&libraries=places" async></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --b9:#1e2d3d;--b8:#2a3f56;--b7:#3a5470;--b6:#4a6a8a;--b5:#5b80a0;--b4:#7599b8;--b3:#9ab4cc;--b2:#bfd0e0;--b1:#dde7f0;--b0:#f0f4f8;
+  --g5:#2e7a35;--g4:#3d9e46;--g0:#eaf6eb;
+  --r5:#c03030;--r0:#fff0f0;
+  --a5:#c47c0a;--a0:#fef7e8;
+  --bg:#e8edf4;--surface:#fff;--border:#cdd6e0;--border-light:#e2e9f0;
+  --text:#1e2d3d;--text-muted:#5b7087;--text-faint:#8fa3b3;
+  --radius:14px;--radius-sm:9px;
+  --shadow-sm:0 1px 4px rgba(30,45,61,0.06),0 2px 10px rgba(30,45,61,0.04);
+  --shadow-md:0 4px 20px rgba(30,45,61,0.1);
+}
+html,body{min-height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text)}
+
+/* NAV */
+.topnav{position:sticky;top:0;z-index:100;background:rgba(232,237,244,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border-light);padding:env(safe-area-inset-top,0px) 20px 0;display:flex;align-items:center;min-height:calc(54px + env(safe-area-inset-top,0px))}
+.nav-inner{display:flex;align-items:center;gap:10px;padding:12px 0;width:100%}
+.btn-back{background:none;border:none;cursor:pointer;font-size:22px;color:var(--b6);padding:0 4px;line-height:1}
+.btn-back:hover{color:var(--b8)}
+.nav-title{font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--text);flex:1}
+.nav-badge{font-size:12px;font-weight:700;background:var(--b7);color:white;padding:3px 8px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase}
+.dark-toggle{background:none;border:1px solid var(--border);border-radius:20px;padding:4px 10px;cursor:pointer;font-size:13px;color:var(--text-muted);}
+
+/* PAGE */
+.page{max-width:760px;margin:0 auto;padding:24px 20px calc(80px + env(safe-area-inset-bottom,0px))}
+
+/* BUTTONS */
+.btn{font-family:'DM Sans',sans-serif;border:none;border-radius:var(--radius-sm);cursor:pointer;font-weight:600;transition:all 0.15s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn:active{transform:scale(0.97)}
+.btn:disabled{opacity:0.5;cursor:not-allowed}
+.btn-primary{background:linear-gradient(135deg,var(--b7),var(--b5));color:white;font-size:14px;padding:10px 20px;box-shadow:0 3px 12px rgba(58,84,112,0.22)}
+.btn-primary:hover:not(:disabled){box-shadow:0 6px 20px rgba(58,84,112,0.3)}
+.btn-ghost{background:var(--surface);color:var(--text-muted);border:1px solid var(--border);font-size:13px;padding:7px 14px}
+.btn-ghost:hover{background:var(--b0);color:var(--text)}
+.btn-danger{background:var(--r0);color:var(--r5);border:1px solid rgba(192,48,48,0.2);font-size:13px;padding:7px 14px}
+.btn-danger:hover{background:#ffe0e0}
+.btn-green{background:linear-gradient(135deg,var(--g5),var(--g4));color:white;font-size:14px;padding:10px 20px;box-shadow:0 3px 12px rgba(46,122,53,0.2)}
+.btn-sm{font-size:12px;padding:5px 12px}
+.btn-full{width:100%;padding:12px}
+.btn-icon{background:none;border:none;cursor:pointer;padding:4px;color:var(--text-faint);font-size:16px;transition:color 0.15s;border-radius:6px}
+.btn-icon:hover{color:var(--text);background:var(--b0)}
+
+/* PAGE HEADER */
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;}
+.page-header-title{font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;color:var(--text)}
+.page-header-sub{font-size:13px;color:var(--text-faint);margin-top:2px}
+
+/* LOCATION CARD */
+.loc-group{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:var(--shadow-sm);margin-bottom:20px;overflow:hidden;}
+.loc-group-header{display:flex;align-items:center;gap:14px;padding:18px 20px;border-bottom:1px solid var(--border-light);background:linear-gradient(135deg,var(--b0) 0%,var(--surface) 100%)}
+.loc-avatar{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--b7),var(--b4));display:flex;align-items:center;justify-content:center;font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:white;flex-shrink:0;box-shadow:0 2px 8px rgba(58,84,112,0.25)}
+.loc-header-info{flex:1;min-width:0}
+.loc-name{font-family:'Outfit',sans-serif;font-size:17px;font-weight:700;color:var(--text);line-height:1.2}
+.loc-addr{font-size:12px;color:var(--text-faint);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.loc-header-actions{display:flex;gap:6px;flex-shrink:0}
+
+/* SECTIONS WITHIN CARD */
+.loc-section{padding:16px 20px;border-bottom:1px solid var(--border-light)}
+.loc-section:last-child{border-bottom:none}
+.loc-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-faint);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+
+/* INVITE CODE BLOCK */
+.invite-block{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.invite-code-pill{font-family:monospace;font-size:20px;font-weight:700;letter-spacing:4px;color:var(--b7);background:var(--b0);border:2px solid var(--b2);border-radius:10px;padding:10px 18px;cursor:pointer;user-select:all;transition:background 0.15s}
+.invite-code-pill:hover{background:var(--b1)}
+.invite-code-copy{font-size:11px;color:var(--text-faint);margin-top:4px}
+
+/* USERS GRID */
+.users-list{display:flex;flex-direction:column;gap:1px}
+.user-row{display:flex;align-items:center;gap:10px;padding:10px 0}
+.user-row+.user-row{border-top:1px solid var(--border-light)}
+.user-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.user-info{flex:1;min-width:0}
+.user-name{font-size:14px;font-weight:600;color:var(--text)}
+.user-email{font-size:12px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.role-pill{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;flex-shrink:0;text-transform:capitalize}
+.role-pill.admin{background:var(--b1);color:var(--b7)}
+.role-pill.owner{background:var(--g0);color:var(--g5)}
+.role-pill.employee{background:var(--b0);color:var(--text-faint);border:1px solid var(--border)}
+
+/* OWNER INFO ROW */
+.owner-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--text-muted)}
+.owner-detail{display:flex;align-items:center;gap:4px}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:60px 24px;color:var(--text-faint)}
+.empty-state-icon{font-size:48px;margin-bottom:14px}
+.empty-state-title{font-family:'Outfit',sans-serif;font-size:17px;font-weight:700;color:var(--text-muted);margin-bottom:6px}
+.empty-state-sub{font-size:13px;margin-bottom:20px}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(30,45,61,0.4);backdrop-filter:blur(4px);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal-sheet{background:var(--surface);border-radius:18px 18px 0 0;width:100%;max-width:520px;max-height:88vh;overflow-y:auto;padding:0 0 40px;animation:sheetUp 0.28s cubic-bezier(0.16,1,0.3,1)}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0}
+.modal-title{font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--text);padding:16px 20px 0}
+.modal-body{padding:16px 20px 0}
+.modal-field{margin-bottom:14px}
+.modal-field label{display:block;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);margin-bottom:6px}
+.modal-field input,.modal-field select,.modal-field textarea{width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;outline:none;transition:border-color 0.15s}
+.modal-field input:focus,.modal-field select:focus,.modal-field textarea:focus{border-color:var(--b5);background:#fff;box-shadow:0 0 0 3px rgba(74,106,138,0.1)}
+.modal-actions{display:flex;gap:10px;padding:16px 20px 0}
+.modal-msg{margin:0 20px;padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;line-height:1.5;display:none}
+.modal-msg.error{background:rgba(192,48,48,0.07);border:1px solid rgba(192,48,48,0.2);color:var(--r5);display:block}
+.modal-msg.success{background:var(--g0);border:1px solid rgba(46,122,53,0.2);color:var(--g5);display:block}
+
+/* LOADING */
+#loading-overlay{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:300;}
+.load-spinner{width:32px;height:32px;border:3px solid var(--b1);border-top-color:var(--b6);border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--b8);color:white;padding:10px 20px;border-radius:24px;font-size:14px;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,0.2);z-index:400;transition:transform 0.3s cubic-bezier(0.16,1,0.3,1),opacity 0.3s;opacity:0;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast.success{background:var(--g5)}
+.toast.error{background:var(--r5)}
+
+.spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:5px}
+
+/* DARK MODE */
+html.dark{--bg:#0f1923;--surface:#1a2736;--border:#2a3f56;--border-light:#243347;--text:#e8edf4;--text-muted:#8fa3b3;--text-faint:#5b7087;--b0:#1e2d3d;--b1:#243347;--b2:#2a3f56;}
+html.dark .topnav{background:rgba(15,25,35,0.96);}
+html.dark .loc-group{background:var(--surface);border-color:var(--border);}
+html.dark .loc-group-header{background:linear-gradient(135deg,var(--b0) 0%,var(--surface) 100%);}
+html.dark .modal-sheet{background:var(--surface);}
+html.dark input,html.dark select,html.dark textarea{background:var(--b0)!important;color:var(--text)!important;border-color:var(--border)!important;}
+html.dark .invite-code-pill{background:var(--b0);border-color:var(--b7);}
+html.dark body{background:var(--bg);}
+
+@media(max-width:600px){.loc-header-actions{flex-direction:column;}.invite-block{flex-direction:column;align-items:flex-start;}}
+</style>
+</head>
+<body>
+<div id="loading-overlay"><div class="load-spinner"></div></div>
+
+<nav class="topnav">
+  <div class="nav-inner">
+    <button class="btn-back" onclick="window.location.href='admin-settings.html'">←</button>
+    <div class="nav-title">Locations</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
+      <div class="nav-badge">Admin</div>
+      <button class="dark-toggle" id="dark-toggle-btn" onclick="toggleDarkMode()">🌙</button>
+    </div>
+  </div>
+</nav>
+
+<div class="page">
+
+  <div class="page-header">
+    <div>
+      <div class="page-header-title" id="locs-count">Locations</div>
+      <div class="page-header-sub">Each location's settings, invite codes, and team members</div>
+    </div>
+    <button class="btn btn-green" onclick="openAddLocation()">+ Add Location</button>
+  </div>
+
+  <div id="locations-list">
+    <div style="text-align:center;padding:40px;color:var(--text-faint);">Loading…</div>
+  </div>
+
+</div>
+
+<!-- ══ EDIT LOCATION MODAL ══ -->
+<div class="modal-overlay" id="modal-editloc" onclick="closeMOnBg(event,'modal-editloc')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Edit Location</div>
+    <div class="modal-body">
+      <div class="modal-field"><label>Club Name</label><input type="text" id="el-name"/></div>
+      <div class="modal-field"><label>Street Address</label><input type="text" id="el-street" placeholder="Start typing address…" autocomplete="new-password"/></div>
+      <div class="modal-field"><label>Address Line 2 <span style="font-size:11px;font-weight:400;color:var(--text-faint);">Suite, Unit, Apt (optional)</span></label><input type="text" id="el-street2" placeholder="e.g. Suite 100"/></div>
+      <div class="modal-field"><label>Zip Code</label><input type="text" id="el-zip" placeholder="00000" maxlength="5" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5);if(this.value.length===5)lookupZip(this.value,'el-city','el-state')"/></div>
+      <div class="modal-field" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div><label>City <span style="font-size:10px;font-weight:400;color:var(--text-faint);">auto-fills</span></label><input type="text" id="el-city" placeholder="Auto-filled" style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--b6);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;outline:none;"/></div>
+        <div><label>State <span style="font-size:10px;font-weight:400;color:var(--text-faint);">auto-fills</span></label><input type="text" id="el-state" placeholder="Auto" readonly style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--b6);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;outline:none;"/></div>
+      </div>
+      <div class="modal-field"><label>Owner Name</label><input type="text" id="el-owner"/></div>
+      <div class="modal-field"><label>Owner Phone</label><input type="tel" id="el-phone" placeholder="(555) 000-0000" oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"/></div>
+      <div class="modal-field"><label>Owner Email</label><input type="email" id="el-email" placeholder="owner@example.com"/></div>
+      <div class="modal-field" style="padding:10px 0 4px;">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text-muted);text-transform:none;letter-spacing:0;">
+          <input type="checkbox" id="el-second-toggle" onchange="toggleSecondContact()" style="width:16px;height:16px;accent-color:var(--b5);cursor:pointer;"/>
+          Add / edit second contact
+        </label>
+      </div>
+      <div id="el-second-fields" style="display:none;background:var(--b0);border-radius:8px;padding:12px;margin-top:4px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);margin-bottom:10px;">Second Contact</div>
+        <div class="modal-field" style="margin-bottom:10px;"><label>Name</label><input type="text" id="el-owner2" placeholder="John Smith"/></div>
+        <div class="modal-field" style="margin-bottom:10px;"><label>Phone</label><input type="tel" id="el-phone2" oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)" placeholder="(555) 000-0000"/></div>
+        <div class="modal-field" style="margin-bottom:0;"><label>Email</label><input type="email" id="el-email2" placeholder="partner@example.com"/></div>
+      </div>
+    </div>
+    <div class="modal-msg" id="el-msg"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-full" id="el-btn" onclick="submitEditLocation()">Save Changes</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-editloc')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ADD LOCATION MODAL ══ -->
+<div class="modal-overlay" id="modal-addloc" onclick="closeMOnBg(event,'modal-addloc')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Add New Location</div>
+    <div class="modal-body">
+      <div class="modal-field"><label>Club Name</label><input type="text" id="al-name" placeholder="e.g. Thrive Nutrition Hub"/></div>
+      <div class="modal-field"><label>Street Address</label><input type="text" id="al-street" placeholder="Start typing address…" autocomplete="new-password"/></div>
+      <div class="modal-field"><label>Address Line 2 <span style="font-size:11px;font-weight:400;color:var(--text-faint);">Suite, Unit, Apt (optional)</span></label><input type="text" id="al-street2" placeholder="e.g. Suite 100"/></div>
+      <div class="modal-field"><label>Zip Code</label><input type="text" id="al-zip" placeholder="00000" maxlength="5" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5);if(this.value.length===5)lookupZip(this.value,'al-city','al-state')"/></div>
+      <div class="modal-field" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div><label>City <span style="font-size:10px;font-weight:400;color:var(--text-faint);">auto-fills</span></label><input type="text" id="al-city" placeholder="Auto-filled" style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--b6);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;outline:none;"/></div>
+        <div><label>State <span style="font-size:10px;font-weight:400;color:var(--text-faint);">auto-fills</span></label><input type="text" id="al-state" placeholder="Auto" readonly style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--b6);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;outline:none;"/></div>
+      </div>
+      <div class="modal-field"><label>Owner Name</label><input type="text" id="al-owner" placeholder="Full name"/></div>
+      <div class="modal-field"><label>Owner Phone</label><input type="tel" id="al-phone" placeholder="(555) 000-0000" oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"/></div>
+      <div class="modal-field"><label>Invite Code <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-faint);">auto-generated</span></label>
+        <input type="text" id="al-code" placeholder="AUTO" style="text-transform:uppercase;font-family:monospace;font-weight:700;letter-spacing:2px;" readonly/>
+      </div>
+    </div>
+    <div class="modal-msg" id="al-msg"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-full" id="al-btn" onclick="submitAddLocation()">Add Location</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-addloc')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ REGENERATE INVITE CODE MODAL ══ -->
+<div class="modal-overlay" id="modal-recode" onclick="closeMOnBg(event,'modal-recode')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Change Invite Code</div>
+    <div class="modal-body">
+      <div style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:14px;">
+        Changing the invite code will invalidate the old one. Any owner or employee who hasn't registered yet will need the new code.
+      </div>
+      <div class="modal-field"><label>New Invite Code</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="text" id="rc-code" style="text-transform:uppercase;font-family:monospace;font-weight:700;letter-spacing:2px;flex:1"/>
+          <button class="btn btn-ghost btn-sm" onclick="genCode('rc-code')">Generate</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-msg" id="rc-msg"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-full" id="rc-btn" onclick="submitRegenCode()">Save Code</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-recode')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ REMOVE LOCATION MODAL ══ -->
+<div class="modal-overlay" id="modal-removeloc" onclick="closeMOnBg(event,'modal-removeloc')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" style="color:var(--r5);">⚠ Remove Location</div>
+    <div class="modal-body">
+      <div style="font-size:14px;color:var(--text-muted);line-height:1.6;margin-bottom:8px;">
+        You are about to remove <strong id="remove-loc-name" style="color:var(--text);"></strong>.
+      </div>
+      <div style="background:var(--r0);border:1px solid rgba(192,48,48,0.2);border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;color:var(--r5);line-height:1.5;">
+        This permanently deletes the location and all its sales data, inventory, and settings. <strong>This cannot be undone.</strong>
+      </div>
+    </div>
+    <div class="modal-msg" id="remove-loc-msg"></div>
+    <div class="modal-actions">
+      <button class="btn btn-danger btn-full" id="remove-loc-btn" onclick="executeRemoveLocation()" style="font-size:14px;padding:11px;">Remove Location</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-removeloc')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://ndaqlamzlaucigvnhgfu.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_wO6XM4pC2CcaISQ8OlbkfQ_liqKJbi_';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let allLocations = [];
+let allUsers = [];
+let editingLocId = null;
+let recodingLocId = null;
+let removingLocId = null;
+
+const US_STATES=[['AL','Alabama'],['AK','Alaska'],['AZ','Arizona'],['AR','Arkansas'],['CA','California'],['CO','Colorado'],['CT','Connecticut'],['DE','Delaware'],['FL','Florida'],['GA','Georgia'],['HI','Hawaii'],['ID','Idaho'],['IL','Illinois'],['IN','Indiana'],['IA','Iowa'],['KS','Kansas'],['KY','Kentucky'],['LA','Louisiana'],['ME','Maine'],['MD','Maryland'],['MA','Massachusetts'],['MI','Michigan'],['MN','Minnesota'],['MS','Mississippi'],['MO','Missouri'],['MT','Montana'],['NE','Nebraska'],['NV','Nevada'],['NH','New Hampshire'],['NJ','New Jersey'],['NM','New Mexico'],['NY','New York'],['NC','North Carolina'],['ND','North Dakota'],['OH','Ohio'],['OK','Oklahoma'],['OR','Oregon'],['PA','Pennsylvania'],['RI','Rhode Island'],['SC','South Carolina'],['SD','South Dakota'],['TN','Tennessee'],['TX','Texas'],['UT','Utah'],['VT','Vermont'],['VA','Virginia'],['WA','Washington'],['WV','West Virginia'],['WI','Wisconsin'],['WY','Wyoming']];
+
+function fmtPhone(input){
+  var digits=input.value.replace(/\D/g,'').slice(0,10);
+  var fmt='';
+  if(digits.length>0)fmt='('+digits.slice(0,3);
+  if(digits.length>=4)fmt+=') '+digits.slice(3,6);
+  if(digits.length>=7)fmt+='-'+digits.slice(6,10);
+  input.value=fmt;
+}
+
+function parseAddress(addr){
+  if(!addr)return{street:'',city:'',state:'',zip:''};
+  var m=addr.match(/^(.*?),\s*(.*?),?\s+([A-Z]{2})\s+(\d{5})$/);
+  if(m)return{street:m[1].trim(),city:m[2].trim(),state:m[3].trim(),zip:m[4].trim()};
+  return{street:addr,city:'',state:'',zip:''};
+}
+
+function buildAddress(street,city,state,zip){
+  var parts=[];
+  if(street)parts.push(street);
+  if(city&&state)parts.push(city+', '+state+' '+zip);
+  else if(city)parts.push(city);
+  return parts.join(', ');
+}
+
+function escHtml(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function genCode(inputId){
+  var chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  var code='';for(var i=0;i<6;i++)code+=chars[Math.floor(Math.random()*chars.length)];
+  document.getElementById(inputId||'al-code').value=code;
+}
+
+// ── ZIP AUTO-FILL ──
+async function lookupZip(zip,cityId,stateId){
+  if(!zip||zip.length!==5)return;
+  try{
+    var res=await fetch('https://api.zippopotam.us/us/'+zip);
+    if(!res.ok)return;
+    var data=await res.json();
+    if(data.places&&data.places.length>0){
+      var place=data.places[0];
+      var ce=document.getElementById(cityId);var se=document.getElementById(stateId);
+      if(ce)ce.value=place['place name'];
+      if(se)se.value=place['state abbreviation'];
+    }
+  }catch(e){}
+}
+
+// ── PLACES AUTOCOMPLETE ──
+function attachPlacesAutocomplete(streetId,cityId,stateId,zipId){
+  var attempts=0;
+  function tryAttach(){
+    attempts++;
+    if(typeof google==='undefined'||!google.maps||!google.maps.places){if(attempts<20)setTimeout(tryAttach,300);return;}
+    var input=document.getElementById(streetId);if(!input)return;
+    input.setAttribute('autocomplete','new-password');
+    var ac=new google.maps.places.Autocomplete(input,{types:['address'],componentRestrictions:{country:'us'}});
+    input.addEventListener('keydown',function(e){if(e.key==='Enter')e.preventDefault();});
+    ac.addListener('place_changed',function(){
+      var place=ac.getPlace();if(!place||!place.address_components)return;
+      var sn='',rt='',city='',state='',zip='';
+      place.address_components.forEach(function(c){
+        var t=c.types[0];
+        if(t==='street_number')sn=c.long_name;if(t==='route')rt=c.long_name;
+        if(t==='locality')city=c.long_name;if(t==='administrative_area_level_1')state=c.short_name;
+        if(t==='postal_code')zip=c.long_name;
+      });
+      input.value=[sn,rt].filter(Boolean).join(' ');
+      var ce=document.getElementById(cityId);if(ce)ce.value=city;
+      var se=document.getElementById(stateId);if(se)se.value=state;
+      var ze=document.getElementById(zipId);if(ze)ze.value=zip.slice(0,5);
+    });
+  }
+  tryAttach();
+}
+
+// ── DARK MODE ──
+function initDarkMode(){
+  var saved=localStorage.getItem('noc-dark');
+  if(saved==='1'||(saved===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){
+    document.documentElement.classList.add('dark');
+    var btn=document.getElementById('dark-toggle-btn');
+    if(btn)btn.innerHTML='☀️';
+  }
+}
+function toggleDarkMode(){
+  var isDark=document.documentElement.classList.toggle('dark');
+  localStorage.setItem('noc-dark',isDark?'1':'0');
+  var btn=document.getElementById('dark-toggle-btn');
+  if(btn)btn.innerHTML=isDark?'☀️':'🌙';
+}
+initDarkMode();
+
+// ── RENDER ──
+function renderLocations(){
+  var list=document.getElementById('locations-list');
+  var count=document.getElementById('locs-count');
+  count.textContent='Locations ('+allLocations.length+')';
+
+  if(!allLocations.length){
+    list.innerHTML='<div class="empty-state"><div class="empty-state-icon">🏪</div><div class="empty-state-title">No locations yet</div><div class="empty-state-sub">Add your first location to get started.</div><button class="btn btn-green" onclick="openAddLocation()">+ Add Location</button></div>';
+    return;
+  }
+
+  var roleColors={admin:'var(--b7)',owner:'var(--g5)',employee:'var(--text-muted)'};
+  var roleBg={admin:'var(--b1)',owner:'var(--g0)',employee:'var(--b0)'};
+
+  list.innerHTML=allLocations.map(function(loc){
+    var initials=loc.name.split(' ').slice(0,2).map(function(w){return w[0];}).join('').toUpperCase();
+    var locUsers=allUsers.filter(function(u){return u.location_id===loc.id;});
+    var sc=loc.settings&&loc.settings.secondContact;
+
+    // Users section
+    var usersHtml=locUsers.length?locUsers.map(function(u){
+      var fn=[u.first_name,u.last_name].filter(Boolean).join(' ')||u.display_name||u.email;
+      var letter=(u.first_name||u.display_name||u.email||'?')[0].toUpperCase();
+      var dn=u.display_name?'<span style="font-size:11px;color:var(--text-faint);margin-left:4px;">('+escHtml(u.display_name)+')</span>':'';
+      return '<div class="user-row">'+
+        '<div class="user-avatar" style="background:'+( roleBg[u.role]||'var(--b0)')+';color:'+(roleColors[u.role]||'var(--text-muted)')+';">'+letter+'</div>'+
+        '<div class="user-info">'+
+          '<div class="user-name">'+escHtml(fn)+dn+'</div>'+
+          '<div class="user-email">'+escHtml(u.email)+'</div>'+
+        '</div>'+
+        '<select onchange="changeUserRole(\''+u.id+'\',this.value,this)" style="font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:600;padding:3px 7px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:'+(roleColors[u.role]||'var(--text-muted)')+';cursor:pointer;outline:none;flex-shrink:0;">'+
+          '<option value="owner" '+(u.role==='owner'?'selected':'')+'>Owner</option>'+
+          '<option value="employee" '+(u.role==='employee'?'selected':'')+'>Employee</option>'+
+        '</select>'+
+      '</div>';
+    }).join('')
+    :'<div style="font-size:13px;color:var(--text-faint);padding:4px 0;">No registered users yet — share the invite code below.</div>';
+
+    // Owner contact info
+    var ownerInfo=(loc.owner_name||loc.owner_phone||loc.settings?.ownerEmail)?
+      '<div class="owner-row">'+
+        (loc.owner_name?'<div class="owner-detail">👤 <strong>'+escHtml(loc.owner_name)+'</strong></div>':'')+
+        (loc.owner_phone?'<div class="owner-detail">📞 '+escHtml(loc.owner_phone)+'</div>':'')+
+        (loc.settings&&loc.settings.ownerEmail?'<div class="owner-detail">✉️ '+escHtml(loc.settings.ownerEmail)+'</div>':'')+
+      '</div>':
+      '';
+
+    // Second contact info
+    var sc2Html=sc&&(sc.name||sc.phone||sc.email)?
+      '<div style="border-top:1px dashed var(--border-light);margin-top:8px;padding-top:8px;">'+
+        '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);margin-bottom:6px;">Second Contact</div>'+
+        '<div class="owner-row">'+
+          (sc.name?'<div class="owner-detail">👤 <strong>'+escHtml(sc.name)+'</strong></div>':'')+
+          (sc.phone?'<div class="owner-detail">📞 '+escHtml(sc.phone)+'</div>':'')+
+          (sc.email?'<div class="owner-detail">✉️ '+escHtml(sc.email)+'</div>':'')+
+        '</div>'+
+      '</div>':
+      '';
+
+    return '<div class="loc-group" id="locg-'+loc.id+'">'+
+      // Header
+      '<div class="loc-group-header">'+
+        '<div class="loc-avatar">'+initials+'</div>'+
+        '<div class="loc-header-info">'+
+          '<div class="loc-name">'+escHtml(loc.name)+'</div>'+
+          (loc.address?'<div class="loc-addr">📍 '+escHtml(loc.address)+'</div>':'')+
+        '</div>'+
+        '<div class="loc-header-actions">'+
+          '<button class="btn btn-ghost btn-sm" onclick="openEditLocation(\''+loc.id+'\')">✏️ Edit</button>'+
+          '<button class="btn btn-sm" onclick="goToApp(\''+loc.id+'\')" style="background:linear-gradient(135deg,var(--b7),var(--b5));color:white;font-size:12px;padding:5px 12px;">View App →</button>'+
+          '<button class="btn btn-danger btn-sm" onclick="confirmRemoveLocation(\''+loc.id+'\',\''+escHtml(loc.name)+'\')" title="Remove location">🗑</button>'+
+        '</div>'+
+      '</div>'+
+      // Owner details section
+      (ownerInfo||sc2Html?
+        '<div class="loc-section">'+
+          '<div class="loc-section-title">Contact</div>'+
+          ownerInfo+sc2Html+
+        '</div>':'')+
+      // Invite code section
+      '<div class="loc-section">'+
+        '<div class="loc-section-title">'+
+          'Invite Code'+
+          '<button class="btn btn-ghost btn-sm" onclick="openRegenCode(\''+loc.id+'\')" style="font-size:11px;padding:3px 8px;">Change Code</button>'+
+        '</div>'+
+        '<div class="invite-block">'+
+          '<div>'+
+            '<div class="invite-code-pill" onclick="copyCode(\''+escHtml(loc.invite_code||'—')+'\')" title="Click to copy">'+escHtml(loc.invite_code||'—')+'</div>'+
+            '<div class="invite-code-copy">Click to copy · Share with club owner to register</div>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+      // Users section
+      '<div class="loc-section">'+
+        '<div class="loc-section-title">'+
+          'Team Members ('+locUsers.length+')'+
+        '</div>'+
+        '<div class="users-list">'+usersHtml+'</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+function copyCode(code){
+  navigator.clipboard.writeText(code).then(function(){
+    showToast('Invite code copied ✓','success');
+  }).catch(function(){
+    showToast('Code: '+code,'');
+  });
+}
+
+function goToApp(locId){
+  window.location.href='app.html?location_id='+locId+'&admin=1';
+}
+
+// ── LOAD DATA ──
+async function loadData(){
+  var locRes=await sb.from('locations').select('id,name,address,owner_name,owner_phone,invite_code,settings').order('name');
+  allLocations=locRes.data||[];
+  var userRes=await sb.from('users').select('id,email,role,location_id,display_name,first_name,last_name').in('role',['owner','employee']).order('role');
+  allUsers=userRes.data||[];
+  renderLocations();
+}
+
+// ── CHANGE USER ROLE ──
+async function changeUserRole(userId,newRole,selectEl){
+  var res=await sb.from('users').update({role:newRole}).eq('id',userId);
+  if(res.error){showToast('Role change failed: '+res.error.message,'error');await loadData();return;}
+  var u=allUsers.find(function(x){return x.id===userId;});
+  if(u)u.role=newRole;
+  renderLocations();
+  showToast('Role updated to '+newRole+' ✓','success');
+}
+
+// ── EDIT LOCATION ──
+function openEditLocation(locId){
+  var loc=allLocations.find(function(l){return l.id===locId;});
+  if(!loc)return;
+  editingLocId=locId;
+  document.getElementById('el-name').value=loc.name||'';
+  document.getElementById('el-owner').value=loc.owner_name||'';
+  document.getElementById('el-email').value=(loc.settings&&loc.settings.ownerEmail)||'';
+  var parts=parseAddress(loc.address||'');
+  document.getElementById('el-street').value=parts.street||'';
+  document.getElementById('el-street2').value='';
+  document.getElementById('el-city').value=parts.city||'';
+  document.getElementById('el-zip').value=parts.zip||'';
+  document.getElementById('el-state').value=parts.state||'';
+  var phoneEl=document.getElementById('el-phone');
+  phoneEl.value=loc.owner_phone||'';
+  if(loc.owner_phone)fmtPhone(phoneEl);
+  var sc=loc.settings&&loc.settings.secondContact;
+  var hasSecond=!!(sc&&(sc.name||sc.phone||sc.email));
+  document.getElementById('el-second-toggle').checked=hasSecond;
+  document.getElementById('el-second-fields').style.display=hasSecond?'block':'none';
+  if(sc){
+    document.getElementById('el-owner2').value=sc.name||'';
+    document.getElementById('el-email2').value=sc.email||'';
+    var ph2=document.getElementById('el-phone2');ph2.value=sc.phone||'';if(sc.phone)fmtPhone(ph2);
+  }else{
+    document.getElementById('el-owner2').value='';document.getElementById('el-phone2').value='';document.getElementById('el-email2').value='';
+  }
+  clearModalMsg('el-msg');
+  attachPlacesAutocomplete('el-street','el-city','el-state','el-zip');
+  openModal('modal-editloc');
+}
+
+function toggleSecondContact(){
+  var checked=document.getElementById('el-second-toggle').checked;
+  document.getElementById('el-second-fields').style.display=checked?'block':'none';
+}
+
+async function submitEditLocation(){
+  var name=document.getElementById('el-name').value.trim();
+  if(!name){showModalMsg('el-msg','error','Club name is required.');return;}
+  var street=document.getElementById('el-street').value.trim();
+  var street2=document.getElementById('el-street2').value.trim();
+  var city=document.getElementById('el-city').value.trim();
+  var state=document.getElementById('el-state').value;
+  var zip=document.getElementById('el-zip').value.trim();
+  var owner=document.getElementById('el-owner').value.trim();
+  var phone=document.getElementById('el-phone').value.trim();
+  var email=document.getElementById('el-email').value.trim();
+  var hasSecond=document.getElementById('el-second-toggle').checked;
+  var owner2=document.getElementById('el-owner2').value.trim();
+  var phone2=document.getElementById('el-phone2').value.trim();
+  var email2=document.getElementById('el-email2').value.trim();
+  var btn=document.getElementById('el-btn');
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Saving…';
+  var streetFull=street+(street2?' '+street2:'');
+  var address=buildAddress(streetFull,city,state,zip);
+  var loc=allLocations.find(function(l){return l.id===editingLocId;});
+  var settings=Object.assign({},(loc&&loc.settings)||{});
+  if(email)settings.ownerEmail=email;else delete settings.ownerEmail;
+  if(hasSecond&&(owner2||phone2||email2)){settings.secondContact={name:owner2,phone:phone2,email:email2};}else{delete settings.secondContact;}
+  var res=await sb.from('locations').update({name:name,address:address,owner_name:owner,owner_phone:phone,settings:settings}).eq('id',editingLocId);
+  btn.disabled=false;btn.textContent='Save Changes';
+  if(res.error){showModalMsg('el-msg','error',res.error.message);return;}
+  closeModal('modal-editloc');showToast('Location updated ✓','success');
+  await loadData();
+}
+
+// ── ADD LOCATION ──
+function openAddLocation(){
+  document.getElementById('al-name').value='';
+  document.getElementById('al-street').value='';document.getElementById('al-street2').value='';
+  document.getElementById('al-city').value='';document.getElementById('al-zip').value='';document.getElementById('al-state').value='';
+  document.getElementById('al-owner').value='';document.getElementById('al-phone').value='';
+  genCode('al-code');
+  clearModalMsg('al-msg');
+  attachPlacesAutocomplete('al-street','al-city','al-state','al-zip');
+  openModal('modal-addloc');
+}
+
+async function submitAddLocation(){
+  var name=document.getElementById('al-name').value.trim();
+  var street=document.getElementById('al-street').value.trim();
+  var street2=document.getElementById('al-street2').value.trim();
+  var city=document.getElementById('al-city').value.trim();
+  var state=document.getElementById('al-state').value;
+  var zip=document.getElementById('al-zip').value.trim();
+  var owner=document.getElementById('al-owner').value.trim();
+  var phone=document.getElementById('al-phone').value.trim();
+  var code=document.getElementById('al-code').value.trim().toUpperCase();
+  var btn=document.getElementById('al-btn');
+  if(!name){showModalMsg('al-msg','error','Club name is required.');return;}
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Adding…';
+  var streetFull=street+(street2?' '+street2:'');
+  var address=buildAddress(streetFull,city,state,zip);
+  var settings={ohRate:32,otherRate:50,merchRate:100,dvDelta:3,opDays:[false,true,true,true,true,true,true],clubName:name,operators:[{name:'Operator 1',visible:true,aliases:''},{name:'Operator 2',visible:true,aliases:''},{name:'Operator 3',visible:false,aliases:''},{name:'Operator 4',visible:false,aliases:''}]};
+  var res=await sb.from('locations').insert({name:name,address:address,owner_name:owner,owner_phone:phone,invite_code:code,settings:settings});
+  btn.disabled=false;btn.textContent='Add Location';
+  if(res.error){showModalMsg('al-msg','error',res.error.code==='23505'?'That invite code is already in use.':res.error.message);return;}
+  closeModal('modal-addloc');showToast(name+' added ✓','success');
+  await loadData();
+}
+
+// ── REGEN CODE ──
+function openRegenCode(locId){
+  recodingLocId=locId;
+  genCode('rc-code');
+  clearModalMsg('rc-msg');
+  openModal('modal-recode');
+}
+
+async function submitRegenCode(){
+  var code=document.getElementById('rc-code').value.trim().toUpperCase();
+  if(!code){showModalMsg('rc-msg','error','Please enter or generate a code.');return;}
+  var btn=document.getElementById('rc-btn');
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Saving…';
+  var res=await sb.from('locations').update({invite_code:code}).eq('id',recodingLocId);
+  btn.disabled=false;btn.textContent='Save Code';
+  if(res.error){showModalMsg('rc-msg','error',res.error.code==='23505'?'That code is already in use.':res.error.message);return;}
+  closeModal('modal-recode');showToast('Invite code updated ✓','success');
+  await loadData();
+}
+
+// ── REMOVE LOCATION ──
+function confirmRemoveLocation(locId,locName){
+  removingLocId=locId;
+  document.getElementById('remove-loc-name').textContent=locName;
+  document.getElementById('remove-loc-msg').className='modal-msg';
+  openModal('modal-removeloc');
+}
+
+async function executeRemoveLocation(){
+  if(!removingLocId)return;
+  var btn=document.getElementById('remove-loc-btn');
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Removing…';
+  var res=await sb.from('locations').delete().eq('id',removingLocId);
+  btn.disabled=false;btn.textContent='Remove Location';
+  if(res.error){
+    var msgEl=document.getElementById('remove-loc-msg');
+    msgEl.textContent='Remove failed: '+res.error.message;msgEl.className='modal-msg error';
+    return;
+  }
+  closeModal('modal-removeloc');showToast('Location removed','');removingLocId=null;
+  await loadData();
+}
+
+// ── MODAL HELPERS ──
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function closeMOnBg(e,id){if(e.target===document.getElementById(id))closeModal(id);}
+function showModalMsg(id,type,msg){var el=document.getElementById(id);el.className='modal-msg '+type;el.textContent=msg;}
+function clearModalMsg(id){var el=document.getElementById(id);el.className='modal-msg';el.textContent='';}
+
+var toastTimer;
+function showToast(msg,type){
+  var t=document.getElementById('toast');t.textContent=msg;
+  t.className='toast show'+(type?' '+type:'');
+  clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('show');},2600);
+}
+
+// ── INIT ──
+async function init(){
+  var sessionRes=await sb.auth.getSession();
+  var session=sessionRes.data.session;
+  if(!session){window.location.href='index.html';return;}
+  var userRes=await sb.from('users').select('role').eq('id',session.user.id).single();
+  if(!userRes.data||userRes.data.role!=='admin'){window.location.href='index.html';return;}
+  await loadData();
+  document.getElementById('loading-overlay').style.display='none';
+}
+
+init();
+</script>
+</body>
+</html>
