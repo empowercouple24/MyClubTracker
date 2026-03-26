@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 04:38:03 -->
+<!-- CACHE BUST: 2026-03-26 04:44:21 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -91,6 +91,17 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 .version{margin-top:16px;font-size:11px;color:rgba(255,255,255,0.65);text-align:center;letter-spacing:0.4px;}
 .spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:sp 0.7s linear infinite;vertical-align:middle;margin-right:5px;}
 @keyframes sp{to{transform:rotate(360deg);}}
+
+    /* ── DARK MODE ── */
+    html.dark .card{background:#1a2736 !important;}
+    html.dark .logo-name{color:#e8edf4 !important;}
+    html.dark .tabs{background:#0f1923 !important;}
+    html.dark .tab-btn.active{background:#243347 !important;color:#7599b8 !important;}
+    html.dark .field input,html.dark .field select,html.dark .field textarea{background:#1e2d3d !important;color:#e8edf4 !important;border-color:#2a3f56 !important;}
+    html.dark .msg.info{background:#1e2d3d !important;color:#7599b8 !important;}
+    html.dark .role-card{background:#1e2d3d !important;border-color:#2a3f56 !important;}
+    html.dark .role-card.selected{background:#243347 !important;}
+    html.dark .divider-line{background:#2a3f56 !important;}
 </style>
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBBiYB5ueXXP5HSp8wFhDY1o6ssOo5x6dg&libraries=places" async></script>
 </head>
@@ -261,6 +272,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
   </div>
 
 </div>
+<div style="text-align:center;margin-top:8px;"><button class="dark-toggle" id="dark-toggle-btn" onclick="toggleDarkMode()" style="background:none;border:1px solid rgba(255,255,255,0.2);border-radius:20px;padding:4px 12px;cursor:pointer;font-size:12px;color:rgba(255,255,255,0.55);">🌙 Dark mode</button></div>
 <div class="version" id="version-tag">Nemecek Org Clubs · v1.4.1</div>
 <script>
 // Auto-set timestamp from when this file was last served by the server
@@ -434,6 +446,23 @@ function attachPlacesAutocomplete(streetInputId, cityId, stateId, zipId) {
   }
   tryAttach();
 }
+
+// ── DARK MODE ──
+function initDarkMode(){
+  const saved=localStorage.getItem('noc-dark');
+  if(saved==='1'||(saved===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){
+    document.documentElement.classList.add('dark');
+    const btn=document.getElementById('dark-toggle-btn');
+    if(btn)btn.innerHTML='☀️';
+  }
+}
+function toggleDarkMode(){
+  const isDark=document.documentElement.classList.toggle('dark');
+  localStorage.setItem('noc-dark',isDark?'1':'0');
+  const btn=document.getElementById('dark-toggle-btn');
+  if(btn)btn.innerHTML=isDark?'☀️':'🌙';
+}
+initDarkMode();
 
 if(new URLSearchParams(window.location.search).get('tab')==='register')showTab('register');
 
