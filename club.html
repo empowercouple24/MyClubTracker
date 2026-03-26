@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 06:35:47 RENAMED-CLUB -->
+<!-- CACHE BUST: 2026-03-26 06:45:30 -->
 <html lang="en">
 <head>
 <script>
@@ -868,18 +868,20 @@ document.addEventListener('click',function(e){var wrap=document.querySelector('.
 
 async function init(){
   setLoadText('Authenticating…');
+
+  // If URL hash contains a Supabase token (email confirmation, magic link etc.)
+  // sign out and redirect to login page — never auto-login from a link
+  const hash=window.location.hash;
+  if(hash&&(hash.includes('access_token')||hash.includes('type=signup')||hash.includes('type=email')||hash.includes('type=magiclink'))){
+    await sb.auth.signOut();
+    window.location.href='index.html?msg=confirmed';
+    return;
+  }
+
   const{data:{session}}=await sb.auth.getSession();
   if(!session){window.location.href='index.html';return;}
   CURRENT_SESSION=session;
   const params=new URLSearchParams(window.location.search);
-
-  // Check if this is a post-confirmation redirect (token in URL hash)
-  const hash=window.location.hash;
-  if(hash&&(hash.includes('access_token')||hash.includes('type=signup'))){
-    // Clear the hash and redirect cleanly to sign-in with confirmed message
-    window.location.href='index.html?msg=confirmed';
-    return;
-  }
 
   if(params.get('admin')==='1'&&params.get('location_id')){
     IS_ADMIN_VIEW=true;LOCATION_ID=params.get('location_id');OPEN_SETTINGS=params.get('settings')==='1';
@@ -1257,7 +1259,29 @@ function populateOperatorDropdowns(){const ops=SETTINGS.operators.filter(o=>o.na
 async function handleSignOut(){if(IS_ADMIN_VIEW){window.location.href='admin.html';return;}await sb.auth.signOut();window.location.href='index.html';}
 let toastTimer;
 function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(type?' '+type:'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2400);}
-init();
+// Global error handler - shows errors visually instead of blank page
+window.onerror = function(msg, src, line, col, err) {
+  document.body.innerHTML = '<div style="padding:40px;font-family:monospace;background:#fff0f0;min-height:100vh;">' +
+    '<h2 style="color:#c03030;margin-bottom:16px;">App Error (line ' + line + ')</h2>' +
+    '<pre style="color:#333;white-space:pre-wrap;font-size:14px;">' + msg + '\n\n' + (err && err.stack ? err.stack : '') + '</pre>' +
+    '<p style="margin-top:20px;color:#666;">URL: ' + window.location.href + '</p>' +
+    '</div>';
+  return true;
+};
+
+async function safeInit() {
+  try {
+    await init();
+  } catch(e) {
+    document.body.innerHTML = '<div style="padding:40px;font-family:monospace;background:#fff0f0;min-height:100vh;">' +
+      '<h2 style="color:#c03030;margin-bottom:16px;">Init Error</h2>' +
+      '<pre style="color:#333;white-space:pre-wrap;font-size:14px;">' + e.message + '\n\n' + (e.stack||'') + '</pre>' +
+      '<p style="margin-top:20px;color:#666;">URL: ' + window.location.href + '</p>' +
+      '<p><a href="admin.html">← Back to Dashboard</a></p>' +
+      '</div>';
+  }
+}
+safeInit();
 </script>
 </body>
 </html>
