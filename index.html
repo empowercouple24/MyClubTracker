@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 04:44:21 -->
+<!-- CACHE BUST: 2026-03-26 05:20:34 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -93,6 +93,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 @keyframes sp{to{transform:rotate(360deg);}}
 
     /* ── DARK MODE ── */
+    html.dark{--text-muted:#ddeaf5;--text-faint:#c5d8e8;}
     html.dark .card{background:#1a2736 !important;}
     html.dark .logo-name{color:#e8edf4 !important;}
     html.dark .tabs{background:#0f1923 !important;}
@@ -386,7 +387,7 @@ async function doRegister(){
 function showReqStep(n){[1,2,3,4].forEach(function(i){var el=document.getElementById('req-s'+i);if(el)el.style.display=i===n?'block':'none';});}
 async function doVerifyOrgKey(){var key=document.getElementById('req-org-key').value.trim();if(!key){showMsg('req-msg-key','Please enter the organization key.','error');return;}setBtn('req-key-btn',true,'Checking…');clearMsg('req-msg-key');var res=await sb.from('app_settings').select('value').eq('key','org_key').single();setBtn('req-key-btn',false,'Unlock Request Form →');if(res.error||!res.data){showMsg('req-msg-key','Unable to verify key. Try again later.','error');return;}if(res.data.value.toUpperCase()!==key.toUpperCase()){showMsg('req-msg-key','Incorrect organization key.','error');return;}showReqStep(2);}
 async function doSubmitRequest(){
-  var club=document.getElementById('req-club').value.trim();var street=document.getElementById('req-street').value.trim();var city=document.getElementById('req-city').value.trim();var state=document.getElementById('req-state').value;var zip=document.getElementById('req-zip').value.trim();
+  var club=document.getElementById('req-club').value.trim();var street=document.getElementById('req-street').value.trim();var street2=document.getElementById('req-street2').value.trim();var city=document.getElementById('req-city').value.trim();var state=document.getElementById('req-state').value;var zip=document.getElementById('req-zip').value.trim();
   var fn=document.getElementById('req-firstname').value.trim();var ln=document.getElementById('req-lastname').value.trim();var ph=document.getElementById('req-phone').value.trim();var em=document.getElementById('req-email').value.trim();var notes=document.getElementById('req-notes').value.trim();
   var name=[fn,ln].filter(Boolean).join(' ');
   var missing=[];
