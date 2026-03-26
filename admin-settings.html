@@ -147,7 +147,10 @@ if('serviceWorker' in navigator){
   <div class="nav-inner">
     <button class="btn-back" onclick="window.location.href='admin.html'">←</button>
     <div class="nav-title">Admin Settings</div>
-    <div class="nav-badge">Admin</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
+      <span id="nav-display-name" style="font-size:13px;font-weight:600;color:var(--text-muted);"></span>
+      <div class="nav-badge">Admin</div>
+    </div>
   </div>
 </nav>
 
@@ -308,20 +311,26 @@ if('serviceWorker' in navigator){
 
   <!-- ══ CHANGE PASSWORD ══ -->
   <div class="section">
-    <div class="section-label">Change Password</div>
-    <div class="card">
-      <div class="settings-row">
-        <div class="row-label">New Password</div>
-        <input type="password" class="row-input" id="cp-new" placeholder="New password" autocomplete="new-password"/>
-      </div>
-      <div class="settings-row">
-        <div class="row-label">Confirm Password</div>
-        <input type="password" class="row-input" id="cp-confirm" placeholder="Repeat new password" autocomplete="new-password"/>
-      </div>
-      <div id="cp-msg" style="display:none;padding:8px 16px;font-size:13px;border-radius:0 0 var(--radius) var(--radius);"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0;">
+      <div class="section-label" style="margin-bottom:0;">Change Password</div>
+      <button id="cp-toggle-btn" onclick="toggleChangePassword()" class="btn btn-ghost btn-sm">Change →</button>
     </div>
-    <div style="margin-top:10px;">
-      <button class="btn btn-primary" onclick="changePassword()">Update Password</button>
+    <div id="cp-panel" style="display:none;margin-top:12px;">
+      <div class="card">
+        <div class="settings-row">
+          <div class="row-label">New Password</div>
+          <input type="password" class="row-input" id="cp-new" placeholder="New password" autocomplete="new-password"/>
+        </div>
+        <div class="settings-row">
+          <div class="row-label">Confirm Password</div>
+          <input type="password" class="row-input" id="cp-confirm" placeholder="Repeat new password" autocomplete="new-password"/>
+        </div>
+        <div id="cp-msg" style="display:none;padding:8px 16px;font-size:13px;border-radius:0 0 var(--radius) var(--radius);"></div>
+      </div>
+      <div style="margin-top:10px;display:flex;gap:8px;">
+        <button class="btn btn-primary" onclick="changePassword()">Update Password</button>
+        <button class="btn btn-ghost" onclick="toggleChangePassword()">Cancel</button>
+      </div>
     </div>
   </div>
 
@@ -704,6 +713,7 @@ async function init() {
   document.getElementById('prof-firstname').value = u.first_name || '';
   document.getElementById('prof-lastname').value  = u.last_name  || '';
   document.getElementById('prof-name').value      = u.display_name || '';
+  document.getElementById('nav-display-name').textContent = u.display_name || [u.first_name,u.last_name].filter(Boolean).join(' ') || '';
   const profPhoneEl = document.getElementById('prof-phone');
   profPhoneEl.value = u.phone || '';
   if (u.phone) fmtPhone(profPhoneEl);
@@ -723,6 +733,16 @@ async function init() {
   /* overlay hidden by default */
 }
 
+// ── CHANGE PASSWORD TOGGLE ──
+function toggleChangePassword(){
+  const panel = document.getElementById('cp-panel');
+  const btn = document.getElementById('cp-toggle-btn');
+  const open = panel.style.display === 'none';
+  panel.style.display = open ? 'block' : 'none';
+  btn.textContent = open ? 'Cancel' : 'Change →';
+  if(!open){ document.getElementById('cp-new').value=''; document.getElementById('cp-confirm').value=''; document.getElementById('cp-msg').style.display='none'; }
+}
+
 // ── ADMIN PROFILE ──
 async function saveAdminProfile() {
   const { data:{ session } } = await sb.auth.getSession();
@@ -738,6 +758,8 @@ async function saveAdminProfile() {
     phone
   }).eq('id', session.user.id);
   if (error) { showToast('Save failed: '+error.message, 'error'); return; }
+  // Sync display name to nav
+  document.getElementById('nav-display-name').textContent = display_name || [firstName, lastName].filter(Boolean).join(' ') || '';
   showToast('Profile saved ✓', 'success');
 }
 
@@ -894,7 +916,10 @@ function renderAdmins() {
     const fullName = [u.first_name,u.last_name].filter(Boolean).join(' ') || u.display_name || '—';
     const dispTag  = u.display_name ? `<span style="font-size:11px;color:var(--text-faint);margin-left:5px;">(${escHtml(u.display_name)})</span>` : '';
     const loc      = allLocations.find(l=>l.id===u.location_id);
-    const locTag   = loc ? `<div style="font-size:11px;color:var(--text-faint);">📍 ${escHtml(loc.name)}</div>` : '';
+    const locTag   = loc
+      ? `<div style="font-size:12px;color:var(--b6);margin-top:2px;font-weight:500;">📍 ${escHtml(loc.name)}</div>`
+      : u.role==='admin' ? `<div style="font-size:11px;color:var(--text-faint);margin-top:2px;">All locations</div>`
+      : `<div style="font-size:11px;color:var(--text-faint);margin-top:2px;">No location assigned</div>`;
     return `
     <div class="user-row">
       <div class="user-avatar" style="background:${roleBg[u.role]||'var(--b0)'};color:${roleColors[u.role]||'var(--text-muted)'};">${letter}</div>
