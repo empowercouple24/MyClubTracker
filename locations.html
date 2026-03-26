@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 05:38:11 -->
+<!-- CACHE BUST: 2026-03-26 05:51:01 v3 -->
 <html lang="en">
 <head>
 <script>
@@ -46,9 +46,9 @@ html,body{min-height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);
 .nav-badge{font-size:12px;font-weight:700;background:var(--b7);color:white;padding:3px 8px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase}
 .dark-toggle{background:none;border:1px solid var(--border);border-radius:20px;padding:4px 10px;cursor:pointer;font-size:13px;color:var(--text-muted);}
 .nav-menu-wrap{position:relative;}
-.nav-menu-btn{display:flex;align-items:center;gap:7px;background:none;border:1px solid var(--border);border-radius:20px;padding:4px 12px 4px 8px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text-muted);font-family:'DM Sans',sans-serif;transition:all 0.15s;}
+.nav-menu-btn{display:flex;align-items:center;gap:7px;background:none;border:1px solid var(--border);border-radius:20px;padding:6px 14px 6px 10px;cursor:pointer;font-size:15px;font-weight:600;color:var(--text-muted);font-family:'DM Sans',sans-serif;transition:all 0.15s;}
 .nav-menu-btn:hover{background:var(--b0);color:var(--text);}
-.nav-menu-badge{font-size:11px;font-weight:700;background:var(--b7);color:white;padding:2px 7px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase;}
+.nav-menu-badge{font-size:14px;font-weight:700;background:var(--b7);color:white;padding:4px 10px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase;}
 .nav-dropdown{position:absolute;top:calc(100% + 6px);right:0;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);box-shadow:0 4px 20px rgba(30,45,61,0.12);min-width:160px;z-index:999;display:none;}
 .nav-dropdown.open{display:block;animation:dropIn 0.15s ease;}
 @keyframes dropIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
@@ -90,19 +90,19 @@ html.dark .nav-dropdown-item:hover{background:var(--b1);}
 .loc-avatar{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--b7),var(--b4));display:flex;align-items:center;justify-content:center;font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:white;flex-shrink:0;box-shadow:0 2px 8px rgba(58,84,112,0.25)}
 .loc-header-info{flex:1;min-width:0}
 .loc-name{font-family:'Outfit',sans-serif;font-size:20px;font-weight:700;color:var(--text);line-height:1.2}
-.loc-addr{font-size:15px;color:var(--text-faint);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.loc-addr{font-size:16px;color:var(--text-faint);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .loc-header-actions{display:flex;gap:6px;flex-shrink:0}
 
 /* SECTIONS WITHIN CARD */
 .loc-section{padding:16px 20px;border-bottom:1px solid var(--border-light)}
 .loc-section:last-child{border-bottom:none}
-.loc-section-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-faint);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.loc-section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-faint);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
 
 /* INVITE CODE BLOCK */
 .invite-block{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.invite-code-pill{font-family:monospace;font-size:24px;font-weight:700;letter-spacing:4px;color:#ffffff;background:#3a5470;border:2px solid #4a6a8a;border-radius:10px;padding:10px 18px;cursor:pointer;user-select:all;transition:background 0.15s}
+.invite-code-pill{font-family:monospace;font-size:23px;font-weight:700;letter-spacing:4px;color:#ffffff;background:#3a5470;border:2px solid #4a6a8a;border-radius:10px;padding:10px 18px;cursor:pointer;user-select:all;transition:background 0.15s}
 .invite-code-pill:hover{background:#4a6a8a}
-.invite-code-copy{font-size:14px;color:var(--text-faint);margin-top:6px}
+.invite-code-copy{font-size:13px;color:var(--text-faint);margin-top:6px}
 
 /* USERS GRID */
 .users-list{display:flex;flex-direction:column;gap:1px}
@@ -110,15 +110,15 @@ html.dark .nav-dropdown-item:hover{background:var(--b1);}
 .user-row+.user-row{border-top:1px solid var(--border-light)}
 .user-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
 .user-info{flex:1;min-width:0}
-.user-name{font-size:17px;font-weight:600;color:var(--text)}
-.user-email{font-size:14px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-name{font-size:16px;font-weight:600;color:var(--text)}
+.user-email{font-size:13px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .role-pill{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;flex-shrink:0;text-transform:capitalize}
 .role-pill.admin{background:var(--b1);color:var(--b7)}
 .role-pill.owner{background:var(--g0);color:var(--g5)}
 .role-pill.employee{background:var(--b0);color:var(--text-faint);border:1px solid var(--border)}
 
 /* OWNER INFO ROW */
-.owner-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:17px;color:var(--text-muted)}
+.owner-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:16px;color:var(--text-muted)}
 .owner-detail{display:flex;align-items:center;gap:4px}
 
 /* EMPTY STATE */
@@ -501,7 +501,7 @@ function renderLocations(){
     var usersHtml=locUsers.length?locUsers.map(function(u){
       var fn=[u.first_name,u.last_name].filter(Boolean).join(' ')||u.display_name||u.email;
       var letter=(u.first_name||u.display_name||u.email||'?')[0].toUpperCase();
-      var dn=u.display_name?'<span style="font-size:14px;color:var(--text-faint);margin-left:5px;">('+escHtml(u.display_name)+')</span>':'';
+      var dn=u.display_name?'<span style="font-size:13px;color:var(--text-faint);margin-left:4px;">('+escHtml(u.display_name)+')</span>':'';
       return '<div class="user-row">'+
         '<div class="user-avatar" style="background:'+( roleBg[u.role]||'var(--b0)')+';color:'+(roleColors[u.role]||'var(--text-muted)')+';">'+letter+'</div>'+
         '<div class="user-info">'+
