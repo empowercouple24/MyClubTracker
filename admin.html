@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 04:38:03 -->
+<!-- CACHE BUST: 2026-03-26 04:43:50 -->
 <html lang="en">
 <head>
 <script>
@@ -19,6 +19,7 @@ if('serviceWorker' in navigator){
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{
@@ -153,6 +154,43 @@ if('serviceWorker' in navigator){
     .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--b8);color:white;padding:11px 20px;border-radius:24px;font-size:15px;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,0.2);z-index:400;transition:transform 0.3s cubic-bezier(0.16,1,0.3,1),opacity 0.3s;opacity:0;white-space:nowrap}
     .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
     .toast.success{background:var(--g5)}.toast.error{background:var(--r5)}
+
+    /* ── DARK MODE ── */
+    html.dark {
+      --bg:#0f1923;
+      --surface:#1a2736;
+      --border:#2a3f56;
+      --border-light:#243347;
+      --text:#e8edf4;
+      --text-muted:#8fa3b3;
+      --text-faint:#5b7087;
+      --b0:#1e2d3d;
+      --b1:#243347;
+      --shadow-sm:0 1px 4px rgba(0,0,0,0.3);
+      --shadow-md:0 4px 20px rgba(0,0,0,0.4);
+    }
+    html.dark .topnav{background:rgba(15,25,35,0.95);}
+    html.dark .kpi-period{background:var(--surface);border-color:var(--border);}
+    html.dark .loc-card{background:var(--surface);border-color:var(--border);}
+    html.dark .modal-box{background:var(--surface);}
+    html.dark .modal-field input,html.dark .modal-field select,html.dark .modal-field textarea{background:var(--b0);color:var(--text);border-color:var(--border);}
+    html.dark .chart-card{background:var(--surface);border-color:var(--border);}
+    html.dark .toast{background:var(--b8);}
+
+    /* Dark mode toggle button */
+    .dark-toggle{background:none;border:1px solid var(--border);border-radius:20px;padding:4px 10px;cursor:pointer;font-size:13px;color:var(--text-muted);transition:all 0.2s;display:flex;align-items:center;gap:5px;}
+    .dark-toggle:hover{background:var(--b0);color:var(--text);}
+
+    /* ── CHART SECTION ── */
+    .chart-card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-sm);}
+    .chart-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+    .chart-tab{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:none;color:var(--text-muted);cursor:pointer;transition:all 0.15s;}
+    .chart-tab.active{background:var(--b7);color:white;border-color:var(--b7);}
+    .chart-metric-tabs{display:flex;gap:6px;margin-bottom:14px;}
+    .chart-metric-tab{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:none;color:var(--text-muted);cursor:pointer;transition:all 0.15s;}
+    .chart-metric-tab.active{background:var(--b1);color:var(--b7);border-color:var(--b3);}
+    .chart-empty{text-align:center;padding:40px;color:var(--text-faint);font-size:13px;}
+
     @media(max-width:640px){.kpi-strip{grid-template-columns:1fr}.expanded-grid{grid-template-columns:1fr}.nav-profile{display:none}}
 
     /* MISSING DAY ALERT BANNER */
@@ -201,6 +239,7 @@ if('serviceWorker' in navigator){
   <div class="nav-right">
     <div class="nav-profile" id="nav-profile"></div>
     <button class="btn-sm" onclick="openProfileModal()">👤 Profile</button>
+    <a href="locations.html" class="btn-sm">🏪 Locations</a>
     <a href="admin-settings.html" class="btn-sm">⚙ Settings</a>
     <button class="btn-sm" onclick="handleSignOut()">Sign out</button>
   </div>
@@ -229,6 +268,30 @@ if('serviceWorker' in navigator){
       <div class="kpi-row"><span class="kpi-metric-label">Sales</span><span class="kpi-metric-val big" id="kpi-month-sales">—</span></div>
       <div class="kpi-row"><span class="kpi-metric-label">DV</span><span class="kpi-metric-val" id="kpi-month-dv">—</span></div>
       <div class="kpi-sub" id="kpi-month-sub"></div>
+    </div>
+  </div>
+
+  <!-- COMPARISON CHART SECTION -->
+  <div id="chart-section" style="margin-top:28px;display:none;">
+    <div class="section-header" style="margin-top:0;margin-bottom:12px;">
+      <div class="section-label" style="margin:0;">Location Comparison</div>
+      <div style="display:flex;gap:6px;">
+        <div class="chart-metric-tabs">
+          <button class="chart-metric-tab active" id="chart-metric-sales" onclick="setChartMetric('sales')">Sales</button>
+          <button class="chart-metric-tab" id="chart-metric-dv" onclick="setChartMetric('dv')">DV</button>
+          <button class="chart-metric-tab" id="chart-metric-days" onclick="setChartMetric('days')">Days</button>
+        </div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-tabs">
+        <button class="chart-tab active" id="chart-tab-week" onclick="setChartPeriod('week')">Last 7 Days</button>
+        <button class="chart-tab" id="chart-tab-month" onclick="setChartPeriod('month')">Last 30 Days</button>
+        <button class="chart-tab" id="chart-tab-yday" onclick="setChartPeriod('yday')">Yesterday</button>
+      </div>
+      <div style="position:relative;height:260px;">
+        <canvas id="comparison-chart"></canvas>
+      </div>
     </div>
   </div>
 
@@ -598,6 +661,154 @@ function fmtPhone(input){
   input.value=fmt;
 }
 
+// ── DARK MODE ──
+function initDarkMode(){
+  const saved = localStorage.getItem('noc-dark');
+  if(saved==='1'||(saved===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){
+    document.documentElement.classList.add('dark');
+    const btn=document.getElementById('dark-toggle-btn');
+    if(btn)btn.textContent='☀️';
+  }
+}
+function toggleDarkMode(){
+  const isDark=document.documentElement.classList.toggle('dark');
+  localStorage.setItem('noc-dark',isDark?'1':'0');
+  const btn=document.getElementById('dark-toggle-btn');
+  if(btn)btn.textContent=isDark?'☀️':'🌙';
+  if(compChart)renderCompChart();
+}
+initDarkMode();
+
+// ── LOCATION COMPARISON CHART ──
+let compChart=null;
+let chartPeriod='week';
+let chartMetric='sales';
+
+function setChartPeriod(p){
+  chartPeriod=p;
+  ['week','month','yday'].forEach(t=>{
+    const el=document.getElementById('chart-tab-'+t);
+    if(el)el.classList.toggle('active',t===p);
+  });
+  renderCompChart();
+}
+
+function setChartMetric(m){
+  chartMetric=m;
+  ['sales','dv','days'].forEach(t=>{
+    const el=document.getElementById('chart-metric-'+t);
+    if(el)el.classList.toggle('active',t===m);
+  });
+  renderCompChart();
+}
+
+function renderCompChart(){
+  const section=document.getElementById('chart-section');
+  if(!allLocations.length){section.style.display='none';return;}
+  section.style.display='block';
+  
+  const yday=yesterday(),w0=last7Start(),m0=last30Start(),today=todayStr();
+  const isDark=document.documentElement.classList.contains('dark');
+  
+  // Build data per location
+  const labels=[];
+  const values=[];
+  const colors=[];
+  const palette=['#3a5470','#2e7a35','#c47c0a','#7b4ea6','#c03030','#1a7a8a','#6b4c2a','#4a7a3a'];
+  
+  allLocations.forEach((loc,i)=>{
+    const ld=allDays.filter(d=>d.location_id===loc.id);
+    let val=0;
+    if(chartPeriod==='yday'){
+      if(chartMetric==='sales') val=sumField(ld,'totalSales',yday,yday);
+      else if(chartMetric==='dv') val=sumField(ld,'dv',yday,yday);
+      else val=countDays(ld,yday,yday);
+    } else if(chartPeriod==='week'){
+      if(chartMetric==='sales') val=sumField(ld,'totalSales',w0,today);
+      else if(chartMetric==='dv') val=sumField(ld,'dv',w0,today);
+      else val=countDays(ld,w0,today);
+    } else {
+      if(chartMetric==='sales') val=sumField(ld,'totalSales',m0,today);
+      else if(chartMetric==='dv') val=sumField(ld,'dv',m0,today);
+      else val=countDays(ld,m0,today);
+    }
+    // Truncate long names
+    const name=loc.name.length>18?loc.name.slice(0,16)+'…':loc.name;
+    labels.push(name);
+    values.push(val);
+    colors.push(palette[i%palette.length]);
+  });
+  
+  const textColor=isDark?'#8fa3b3':'#5b7087';
+  const gridColor=isDark?'rgba(255,255,255,0.05)':'rgba(30,45,61,0.07)';
+  const metricLabel=chartMetric==='sales'?'Sales ($)':chartMetric==='dv'?'DV Points':'Days Reported';
+  const isMoney=chartMetric==='sales';
+  
+  const ctx=document.getElementById('comparison-chart');
+  if(!ctx)return;
+  
+  if(compChart){compChart.destroy();compChart=null;}
+  
+  compChart=new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels,
+      datasets:[{
+        label:metricLabel,
+        data:values,
+        backgroundColor:colors.map(c=>c+'cc'),
+        borderColor:colors,
+        borderWidth:2,
+        borderRadius:6,
+        borderSkipped:false,
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{
+            label:function(ctx){
+              const v=ctx.parsed.y;
+              if(isMoney)return ' $'+v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+              if(chartMetric==='dv')return ' '+v.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1})+' DV';
+              return ' '+v+' days';
+            }
+          },
+          backgroundColor:isDark?'#1a2736':'#1e2d3d',
+          titleColor:isDark?'#e8edf4':'#fff',
+          bodyColor:isDark?'#8fa3b3':'#bfd0e0',
+          borderColor:isDark?'#2a3f56':'#3a5470',
+          borderWidth:1,
+          padding:10,
+        }
+      },
+      scales:{
+        x:{
+          ticks:{color:textColor,font:{family:'DM Sans',size:11}},
+          grid:{display:false},
+          border:{display:false},
+        },
+        y:{
+          ticks:{
+            color:textColor,
+            font:{family:'DM Sans',size:11},
+            callback:function(v){
+              if(isMoney)return '$'+v.toLocaleString();
+              return v;
+            }
+          },
+          grid:{color:gridColor},
+          border:{display:false},
+          beginAtZero:true,
+        }
+      }
+    }
+  });
+}
+
 async function init(){
   const{data:{session}}=await sb.auth.getSession();
   if(!session){window.location.href='index.html';return;}
@@ -616,7 +827,7 @@ async function init(){
   // Fetch all owner/employee users so we can check which locations have registered accounts
   const{data:locUsers}=await sb.from('users').select('location_id,role').in('role',['owner','employee']);
   allLocationUsers=locUsers||[];
-  renderKPIs();renderLocations();renderAlertBanner();
+  renderKPIs();renderLocations();renderAlertBanner();renderCompChart();
   await loadRequests();
   /* overlay hidden by default */
 }
