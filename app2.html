@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 08:24:36 -->
+<!-- CACHE BUST: 2026-03-26 08:28:54 -->
 <html lang="en">
 <head>
 <script>
@@ -255,7 +255,7 @@ if('serviceWorker' in navigator){
 <div class="admin-location-banner" id="admin-banner" style="display:none;"></div>
 
 <nav class="topnav">
-  <button class="nav-btn back" id="nav-back-btn" style="display:none;font-weight:700;color:var(--b5);font-size:13px;padding:4px 10px;background:var(--b0);border-radius:8px;border:1px solid var(--border);" onclick="goBackToAdmin()">← Dashboard</button>
+  <div id="nav-admin-btns" style="display:none;flex-shrink:0;gap:5px;align-items:center;"><button class="nav-btn back" id="nav-back-btn" style="font-weight:700;color:var(--b5);font-size:12px;padding:4px 9px;background:var(--b0);border-radius:8px;border:1px solid var(--border);" onclick="goBackToAdmin()">← Dashboard</button><button class="nav-btn back" id="nav-locs-btn" style="font-weight:700;color:var(--b5);font-size:12px;padding:4px 9px;background:var(--b0);border-radius:8px;border:1px solid var(--border);" onclick="window.location.href='locations.html'">🏪 Locations</button></div>
   <div class="nav-logo"><svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
   <g transform="rotate(-18, 16, 36)">
     <rect x="8" y="24" width="16" height="20" rx="2" fill="#1a5c2a"/>
@@ -949,9 +949,9 @@ async function init(){
     const _urlLocName=params.get('locationName');
     if(_urlLocName){const _ncn=document.getElementById('nav-club-name');if(_ncn)_ncn.textContent=decodeURIComponent(_urlLocName);document.title=decodeURIComponent(_urlLocName)+' — Club App';}
     const _nab=document.getElementById('nav-admin-badge');if(_nab)_nab.style.display='block';
-    const _nbb=document.getElementById('nav-back-btn');if(_nbb)_nbb.style.display='block';
+    const _nbb=document.getElementById('nav-admin-btns');if(_nbb){_nbb.style.display='flex';}
     const _so=document.getElementById('nav-signout-btn');if(_so)_so.style.display='none';
-    const bn=document.getElementById('admin-banner');if(bn){bn.style.display='block';bn.textContent='Admin View: '+(loc?.name||LOCATION_ID);}
+    const bn=document.getElementById('admin-banner');if(bn){bn.style.display='block';bn.textContent='Admin View: '+(loc?.name||decodeURIComponent(params.get('locationName')||'')||LOCATION_ID);}
     const _aeb=document.getElementById('admin-edit-banner');if(_aeb)_aeb.classList.add('show');
     const _nsb=document.getElementById('nav-settings-btn');if(_nsb)_nsb.style.display='block';
     const _smt=document.getElementById('settings-modal-title');if(_smt)_smt.textContent='Settings — '+(loc?.name||'Location');
