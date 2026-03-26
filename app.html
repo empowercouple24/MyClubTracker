@@ -5,6 +5,10 @@
 if(location.protocol==='http:'&&location.hostname!=='localhost'){
   location.replace('https://'+location.host+location.pathname+location.search+location.hash);
 }
+// Kill any stale service workers
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.getRegistrations().then(regs=>{regs.forEach(r=>r.unregister());});
+}
 </script>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
@@ -178,8 +182,7 @@ if(location.protocol==='http:'&&location.hostname!=='localhost'){
     .settings-row select,.settings-row input[type="text"]{font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 8px;outline:none;width:120px;transition:border-color 0.15s}
     .settings-row select:focus,.settings-row input[type="text"]:focus{border-color:var(--b5)}
     /* LOADING/TOAST */
-    #loading-overlay{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:300;transition:opacity 0.3s}
-    #loading-overlay.hidden{opacity:0;pointer-events:none}
+    #loading-overlay{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:300;}
     .load-spinner{width:32px;height:32px;border:3px solid var(--b1);border-top-color:var(--b6);border-radius:50%;animation:spin 0.8s linear infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
     .load-text{font-size:13px;color:var(--text-muted)}
@@ -849,7 +852,7 @@ function init(){
   document.getElementById('payout-from').value=new Date(now.getFullYear(),now.getMonth(),1).toISOString().slice(0,10);
   document.getElementById('payout-to').value=new Date(now.getFullYear(),now.getMonth()+1,0).toISOString().slice(0,10);
   populateOperatorDropdowns();buildSettingsUI();loadDay();renderHistory();renderInventory();renderInventoryHistory();renderProjections();renderPayouts();
-  document.getElementById('loading-overlay').classList.add('hidden');
+  /* overlay hidden by default */
   if(OPEN_SETTINGS)setTimeout(()=>openSettings(),300);
 }
 function setLoadText(t){document.getElementById('load-text').textContent=t;}
