@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 06:15:05 -->
+<!-- CACHE BUST: 2026-03-26 06:21:38 -->
 <html lang="en">
 <head>
 <script>
@@ -405,8 +405,8 @@ if('serviceWorker' in navigator){
       <div class="modal-field"><label>Club Name</label><input type="text" id="al-name" placeholder="e.g. Fuel Station Nutrition"/></div>
       <div class="modal-field"><label>Street Address</label><input type="text" id="al-street" placeholder="123 Main St"/></div>
       <div class="modal-field" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <div><label>City</label><input type="text" id="al-city" placeholder="City" style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;outline:none;"/></div>
-        <div><label>State</label><select id="al-state" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 8px;outline:none;-webkit-appearance:auto;"></select></div>
+        <div><label>City</label><input type="text" id="al-city" placeholder="Auto-filled from zip" readonly style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;outline:none;"/></div>
+        <div><label>State</label><select id="al-state" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 8px;outline:none;-webkit-appearance:auto;" readonly></select></div>
       </div>
       <div class="modal-field"><label>Zip Code</label><input type="text" id="al-zip" placeholder="00000" maxlength="5" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5)"/></div>
       <div class="modal-field"><label>Owner Name</label><input type="text" id="al-owner" placeholder="Full name"/></div>
@@ -437,7 +437,7 @@ if('serviceWorker' in navigator){
       <div class="modal-field"><label>Address Line 2 <span style="font-size:11px;font-weight:400;color:var(--text-faint);">Suite, Unit, Apt (optional)</span></label><input type="text" id="el-street2" placeholder="e.g. Suite 100"/></div>
       <div class="modal-field"><label>Zip Code</label><input type="text" id="el-zip" placeholder="00000" maxlength="5" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5);if(this.value.length===5)lookupZip(this.value,'el-city','el-state')"/></div>
       <div class="modal-field" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <div><label>City <span style="font-size:10px;font-weight:400;color:var(--text-faint);">auto-fills</span></label><input type="text" id="el-city" placeholder="Auto-filled from zip" style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--b6);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;outline:none;"/></div>
+        <div><label>City <span style="font-size:10px;font-weight:400;color:var(--text-faint);">auto-fills</span></label><input type="text" id="el-city" placeholder="Auto-filled from zip" readonly style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--b6);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;outline:none;" readonly/></div>
         <div><label>State <span style="font-size:10px;font-weight:400;color:var(--text-faint);">auto-fills</span></label><input type="text" id="el-state" placeholder="Auto" readonly style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--b6);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;outline:none;"/></div>
       </div>
       <div class="modal-field"><label>Owner Name</label><input type="text" id="el-owner"/></div>
@@ -1292,11 +1292,11 @@ function range(from, to, step) {
 function buildSelect(id, values, current, labelFn) {
   const el = document.getElementById(id);
   if (!el) return;
-  const isDark = document.documentElement.classList.contains('dark');
-  el.style.color = isDark ? '#e8edf4' : 'var(--text)';
-  el.style.background = isDark ? '#1e2d3d' : 'var(--b0)';
+  // Don't use inline styles — let CSS handle colors
+  el.style.color = '';
+  el.style.background = '';
   el.innerHTML = values.map(v =>
-    `<option value="${v}" ${Math.abs(v-current)<0.001?'selected':''} style="color:${isDark?'#e8edf4':'inherit'};background:${isDark?'#1a2736':'inherit'};">${labelFn(v)}</option>`
+    `<option value="${v}" ${Math.abs(v-current)<0.001?'selected':''}>${labelFn(v)}</option>`
   ).join('');
 }
 
