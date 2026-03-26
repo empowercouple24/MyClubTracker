@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 05:43:59 -->
+<!-- CACHE BUST: 2026-03-26 05:50:41 v3 -->
 <html lang="en">
 <head>
 <script>
@@ -40,14 +40,14 @@ if('serviceWorker' in navigator){
     .btn-back{background:none;border:none;cursor:pointer;font-size:22px;color:var(--b6);padding:0 4px;line-height:1;display:flex;align-items:center}
     .btn-back:hover{color:var(--b8)}
     .nav-title{font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--text);flex:1}
-    .nav-badge{font-size:12px;font-weight:700;background:var(--b7);color:white;padding:3px 8px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase}
+    .nav-badge{font-size:14px;font-weight:700;background:var(--b7);color:white;padding:4px 11px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase}
 
     /* PAGE */
     .page{max-width:680px;margin:0 auto;padding:24px 20px calc(64px + env(safe-area-inset-bottom,0px))}
 
     /* SECTION */
     .section{margin-bottom:32px}
-    .section-label{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.9px;color:var(--text-faint);margin-bottom:12px}
+    .section-label{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.9px;color:var(--text-faint);margin-bottom:12px}
 
     /* CARD */
     .card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden}
@@ -55,10 +55,10 @@ if('serviceWorker' in navigator){
     /* ROWS */
     .settings-row{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--border-light);gap:12px}
     .settings-row:last-child{border-bottom:none}
-    .row-label{font-size:15px;color:var(--text);flex:1}
-    .row-sub{font-size:12px;color:var(--text-faint);margin-top:2px}
+    .row-label{font-size:16px;color:var(--text);flex:1}
+    .row-sub{font-size:13px;color:var(--text-faint);margin-top:2px}
 
-    select.row-input,input.row-input{font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;outline:none;transition:border-color 0.15s;min-width:110px}
+    select.row-input,input.row-input{font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 11px;outline:none;transition:border-color 0.15s;min-width:120px}
     select.row-input option{color:var(--text);background:var(--surface);}
     html.dark select.row-input option{color:#e8edf4 !important;background:#1a2736 !important;}
     select.row-input:focus,input.row-input:focus{border-color:var(--b5)}
@@ -150,9 +150,9 @@ if('serviceWorker' in navigator){
     html.dark body{background:var(--bg);}
     .dark-toggle{background:none;border:1px solid var(--border);border-radius:20px;padding:4px 10px;cursor:pointer;font-size:13px;color:var(--text-muted);}
     .nav-menu-wrap{position:relative;}
-    .nav-menu-btn{display:flex;align-items:center;gap:7px;background:none;border:1px solid var(--border);border-radius:20px;padding:4px 12px 4px 8px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text-muted);font-family:'DM Sans',sans-serif;transition:all 0.15s;}
+    .nav-menu-btn{display:flex;align-items:center;gap:7px;background:none;border:1px solid var(--border);border-radius:20px;padding:6px 14px 6px 10px;cursor:pointer;font-size:15px;font-weight:600;color:var(--text-muted);font-family:'DM Sans',sans-serif;transition:all 0.15s;}
     .nav-menu-btn:hover{background:var(--b0);color:var(--text);}
-    .nav-menu-badge{font-size:11px;font-weight:700;background:var(--b7);color:white;padding:2px 7px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase;}
+    .nav-menu-badge{font-size:14px;font-weight:700;background:var(--b7);color:white;padding:4px 10px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase;}
     .nav-dropdown{position:absolute;top:calc(100% + 6px);right:0;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);box-shadow:0 4px 20px rgba(30,45,61,0.12);min-width:160px;z-index:999;display:none;}
     .nav-dropdown.open{display:block;animation:dropIn 0.15s ease;}
     @keyframes dropIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
@@ -177,7 +177,7 @@ if('serviceWorker' in navigator){
     <button class="btn-back" onclick="window.location.href='admin.html'">←</button>
     <div class="nav-title">Admin Settings</div>
     <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
-      <span id="nav-display-name" style="font-size:13px;font-weight:600;color:var(--text-muted);"></span>
+      <span id="nav-display-name" style="font-size:16px;font-weight:700;color:var(--text);"></span>
       <div class="nav-menu-wrap">
         <button class="nav-menu-btn" onclick="toggleNavMenu()">
           <span class="nav-menu-badge">Admin</span>
