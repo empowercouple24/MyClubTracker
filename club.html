@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 06:50:48 -->
+<!-- CACHE BUST: 2026-03-26 06:53:23 SYNTAX-FIX -->
 <html lang="en">
 <head>
 <script>
@@ -929,16 +929,16 @@ async function init(){
     const _pb2=document.getElementById('nav-profile-btn');if(_pb2)_pb2.title=u.display_name||session.user.email;
   }
   if(!LOCATION_ID){
-    // Don't redirect to index — that causes infinite loop if session exists
-    // Show a clear error instead
-    document.body.innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:DM Sans,sans-serif;background:#e8edf4;padding:24px;">' +
-      '<div style="background:white;border-radius:16px;padding:32px;max-width:420px;width:100%;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,0.1);">' +
-      '<div style="font-size:48px;margin-bottom:16px;">⚠️</div>' +
-      '<h2 style="font-size:20px;font-weight:700;color:#1e2d3d;margin-bottom:10px;">No Location Assigned</h2>' +
-      '<p style="font-size:14px;color:#5b7087;margin-bottom:20px;line-height:1.6;">Your account isn't linked to a club location yet. This usually means your registration didn't complete fully.</p>' +
-      '<p style="font-size:13px;color:#8fa3b3;margin-bottom:24px;">Contact your admin or try registering again with your invite code.</p>' +
-      '<a href="index.html" style="display:inline-block;background:#3a5470;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">← Back to Sign In</a>' +
-      '</div></div>';
+    document.body.innerHTML = [
+      '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#e8edf4;padding:24px;">',
+      '<div style="background:white;border-radius:16px;padding:32px;max-width:420px;width:100%;text-align:center;">',
+      '<div style="font-size:48px;margin-bottom:16px;">&#9888;</div>',
+      '<h2 style="font-size:20px;font-weight:700;color:#1e2d3d;margin-bottom:10px;">No Location Assigned</h2>',
+      '<p style="font-size:14px;color:#5b7087;margin-bottom:20px;line-height:1.6;">Your account is not linked to a club location yet.</p>',
+      '<p style="font-size:13px;color:#8fa3b3;margin-bottom:24px;">Contact your admin or try registering again with your invite code.</p>',
+      '<a href="index.html" style="display:inline-block;background:#3a5470;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">Back to Sign In</a>',
+      '</div></div>'
+    ].join('');
     return;
   }
   setLoadText('Loading club data…');
@@ -1271,25 +1271,17 @@ async function handleSignOut(){if(IS_ADMIN_VIEW){window.location.href='admin.htm
 let toastTimer;
 function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(type?' '+type:'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2400);}
 // Global error handler - shows errors visually instead of blank page
-window.onerror = function(msg, src, line, col, err) {
-  document.body.innerHTML = '<div style="padding:40px;font-family:monospace;background:#fff0f0;min-height:100vh;">' +
-    '<h2 style="color:#c03030;margin-bottom:16px;">App Error (line ' + line + ')</h2>' +
-    '<pre style="color:#333;white-space:pre-wrap;font-size:14px;">' + msg + '\n\n' + (err && err.stack ? err.stack : '') + '</pre>' +
-    '<p style="margin-top:20px;color:#666;">URL: ' + window.location.href + '</p>' +
-    '</div>';
-  return true;
-};
-
 async function safeInit() {
   try {
     await init();
   } catch(e) {
-    document.body.innerHTML = '<div style="padding:40px;font-family:monospace;background:#fff0f0;min-height:100vh;">' +
-      '<h2 style="color:#c03030;margin-bottom:16px;">Init Error</h2>' +
-      '<pre style="color:#333;white-space:pre-wrap;font-size:14px;">' + e.message + '\n\n' + (e.stack||'') + '</pre>' +
-      '<p style="margin-top:20px;color:#666;">URL: ' + window.location.href + '</p>' +
-      '<p><a href="admin.html">← Back to Dashboard</a></p>' +
-      '</div>';
+    var d = document.createElement('div');
+    d.style.cssText = 'padding:40px;font-family:monospace;background:#fff0f0;min-height:100vh;';
+    d.innerHTML = '<h2 style="color:#c03030;margin-bottom:16px;">Error: ' + e.message + '</h2>' +
+      '<pre style="font-size:13px;white-space:pre-wrap;">' + (e.stack||'') + '</pre>' +
+      '<p style="margin-top:20px;"><a href="admin.html">Back to Dashboard</a></p>';
+    document.body.innerHTML = '';
+    document.body.appendChild(d);
   }
 }
 safeInit();
