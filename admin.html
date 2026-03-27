@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 09:21:03 READONLY -->
+<!-- CACHE BUST: 2026-03-27 09:27:22 FONTFIX-LP -->
 <html lang="en">
 <head>
 <script>
@@ -74,7 +74,7 @@ if('serviceWorker' in navigator){
     .loc-card-header{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;user-select:none}
     .loc-avatar{width:46px;height:46px;border-radius:11px;background:linear-gradient(135deg,var(--b7),var(--b4));display:flex;align-items:center;justify-content:center;font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;color:white;flex-shrink:0;box-shadow:0 2px 8px rgba(58,84,112,0.18)}
     .loc-meta{flex:1;min-width:0}
-    .loc-name{font-family:'Outfit',sans-serif;font-size:17px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .loc-name{font-family:'Outfit',sans-serif;font-size:20px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .loc-owner{font-size:13px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .loc-addr{font-size:12px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
     .loc-badges{display:flex;align-items:center;gap:6px;flex-shrink:0}
@@ -439,20 +439,20 @@ if('serviceWorker' in navigator){
       <button id="ap-edit-btn" onclick="toggleApproveEdit()" title="Edit fields">✏️ Edit</button>
     </div>
     <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.5;">Review and edit the details below, then approve to create the location or deny with feedback.</div>
-    <div class="modal-field"><label>Club Name</label><input type="text" id="ap-name" readonly/></div>
+    <div class="modal-field"><label>Club Name</label><input type="text" id="ap-name" autocomplete="off" data-lpignore="true" data-form-type="other" readonly/></div>
     <div class="modal-field"><label>Street Address</label><input type="text" id="ap-street" autocomplete="off" data-lpignore="true" data-form-type="other" readonly/></div>
-    <div class="modal-field"><label>Address Line 2 <span style="font-size:11px;font-weight:400;color:var(--text-faint);">Suite, Unit, Apt (optional)</span></label><input type="text" id="ap-street2" placeholder="e.g. Suite 100" readonly/></div>
-    <div class="modal-field"><label>Zip</label><input type="text" id="ap-zip" maxlength="5" inputmode="numeric" readonly oninput="this.value=this.value.replace(/\D/g,'').slice(0,5);if(this.value.length===5)lookupZip(this.value,'ap-city','ap-state')"/></div>
+    <div class="modal-field"><label>Address Line 2 <span style="font-size:11px;font-weight:400;color:var(--text-faint);">Suite, Unit, Apt (optional)</span></label><input type="text" id="ap-street2" placeholder="e.g. Suite 100" autocomplete="off" data-lpignore="true" data-form-type="other" readonly/></div>
+    <div class="modal-field"><label>Zip</label><input type="text" id="ap-zip" maxlength="5" inputmode="numeric" autocomplete="off" data-lpignore="true" data-form-type="other" readonly oninput="this.value=this.value.replace(/\D/g,'').slice(0,5);if(this.value.length===5)lookupZip(this.value,'ap-city','ap-state')"/></div>
     <div class="modal-field" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
       <div><label>City <span style="font-size:10px;font-weight:400;color:var(--text-faint);">auto-fills</span></label><input type="text" id="ap-city" placeholder="Auto-filled from zip" readonly style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--b6);background:var(--b0);border:1px solid var(--border);border-radius:8px;padding:10px 12px;outline:none;" readonly/></div>
       <div><label>State <span style="font-size:10px;font-weight:400;color:var(--text-faint);">auto-fills</span></label><input type="text" id="ap-state" placeholder="Auto" readonly style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--b6);background:var(--b0);border:1px solid var(--border);border-radius:8px;padding:10px 12px;outline:none;"/></div>
     </div>
-    <div class="modal-field"><label>Owner Name</label><input type="text" id="ap-owner" readonly/></div>
-    <div class="modal-field"><label>Owner Phone</label><input type="tel" id="ap-phone" readonly oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"/></div>
-    <div class="modal-field"><label>Owner Email</label><input type="email" id="ap-email" readonly/></div>
+    <div class="modal-field"><label>Owner Name</label><input type="text" id="ap-owner" autocomplete="off" data-lpignore="true" data-form-type="other" readonly/></div>
+    <div class="modal-field"><label>Owner Phone</label><input type="tel" id="ap-phone" autocomplete="off" data-lpignore="true" data-form-type="other" readonly oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"/></div>
+    <div class="modal-field"><label>Owner Email</label><input type="email" id="ap-email" autocomplete="off" data-lpignore="true" data-form-type="other" readonly/></div>
     <div class="modal-field"><label>Invite Code</label>
       <div class="modal-invite-row">
-        <input type="text" id="ap-code" style="text-transform:uppercase;" readonly/>
+        <input type="text" id="ap-code" style="text-transform:uppercase;" autocomplete="off" data-lpignore="true" data-form-type="other" readonly/>
         <button class="btn-generate" onclick="generateCode()">Generate</button>
       </div>
     </div>
