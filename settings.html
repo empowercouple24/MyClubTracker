@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 06:01:09 LOGO-LINK -->
+<!-- CACHE BUST: 2026-03-27 06:06:45 HOVER-FIX -->
 <html lang="en">
 <head>
 <script>
@@ -181,7 +181,6 @@ if('serviceWorker' in navigator){
     .nav-drop-item:first-child{border-radius:10px 10px 0 0;}
     .nav-drop-item:last-child{border-radius:0 0 10px 10px;}
   
-    .nav-menu-wrap:hover #nav-dropdown{display:block;}
       nav a.nav-logo:hover{opacity:0.8;}
   </style>
 
@@ -193,7 +192,7 @@ if('serviceWorker' in navigator){
 </div>
 
 <nav class="topnav" style="display:flex;align-items:center;padding:0 20px;height:52px;background:var(--surface);border-bottom:1px solid var(--border-light);position:sticky;top:0;z-index:100;">
-  <a href="admin.html" style="flex-shrink:0;display:flex;align-items:center;text-decoration:none;" title="Dashboard"><svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
+  <a href="admin.html" class="nav-logo" style="flex-shrink:0;display:flex;align-items:center;text-decoration:none;cursor:pointer;" title="Dashboard"><svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
   <g transform="rotate(-18, 16, 36)"><rect x="8" y="24" width="16" height="20" rx="2" fill="#1a5c2a"/><rect x="10" y="28" width="12" height="8" rx="1" fill="rgba(255,255,255,0.25)"/><line x1="16" y1="18" x2="14" y2="24" stroke="#1a5c2a" stroke-width="2.5" stroke-linecap="round"/></g>
   <g transform="rotate(14, 38, 36)"><rect x="30" y="26" width="16" height="20" rx="2" fill="#1a5c2a"/><rect x="32" y="30" width="12" height="8" rx="1" fill="rgba(255,255,255,0.25)"/><line x1="38" y1="20" x2="40" y2="26" stroke="#1a5c2a" stroke-width="2.5" stroke-linecap="round"/></g>
   <circle cx="40" cy="16" r="11" fill="#4caf60"/>
@@ -918,7 +917,24 @@ async function executePush() {
 // ── NAV MENU ──
 function toggleNavMenu(){var dd=document.getElementById('nav-dropdown');if(dd)dd.classList.toggle('open');}
 function closeNavMenu(){var dd=document.getElementById('nav-dropdown');if(dd)dd.classList.remove('open');}
-document.addEventListener('click',function(e){var w=document.querySelector('.nav-menu-wrap');if(w&&!w.contains(e.target))closeNavMenu();});
+// Hover open with delayed close
+(function(){
+  var closeTimer;
+  var wrap = document.querySelector('.nav-menu-wrap');
+  if(!wrap) return;
+  wrap.addEventListener('mouseenter', function(){
+    clearTimeout(closeTimer);
+    var dd=document.getElementById('nav-dropdown');
+    if(dd)dd.classList.add('open');
+  });
+  wrap.addEventListener('mouseleave', function(){
+    closeTimer = setTimeout(function(){
+      var dd=document.getElementById('nav-dropdown');
+      if(dd)dd.classList.remove('open');
+    }, 300);
+  });
+})();
+document.addEventListener('click',function(e){var w=document.querySelector('.nav-menu-wrap');if(w&&!w.contains(e.target))closeNavMenu();});if(w&&!w.contains(e.target))closeNavMenu();});
 
 async function init() {
   const { data:{ session } } = await sb.auth.getSession();
