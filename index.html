@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 07:57:50 LASTPASS -->
+<!-- CACHE BUST: 2026-03-27 08:00:52 LASTPASS2 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -237,21 +237,21 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
     </div>
     <div id="req-s2" style="display:none;">
       <div class="msg success show" style="margin-bottom:12px;">✓ Org key verified. All fields required.</div>
-      <div class="field"><label>Club Name</label><input type="text" id="req-club" placeholder="e.g. Thrive Nutrition Hub"></div>
+      <div class="field"><label>Club Name</label><input type="text" id="req-club" placeholder="e.g. Thrive Nutrition Hub" data-lpignore="true" data-form-type="other" autocomplete="off"></div>
       <div class="field"><label>Street Address</label><input type="text" id="req-street" placeholder="123 Main St" autocomplete="off" data-lpignore="true" data-form-type="other"></div>
-      <div class="field"><label>Address Line 2 <span style="font-weight:400;color:var(--gf);text-transform:none;letter-spacing:0;">Suite, Unit, Apt, Floor (optional)</span></label><input type="text" id="req-street2" placeholder="e.g. Suite 100"></div>
-      <div class="field"><label>Zip Code</label><input type="text" id="req-zip" placeholder="00000" maxlength="5" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5);if(this.value.length===5)lookupZip(this.value,'req-city','req-state')"></div>
+      <div class="field"><label>Address Line 2 <span style="font-weight:400;color:var(--gf);text-transform:none;letter-spacing:0;">Suite, Unit, Apt, Floor (optional)</span></label><input type="text" id="req-street2" placeholder="e.g. Suite 100" data-lpignore="true" data-form-type="other" autocomplete="off"></div>
+      <div class="field"><label>Zip Code</label><input type="text" id="req-zip" placeholder="00000" maxlength="5" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5);if(this.value.length===5)lookupZip(this.value,'req-city','req-state')" data-lpignore="true" data-form-type="other" autocomplete="off"></div>
       <div class="field-row">
-        <div class="field"><label>City <span style="font-weight:400;color:var(--gf);text-transform:none;letter-spacing:0;">auto-fills</span></label><input type="text" id="req-city" placeholder="Auto-filled from zip" readonly style="color:var(--bmd);"></div>
+        <div class="field"><label>City <span style="font-weight:400;color:var(--gf);text-transform:none;letter-spacing:0;">auto-fills</span></label><input type="text" id="req-city" placeholder="Auto-filled from zip" readonly style="color:var(--bmd);" autocomplete="off"></div>
         <div class="field"><label>State <span style="font-weight:400;color:var(--gf);text-transform:none;letter-spacing:0;">auto-fills</span></label><input type="text" id="req-state" placeholder="Auto-filled" style="color:var(--bmd);" readonly></div>
       </div>
       <div class="field-row">
-        <div class="field"><label>First Name</label><input type="text" id="req-firstname" placeholder="Jane"></div>
-        <div class="field"><label>Last Name</label><input type="text" id="req-lastname" placeholder="Smith"></div>
+        <div class="field"><label>First Name</label><input type="text" id="req-firstname" placeholder="Jane" data-lpignore="true" data-form-type="other" autocomplete="off"></div>
+        <div class="field"><label>Last Name</label><input type="text" id="req-lastname" placeholder="Smith" data-lpignore="true" data-form-type="other" autocomplete="off"></div>
       </div>
-      <div class="field"><label>Phone</label><input type="tel" id="req-phone" placeholder="(555) 000-0000" oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"></div>
-      <div class="field"><label>Email</label><input type="email" id="req-email" placeholder="you@example.com"></div>
-      <div class="field"><label>Notes</label><textarea id="req-notes" placeholder="Tell us about your club and Herbalife background…"></textarea></div>
+      <div class="field"><label>Phone</label><input type="tel" id="req-phone" placeholder="(555) 000-0000" oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)" data-lpignore="true" data-form-type="other" autocomplete="off"></div>
+      <div class="field"><label>Email</label><input type="email" id="req-email" placeholder="you@example.com" data-lpignore="true" data-form-type="other" autocomplete="off"></div>
+      <div class="field"><label>Notes</label><textarea id="req-notes" placeholder="Tell us about your club and Herbalife background…" data-lpignore="true" data-form-type="other"></textarea></div>
       <div class="msg" id="req-msg-form"></div>
       <button class="btn-p" id="req-submit-btn" onclick="doSubmitRequest()">Submit Request →</button>
       <button class="sml-link" onclick="showReqStep(1)">← Back</button>
