@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 08:42:34 -->
+<!-- CACHE BUST: 2026-03-27 08:48:18 ADDR-CHECK -->
 <html lang="en">
 <head>
 <script>
@@ -459,7 +459,14 @@ if('serviceWorker' in navigator){
       <div style="font-size:13px;font-weight:700;color:#1e2d3d;margin-bottom:6px;">⚠️ Possible Duplicate Detected</div>
       <div style="font-size:13px;color:#1e2d3d;line-height:1.5;" id="ap-duplicate-msg"></div>
       
-      <textarea id="ap-duplicate-deny-reason" placeholder="e.g. A location with a very similar name already exists in our system..." style="width:100%;margin-top:8px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:white;border:1px solid #f0b440;border-radius:8px;padding:10px 12px;outline:none;resize:vertical;min-height:70px;box-sizing:border-box;"></textarea>
+      <!-- Auto-generated reason chips -->
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;margin-bottom:6px;" id="ap-deny-chips">
+        <button type="button" onclick="setDenyReason(this)" data-reason="A location with a duplicate or very similar name already exists in our system." style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;background:#fff;color:#1e2d3d;border:1px solid #d0bfa0;border-radius:20px;padding:5px 12px;cursor:pointer;">Duplicate name</button>
+        <button type="button" onclick="setDenyReason(this)" data-reason="A location with the same owner is already registered in our system." style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;background:#fff;color:#1e2d3d;border:1px solid #d0bfa0;border-radius:20px;padding:5px 12px;cursor:pointer;">Duplicate owner</button>
+        <button type="button" onclick="setDenyReason(this)" data-reason="A location with a similar name and owner already exists. Please contact us if you believe this is an error." style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;background:#fff;color:#1e2d3d;border:1px solid #d0bfa0;border-radius:20px;padding:5px 12px;cursor:pointer;">Duplicate name &amp; owner</button>
+        <button type="button" onclick="setDenyReason(this)" data-reason="A location at the same or very similar address is already registered in our system." style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;background:#fff;color:#1e2d3d;border:1px solid #d0bfa0;border-radius:20px;padding:5px 12px;cursor:pointer;">Duplicate address</button>
+      </div>
+      <textarea id="ap-duplicate-deny-reason" placeholder="Or write a custom reason..." style="width:100%;margin-top:4px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:white;border:1px solid #f0b440;border-radius:8px;padding:10px 12px;outline:none;resize:vertical;min-height:70px;box-sizing:border-box;"></textarea>
 
     </div>
     <div class="modal-footer" id="ap-footer">
@@ -629,7 +636,7 @@ function openApproveModal(reqId){
   const dupMsg=document.getElementById('ap-duplicate-msg');
   const apBtn=document.getElementById('ap-btn');
   const apFooter=document.getElementById('ap-footer');
-  const similar=findSimilarLocation(r.club_name||'',r.owner_name||'');
+  const similar=findSimilarLocation(r.club_name||'',r.owner_name||'',r.street||'');
   if(similar){
     dupMsg.textContent=`A similar location already exists: "${similar.name}"${similar.owner_name?' ('+similar.owner_name+')':''}.`;
     dupWarning.style.display='block';
@@ -709,6 +716,15 @@ async function executeApprove(){
   showToast(`${name} approved ✓`,'success');
 }
 
+function setDenyReason(btn){
+  // Fill textarea and highlight selected chip
+  document.getElementById('ap-duplicate-deny-reason').value=btn.dataset.reason;
+  document.querySelectorAll('#ap-deny-chips button').forEach(b=>{
+    b.style.background=b===btn?'#f0b440':'#fff';
+    b.style.color=b===btn?'#1e2d3d':'#1e2d3d';
+    b.style.borderColor=b===btn?'#a06000':'#d0bfa0';
+  });
+}
 async function denyDuplicate(){
   const reason=document.getElementById('ap-duplicate-deny-reason').value.trim();
   if(!reason){
@@ -989,15 +1005,25 @@ function levenshtein(a,b){
   }
   return dp[m][n]/Math.max(m,n); // normalized 0=identical, 1=completely different
 }
-function findSimilarLocation(name,ownerName){
-  // Flag if name distance < 25% (very similar) OR
-  // name distance < 40% AND owner distance < 40% (both somewhat similar)
+function normalizeAddress(s){
+  // Strip unit/suite/apt numbers and common words before comparing
+  return normalize(s).replace(/suite|ste|unit|apt|floor|fl|building|bldg/g,'');
+}
+function findSimilarLocation(name,ownerName,address){
   const NAME_THRESHOLD=0.25;
   const COMBINED_THRESHOLD=0.40;
+  const ADDR_THRESHOLD=0.20;
   return allLocations.find(loc=>{
     const nameDist=levenshtein(loc.name,name);
     const ownerDist=levenshtein(loc.owner_name,ownerName);
-    return nameDist<NAME_THRESHOLD||(nameDist<COMBINED_THRESHOLD&&ownerDist<COMBINED_THRESHOLD);
+    // Address check: normalize and compare street address portion only
+    const locAddr=normalizeAddress(loc.address||'');
+    const newAddr=normalizeAddress(address||'');
+    const addrDist=(locAddr&&newAddr)?levenshtein(locAddr,newAddr):1;
+    const addrMatch=addrDist<ADDR_THRESHOLD;
+    return nameDist<NAME_THRESHOLD
+      ||(nameDist<COMBINED_THRESHOLD&&ownerDist<COMBINED_THRESHOLD)
+      ||addrMatch; // identical or near-identical address alone is a flag
   });
 }
 
@@ -1350,7 +1376,7 @@ async function addLocation(){
     settings.secondContact={name:owner2,phone:phone2,email:email2};
   }
   // Check for similar existing locations
-  const similar=findSimilarLocation(name,owner);
+  const similar=findSimilarLocation(name,owner,street);
   if(similar){
     const errEl=document.getElementById('nl-confirm-error');
     errEl.textContent=`A similar location already exists: "${similar.name}" (${similar.owner_name||'no owner'}). Please verify this isn't a duplicate.`;
