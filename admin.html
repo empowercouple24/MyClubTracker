@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 07:02:25 DELETE-FIX -->
+<!-- CACHE BUST: 2026-03-27 07:23:49 EDGE-FN -->
 <html lang="en">
 <head>
 <script>
@@ -522,24 +522,13 @@ const ADMIN_EMAIL='empowercouple24@gmail.com';
 const ADMIN_NAME='Jeff Nemecek';
 
 async function sendEmail(to, toName, subject, html){
-  // Send via Supabase Edge Function (bypasses CORS)
+  // Call Supabase Edge Function (server-side, no CORS issues)
   try{
-    const{data:keyData}=await sb.from('app_settings').select('value').eq('key','resend_api_key').single();
-    const key=keyData?.value;
-    if(!key){console.warn('No resend_api_key in app_settings');return false;}
-    // Use Supabase functions.invoke to call edge function if available
-    // Otherwise log for now - emails from admin actions sent via edge function
-    const res = await fetch('https://api.resend.com/emails',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
-      body:JSON.stringify({
-        from:'Nemecek Org Clubs <noreply@nemecekorgclubs.com>',
-        to:[toName?`${toName} <${to}>`:to],
-        subject,
-        html
-      })
+    const{data,error}=await sb.functions.invoke('send-email',{
+      body:{to, toName, subject, html}
     });
-    return res.ok;
+    if(error){console.warn('Email send failed:',error);return false;}
+    return true;
   }catch(e){console.warn('Email send failed:',e);return false;}
 }
 
