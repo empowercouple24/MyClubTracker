@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 08:36:06 -->
+<!-- CACHE BUST: 2026-03-27 01:10:21 -->
 <html lang="en">
 <head>
 <script>
@@ -232,17 +232,6 @@ if('serviceWorker' in navigator){
 
 </head>
 <body>
-<div id="admin-widget-bar" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 14px;background:var(--b8);color:white;font-size:12px;">
-  <div style="display:flex;align-items:center;gap:6px;">
-    <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;opacity:0.65;">Admin</span>
-    <span style="opacity:0.35;font-size:10px;">|</span>
-    <span id="admin-widget-name" style="font-weight:600;font-size:13px;"></span>
-  </div>
-  <div style="display:flex;gap:5px;">
-    <button onclick="window.location.href='locations.html'" style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:5px;padding:3px 8px;cursor:pointer;">🏪 Locations</button>
-    <button onclick="window.location.href='settings.html'" style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:5px;padding:3px 8px;cursor:pointer;">⚙ Settings</button>
-  </div>
-</div>
 <div id="loading-overlay"><div class="load-spinner"></div><div class="load-text">Loading dashboard…</div></div>
 
 <nav class="topnav">
@@ -512,8 +501,6 @@ function attachPlacesAutocomplete(streetInputId, cityId, stateId, zipId) {
 let allLocations=[];
 let allDays=[];
 let allLocationUsers=[];
-let currentSession=null;
-let adminProfile={};
 let allRequests=[];
 let approvingRequestId=null;
 let denyingRequestId=null;
@@ -828,16 +815,18 @@ async function init(){
   if(!u||u.role!=='admin'){window.location.href='index.html';return;}
   adminProfile={display_name:u.display_name||'',phone:u.phone||''};
   const displayName=u.display_name||[u.first_name,u.last_name].filter(Boolean).join(' ')||session.user.email;
-  document.getElementById('nav-profile').textContent=displayName;const _awn=document.getElementById('admin-widget-name');if(_awn)_awn.textContent=displayName;
+  document.getElementById('nav-profile').textContent=displayName;
 
-  const{data:locs}=await sb.from('locations').select('id,name,address,owner_name,owner_phone,settings,invite_code,created_at').order('name');
-  allLocations=locs||[];
+  const{data:locs,error:locsErr}=await sb.from('locations').select('id,name,address,owner_name,owner_phone,settings,invite_code,created_at').order('name');
+  if(locsErr){console.error('Failed to load locations:',locsErr.message);}
+  allLocations = locs || [];
   const since=dateStr(daysAgo(32));
   const{data:days}=await sb.from('days').select('location_id,date,data').gte('date',since);
-  allDays=days||[];
+  allDays = days || [];
   // Fetch all owner/employee users so we can check which locations have registered accounts
-  const{data:locUsers}=await sb.from('users').select('location_id,role').in('role',['owner','employee']);
-  allLocationUsers=locUsers||[];
+  const{data:locUsers,error:luErr}=await sb.from('users').select('location_id,role').in('role',['owner','employee']);
+  if(luErr){console.warn('Could not load location users:',luErr.message);}
+  allLocationUsers = locUsers || [];
   renderKPIs();renderLocations();renderAlertBanner();renderCompChart();
   await loadRequests();
   /* overlay hidden by default */
@@ -911,7 +900,7 @@ function renderAlertBanner(){
         <div class="alert-loc-name">${escHtml(loc.name)}</div>
         <div class="alert-loc-days">${missing.length} missing: ${dayList}</div>
       </div>
-      <button class="alert-loc-action" onclick="goToLocation('${loc.id}', encodeURIComponent('${loc.name.replace(/'/g,\"\")}'))">View App →</button>
+      <button class="alert-loc-action" onclick="goToLocation('${loc.id}')">View App →</button>
     </div>`;
   }).join('');
 
@@ -933,7 +922,7 @@ function renderAlertBanner(){
 }
 
 function toggleAlertBanner(){document.getElementById('alert-banner')?.classList.toggle('expanded');}
-function goToLocation(locId,locName){window.location.href=`app2.html?location_id=${locId}&admin=1`+(locName?`&locationName=${locName}`:'');}
+function goToLocation(locId){window.location.href=`app2.html?location_id=${locId}&admin=1`;}
 
 function renderLocations(){
   const list=document.getElementById('locations-list');
@@ -983,8 +972,8 @@ function renderLocations(){
           </div>
           <div class="expanded-footer">
             <div></div>
-            <a class="btn-manage-settings" href="app2.html?location_id=${loc.id}&admin=1&settings=1&locationName=${encodeURIComponent(loc.name)}">⚙ Manage Settings</a>
-            <a class="btn-view-app" href="app2.html?location_id=${loc.id}&admin=1&locationName=${encodeURIComponent(loc.name)}">View Full App →</a>
+            <a class="btn-manage-settings" href="app2.html?location_id=${loc.id}&admin=1&settings=1">⚙ Manage Settings</a>
+            <a class="btn-view-app" href="app2.html?location_id=${loc.id}&admin=1">View Full App →</a>
           </div>
         </div>
       </div>`;
@@ -1048,8 +1037,8 @@ function renderLocations(){
         </div>
         <div class="expanded-footer">
           ${lastFmt?`<div class="last-entry-note">Last entry: ${lastFmt}</div>`:'<div></div>'}
-          <a class="btn-manage-settings" href="app2.html?location_id=${loc.id}&admin=1&settings=1&locationName=${encodeURIComponent(loc.name)}">⚙ Manage Settings</a>
-          <a class="btn-view-app" href="app2.html?location_id=${loc.id}&admin=1&locationName=${encodeURIComponent(loc.name)}">View Full App →</a>
+          <a class="btn-manage-settings" href="app2.html?location_id=${loc.id}&admin=1&settings=1">⚙ Manage Settings</a>
+          <a class="btn-view-app" href="app2.html?location_id=${loc.id}&admin=1">View Full App →</a>
         </div>
       </div>
     </div>`;
