@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 07:54:19 LINK-FIX -->
+<!-- CACHE BUST: 2026-03-27 07:57:50 LASTPASS -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -195,7 +195,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
       <div class="field">
         <label id="code-label">Owner Invite Code</label>
         <div class="code-row">
-          <input type="text" id="reg-code" placeholder="" oninput="this.value=this.value.toUpperCase();resetVerify()">
+          <input type="text" id="reg-code" placeholder="" autocomplete="off" data-lpignore="true" data-form-type="other" oninput="this.value=this.value.toUpperCase();resetVerify()">
           <button class="btn-vfy" id="verify-btn" onclick="doVerifyCode()">Verify</button>
         </div>
         <div class="vfy-badge" id="verified-badge">✓ <span id="verified-text">Code verified</span></div>
@@ -231,7 +231,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
   <div class="panel" id="panel-request">
     <div id="req-s1">
       <div class="msg info show" style="margin-bottom:14px;">🔐 Enter the <strong>organization key</strong> shared by your Herbalife upline or Nemecek Org admin.</div>
-      <div class="field"><label>Organization Key</label><input type="password" id="req-org-key" placeholder="Enter org key" autocomplete="off" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')doVerifyOrgKey()"></div>
+      <div class="field"><label>Organization Key</label><input type="text" id="req-org-key" placeholder="Enter org key" autocomplete="off" data-lpignore="true" data-form-type="other" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')doVerifyOrgKey()"></div>
       <div class="msg" id="req-msg-key"></div>
       <button class="btn-p" id="req-key-btn" onclick="doVerifyOrgKey()">Unlock Request Form →</button>
     </div>
