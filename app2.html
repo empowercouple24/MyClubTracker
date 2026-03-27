@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 04:30:20 -->
+<!-- CACHE BUST: 2026-03-27 04:40:55 NAVUNIFY -->
 <html lang="en">
 <head>
 <script>
@@ -99,7 +99,6 @@ if('serviceWorker' in navigator){
     @media(min-width:700px){.enter-ops-row{grid-template-columns:1fr 1fr;align-items:start}
 
     /* ── DARK MODE ── */
-    html.dark{--bg:#0f1923;--surface:#1a2736;--border:#2a3f56;--border-light:#243347;--text:#e8edf4;--text-muted:#ddeaf5;--text-faint:#c5d8e8;--b0:#1e2d3d;--b1:#243347;--b2:#2a3f56;}
     html.dark .topnav{background:rgba(15,25,35,0.96);}
     html.dark .tabbar{background:var(--surface);border-color:var(--border);}
     html.dark .tab-panel{background:var(--bg);}
@@ -248,6 +247,7 @@ if('serviceWorker' in navigator){
     .update-banner:hover{background:var(--g4);}
     .admin-edit-banner.show{display:block}
     .admin-location-banner{background:var(--b8);color:white;font-size:11px;font-weight:600;text-align:center;padding:4px 12px;letter-spacing:0.3px}
+      #nav-dropdown.open{display:block !important;}
   </style>
 </head>
 <body>
@@ -285,14 +285,9 @@ if('serviceWorker' in navigator){
       <span id="nav-display-name" style="display:none;font-size:13px;font-weight:600;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
       <span style="font-size:10px;">▾</span>
     </button>
-    <div id="nav-dropdown" style="position:absolute;top:calc(100% + 6px);right:0;background:var(--surface);border:1px solid var(--border-light);border-radius:8px;box-shadow:0 4px 20px rgba(30,45,61,0.12);min-width:160px;z-index:999;display:none;">
-      <button onclick="toggleDarkMode();closeNavMenu()" style="display:flex;align-items:center;gap:8px;width:100%;padding:11px 16px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text);background:none;border:none;cursor:pointer;text-align:left;border-radius:8px 8px 0 0;" onmouseover="this.style.background='var(--b0)'" onmouseout="this.style.background='none'">
-        <span id="dark-icon">🌙</span> Dark mode
-      </button>
-      <div style="height:1px;background:var(--border-light);margin:2px 0;"></div>
-      <button id="nav-profile-btn" onclick="openProfileModal();closeNavMenu()" style="display:none;align-items:center;gap:8px;width:100%;padding:11px 16px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text);background:none;border:none;cursor:pointer;text-align:left;" onmouseover="this.style.background='var(--b0)'" onmouseout="this.style.background='none'">
-        👤 Profile
-      </button>
+    <div id="nav-dropdown" style="position:absolute;top:calc(100% + 6px);right:0;background:var(--surface);border:1px solid var(--border-light);border-radius:10px;box-shadow:0 4px 20px rgba(30,45,61,0.12);min-width:170px;z-index:999;display:none;">
+
+      <button id="nav-profile-btn" onclick="openProfileModal();closeNavMenu()" style="display:none;align-items:center;gap:9px;width:100%;padding:11px 16px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text);background:none;border:none;cursor:pointer;text-align:left;" onmouseover="this.style.background='var(--b0)'" onmouseout="this.style.background='none'">👤 Profile</button>
       <div style="height:1px;background:var(--border-light);margin:2px 0;"></div>
       <div id="admin-nav-items" style="display:none;">
         <button onclick="goBackToAdmin();closeNavMenu()" style="display:flex;align-items:center;gap:8px;width:100%;padding:11px 16px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text);background:none;border:none;cursor:pointer;text-align:left;" onmouseover="this.style.background='var(--b0)'" onmouseout="this.style.background='none'">
@@ -303,7 +298,7 @@ if('serviceWorker' in navigator){
         </button>
         <div style="height:1px;background:var(--border-light);margin:2px 0;"></div>
       </div>
-      <button onclick="handleSignOut()" style="display:flex;align-items:center;gap:8px;width:100%;padding:11px 16px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--r5);background:none;border:none;cursor:pointer;text-align:left;border-radius:0 0 8px 8px;" onmouseover="this.style.background='var(--b0)'" onmouseout="this.style.background='none'">
+      <button onclick="handleSignOut()" style="display:flex;align-items:center;gap:9px;width:100%;padding:11px 16px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--r5);background:none;border:none;cursor:pointer;text-align:left;border-radius:0 0 10px 10px;" onmouseover="this.style.background='var(--b0)'" onmouseout="this.style.background='none'">
         ↪ Sign out
       </button>
     </div>
@@ -856,24 +851,12 @@ function generateEmpCode(){
 }
 
 // ── DARK MODE ──
-function initDarkMode(){
-  const saved=localStorage.getItem('noc-dark');
-  if(saved==='1'||(saved===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){
-    document.documentElement.classList.add('dark');
-    const btn=document.getElementById('dark-toggle-btn');
-    var icon=document.getElementById('dark-icon');if(icon)icon.textContent='☀️';
-  }
-}
-function toggleDarkMode(){
-  const isDark=document.documentElement.classList.toggle('dark');
-  localStorage.setItem('noc-dark',isDark?'1':'0');
-  const btn=document.getElementById('dark-toggle-btn');
-  var icon=document.getElementById('dark-icon');if(icon)icon.textContent=isDark?'☀️':'🌙';
-}
-initDarkMode();
 
-function toggleNavMenu(){var dd=document.getElementById('nav-dropdown');if(dd)dd.style.display=dd.style.display==='block'?'none':'block';}
-function closeNavMenu(){var dd=document.getElementById('nav-dropdown');if(dd)dd.style.display='none';}
+
+
+
+function toggleNavMenu(){var dd=document.getElementById('nav-dropdown');if(dd)dd.classList.toggle('open');}
+function closeNavMenu(){var dd=document.getElementById('nav-dropdown');if(dd)dd.classList.remove('open');}
 document.addEventListener('click',function(e){var wrap=document.querySelector('.nav-menu-wrap');if(wrap&&!wrap.contains(e.target))closeNavMenu();});
 
 async function init(){
