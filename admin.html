@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 04:40:26 NAVUNIFY -->
+<!-- CACHE BUST: 2026-03-27 04:48:34 NAVFIX -->
 <html lang="en">
 <head>
 <script>
@@ -245,7 +245,7 @@ if('serviceWorker' in navigator){
   <div class="nav-page-title">Nemecek Org Clubs</div>
   <div class="nav-admin-badge">Admin</div>
   <div class="nav-menu-wrap">
-    <button class="nav-menu-btn" onclick="toggleNavMenu()"><span id="nav-display-name" style="font-size:13px;font-weight:600;color:var(--text-muted);"></span><span style="font-size:10px;color:var(--text-faint);">▾</span></button>
+    <button class="nav-menu-btn" onclick="toggleNavMenu()" style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;color:var(--b7);border:1.5px solid var(--b3);border-radius:20px;padding:5px 14px;background:white;gap:6px;"><span id="nav-display-name" style="display:none;font-size:13px;font-weight:600;color:var(--text-muted);margin-right:2px;"></span>ADMIN <span style="font-size:10px;">▾</span></button>
     <div class="nav-drop" id="nav-dropdown">
       <button class="nav-drop-item" onclick="window.location.href='admin.html';closeNavMenu()">🏠 Dashboard</button>
       <button class="nav-drop-item" onclick="window.location.href='locations.html';closeNavMenu()">🏪 Locations</button>
@@ -778,6 +778,9 @@ function renderCompChart(){
 function toggleNavMenu(){var dd=document.getElementById('nav-dropdown');if(dd)dd.classList.toggle('open');}
 function closeNavMenu(){var dd=document.getElementById('nav-dropdown');if(dd)dd.classList.remove('open');}
 document.addEventListener('click',function(e){var w=document.querySelector('.nav-menu-wrap');if(w&&!w.contains(e.target))closeNavMenu();});
+
+async function init(){
+  const{data:{session}}=await sb.auth.getSession();
   if(!session){window.location.href='index.html';return;}
   currentSession=session;
   const{data:u}=await sb.from('users').select('role,display_name,first_name,last_name,phone').eq('id',session.user.id).single();
