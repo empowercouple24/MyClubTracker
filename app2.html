@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 08:35:23 -->
+<!-- CACHE BUST: 2026-03-27 03:36:07 -->
 <html lang="en">
 <head>
 <script>
@@ -40,7 +40,7 @@ if('serviceWorker' in navigator){
     .topnav{background:var(--surface);border-bottom:1px solid var(--border-light);display:flex;align-items:center;gap:8px;padding:env(safe-area-inset-top,0px) 12px 0;min-height:calc(var(--nav-h) + env(safe-area-inset-top,0px));position:relative;z-index:50;box-shadow:var(--shadow-sm)}
     .nav-logo{width:28px;height:28px;background:white;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,0.1);}
     .nav-logo svg{width:24px;height:24px;}
-    .nav-club-name{font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+    .nav-club-name{font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .nav-admin-badge{font-size:10px;font-weight:700;background:var(--b7);color:white;padding:2px 6px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase;flex-shrink:0}
     .nav-btn{background:none;border:1px solid var(--border);border-radius:5px;padding:3px 9px;font-size:12px;font-weight:500;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:background 0.15s;flex-shrink:0}
     .nav-btn:hover{background:var(--b0)}
@@ -252,20 +252,10 @@ if('serviceWorker' in navigator){
 
 <div id="loading-overlay"><div class="load-spinner"></div><div class="load-text" id="load-text">Loading…</div></div>
 <div class="admin-edit-banner" id="admin-edit-banner" style="cursor:pointer;" onclick="goBackToAdmin()" title="Click to return to dashboard">⚠ Admin Edit Mode — click to return to Dashboard</div>
-<div class="admin-location-banner" id="admin-banner" style="display:none;align-items:center;justify-content:space-between;gap:8px;padding:5px 12px;">
-  <div style="display:flex;align-items:center;gap:7px;min-width:0;">
-    <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;opacity:0.65;">Admin View</span>
-    <span style="opacity:0.4;font-size:10px;">|</span>
-    <span id="admin-banner-name" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;"></span>
-  </div>
-  <div style="display:flex;gap:5px;flex-shrink:0;">
-    <button onclick="goBackToAdmin()" style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:5px;padding:3px 8px;cursor:pointer;">← Dashboard</button>
-    <button onclick="window.location.href='locations.html'" style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:5px;padding:3px 8px;cursor:pointer;">🏪 Locations</button>
-  </div>
-</div>
+<div class="admin-location-banner" id="admin-banner" style="display:none;"></div>
 
 <nav class="topnav">
-  <div id="nav-admin-btns" style="display:none;flex-shrink:0;gap:5px;align-items:center;"><button class="nav-btn back" id="nav-back-btn" style="font-weight:700;color:var(--b5);font-size:12px;padding:4px 9px;background:var(--b0);border-radius:8px;border:1px solid var(--border);" onclick="goBackToAdmin()">← Dashboard</button><button class="nav-btn back" id="nav-locs-btn" style="font-weight:700;color:var(--b5);font-size:12px;padding:4px 9px;background:var(--b0);border-radius:8px;border:1px solid var(--border);" onclick="window.location.href='locations.html'">🏪 Locations</button></div>
+  <button class="nav-btn back" id="nav-back-btn" style="display:none;font-weight:700;color:var(--b5);font-size:13px;padding:4px 10px;background:var(--b0);border-radius:8px;border:1px solid var(--border);" onclick="goBackToAdmin()">← Dashboard</button>
   <div class="nav-logo"><svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
   <g transform="rotate(-18, 16, 36)">
     <rect x="8" y="24" width="16" height="20" rx="2" fill="#1a5c2a"/>
@@ -280,7 +270,10 @@ if('serviceWorker' in navigator){
   <circle cx="40" cy="16" r="11" fill="#4caf60"/>
   <path d="M34 22 L44 12 M38 12 L44 12 L44 18" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
 </svg></div>
-  <div class="nav-club-name" id="nav-club-name">Loading…</div>
+  <div style="display:flex;flex-direction:column;justify-content:center;flex:1;min-width:0;overflow:hidden;">
+    <div class="nav-club-name" id="nav-club-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Loading…</div>
+    <div id="nav-club-addr" style="font-size:11px;color:var(--text-faint);font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:none;"></div>
+  </div>
   <div class="nav-admin-badge" id="nav-admin-badge" style="display:none;">Admin View</div>
   <button class="nav-btn" id="nav-settings-btn" onclick="openSettings()">⚙</button>
   <button class="nav-btn" id="nav-profile-btn" style="display:none;" onclick="openProfileModal()">👤</button>
@@ -663,6 +656,7 @@ const sb=createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 let LOCATION_ID=null,IS_ADMIN_VIEW=false,OPEN_SETTINGS=false,ALL_DAYS=[],INV_SNAPSHOTS=[],USER_ROLE='owner',CURRENT_SESSION=null;
 const DAY_NAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 let SETTINGS={clubName:'',taxRate:1.25,ohRate:32,otherRate:50,merchRate:100,dvDelta:3,
+  opDays:[false,true,true,true,true,true,true],
   operators:[{name:'Operator 1',visible:true,aliases:''},{name:'Operator 2',visible:true,aliases:''},{name:'Operator 3',visible:false,aliases:''},{name:'Operator 4',visible:false,aliases:''}]};
 
 // ── CANONICAL PRODUCT LIST — matches Google Sheet exactly
@@ -948,20 +942,19 @@ async function init(){
     return;
   }
   setLoadText('Loading club data…');
-  const{data:loc}=await sb.from('locations').select('name,settings').eq('id',LOCATION_ID).single();
+  const{data:loc}=await sb.from('locations').select('name,address,settings').eq('id',LOCATION_ID).single();
   if(loc){
     const _ncn=document.getElementById('nav-club-name');if(_ncn)_ncn.textContent=loc.name;
+    const _nca=document.getElementById('nav-club-addr');
+    if(_nca&&loc.address){_nca.textContent=loc.address;_nca.style.display='block';}
     if(loc.settings&&Object.keys(loc.settings).length>0){SETTINGS={...SETTINGS,...loc.settings};}
     else{SETTINGS.clubName=loc.name;}
   }
   if(IS_ADMIN_VIEW){
-    // Carry location name from admin drill-in before DB fetch
-    const _urlLocName=params.get('locationName');
-    if(_urlLocName){const _decodedName=decodeURIComponent(_urlLocName);const _ncn=document.getElementById('nav-club-name');if(_ncn)_ncn.textContent=_decodedName;document.title=_decodedName+' — Club App';const _bns=document.getElementById('admin-banner-name');if(_bns)_bns.textContent=_decodedName;const _bn=document.getElementById('admin-banner');if(_bn)_bn.style.display='flex';}
     const _nab=document.getElementById('nav-admin-badge');if(_nab)_nab.style.display='block';
-    const _nbb=document.getElementById('nav-admin-btns');if(_nbb){_nbb.style.display='flex';}
+    const _nbb=document.getElementById('nav-back-btn');if(_nbb)_nbb.style.display='block';
     const _so=document.getElementById('nav-signout-btn');if(_so)_so.style.display='none';
-    const bn=document.getElementById('admin-banner');if(bn){const bnName=loc?.name||decodeURIComponent(params.get('locationName')||'')||LOCATION_ID;bn.style.display='flex';const bnSpan=document.getElementById('admin-banner-name');if(bnSpan)bnSpan.textContent=bnName;}
+    const bn=document.getElementById('admin-banner');if(bn){bn.style.display='block';bn.textContent='Admin View: '+(loc?.name||LOCATION_ID);}
     const _aeb=document.getElementById('admin-edit-banner');if(_aeb)_aeb.classList.add('show');
     const _nsb=document.getElementById('nav-settings-btn');if(_nsb)_nsb.style.display='block';
     const _smt=document.getElementById('settings-modal-title');if(_smt)_smt.textContent='Settings — '+(loc?.name||'Location');
@@ -1249,7 +1242,7 @@ function buildSettingsUI(){
   const locName=navClubName?navClubName.textContent:'';
   document.getElementById('s-clubname').value=SETTINGS.clubName||locName||'';
 
-  document.getElementById('s-operators').innerHTML=SETTINGS.operators.map((op,i)=>`<div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid var(--border-light);"><span style="font-size:11px;font-weight:700;color:var(--text-faint);min-width:20px;text-align:center;flex-shrink:0;">${i+1}</span><input type="text" id="s-op-${i}" value="${op.name||''}" placeholder="Name" style="flex:1;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:6px;padding:5px 8px;outline:none;min-width:0;"/><input type="text" id="s-alias-${i}" value="${op.aliases||''}" placeholder="Aliases e.g. MN, Mary" style="flex:1.5;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--text-muted);background:var(--b0);border:1px solid var(--border);border-radius:6px;padding:5px 8px;outline:none;min-width:0;"/></div>`).join('');
+  document.getElementById('s-operators').innerHTML=SETTINGS.operators.map((op,i)=>`<div class="settings-row" style="gap:8px;"><label style="min-width:80px;">Operator ${i+1}</label><input type="text" id="s-op-${i}" value="${op.name||''}" placeholder="Name" style="flex:1;"/><input type="text" id="s-alias-${i}" value="${op.aliases||''}" placeholder="Aliases e.g. MN" style="flex:1;"/></div>`).join('');
   // Employee invite code
   const empEl=document.getElementById('s-emp-code');
   if(empEl)empEl.value=SETTINGS.employeeInviteCode||'';
