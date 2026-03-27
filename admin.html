@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 06:55:33 DELETE-BTN -->
+<!-- CACHE BUST: 2026-03-27 07:02:25 DELETE-FIX -->
 <html lang="en">
 <head>
 <script>
@@ -497,7 +497,7 @@ if('serviceWorker' in navigator){
 <div class="toast" id="toast"></div>
 
 <!-- DELETE LOCATION MODAL -->
-<div class="modal-overlay" id="delete-loc-modal" onclick="closeModalOnBg(event,'delete-loc-modal')" style="position:fixed;inset:0;background:rgba(30,45,61,0.45);display:flex;align-items:center;justify-content:center;z-index:500;opacity:0;pointer-events:none;transition:opacity 0.2s;">
+<div class="modal-overlay" id="delete-loc-modal" onclick="closeModalOnBg(event,'delete-loc-modal')">
   <div style="background:var(--surface);border-radius:16px;padding:28px 24px;max-width:400px;width:90%;box-shadow:0 8px 40px rgba(30,45,61,0.18);">
     <div style="font-size:24px;margin-bottom:10px;">⚠️</div>
     <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--r5);margin-bottom:8px;">Remove Location</div>
@@ -1298,21 +1298,14 @@ async function saveProfile(){
 
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){
-  var el=document.getElementById(id);
-  if(!el)return;
-  // Handle both .open class modals and opacity-based modals
-  if(el.style.opacity!==undefined&&el.style.pointerEvents!==undefined&&!el.classList.contains('open')){
-    el.style.opacity='0';el.style.pointerEvents='none';
-  } else {
-    el.classList.remove('open');
-  }
+  const el=document.getElementById(id);
+  if(el)el.classList.remove('open');
 }
 let deletingLocId=null;
 function openDeleteModal(locId,locName){
   deletingLocId=locId;
   document.getElementById('delete-loc-name').textContent=locName;
-  const m=document.getElementById('delete-loc-modal');
-  m.style.opacity='1';m.style.pointerEvents='all';
+  document.getElementById('delete-loc-modal').classList.add('open');
 }
 function closeModalOnBg(e,id){
   if(e.target===document.getElementById(id))closeModal(id);
@@ -1321,10 +1314,13 @@ async function executeDeleteLocation(){
   if(!deletingLocId)return;
   const btn=document.getElementById('delete-loc-btn');
   btn.disabled=true;btn.textContent='Removing…';
-  // Delete related data first
-  await sb.from('days').delete().eq('location_id',deletingLocId);
-  await sb.from('inventory').delete().eq('location_id',deletingLocId);
-  await sb.from('users').update({location_id:null}).eq('location_id',deletingLocId);
+  // Delete related data — ignore errors on these (RLS may block but location delete is key)
+  const daysRes=await sb.from('days').delete().eq('location_id',deletingLocId);
+  if(daysRes.error)console.warn('days delete:',daysRes.error.message);
+  const invRes=await sb.from('inventory').delete().eq('location_id',deletingLocId);
+  if(invRes.error)console.warn('inventory delete:',invRes.error.message);
+  const usersRes=await sb.from('users').update({location_id:null}).eq('location_id',deletingLocId);
+  if(usersRes.error)console.warn('users update:',usersRes.error.message);
   const{error}=await sb.from('locations').delete().eq('id',deletingLocId);
   btn.disabled=false;btn.textContent='Remove Location';
   if(error){showToast('Delete failed: '+error.message,'error');return;}
