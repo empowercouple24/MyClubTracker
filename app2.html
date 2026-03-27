@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 03:36:07 -->
+<!-- CACHE BUST: 2026-03-27 03:44:20 AUTO-UPDATE -->
 <html lang="en">
 <head>
 <script>
@@ -244,6 +244,8 @@ if('serviceWorker' in navigator){
     .detail-footer{padding:14px 16px 0;display:flex;gap:8px}
     /* Admin edit banner */
     .admin-edit-banner{background:linear-gradient(135deg,var(--a6),var(--a4));color:white;font-size:11px;font-weight:700;text-align:center;padding:5px 12px;letter-spacing:0.3px;display:none}
+    .update-banner{background:var(--g5);color:white;font-size:12px;font-weight:600;text-align:center;padding:7px 12px;display:none;cursor:pointer;letter-spacing:0.2px;}
+    .update-banner:hover{background:var(--g4);}
     .admin-edit-banner.show{display:block}
     .admin-location-banner{background:var(--b8);color:white;font-size:11px;font-weight:600;text-align:center;padding:4px 12px;letter-spacing:0.3px}
   </style>
@@ -252,6 +254,7 @@ if('serviceWorker' in navigator){
 
 <div id="loading-overlay"><div class="load-spinner"></div><div class="load-text" id="load-text">Loading…</div></div>
 <div class="admin-edit-banner" id="admin-edit-banner" style="cursor:pointer;" onclick="goBackToAdmin()" title="Click to return to dashboard">⚠ Admin Edit Mode — click to return to Dashboard</div>
+<div class="update-banner" id="update-banner" onclick="window.location.reload(true)">🔄 A new version is available — click to update</div>
 <div class="admin-location-banner" id="admin-banner" style="display:none;"></div>
 
 <nav class="topnav">
@@ -1280,6 +1283,24 @@ async function handleSignOut(){if(IS_ADMIN_VIEW){window.location.href='admin.htm
 let toastTimer;
 function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(type?' '+type:'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2400);}
 // Global error handler - shows errors visually instead of blank page
+// Version checker — polls server every 5 minutes for a newer file
+const PAGE_LOAD_TIME = Date.now();
+async function checkForUpdate() {
+  try {
+    const res = await fetch(window.location.pathname + '?_=' + Date.now(), {method:'HEAD'});
+    const lastMod = res.headers.get('last-modified');
+    if(!lastMod) return;
+    const serverTime = new Date(lastMod).getTime();
+    if(serverTime > PAGE_LOAD_TIME) {
+      const banner = document.getElementById('update-banner');
+      if(banner) banner.style.display = 'block';
+    }
+  } catch(e) { /* silent fail */ }
+}
+// Check after 30 seconds (in case deploy just happened), then every 5 minutes
+setTimeout(checkForUpdate, 30000);
+setInterval(checkForUpdate, 5 * 60 * 1000);
+
 async function safeInit() {
   try {
     await init();
