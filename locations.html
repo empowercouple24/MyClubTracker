@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 06:17:24 NAVJS-CLEAN -->
+<!-- CACHE BUST: 2026-03-27 06:21:47 LINEFIX -->
 <html lang="en">
 <head>
 <script>
@@ -424,8 +424,6 @@ function closeNavMenu(){var dd=document.getElementById('nav-dropdown');if(dd)dd.
   wrap.addEventListener('mouseleave',function(){closeTimer=setTimeout(function(){var dd=document.getElementById('nav-dropdown');if(dd)dd.classList.remove('open');},300);});
 })();
 document.addEventListener('click',function(e){var w=document.querySelector('.nav-menu-wrap');if(w&&!w.contains(e.target))closeNavMenu();});
-  if(wrap&&!wrap.contains(e.target))closeNavMenu();
-});
 
 // ── RENDER ──
 function renderLocations(){
