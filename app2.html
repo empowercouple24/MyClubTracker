@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 04:19:24 DIRECT-DOM -->
+<!-- CACHE BUST: 2026-03-27 04:24:13 ASYNC-FIX -->
 <html lang="en">
 <head>
 <script>
@@ -756,8 +756,8 @@ const DEFAULT_PRODUCTS=[
 
 let PRODUCTS=[...DEFAULT_PRODUCTS],invFilter='all',invHave={};
 
-async // PROFILE MODAL
-function openProfileModal(){
+// PROFILE MODAL
+async function openProfileModal(){
   sb.from('users').select('display_name,first_name,last_name,phone').eq('id',CURRENT_SESSION.user.id).single().then(({data:u})=>{
     document.getElementById('prof-firstname').value=u?.first_name||'';
     document.getElementById('prof-lastname').value =u?.last_name ||'';
