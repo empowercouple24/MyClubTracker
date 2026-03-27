@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 07:49:29 AUTOFILL -->
+<!-- CACHE BUST: 2026-03-27 07:54:19 LINK-FIX -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -347,8 +347,8 @@ async function init(){
     var code=params.get('code');
     if(code){
       var codeEl=document.getElementById('reg-code');
-      if(codeEl){codeEl.value=code.toUpperCase();}
-      showMsg('reg-msg1','Invite code pre-filled from your approval email ✓','success');
+      if(codeEl){codeEl.value=decodeURIComponent(code).toUpperCase();}
+      showMsg('reg-msg1','Invite code pre-filled ✓','success');
     }
     return;
   }
