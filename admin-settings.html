@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 06:30:50 CLEAN -->
+<!-- CACHE BUST: 2026-03-27 04:41:02 NAVUNIFY -->
 <html lang="en">
 <head>
 <script>
@@ -140,7 +140,6 @@ if('serviceWorker' in navigator){
     .divider-label{padding:8px 16px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);background:var(--b0);border-bottom:1px solid var(--border-light)}
   
     /* ── DARK MODE ── */
-    html.dark{--bg:#0f1923;--surface:#1a2736;--border:#2a3f56;--border-light:#243347;--text:#e8edf4;--text-muted:#ddeaf5;--text-faint:#c5d8e8;--b0:#1e2d3d;--b1:#243347;}
     html.dark .topnav{background:rgba(15,25,35,0.96) !important;}
     html.dark .card{background:var(--surface) !important;}
     html.dark .settings-row{border-color:var(--border) !important;}
@@ -911,35 +910,11 @@ async function executePush() {
 // ── INIT ──
 
 // ── DARK MODE ──
-function updateDarkModeToggleUI(isDark){
-  var toggle=document.getElementById('dark-mode-toggle');
-  var knob=document.getElementById('dark-mode-knob');
-  var label=document.getElementById('dark-mode-label');
-  var icon=document.getElementById('dark-icon');
-  if(toggle)toggle.style.background=isDark?'var(--b5)':'var(--border)';
-  if(knob)knob.style.transform=isDark?'translateX(20px)':'translateX(0)';
-  if(label)label.textContent=isDark?'On':'Off';
-  if(icon)icon.textContent=isDark?'☀️':'🌙';
-}
-function initDarkMode(){
-  const saved=localStorage.getItem('noc-dark');
-  const isDark=saved==='1'||(saved===null&&window.matchMedia('(prefers-color-scheme:dark)').matches);
-  if(isDark)document.documentElement.classList.add('dark');
-  updateDarkModeToggleUI(isDark);
-}
-function toggleDarkMode(){
-  const isDark=document.documentElement.classList.toggle('dark');
-  localStorage.setItem('noc-dark',isDark?'1':'0');
-  updateDarkModeToggleUI(isDark);
-  buildDefaultsUI();
-}
-function toggleDarkModeSetting(){
-  const isDark=document.documentElement.classList.toggle('dark');
-  localStorage.setItem('noc-dark',isDark?'1':'0');
-  updateDarkModeToggleUI(isDark);
-  buildDefaultsUI();
-}
-initDarkMode();
+
+
+
+
+
 
 
 // ── NAV MENU ──
