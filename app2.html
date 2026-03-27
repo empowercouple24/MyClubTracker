@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 04:28:36 -->
+<!-- CACHE BUST: 2026-03-27 04:30:20 -->
 <html lang="en">
 <head>
 <script>
@@ -945,13 +945,18 @@ async function init(){
     return;
   }
   setLoadText('Loading club data…');
-  const{data:loc}=await sb.from('locations').select('name,address,settings').eq('id',LOCATION_ID).single();
+  const{data:loc}=await sb.from('locations').select('name,address,owner_name,settings').eq('id',LOCATION_ID).single();
   if(loc){
     // Set nav immediately from database — unconditional, no fallbacks needed
     const _ncn2=document.getElementById('nav-club-name');
     const _nca2=document.getElementById('nav-club-addr');
     if(_ncn2) _ncn2.textContent = loc.name;
-    if(_nca2 && loc.address){_nca2.textContent=loc.address;_nca2.style.display='block';}
+    if(_nca2){
+      const _navParts=[];
+      if(loc.address)_navParts.push(loc.address);
+      if(IS_ADMIN_VIEW&&loc.owner_name)_navParts.push('👤 '+loc.owner_name);
+      if(_navParts.length){_nca2.textContent=_navParts.join(' · ');_nca2.style.display='block';}
+    }
     // Merge settings and always keep loc.name as clubName
     if(loc.settings&&Object.keys(loc.settings).length>0){SETTINGS={...SETTINGS,...loc.settings};}
     SETTINGS.clubName = loc.name; // Always authoritative from DB
@@ -987,12 +992,17 @@ async function init(){
   if(OPEN_SETTINGS)setTimeout(()=>openSettings(),300);
 }
 function setLoadText(t){document.getElementById('load-text').textContent=t;}
-function setNavLocation(name, address){
+function setNavLocation(name, address, owner){
   const ncn=document.getElementById('nav-club-name');
   const nca=document.getElementById('nav-club-addr');
   if(ncn&&name){ncn.textContent=name;}
-  if(nca&&address){nca.textContent=address;nca.style.display='block';}
-  else if(nca&&!address){nca.style.display='none';}
+  if(nca){
+    const parts=[];
+    if(address)parts.push(address);
+    if(owner)parts.push('👤 '+owner);
+    if(parts.length){nca.textContent=parts.join(' · ');nca.style.display='block';}
+    else{nca.style.display='none';}
+  }
 }
 function goBackToAdmin(){window.location.href='admin.html';}
 function switchTab(name){
