@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 08:00:46 STYLE-FIX2 -->
+<!-- CACHE BUST: 2026-03-27 04:41:02 NAVUNIFY -->
 <html lang="en">
 <head>
 <script>
@@ -99,7 +99,6 @@ if('serviceWorker' in navigator){
     @media(min-width:700px){.enter-ops-row{grid-template-columns:1fr 1fr;align-items:start}
 
     /* ── DARK MODE ── */
-    html.dark{--bg:#0f1923;--surface:#1a2736;--border:#2a3f56;--border-light:#243347;--text:#e8edf4;--text-muted:#ddeaf5;--text-faint:#c5d8e8;--b0:#1e2d3d;--b1:#243347;--b2:#2a3f56;}
     html.dark .topnav{background:rgba(15,25,35,0.96);}
     html.dark .tabbar{background:var(--surface);border-color:var(--border);}
     html.dark .tab-panel{background:var(--bg);}
@@ -847,21 +846,9 @@ function generateEmpCode(){
 }
 
 // ── DARK MODE ──
-function initDarkMode(){
-  const saved=localStorage.getItem('noc-dark');
-  if(saved==='1'||(saved===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){
-    document.documentElement.classList.add('dark');
-    const btn=document.getElementById('dark-toggle-btn');
-    var icon=document.getElementById('dark-icon');if(icon)icon.textContent='☀️';
-  }
-}
-function toggleDarkMode(){
-  const isDark=document.documentElement.classList.toggle('dark');
-  localStorage.setItem('noc-dark',isDark?'1':'0');
-  const btn=document.getElementById('dark-toggle-btn');
-  var icon=document.getElementById('dark-icon');if(icon)icon.textContent=isDark?'☀️':'🌙';
-}
-initDarkMode();
+
+
+
 
 function toggleNavMenu(){var dd=document.getElementById('nav-dropdown');if(dd)dd.style.display=dd.style.display==='block'?'none':'block';}
 function closeNavMenu(){var dd=document.getElementById('nav-dropdown');if(dd)dd.style.display='none';}
