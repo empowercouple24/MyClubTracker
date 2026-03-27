@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 06:21:47 LINEFIX -->
+<!-- CACHE BUST: 2026-03-27 06:29:54 EMAILS -->
 <html lang="en">
 <head>
 <script>
@@ -264,6 +264,16 @@ if('serviceWorker' in navigator){
 
 <div class="page">
   <!-- MISSING DAY ALERT BANNER — rendered by renderAlertBanner() -->
+  <div id="new-requests-banner" style="display:none;background:linear-gradient(135deg,var(--b7),var(--b5));border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;cursor:pointer;color:white;" onclick="document.getElementById('requests-section').scrollIntoView({behavior:'smooth'})">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="font-size:22px;">📋</div>
+      <div>
+        <div style="font-size:14px;font-weight:700;" id="new-requests-banner-text">New Location Request</div>
+        <div style="font-size:12px;opacity:0.85;margin-top:2px;">Click to review → scroll down to Pending Requests</div>
+      </div>
+      <div style="margin-left:auto;font-size:20px;opacity:0.7;">↓</div>
+    </div>
+  </div>
   <div id="alert-banner-wrap" style="display:none;"></div>
 
   <div class="section-label" id="kpi-label">Org Overview</div>
@@ -491,6 +501,31 @@ const SUPABASE_URL='https://ndaqlamzlaucigvnhgfu.supabase.co';
 const SUPABASE_ANON_KEY='sb_publishable_wO6XM4pC2CcaISQ8OlbkfQ_liqKJbi_';
 const{createClient}=supabase;
 const sb=createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const ADMIN_EMAIL='empowercouple24@gmail.com';
+const ADMIN_NAME='Jeff Nemecek';
+
+async function getResendKey(){
+  const{data}=await sb.from('app_settings').select('value').eq('key','resend_api_key').single();
+  return data?.value||null;
+}
+
+async function sendEmail(to, toName, subject, html){
+  const key=await getResendKey();
+  if(!key){console.warn('No Resend API key found in app_settings');return false;}
+  try{
+    const res=await fetch('https://api.resend.com/emails',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+      body:JSON.stringify({
+        from:'Nemecek Org Clubs <noreply@nemecekorgclubs.com>',
+        to:[toName?`${toName} <${to}>`:to],
+        subject,
+        html
+      })
+    });
+    return res.ok;
+  }catch(e){console.warn('Email send failed:',e);return false;}
+}
 
 
 // ── GOOGLE PLACES AUTOCOMPLETE ──
@@ -515,6 +550,17 @@ function renderRequests(){
   const section=document.getElementById('requests-section');
   const list=document.getElementById('requests-list');
   const badge=document.getElementById('requests-badge');
+  // Show/hide the top banner
+  const newBanner=document.getElementById('new-requests-banner');
+  if(newBanner){
+    if(allRequests.length){
+      newBanner.style.display='block';
+      const txt=document.getElementById('new-requests-banner-text');
+      if(txt)txt.textContent=allRequests.length===1?'1 New Location Request Pending Review':`${allRequests.length} Location Requests Pending Review`;
+    }else{
+      newBanner.style.display='none';
+    }
+  }
   if(!allRequests.length){section.style.display='none';return;}
   section.style.display='block';
   badge.textContent=`${allRequests.length} pending`;
@@ -597,7 +643,26 @@ async function executeApprove(){
   document.getElementById('success-invite-code').textContent=code;
   document.getElementById('success-email-note').textContent=email?`A confirmation has been sent to ${email}.`:'Share this code with the club owner to complete their registration.';
   document.getElementById('approve-success-modal').classList.add('open');
-  // 4. Refresh data
+  // 4. Send approval email to owner
+  if(email){
+    const req=allRequests.find(r=>r.id===approvingRequestId);
+    const firstName=req?.first_name||owner||'there';
+    await sendEmail(email, owner, `Your Club Has Been Approved — ${name}`,
+      `<div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:32px 24px;">
+        <div style="font-size:32px;margin-bottom:8px;">🎉</div>
+        <h2 style="font-size:22px;font-weight:700;color:#1e2d3d;margin-bottom:8px;">You're approved, ${escHtml(firstName)}!</h2>
+        <p style="font-size:15px;color:#3a5470;margin-bottom:16px;">Your request to join Nemecek Org Clubs has been approved. Your club <strong>${escHtml(name)}</strong> is ready to go.</p>
+        <div style="background:#f0f4f8;border-radius:12px;padding:20px 24px;margin-bottom:24px;">
+          <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#5b7087;margin-bottom:8px;">Your Invite Code</div>
+          <div style="font-family:monospace;font-size:28px;font-weight:800;letter-spacing:4px;color:#1e2d3d;">${escHtml(code)}</div>
+          <div style="font-size:13px;color:#5b7087;margin-top:8px;">Use this code to register your account at nemecekorgclubs.com</div>
+        </div>
+        <a href="https://nemecekorgclubs.com" style="display:inline-block;background:#3a5470;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:600;">Register Now →</a>
+        <p style="font-size:13px;color:#8fa3b3;margin-top:24px;">Questions? Contact ${escHtml(ADMIN_NAME)} at ${escHtml(ADMIN_EMAIL)}</p>
+      </div>`
+    );
+  }
+  // 5. Refresh data
   allRequests=allRequests.filter(r=>r.id!==approvingRequestId);
   allLocations.push(loc);allLocations.sort((a,b)=>a.name.localeCompare(b.name));
   renderRequests();renderLocations();renderAlertBanner();
@@ -620,6 +685,24 @@ async function executeDeny(){
   const btn=document.getElementById('deny-btn');
   btn.disabled=true;btn.textContent='Denying…';
   await sb.from('location_requests').update({status:'denied',denial_reason:reason}).eq('id',denyingRequestId);
+  // Send denial email
+  const deniedReq=allRequests.find(r=>r.id===denyingRequestId);
+  if(deniedReq?.email){
+    const firstName=deniedReq.first_name||deniedReq.owner_name||'there';
+    await sendEmail(deniedReq.email, deniedReq.owner_name,
+      `Update on Your Nemecek Org Clubs Request`,
+      `<div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:32px 24px;">
+        <h2 style="font-size:20px;font-weight:700;color:#1e2d3d;margin-bottom:8px;">Request Update — ${escHtml(deniedReq.club_name||'Your Request')}</h2>
+        <p style="font-size:15px;color:#3a5470;margin-bottom:16px;">Hi ${escHtml(firstName)}, thank you for your interest in joining Nemecek Org Clubs.</p>
+        <p style="font-size:15px;color:#3a5470;margin-bottom:16px;">After review, we're unable to approve your request at this time.</p>
+        <div style="background:#fff0f0;border-left:4px solid #c03030;border-radius:4px;padding:14px 16px;margin-bottom:24px;">
+          <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#c03030;margin-bottom:6px;">Reason</div>
+          <div style="font-size:14px;color:#1e2d3d;">${escHtml(reason)}</div>
+        </div>
+        <p style="font-size:14px;color:#5b7087;">If you have questions or believe this was in error, please reach out to ${escHtml(ADMIN_NAME)} at <a href="mailto:${escHtml(ADMIN_EMAIL)}" style="color:#3a5470;">${escHtml(ADMIN_EMAIL)}</a>.</p>
+      </div>`
+    );
+  }
   btn.disabled=false;btn.textContent='Deny Request';
   closeModal('deny-modal');
   allRequests=allRequests.filter(r=>r.id!==denyingRequestId);
