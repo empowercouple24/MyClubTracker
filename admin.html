@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 09:16:48 -->
+<!-- CACHE BUST: 2026-03-27 09:21:03 READONLY -->
 <html lang="en">
 <head>
 <script>
@@ -159,7 +159,6 @@ if('serviceWorker' in navigator){
     .toast.success{background:var(--g5)}.toast.error{background:var(--r5)}
 
     /* ── DARK MODE ── */
-    html.dark 
     html.dark .kpi-period{background:var(--surface);border-color:var(--border);}
     html.dark .loc-card{background:var(--surface);border-color:var(--border);}
     html.dark .modal-box{background:var(--surface);}
@@ -177,12 +176,6 @@ if('serviceWorker' in navigator){
     
     
     @keyframes dropIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
-    
-    
-    
-    
-    
-    html.dark 
     html.dark 
 
     /* ── CHART SECTION ── */
@@ -239,6 +232,10 @@ if('serviceWorker' in navigator){
     /* Compact approve modal */
   #approve-modal .modal-field{margin-bottom:8px;}
   #approve-modal .modal-field label{margin-bottom:3px;}
+  #approve-modal input[readonly]{background:var(--b0)!important;color:var(--text)!important;cursor:default;}
+  #approve-modal input:not([readonly]){background:#fff!important;border-color:var(--b5)!important;}
+  #ap-edit-btn{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:var(--b6);background:var(--b0);border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer;white-space:nowrap;}
+  #ap-edit-btn.editing{color:var(--g6);background:var(--g0);border-color:var(--g4);}
 </style>
 
 </head>
@@ -437,22 +434,25 @@ if('serviceWorker' in navigator){
 <!-- APPROVE REQUEST MODAL -->
 <div class="modal-overlay" id="approve-modal" onclick="closeModalOnBg(event,'approve-modal')">
   <div class="modal-box" style="max-height:90vh;overflow-y:auto;">
-    <div class="modal-title">📋 Review Location Request</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+      <div class="modal-title" style="margin-bottom:0;">📋 Review Location Request</div>
+      <button id="ap-edit-btn" onclick="toggleApproveEdit()" title="Edit fields">✏️ Edit</button>
+    </div>
     <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.5;">Review and edit the details below, then approve to create the location or deny with feedback.</div>
-    <div class="modal-field"><label>Club Name</label><input type="text" id="ap-name"/></div>
-    <div class="modal-field"><label>Street Address</label><input type="text" id="ap-street" autocomplete="off" data-lpignore="true" data-form-type="other"/></div>
-    <div class="modal-field"><label>Address Line 2 <span style="font-size:11px;font-weight:400;color:var(--text-faint);">Suite, Unit, Apt (optional)</span></label><input type="text" id="ap-street2" placeholder="e.g. Suite 100"/></div>
-    <div class="modal-field"><label>Zip</label><input type="text" id="ap-zip" maxlength="5" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5);if(this.value.length===5)lookupZip(this.value,'ap-city','ap-state')"/></div>
+    <div class="modal-field"><label>Club Name</label><input type="text" id="ap-name" readonly/></div>
+    <div class="modal-field"><label>Street Address</label><input type="text" id="ap-street" autocomplete="off" data-lpignore="true" data-form-type="other" readonly/></div>
+    <div class="modal-field"><label>Address Line 2 <span style="font-size:11px;font-weight:400;color:var(--text-faint);">Suite, Unit, Apt (optional)</span></label><input type="text" id="ap-street2" placeholder="e.g. Suite 100" readonly/></div>
+    <div class="modal-field"><label>Zip</label><input type="text" id="ap-zip" maxlength="5" inputmode="numeric" readonly oninput="this.value=this.value.replace(/\D/g,'').slice(0,5);if(this.value.length===5)lookupZip(this.value,'ap-city','ap-state')"/></div>
     <div class="modal-field" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
       <div><label>City <span style="font-size:10px;font-weight:400;color:var(--text-faint);">auto-fills</span></label><input type="text" id="ap-city" placeholder="Auto-filled from zip" readonly style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--b6);background:var(--b0);border:1px solid var(--border);border-radius:8px;padding:10px 12px;outline:none;" readonly/></div>
       <div><label>State <span style="font-size:10px;font-weight:400;color:var(--text-faint);">auto-fills</span></label><input type="text" id="ap-state" placeholder="Auto" readonly style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--b6);background:var(--b0);border:1px solid var(--border);border-radius:8px;padding:10px 12px;outline:none;"/></div>
     </div>
-    <div class="modal-field"><label>Owner Name</label><input type="text" id="ap-owner"/></div>
-    <div class="modal-field"><label>Owner Phone</label><input type="tel" id="ap-phone" oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"/></div>
-    <div class="modal-field"><label>Owner Email</label><input type="email" id="ap-email"/></div>
+    <div class="modal-field"><label>Owner Name</label><input type="text" id="ap-owner" readonly/></div>
+    <div class="modal-field"><label>Owner Phone</label><input type="tel" id="ap-phone" readonly oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"/></div>
+    <div class="modal-field"><label>Owner Email</label><input type="email" id="ap-email" readonly/></div>
     <div class="modal-field"><label>Invite Code</label>
       <div class="modal-invite-row">
-        <input type="text" id="ap-code" style="text-transform:uppercase;"/>
+        <input type="text" id="ap-code" style="text-transform:uppercase;" readonly/>
         <button class="btn-generate" onclick="generateCode()">Generate</button>
       </div>
     </div>
@@ -630,7 +630,7 @@ function openApproveModal(reqId){
   let code='';for(let i=0;i<6;i++)code+=chars[Math.floor(Math.random()*chars.length)];
   document.getElementById('ap-code').value=code;
   document.getElementById('ap-error').classList.remove('show');
-  if(typeof resetDenyChips==='function')resetDenyChips();resetManualDenyChips();
+  if(typeof resetDenyChips==='function')resetDenyChips();resetManualDenyChips();resetApproveEditMode();
   // Auto-check for duplicates on open
   const dupWarning=document.getElementById('ap-duplicate-warning');
   const dupMsg=document.getElementById('ap-duplicate-msg');
@@ -823,6 +823,35 @@ function resetManualDenyChips(){
   });
   const ta=document.getElementById('ap-manual-deny-reason');
   if(ta)ta.value='';
+}
+const AP_EDITABLE_IDS=['ap-name','ap-street','ap-street2','ap-zip','ap-owner','ap-phone','ap-email','ap-code'];
+let apEditMode=false;
+function toggleApproveEdit(){
+  apEditMode=!apEditMode;
+  const btn=document.getElementById('ap-edit-btn');
+  const genBtn=document.querySelector('.btn-generate');
+  AP_EDITABLE_IDS.forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+    if(apEditMode){el.removeAttribute('readonly');}
+    else{el.setAttribute('readonly','');}
+  });
+  if(apEditMode){
+    btn.textContent='✓ Done Editing';btn.classList.add('editing');
+    if(genBtn)genBtn.style.display='';
+  } else {
+    btn.textContent='✏️ Edit';btn.classList.remove('editing');
+    if(genBtn)genBtn.style.display='';
+  }
+}
+function resetApproveEditMode(){
+  apEditMode=false;
+  const btn=document.getElementById('ap-edit-btn');
+  if(btn){btn.textContent='✏️ Edit';btn.classList.remove('editing');}
+  AP_EDITABLE_IDS.forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.setAttribute('readonly','');
+  });
 }
 function resetDenyChips(){
   document.querySelectorAll('#ap-deny-chips button').forEach(b=>{
