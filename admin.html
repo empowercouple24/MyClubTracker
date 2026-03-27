@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 07:49:29 AUTOFILL -->
+<!-- CACHE BUST: 2026-03-27 07:54:19 LINK-FIX -->
 <html lang="en">
 <head>
 <script>
@@ -662,7 +662,7 @@ async function executeApprove(){
           <div style="font-family:monospace;font-size:28px;font-weight:800;letter-spacing:4px;color:#1e2d3d;">${escHtml(code)}</div>
           <div style="font-size:13px;color:#5b7087;margin-top:8px;">Use this code to register your account at nemecekorgclubs.com</div>
         </div>
-        <a href="https://nemecekorgclubs.com/index.html?tab=register&code=${escHtml(code)}" style="display:inline-block;background:#3a5470;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:600;">Register Now →</a>
+        <a href="https://nemecekorgclubs.com/index.html?tab=register&amp;code=${encodeURIComponent(code)}" style="display:inline-block;background:#3a5470;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:600;">Register Now →</a>
         <p style="font-size:13px;color:#8fa3b3;margin-top:24px;">Questions? Contact ${escHtml(ADMIN_NAME)} at ${escHtml(ADMIN_EMAIL)}</p>
       </div>`
     );
