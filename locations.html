@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 06:21:47 LINEFIX -->
+<!-- CACHE BUST: 2026-03-27 06:40:26 WIDTH-FIX -->
 <html lang="en">
 <head>
 <script>
@@ -61,7 +61,7 @@ html.dark
 html.dark 
 
 /* PAGE */
-.page{max-width:700px;margin:32px auto;padding:0 20px calc(80px + env(safe-area-inset-bottom,0px))}
+.page{max-width:700px;width:100%;margin:32px auto;padding:0 20px calc(80px + env(safe-area-inset-bottom,0px));box-sizing:border-box;}
     .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
 
 /* BUTTONS */
@@ -135,7 +135,7 @@ html.dark
 @keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 .modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0}
 .modal-title{font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--text);padding:16px 20px 0}
-.modal-body{padding:16px 20px 0}
+.modal-body{padding:0}
 .modal-field{margin-bottom:14px}
 .modal-field label{display:block;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);margin-bottom:6px}
 .modal-field input,.modal-field select,.modal-field textarea{width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;outline:none;transition:border-color 0.15s}
