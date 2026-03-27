@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 06:57:34 MODAL-WIDTH -->
+<!-- CACHE BUST: 2026-03-27 07:07:13 DELETE-FIX -->
 <html lang="en">
 <head>
 <script>
@@ -673,6 +673,10 @@ async function executeRemoveLocation(){
   if(!removingLocId)return;
   var btn=document.getElementById('remove-loc-btn');
   btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Removing…';
+  // Delete related data first to avoid foreign key issues
+  await sb.from('days').delete().eq('location_id',removingLocId);
+  await sb.from('inventory').delete().eq('location_id',removingLocId);
+  await sb.from('users').update({location_id:null,role:'pending'}).eq('location_id',removingLocId);
   var res=await sb.from('locations').delete().eq('id',removingLocId);
   btn.disabled=false;btn.textContent='Remove Location';
   if(res.error){
@@ -680,7 +684,7 @@ async function executeRemoveLocation(){
     msgEl.textContent='Remove failed: '+res.error.message;msgEl.className='modal-msg error';
     return;
   }
-  closeModal('modal-removeloc');showToast('Location removed','');removingLocId=null;
+  closeModal('modal-removeloc');showToast('Location removed ✓','success');removingLocId=null;
   await loadData();
 }
 
