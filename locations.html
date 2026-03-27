@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 05:33:56 LOCFIX -->
+<!-- CACHE BUST: 2026-03-27 05:43:19 LOCFIX2 -->
 <html lang="en">
 <head>
 <script>
@@ -415,12 +415,9 @@ function closeNavMenu(){
 }
 // Close dropdown when clicking outside
 document.addEventListener('click',function(e){
-  var wrap=document.querySelector('
-
-// ── DARK MODE ──
-
-
-
+  var wrap=document.querySelector('.nav-menu-wrap');
+  if(wrap&&!wrap.contains(e.target))closeNavMenu();
+});
 
 // ── RENDER ──
 function renderLocations(){
