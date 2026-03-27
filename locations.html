@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 08:35:53 -->
+<!-- CACHE BUST: 2026-03-27 04:40:26 NAVUNIFY -->
 <html lang="en">
 <head>
 <script>
@@ -38,27 +38,27 @@ if('serviceWorker' in navigator){
 html,body{min-height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text)}
 
 /* NAV */
-.topnav{position:sticky;top:0;z-index:100;background:rgba(232,237,244,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border-light);padding:env(safe-area-inset-top,0px) 20px 0;display:flex;align-items:center;min-height:calc(54px + env(safe-area-inset-top,0px))}
-.nav-inner{display:flex;align-items:center;gap:10px;padding:12px 0;width:100%}
-.btn-back{background:none;border:none;cursor:pointer;font-size:22px;color:var(--b6);padding:0 4px;line-height:1}
-.btn-back:hover{color:var(--b8)}
-.nav-title{font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--text);flex:1}
+
+
+
+
+
 .nav-badge{font-size:12px;font-weight:700;background:var(--b7);color:white;padding:3px 8px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase}
 .dark-toggle{background:none;border:1px solid var(--border);border-radius:20px;padding:4px 10px;cursor:pointer;font-size:13px;color:var(--text-muted);}
-.nav-menu-wrap{position:relative;}
-.nav-menu-btn{display:flex;align-items:center;gap:7px;background:none;border:1px solid var(--border);border-radius:20px;padding:6px 14px 6px 10px;cursor:pointer;font-size:15px;font-weight:600;color:var(--text-muted);font-family:'DM Sans',sans-serif;transition:all 0.15s;}
-.nav-menu-btn:hover{background:var(--b0);color:var(--text);}
+
+
+
 .nav-menu-badge{font-size:14px;font-weight:700;background:var(--b7);color:white;padding:4px 10px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase;}
-.nav-dropdown{position:absolute;top:calc(100% + 6px);right:0;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);box-shadow:0 4px 20px rgba(30,45,61,0.12);min-width:160px;z-index:999;display:none;}
-.nav-dropdown.open{display:block;animation:dropIn 0.15s ease;}
+
+
 @keyframes dropIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
-.nav-dropdown-item{display:flex;align-items:center;gap:8px;width:100%;padding:11px 16px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text);background:none;border:none;cursor:pointer;text-align:left;transition:background 0.12s;}
-.nav-dropdown-item:hover{background:var(--b0);}
-.nav-dropdown-item:first-child{border-radius:var(--radius-sm) var(--radius-sm) 0 0;}
-.nav-dropdown-item:last-child{border-radius:0 0 var(--radius-sm) var(--radius-sm);}
-.nav-dropdown-divider{height:1px;background:var(--border-light);margin:2px 0;}
-html.dark .nav-dropdown{background:var(--surface);border-color:var(--border);}
-html.dark .nav-dropdown-item:hover{background:var(--b1);}
+
+
+
+
+
+html.dark 
+html.dark 
 
 /* PAGE */
 .page{max-width:760px;margin:0 auto;padding:24px 20px calc(80px + env(safe-area-inset-bottom,0px))}
@@ -158,8 +158,7 @@ html.dark .nav-dropdown-item:hover{background:var(--b1);}
 .spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:5px}
 
 /* DARK MODE */
-html.dark{--bg:#0f1923;--surface:#1a2736;--border:#2a3f56;--border-light:#243347;--text:#e8edf4;--text-muted:#ddeaf5;--text-faint:#c5d8e8;--b0:#1e2d3d;--b1:#243347;--b2:#2a3f56;}
-html.dark .topnav{background:rgba(15,25,35,0.96);}
+html.dark 
 html.dark .loc-group{background:var(--surface);border-color:var(--border);}
 html.dark .loc-group-header{background:linear-gradient(135deg,var(--b0) 0%,var(--surface) 100%);}
 html.dark .modal-sheet{background:var(--surface);}
@@ -168,48 +167,42 @@ html.dark .invite-code-pill{background:#3a5470;border-color:#5b80a0;color:#fffff
 html.dark body{background:var(--bg);}
 
 @media(max-width:600px){.loc-header-actions{flex-direction:column;}.invite-block{flex-direction:column;align-items:flex-start;}}
-</style>
+    .topnav{display:flex;align-items:center;gap:10px;padding:0 20px;height:52px;background:var(--surface);border-bottom:1px solid var(--border-light);position:sticky;top:0;z-index:100;}
+    .nav-logo svg{width:32px;height:32px;display:block;}
+    .nav-logo{display:flex;align-items:center;flex-shrink:0;}
+    .nav-page-title{font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;color:var(--text);flex:1;}
+    .nav-admin-badge{font-size:10px;font-weight:700;background:var(--b7);color:white;padding:2px 7px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase;flex-shrink:0;}
+    .nav-menu-wrap{position:relative;flex-shrink:0;}
+    .nav-menu-btn{display:flex;align-items:center;gap:6px;background:none;border:1px solid var(--border);border-radius:20px;padding:5px 12px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text);font-family:'DM Sans',sans-serif;}
+    .nav-menu-btn:hover{background:var(--b0);}
+    .nav-drop{position:absolute;top:calc(100% + 6px);right:0;background:var(--surface);border:1px solid var(--border-light);border-radius:10px;box-shadow:0 4px 20px rgba(30,45,61,0.12);min-width:170px;z-index:999;display:none;}
+    .nav-drop.open{display:block;}
+    .nav-drop-item{display:flex;align-items:center;gap:9px;width:100%;padding:11px 16px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text);background:none;border:none;cursor:pointer;text-align:left;white-space:nowrap;}
+    .nav-drop-item:hover{background:var(--b0);}
+    .nav-drop-item.danger{color:var(--r5);}
+    .nav-drop-divider{height:1px;background:var(--border-light);margin:3px 0;}
+  </style>
 </head>
 <body>
 <div id="loading-overlay"><div class="load-spinner"></div></div>
 
-<div id="admin-widget-bar" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 12px;background:var(--b8);color:white;font-size:12px;">
-  <div style="display:flex;align-items:center;gap:6px;">
-    <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;opacity:0.65;">Admin</span>
-    <span style="opacity:0.35;font-size:10px;">|</span>
-    <span style="font-weight:600;">All Locations</span>
-  </div>
-  <div style="display:flex;gap:5px;">
-    <button onclick="window.location.href='admin.html'" style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:5px;padding:3px 8px;cursor:pointer;">← Dashboard</button>
-    <button onclick="window.location.href='settings.html'" style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:5px;padding:3px 8px;cursor:pointer;">⚙ Settings</button>
-  </div>
-</div>
 <nav class="topnav">
-  <div class="nav-inner">
-    <button class="btn-back" onclick="window.location.href='admin.html'">←</button>
-    <div class="nav-title" onclick="window.location.href='admin.html'" style="cursor:pointer;transition:color 0.15s;" onmouseover="this.style.color='var(--b5)'" onmouseout="this.style.color='var(--text)'">Locations</div>
-    <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
-      <div class="nav-menu-wrap">
-        <button class="nav-menu-btn" onclick="toggleNavMenu()" id="nav-menu-btn">
-          <span class="nav-menu-badge">Admin</span>
-          <span id="nav-menu-arrow" style="font-size:10px;">▾</span>
-        </button>
-        <div class="nav-dropdown" id="nav-dropdown">
-          <button class="nav-dropdown-item" onclick="toggleDarkMode();closeNavMenu()">
-            <span id="dark-icon">🌙</span> Dark mode
-          </button>
-          <button class="nav-dropdown-item" onclick="window.location.href='admin.html'">
-            🏠 Dashboard
-          </button>
-          <button class="nav-dropdown-item" onclick="window.location.href='settings.html'">
-            ⚙️ Settings
-          </button>
-          <div class="nav-dropdown-divider"></div>
-          <button class="nav-dropdown-item" onclick="handleSignOut()" style="color:var(--r5);">
-            ↪ Sign out
-          </button>
-        </div>
-      </div>
+  <div class="nav-logo"><svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
+  <g transform="rotate(-18, 16, 36)"><rect x="8" y="24" width="16" height="20" rx="2" fill="#1a5c2a"/><rect x="10" y="28" width="12" height="8" rx="1" fill="rgba(255,255,255,0.25)"/><line x1="16" y1="18" x2="14" y2="24" stroke="#1a5c2a" stroke-width="2.5" stroke-linecap="round"/></g>
+  <g transform="rotate(14, 38, 36)"><rect x="30" y="26" width="16" height="20" rx="2" fill="#1a5c2a"/><rect x="32" y="30" width="12" height="8" rx="1" fill="rgba(255,255,255,0.25)"/><line x1="38" y1="20" x2="40" y2="26" stroke="#1a5c2a" stroke-width="2.5" stroke-linecap="round"/></g>
+  <circle cx="40" cy="16" r="11" fill="#4caf60"/>
+  <path d="M34 22 L44 12 M38 12 L44 12 L44 18" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg></div>
+  <div class="nav-page-title">Locations</div>
+  <div class="nav-admin-badge">Admin</div>
+  <div class="nav-menu-wrap">
+    <button class="nav-menu-btn" onclick="toggleNavMenu()"><span style="font-size:10px;color:var(--text-faint);">▾</span></button>
+    <div class="nav-drop" id="nav-dropdown">
+      <button class="nav-drop-item" onclick="window.location.href='admin.html';closeNavMenu()">🏠 Dashboard</button>
+      <button class="nav-drop-item" onclick="window.location.href='locations.html';closeNavMenu()">🏪 Locations</button>
+      <button class="nav-drop-item" onclick="window.location.href='settings.html';closeNavMenu()">⚙ Settings</button>
+      <div class="nav-drop-divider"></div>
+      <button class="nav-drop-item danger" onclick="handleSignOut();closeNavMenu()">↪ Sign out</button>
     </div>
   </div>
 </nav>
@@ -422,30 +415,12 @@ function closeNavMenu(){
 }
 // Close dropdown when clicking outside
 document.addEventListener('click',function(e){
-  var wrap=document.querySelector('.nav-menu-wrap');
-  if(wrap&&!wrap.contains(e.target))closeNavMenu();
-});
-async function handleSignOut(){
-  await sb.auth.signOut();
-  window.location.href='index.html';
-}
+  var wrap=document.querySelector('
 
 // ── DARK MODE ──
-function initDarkMode(){
-  var saved=localStorage.getItem('noc-dark');
-  if(saved==='1'||(saved===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){
-    document.documentElement.classList.add('dark');
-    var icon=document.getElementById('dark-icon');
-    if(icon)icon.textContent='☀️';
-  }
-}
-function toggleDarkMode(){
-  var isDark=document.documentElement.classList.toggle('dark');
-  localStorage.setItem('noc-dark',isDark?'1':'0');
-  var icon=document.getElementById('dark-icon');
-  if(icon)icon.textContent=isDark?'☀️':'🌙';
-}
-initDarkMode();
+
+
+
 
 // ── RENDER ──
 function renderLocations(){
@@ -559,8 +534,7 @@ function copyCode(code){
 }
 
 function goToApp(locId){
-  const _loc=allLocations.find(l=>l.id===locId);
-  window.location.href='app2.html?location_id='+locId+'&admin=1'+((_loc&&_loc.name)?'&locationName='+encodeURIComponent(_loc.name):'');
+  window.location.href='app2.html?location_id='+locId+'&admin=1';
 }
 
 // ── LOAD DATA ──
