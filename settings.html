@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 05:46:01 DROPDOWN-FIX -->
+<!-- CACHE BUST: 2026-03-27 05:54:48 -->
 <html lang="en">
 <head>
 <script>
@@ -147,7 +147,6 @@ if('serviceWorker' in navigator){
     html.dark .modal-sheet,.html.dark .modal-box{background:var(--surface) !important;}
     html.dark input,html.dark select,html.dark textarea{background:var(--b0) !important;color:var(--text) !important;}
     html.dark body{background:var(--bg);}
-    .dark-toggle{background:none;border:1px solid var(--border);border-radius:20px;padding:4px 10px;cursor:pointer;font-size:13px;color:var(--text-muted);}
     
     
     
@@ -232,16 +231,7 @@ if('serviceWorker' in navigator){
         </div>
         <input type="text" class="row-input" id="prof-name" placeholder="e.g. Jeff" style="text-align:right;max-width:180px;"/>
       </div>
-      <div class="divider-label">Preferences</div>
-      <div class="settings-row">
-        
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-          <span style="font-size:13px;color:var(--text-faint);" id="dark-mode-label">Off</span>
-          <div id="dark-mode-toggle" onclick="toggleDarkModeSetting()" style="width:44px;height:24px;border-radius:12px;background:var(--border);cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0;">
-            <div id="dark-mode-knob" style="position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:white;transition:transform 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.2);"></div>
-          </div>
-        </label>
-      </div>
+
       <div class="divider-label">Contact</div>
       <div class="settings-row">
         <div class="row-label">Phone</div>
