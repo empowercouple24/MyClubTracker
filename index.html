@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 07:32:36 -->
+<!-- CACHE BUST: 2026-03-27 07:49:29 AUTOFILL -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -341,6 +341,17 @@ async function init(){
   }
   if(params.get('msg')==='confirmed'){showTab('signin');showMsg('si-msg','✓ Email confirmed! You can now sign in.','success');return;}
   if(params.get('msg')==='setup-incomplete'){showTab('signin');showMsg('si-msg','Account confirmed! Please sign in.','success');return;}
+  // Auto-open register tab with invite code pre-filled from approval email link
+  if(params.get('tab')==='register'){
+    showTab('register');
+    var code=params.get('code');
+    if(code){
+      var codeEl=document.getElementById('reg-code');
+      if(codeEl){codeEl.value=code.toUpperCase();}
+      showMsg('reg-msg1','Invite code pre-filled from your approval email ✓','success');
+    }
+    return;
+  }
   var session=(await sb.auth.getSession()).data.session;
   if(session){
     var r=await sb.from('users').select('role,location_id').eq('id',session.user.id).single();
