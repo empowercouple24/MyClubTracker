@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 06:40:26 CORS-FIX -->
+<!-- CACHE BUST: 2026-03-27 06:55:33 DELETE-BTN -->
 <html lang="en">
 <head>
 <script>
@@ -495,6 +495,23 @@ if('serviceWorker' in navigator){
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- DELETE LOCATION MODAL -->
+<div class="modal-overlay" id="delete-loc-modal" onclick="closeModalOnBg(event,'delete-loc-modal')" style="position:fixed;inset:0;background:rgba(30,45,61,0.45);display:flex;align-items:center;justify-content:center;z-index:500;opacity:0;pointer-events:none;transition:opacity 0.2s;">
+  <div style="background:var(--surface);border-radius:16px;padding:28px 24px;max-width:400px;width:90%;box-shadow:0 8px 40px rgba(30,45,61,0.18);">
+    <div style="font-size:24px;margin-bottom:10px;">⚠️</div>
+    <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--r5);margin-bottom:8px;">Remove Location</div>
+    <div style="font-size:14px;color:var(--text-muted);margin-bottom:6px;">You are about to permanently remove:</div>
+    <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:16px;" id="delete-loc-name"></div>
+    <div style="background:var(--r0);border:1px solid rgba(192,48,48,0.2);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--r5);margin-bottom:20px;line-height:1.5;">
+      This permanently deletes the location and all its sales data, inventory, and settings. <strong>This cannot be undone.</strong>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="closeModal('delete-loc-modal')" style="flex:1;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;background:var(--surface);color:var(--text-muted);border:1px solid var(--border);border-radius:8px;padding:10px;cursor:pointer;">Cancel</button>
+      <button id="delete-loc-btn" onclick="executeDeleteLocation()" style="flex:1;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;background:linear-gradient(135deg,var(--r5),var(--r4));color:white;border:none;border-radius:8px;padding:10px;cursor:pointer;">Remove Location</button>
+    </div>
+  </div>
+</div>
 
 <script>
 const SUPABASE_URL='https://ndaqlamzlaucigvnhgfu.supabase.co';
@@ -1041,7 +1058,7 @@ function renderLocations(){
             Waiting for the club owner to register at <strong>nemecekorgclubs.com</strong> using the invite code above.
           </div>
           <div class="expanded-footer">
-            <div></div>
+            <button onclick="event.stopPropagation();openDeleteModal('${loc.id}','${escHtml(loc.name)}')" title="Remove location" style="background:none;border:1px solid var(--border-light);border-radius:6px;padding:6px 8px;cursor:pointer;color:var(--text-faint);font-size:14px;line-height:1;" onmouseover="this.style.background='var(--r0)';this.style.color='var(--r5)'" onmouseout="this.style.background='none';this.style.color='var(--text-faint)'">🗑</button>
             <a class="btn-manage-settings" href="app2.html?location_id=${loc.id}&admin=1&settings=1">⚙ Manage Settings</a>
             <a class="btn-view-app" href="app2.html?location_id=${loc.id}&admin=1">View Full App →</a>
           </div>
@@ -1110,6 +1127,7 @@ function renderLocations(){
         </div>
         <div class="expanded-footer">
           ${lastFmt?`<div class="last-entry-note">Last entry: ${lastFmt}</div>`:'<div></div>'}
+          <button onclick="event.stopPropagation();openDeleteModal('${loc.id}','${escHtml(loc.name)}')" title="Remove location" style="background:none;border:1px solid var(--border-light);border-radius:6px;padding:6px 8px;cursor:pointer;color:var(--text-faint);font-size:14px;line-height:1;" onmouseover="this.style.background='var(--r0)';this.style.color='var(--r5)'" onmouseout="this.style.background='none';this.style.color='var(--text-faint)'">🗑</button>
           <a class="btn-manage-settings" href="app2.html?location_id=${loc.id}&admin=1&settings=1">⚙ Manage Settings</a>
           <a class="btn-view-app" href="app2.html?location_id=${loc.id}&admin=1">View Full App →</a>
         </div>
@@ -1279,7 +1297,44 @@ async function saveProfile(){
 }
 
 function openModal(id){document.getElementById(id).classList.add('open');}
-function closeModal(id){document.getElementById(id).classList.remove('open');}
+function closeModal(id){
+  var el=document.getElementById(id);
+  if(!el)return;
+  // Handle both .open class modals and opacity-based modals
+  if(el.style.opacity!==undefined&&el.style.pointerEvents!==undefined&&!el.classList.contains('open')){
+    el.style.opacity='0';el.style.pointerEvents='none';
+  } else {
+    el.classList.remove('open');
+  }
+}
+let deletingLocId=null;
+function openDeleteModal(locId,locName){
+  deletingLocId=locId;
+  document.getElementById('delete-loc-name').textContent=locName;
+  const m=document.getElementById('delete-loc-modal');
+  m.style.opacity='1';m.style.pointerEvents='all';
+}
+function closeModalOnBg(e,id){
+  if(e.target===document.getElementById(id))closeModal(id);
+}
+async function executeDeleteLocation(){
+  if(!deletingLocId)return;
+  const btn=document.getElementById('delete-loc-btn');
+  btn.disabled=true;btn.textContent='Removing…';
+  // Delete related data first
+  await sb.from('days').delete().eq('location_id',deletingLocId);
+  await sb.from('inventory').delete().eq('location_id',deletingLocId);
+  await sb.from('users').update({location_id:null}).eq('location_id',deletingLocId);
+  const{error}=await sb.from('locations').delete().eq('id',deletingLocId);
+  btn.disabled=false;btn.textContent='Remove Location';
+  if(error){showToast('Delete failed: '+error.message,'error');return;}
+  closeModal('delete-loc-modal');
+  allLocations=allLocations.filter(l=>l.id!==deletingLocId);
+  allDays=allDays.filter(d=>d.location_id!==deletingLocId);
+  deletingLocId=null;
+  renderLocations();renderKPIs();renderAlertBanner();renderCompChart();
+  showToast('Location removed ✓','success');
+}
 function closeModalOnBg(e,id){if(e.target===document.getElementById(id))closeModal(id);}
 
 async function handleSignOut(){await sb.auth.signOut();window.location.href='index.html';}
