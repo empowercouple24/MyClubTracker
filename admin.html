@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 09:38:45 UPLOAD-NOW -->
+<!-- CACHE BUST: 2026-03-27 09:48:13 FONTFIX2 -->
 <html lang="en">
 <head>
 <script>
@@ -536,6 +536,15 @@ if('serviceWorker' in navigator){
 <script>
 const SUPABASE_URL='https://ndaqlamzlaucigvnhgfu.supabase.co';
 const SUPABASE_ANON_KEY='sb_publishable_wO6XM4pC2CcaISQ8OlbkfQ_liqKJbi_';
+// Force fresh content — prevents stale CDN cache from serving old JS
+const PAGE_VERSION='2026-03-27 09:48';
+const storedVersion=sessionStorage.getItem('page_version');
+if(storedVersion && storedVersion!==PAGE_VERSION){
+  sessionStorage.setItem('page_version',PAGE_VERSION);
+  window.location.reload(true);
+}else{
+  sessionStorage.setItem('page_version',PAGE_VERSION);
+}
 const{createClient}=supabase;
 const sb=createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 const ADMIN_EMAIL='empowercouple24@gmail.com';
@@ -595,7 +604,7 @@ function renderRequests(){
     return`<div style="background:var(--surface);border:1px solid var(--border-light);border-left:4px solid var(--b5);border-radius:var(--radius);padding:14px 16px;">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
         <div style="flex:1;min-width:0;">
-          <div style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px;">${escHtml(r.club_name)}</div>
+          <div class="loc-name" style="margin-bottom:4px;">${escHtml(r.club_name)}</div>
           ${addr?`<div style="font-size:13px;color:var(--text-muted);margin-bottom:2px;">📍 ${escHtml(addr)}</div>`:''}
           <div style="font-size:13px;color:var(--text-muted);">👤 ${escHtml(r.owner_name||'—')} ${r.phone?`· 📞 ${escHtml(r.phone)}`:''}</div>
           <div style="font-size:13px;color:var(--b6);">✉️ ${escHtml(r.email||'—')}</div>
