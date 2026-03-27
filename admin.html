@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 01:10:21 -->
+<!-- CACHE BUST: 2026-03-27 04:19:10 -->
 <html lang="en">
 <head>
 <script>
@@ -950,8 +950,10 @@ function renderLocations(){
         <div class="loc-card-header" onclick="toggleCard('${loc.id}')">
           <div class="loc-avatar">${initials}</div>
           <div class="loc-meta">
-            <div class="loc-name">${escHtml(loc.name)}</div>
-            ${loc.owner_name?`<div class="loc-owner">👤 ${escHtml(loc.owner_name)}</div>`:''}
+            <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">
+              <div class="loc-name">${escHtml(loc.name)}</div>
+              ${loc.owner_name?`<div style="font-size:12px;color:var(--text-muted);font-weight:500;white-space:nowrap;">👤 ${escHtml(loc.owner_name)}</div>`:''}
+            </div>
             ${loc.address?`<div class="loc-addr">📍 ${escHtml(loc.address)}</div>`:''}
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
@@ -1015,8 +1017,11 @@ function renderLocations(){
       <div class="loc-card-header" onclick="toggleCard('${loc.id}')">
         <div class="loc-avatar">${initials}</div>
         <div class="loc-meta">
-          <div class="loc-name">${escHtml(loc.name)}</div>
-          ${loc.owner_name?`<div class="loc-owner">👤 ${escHtml(loc.owner_name)}</div>`:''}
+          <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">
+            <div class="loc-name">${escHtml(loc.name)}</div>
+            ${loc.owner_name?`<div style="font-size:12px;color:var(--text-muted);font-weight:500;white-space:nowrap;">👤 ${escHtml(loc.owner_name)}</div>`:''}
+            ${loc.settings?.secondContact?.name?`<div style="font-size:12px;color:var(--text-faint);white-space:nowrap;">· 👤 ${escHtml(loc.settings.secondContact.name)}</div>`:''}
+          </div>
           ${loc.address?`<div class="loc-addr">📍 ${escHtml(loc.address)}</div>`:''}
         </div>
         <div class="loc-badges">${badge}</div>
