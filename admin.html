@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 08:54:19 MULTICHIP -->
+<!-- CACHE BUST: 2026-03-27 08:57:29 COMPACT2 -->
 <html lang="en">
 <head>
 <script>
@@ -236,7 +236,13 @@ if('serviceWorker' in navigator){
     .nav-drop-item:last-child{border-radius:0 0 10px 10px;}
   
       nav a.nav-logo:hover{opacity:0.8;}
-  </style>
+    /* Compact approve modal */
+  #approve-modal .modal-field{margin-bottom:8px;}
+  #approve-modal .modal-field input,#approve-modal .modal-field select{padding:7px 10px;font-size:14px;}
+  #approve-modal .modal-field label{margin-bottom:3px;font-size:11px;}
+  #approve-modal .modal-title{margin-bottom:4px;font-size:17px;}
+  #approve-modal > .modal-box > div:nth-child(2){margin-bottom:8px;font-size:12px;}
+</style>
 
 </head>
 <body>
@@ -433,7 +439,7 @@ if('serviceWorker' in navigator){
 
 <!-- APPROVE REQUEST MODAL -->
 <div class="modal-overlay" id="approve-modal" onclick="closeModalOnBg(event,'approve-modal')">
-  <div class="modal-box" style="max-height:90vh;overflow-y:auto;">
+  <div class="modal-box" style="max-height:90vh;overflow-y:auto;padding:20px;">
     <div class="modal-title">✅ Approve Location Request</div>
     <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.5;">Review and edit the details before creating the location. An invite code will be generated and shown to you.</div>
     <div class="modal-field"><label>Club Name</label><input type="text" id="ap-name"/></div>
@@ -455,17 +461,17 @@ if('serviceWorker' in navigator){
     </div>
     <div class="modal-error" id="ap-error"></div>
     <!-- Duplicate warning — shown when similar location detected -->
-    <div id="ap-duplicate-warning" style="display:none;background:#fff8f0;border:1.5px solid #f0b440;border-radius:10px;padding:14px 16px;margin-bottom:14px;">
-      <div style="font-size:13px;font-weight:700;color:#1e2d3d;margin-bottom:6px;">⚠️ Possible Duplicate Detected</div>
-      <div style="font-size:13px;color:#1e2d3d;line-height:1.5;" id="ap-duplicate-msg"></div>
+    <div id="ap-duplicate-warning" style="display:none;background:#fff8f0;border:1.5px solid #f0b440;border-radius:10px;padding:10px 12px;margin-bottom:10px;">
+      <div style="font-size:12px;font-weight:700;color:#1e2d3d;margin-bottom:4px;">⚠️ Possible Duplicate Detected</div>
+      <div style="font-size:12px;color:#1e2d3d;line-height:1.4;margin-bottom:0;" id="ap-duplicate-msg"></div>
       
       <!-- Multi-select reason chips -->
-      <div style="display:flex;flex-direction:column;gap:6px;margin-top:10px;margin-bottom:6px;" id="ap-deny-chips">
-        <button type="button" onclick="toggleDenyChip(this)" data-key="name" style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;background:#fff;color:#1e2d3d;border:1px solid #d0bfa0;border-radius:8px;padding:8px 14px;cursor:pointer;text-align:left;width:100%;">Duplicate name</button>
-        <button type="button" onclick="toggleDenyChip(this)" data-key="owner" style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;background:#fff;color:#1e2d3d;border:1px solid #d0bfa0;border-radius:8px;padding:8px 14px;cursor:pointer;text-align:left;width:100%;">Duplicate owner</button>
-        <button type="button" onclick="toggleDenyChip(this)" data-key="address" style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;background:#fff;color:#1e2d3d;border:1px solid #d0bfa0;border-radius:8px;padding:8px 14px;cursor:pointer;text-align:left;width:100%;">Duplicate address</button>
+      <div style="display:flex;flex-direction:column;gap:4px;margin-top:8px;margin-bottom:4px;" id="ap-deny-chips">
+        <button type="button" onclick="toggleDenyChip(this)" data-key="name" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;background:#fff;color:#1e2d3d;border:1px solid #d0bfa0;border-radius:6px;padding:6px 10px;cursor:pointer;text-align:left;width:100%;">Duplicate name</button>
+        <button type="button" onclick="toggleDenyChip(this)" data-key="owner" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;background:#fff;color:#1e2d3d;border:1px solid #d0bfa0;border-radius:6px;padding:6px 10px;cursor:pointer;text-align:left;width:100%;">Duplicate owner</button>
+        <button type="button" onclick="toggleDenyChip(this)" data-key="address" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;background:#fff;color:#1e2d3d;border:1px solid #d0bfa0;border-radius:6px;padding:6px 10px;cursor:pointer;text-align:left;width:100%;">Duplicate address</button>
       </div>
-      <textarea id="ap-duplicate-deny-reason" placeholder="Select one or more reasons above, or write a custom message..." style="width:100%;margin-top:4px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:white;border:1px solid #f0b440;border-radius:8px;padding:10px 12px;outline:none;resize:vertical;min-height:70px;box-sizing:border-box;"></textarea>
+      <textarea id="ap-duplicate-deny-reason" placeholder="Select one or more reasons above, or write a custom message..." style="width:100%;margin-top:4px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:white;border:1px solid #f0b440;border-radius:8px;padding:10px 12px;outline:none;resize:vertical;min-height:52px;box-sizing:border-box;"></textarea>
 
     </div>
     <div class="modal-footer" id="ap-footer">
