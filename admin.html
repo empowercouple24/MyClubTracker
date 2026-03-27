@@ -21,8 +21,8 @@ if('serviceWorker' in navigator){
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Outfit:wght@400;600;700;800&display=block" rel="stylesheet"/>
-  <link rel="stylesheet" href="shared.css?v=2"/>
-  <link rel="stylesheet" href="nav.css?v=2"/>
+  <link rel="stylesheet" href="shared.css?v=3"/>
+  <link rel="stylesheet" href="nav.css?v=3"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
@@ -465,7 +465,7 @@ if('serviceWorker' in navigator){
   </div>
 </div>
 
-<script src="nav.js?v=2"></script>
+<script src="nav.js?v=3"></script>
 <script>
 const SUPABASE_URL='https://ndaqlamzlaucigvnhgfu.supabase.co';
 const SUPABASE_ANON_KEY='sb_publishable_wO6XM4pC2CcaISQ8OlbkfQ_liqKJbi_';
@@ -528,9 +528,9 @@ function renderRequests(){
     return`<div style="background:var(--surface);border:1px solid var(--border-light);border-left:4px solid var(--b5);border-radius:var(--radius);padding:14px 16px;">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
         <div style="flex:1;min-width:0;">
-          <div class="loc-name" style="margin-bottom:4px;">${escHtml(r.club_name)}</div>
+          <div class="loc-name" style="margin-bottom:4px;text-transform:capitalize;">${escHtml(r.club_name)}</div>
           ${addr?`<div style="font-size:13px;color:var(--text-muted);margin-bottom:2px;">📍 ${escHtml(addr)}</div>`:''}
-          <div style="font-size:13px;color:var(--text-muted);">👤 ${escHtml(r.owner_name||'—')} ${r.phone?`· 📞 ${escHtml(r.phone)}`:''}</div>
+          <div style="font-size:13px;color:var(--text-muted);">👤 <span style="text-transform:capitalize;">${escHtml(r.owner_name||'—')}</span> ${r.phone?`· 📞 ${escHtml(r.phone)}`:''}</div>
           <div style="font-size:13px;color:var(--b6);">✉️ ${escHtml(r.email||'—')}</div>
           ${r.notes?`<div style="font-size:12px;color:var(--text-faint);margin-top:6px;font-style:italic;">"${escHtml(r.notes)}"</div>`:''}
           <div style="font-size:11px;color:var(--text-faint);margin-top:6px;">Submitted ${submitted}</div>
