@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 04:07:38 NAVFIX3 -->
+<!-- CACHE BUST: 2026-03-27 04:11:27 CLUBNAME-FIX -->
 <html lang="en">
 <head>
 <script>
@@ -949,7 +949,8 @@ async function init(){
   if(loc){
     setNavLocation(loc.name, loc.address);
     if(loc.settings&&Object.keys(loc.settings).length>0){SETTINGS={...SETTINGS,...loc.settings};}
-    else{SETTINGS.clubName=loc.name;}
+    // Always ensure clubName is set — use loc.name as authoritative source
+    if(!SETTINGS.clubName) SETTINGS.clubName = loc.name;
   }
   if(IS_ADMIN_VIEW){
     const _nab=document.getElementById('nav-admin-badge');if(_nab)_nab.style.display='block';
@@ -1252,9 +1253,8 @@ function buildSettingsUI(){
   buildSelect('s-merchrate',range(5,100,5), SETTINGS.merchRate,v=>v+'%');
   buildSelect('s-dvdelta', range(-10,10,1), SETTINGS.dvDelta,  v=>(v>=0?'+':'')+v+'%');
   // Pre-fill club name from location name if not set
-  const navClubName=document.getElementById('nav-club-name');
-  const locName=navClubName?navClubName.textContent:'';
-  document.getElementById('s-clubname').value=SETTINGS.clubName||locName||'';
+  const _cnEl=document.getElementById('s-clubname');
+  if(_cnEl) _cnEl.value=SETTINGS.clubName||'';
 
   document.getElementById('s-operators').innerHTML=SETTINGS.operators.map((op,i)=>`<div class="settings-row" style="gap:8px;"><label style="min-width:80px;">Operator ${i+1}</label><input type="text" id="s-op-${i}" value="${op.name||''}" placeholder="Name" style="flex:1;"/><input type="text" id="s-alias-${i}" value="${op.aliases||''}" placeholder="Aliases e.g. MN" style="flex:1;"/></div>`).join('');
   // Employee invite code
