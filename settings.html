@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 04:48:34 NAVFIX -->
+<!-- CACHE BUST: 2026-03-27 04:54:08 INITFIX -->
 <html lang="en">
 <head>
 <script>
@@ -922,6 +922,9 @@ async function executePush() {
 function toggleNavMenu(){var dd=document.getElementById('nav-dropdown');if(dd)dd.classList.toggle('open');}
 function closeNavMenu(){var dd=document.getElementById('nav-dropdown');if(dd)dd.classList.remove('open');}
 document.addEventListener('click',function(e){var w=document.querySelector('.nav-menu-wrap');if(w&&!w.contains(e.target))closeNavMenu();});
+
+async function init() {
+  const { data:{ session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'index.html'; return; }
   // Populate profile fields
   const { data:u } = await sb.from('users').select('role,display_name,first_name,last_name,phone').eq('id', session.user.id).single();
