@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 07:07:13 DELETE-FIX -->
+<!-- CACHE BUST: 2026-03-27 07:13:53 ESC-FIX -->
 <html lang="en">
 <head>
 <script>
@@ -362,7 +362,7 @@ function buildAddress(street,city,state,zip){
 }
 
 function escHtml(s){
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
 function genCode(inputId){
@@ -474,7 +474,7 @@ function renderLocations(){
         '<div class="loc-header-actions">'+
           '<button class="btn btn-ghost btn-sm" onclick="openEditLocation(\''+loc.id+'\')">✏️ Edit</button>'+
           '<button class="btn btn-sm" onclick="goToApp(\''+loc.id+'\')" style="background:linear-gradient(135deg,var(--b7),var(--b5));color:white;font-size:12px;padding:5px 12px;">View App →</button>'+
-          '<button class="btn btn-danger btn-sm" onclick="confirmRemoveLocation(\''+loc.id+'\',\''+escHtml(loc.name)+'\')" title="Remove location">🗑</button>'+
+          '<button class="btn btn-danger btn-sm" onclick="confirmRemoveLocation(this)" data-id="'+loc.id+'" data-name="'+escHtml(loc.name)+'" title="Remove location">🗑</button>'+'
         '</div>'+
       '</div>'+
       // Owner details section
@@ -662,9 +662,9 @@ async function submitRegenCode(){
 }
 
 // ── REMOVE LOCATION ──
-function confirmRemoveLocation(locId,locName){
-  removingLocId=locId;
-  document.getElementById('remove-loc-name').textContent=locName;
+function confirmRemoveLocation(btn){
+  removingLocId=btn.dataset.id;
+  document.getElementById('remove-loc-name').textContent=btn.dataset.name||'this location';
   document.getElementById('remove-loc-msg').className='modal-msg';
   openModal('modal-removeloc');
 }
