@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 08:57:29 COMPACT2 -->
+<!-- CACHE BUST: 2026-03-27 09:00:55 BULLETS -->
 <html lang="en">
 <head>
 <script>
@@ -722,6 +722,12 @@ async function executeApprove(){
   showToast(`${name} approved ✓`,'success');
 }
 
+function buildReasonBullets(reason){
+  // Split into sentences and render as bullets
+  var sentences=reason.split('. ').map(function(s){return s.replace(/\.$/,'').trim();}).filter(Boolean);
+  if(sentences.length<=1)return '<li style="margin:0 0 4px 0;">'+escHtml(reason)+'</li>';
+  return sentences.map(function(s){return '<li style="margin:0 0 4px 0;">'+escHtml(s)+'</li>';}).join('');
+}
 const DENY_REASONS={
   name:'A location with a duplicate or very similar name already exists in our system.',
   owner:'A location with the same owner is already registered in our system.',
@@ -773,7 +779,7 @@ async function denyDuplicate(){
       '<p style="font-size:15px;color:#3a5470;margin-bottom:16px;">After review, we are unable to approve your request at this time.</p>'+
       '<div style="background:#fff0f0;border-left:4px solid #c03030;border-radius:4px;padding:14px 16px;margin-bottom:24px;">'+
       '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#c03030;margin-bottom:6px;">Reason</div>'+
-      '<div style="font-size:14px;color:#1e2d3d;">'+escHtml(reason)+'</div></div>'+
+      '<ul style="margin:0;padding-left:18px;font-size:14px;color:#1e2d3d;line-height:1.7;">'+buildReasonBullets(reason)+'</ul></div>'+
       '<p style="font-size:14px;color:#5b7087;">Questions? Contact '+escHtml(ADMIN_NAME)+' at <a href="mailto:'+escHtml(ADMIN_EMAIL)+'" style="color:#3a5470;">'+escHtml(ADMIN_EMAIL)+'</a>.</p>'+
       '</div>'
     );
@@ -813,7 +819,7 @@ async function executeDeny(){
         <p style="font-size:15px;color:#3a5470;margin-bottom:16px;">After review, we're unable to approve your request at this time.</p>
         <div style="background:#fff0f0;border-left:4px solid #c03030;border-radius:4px;padding:14px 16px;margin-bottom:24px;">
           <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#c03030;margin-bottom:6px;">Reason</div>
-          <div style="font-size:14px;color:#1e2d3d;">${escHtml(reason)}</div>
+          <ul style="margin:0;padding-left:18px;font-size:14px;color:#1e2d3d;line-height:1.7;">${buildReasonBullets(reason)}</ul>
         </div>
         <p style="font-size:14px;color:#5b7087;">If you have questions or believe this was in error, please reach out to ${escHtml(ADMIN_NAME)} at <a href="mailto:${escHtml(ADMIN_EMAIL)}" style="color:#3a5470;">${escHtml(ADMIN_EMAIL)}</a>.</p>
       </div>`
