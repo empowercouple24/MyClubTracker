@@ -1,0 +1,145 @@
+/* ============================================================
+   nav.css — Shared navigation styles
+   Nemecek Org Clubs
+   Used by: admin.html, locations.html, settings.html
+   ============================================================ */
+
+/* ── TOP NAV BAR ── */
+.topnav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 20px;
+  height: 52px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-light);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+/* ── LOGO ── */
+.nav-logo {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.nav-logo svg {
+  width: 32px;
+  height: 32px;
+  display: block;
+}
+nav a.nav-logo:hover {
+  opacity: 0.8;
+}
+
+/* ── PAGE TITLE (center of nav) ── */
+.nav-page-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  flex: 1;
+}
+
+/* ── ADMIN BADGE (small pill) ── */
+.nav-admin-badge {
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--b7);
+  color: white;
+  padding: 2px 7px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+/* ── MENU WRAPPER (positions the dropdown) ── */
+.nav-menu-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* ── MENU TRIGGER BUTTON ── */
+.nav-menu-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--b7);
+  border: 1.5px solid var(--b3);
+  border-radius: 20px;
+  padding: 5px 14px;
+  background: white;
+  cursor: pointer;
+}
+.nav-menu-btn:hover {
+  background: var(--b0);
+}
+
+/* ── DROPDOWN PANEL ── */
+.nav-drop {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(30, 45, 61, 0.12);
+  min-width: 170px;
+  z-index: 999;
+  display: none;
+}
+.nav-drop.open,
+#nav-dropdown.open {
+  display: block;
+}
+#nav-dropdown {
+  display: none;
+}
+
+/* ── DROPDOWN ITEMS ── */
+.nav-drop-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 11px 16px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  white-space: nowrap;
+}
+.nav-drop-item:hover {
+  background: var(--b0);
+}
+.nav-drop-item.danger {
+  color: var(--r5);
+}
+.nav-drop-item:first-child {
+  border-radius: 10px 10px 0 0;
+}
+.nav-drop-item:last-child {
+  border-radius: 0 0 10px 10px;
+}
+
+/* ── DROPDOWN DIVIDER ── */
+.nav-drop-divider {
+  height: 1px;
+  background: var(--border-light);
+  margin: 3px 0;
+}
+
+/* ── DROP ANIMATION ── */
+@keyframes dropIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
