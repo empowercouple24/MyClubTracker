@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 09:00:55 BULLETS -->
+<!-- CACHE BUST: 2026-03-27 09:08:25 REVIEW-MODAL -->
 <html lang="en">
 <head>
 <script>
@@ -440,8 +440,8 @@ if('serviceWorker' in navigator){
 <!-- APPROVE REQUEST MODAL -->
 <div class="modal-overlay" id="approve-modal" onclick="closeModalOnBg(event,'approve-modal')">
   <div class="modal-box" style="max-height:90vh;overflow-y:auto;padding:20px;">
-    <div class="modal-title">✅ Approve Location Request</div>
-    <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.5;">Review and edit the details before creating the location. An invite code will be generated and shown to you.</div>
+    <div class="modal-title">📋 Review Location Request</div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.5;">Review and edit the details below, then approve to create the location or deny with feedback.</div>
     <div class="modal-field"><label>Club Name</label><input type="text" id="ap-name"/></div>
     <div class="modal-field"><label>Street Address</label><input type="text" id="ap-street" autocomplete="off" data-lpignore="true" data-form-type="other"/></div>
     <div class="modal-field"><label>Address Line 2 <span style="font-size:11px;font-weight:400;color:var(--text-faint);">Suite, Unit, Apt (optional)</span></label><input type="text" id="ap-street2" placeholder="e.g. Suite 100"/></div>
@@ -474,33 +474,31 @@ if('serviceWorker' in navigator){
       <textarea id="ap-duplicate-deny-reason" placeholder="Select one or more reasons above, or write a custom message..." style="width:100%;margin-top:4px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:white;border:1px solid #f0b440;border-radius:8px;padding:10px 12px;outline:none;resize:vertical;min-height:52px;box-sizing:border-box;"></textarea>
 
     </div>
+    <!-- Approve footer - hidden when duplicate -->
     <div class="modal-footer" id="ap-footer">
       <button class="btn-modal-primary" onclick="executeApprove()" id="ap-btn">✓ Approve & Create Location</button>
       <button class="btn-modal-cancel" onclick="closeModal('approve-modal')">Cancel</button>
     </div>
-    <!-- Shown instead of approve button when duplicate detected -->
+    <!-- Deny footer - shown when duplicate, or when deny section is used -->
     <div class="modal-footer" id="ap-footer-deny" style="display:none;">
-      <button class="btn-modal-primary" style="background:linear-gradient(135deg,#c03030,#e03535);color:white;" onclick="denyDuplicate()">✗ Deny Request</button>
+      <button class="btn-modal-primary" style="background:linear-gradient(135deg,#c03030,#e03535);color:white;" id="ap-deny-submit-btn" onclick="denyFromReview()">✗ Deny Request</button>
       <button class="btn-modal-cancel" onclick="closeModal('approve-modal')">Cancel</button>
+    </div>
+    <!-- Deny section — always visible below approve -->
+    <div style="border-top:1px solid var(--border-light);margin-top:14px;padding-top:14px;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:10px;">Or Deny This Request</div>
+      <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:6px;" id="ap-manual-deny-chips">
+        <button type="button" onclick="toggleManualDenyChip(this)" data-key="name" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;background:#fff;color:#1e2d3d;border:1px solid var(--border);border-radius:6px;padding:6px 10px;cursor:pointer;text-align:left;width:100%;">Duplicate name</button>
+        <button type="button" onclick="toggleManualDenyChip(this)" data-key="owner" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;background:#fff;color:#1e2d3d;border:1px solid var(--border);border-radius:6px;padding:6px 10px;cursor:pointer;text-align:left;width:100%;">Duplicate owner</button>
+        <button type="button" onclick="toggleManualDenyChip(this)" data-key="address" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;background:#fff;color:#1e2d3d;border:1px solid var(--border);border-radius:6px;padding:6px 10px;cursor:pointer;text-align:left;width:100%;">Duplicate address</button>
+      </div>
+      <textarea id="ap-manual-deny-reason" placeholder="Select a reason above or write a custom denial message..." style="width:100%;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:6px;padding:8px 10px;outline:none;resize:vertical;min-height:52px;box-sizing:border-box;" oninput="updateDenyFooter()"></textarea>
     </div>
   </div>
 </div>
 
 <!-- DENY REQUEST MODAL -->
-<div class="modal-overlay" id="deny-modal" onclick="closeModalOnBg(event,'deny-modal')">
-  <div class="modal-box">
-    <div class="modal-title" style="color:var(--r5);">✗ Deny Request</div>
-    <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.5;">Provide a reason so the requester understands why their request was not approved.</div>
-    <div class="modal-field"><label>Feedback to Requester</label>
-      <textarea id="deny-reason" placeholder="e.g. We are not currently accepting new locations in your area..." style="width:100%;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:8px;padding:10px 12px;outline:none;resize:vertical;min-height:80px;box-sizing:border-box;"></textarea>
-    </div>
-    <div class="modal-error" id="deny-error"></div>
-    <div class="modal-footer">
-      <button class="btn-modal-primary" onclick="executeDeny()" id="deny-btn" style="background:linear-gradient(135deg,var(--r5),var(--r4));">Deny Request</button>
-      <button class="btn-modal-cancel" onclick="closeModal('deny-modal')">Cancel</button>
-    </div>
-  </div>
-</div>
+<!-- deny-modal removed: deny now lives inside review modal -->
 
 <!-- APPROVE SUCCESS MODAL -->
 <div class="modal-overlay" id="approve-success-modal" onclick="closeModalOnBg(event,'approve-success-modal')">
@@ -607,9 +605,8 @@ function renderRequests(){
           ${r.notes?`<div style="font-size:12px;color:var(--text-faint);margin-top:6px;font-style:italic;">"${escHtml(r.notes)}"</div>`:''}
           <div style="font-size:11px;color:var(--text-faint);margin-top:6px;">Submitted ${submitted}</div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0;">
-          <button onclick="openApproveModal('${r.id}')" style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;background:linear-gradient(135deg,var(--g5),var(--g4));color:white;border:none;border-radius:6px;padding:8px 16px;cursor:pointer;white-space:nowrap;">✓ Approve</button>
-          <button onclick="openDenyModal('${r.id}')" style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;background:var(--r0);color:var(--r5);border:1px solid rgba(192,48,48,0.2);border-radius:6px;padding:8px 16px;cursor:pointer;white-space:nowrap;">✗ Deny</button>
+        <div style="flex-shrink:0;">
+          <button onclick="openApproveModal('${r.id}')" style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;background:linear-gradient(135deg,var(--b7),var(--b5));color:white;border:none;border-radius:6px;padding:8px 18px;cursor:pointer;white-space:nowrap;">Review →</button>
         </div>
       </div>
     </div>`;
@@ -636,7 +633,7 @@ function openApproveModal(reqId){
   let code='';for(let i=0;i<6;i++)code+=chars[Math.floor(Math.random()*chars.length)];
   document.getElementById('ap-code').value=code;
   document.getElementById('ap-error').classList.remove('show');
-  if(typeof resetDenyChips==='function')resetDenyChips();
+  if(typeof resetDenyChips==='function')resetDenyChips();resetManualDenyChips();
   // Auto-check for duplicates on open
   const dupWarning=document.getElementById('ap-duplicate-warning');
   const dupMsg=document.getElementById('ap-duplicate-msg');
@@ -749,6 +746,87 @@ function updateDenyReasonText(){
   const parts=selected.map(k=>DENY_REASONS[k]);
   document.getElementById('ap-duplicate-deny-reason').value=parts.join(' ');
 }
+function toggleManualDenyChip(btn){
+  const active=btn.getAttribute('data-active')==='true';
+  btn.setAttribute('data-active',active?'false':'true');
+  btn.style.background=active?'#fff':'var(--b1)';
+  btn.style.borderColor=active?'var(--border)':'var(--b5)';
+  btn.style.fontWeight=active?'500':'700';
+  btn.style.color=active?'#1e2d3d':'var(--b7)';
+  updateManualDenyText();
+  updateDenyFooter();
+}
+function updateManualDenyText(){
+  const chips=document.querySelectorAll('#ap-manual-deny-chips button');
+  const selected=[];
+  chips.forEach(b=>{if(b.getAttribute('data-active')==='true')selected.push(b.dataset.key);});
+  if(!selected.length){document.getElementById('ap-manual-deny-reason').value='';return;}
+  const parts=selected.map(k=>DENY_REASONS[k]);
+  document.getElementById('ap-manual-deny-reason').value=parts.join(' ');
+}
+function updateDenyFooter(){
+  const reason=document.getElementById('ap-manual-deny-reason').value.trim();
+  const denyFooter=document.getElementById('ap-footer-deny');
+  const approveFooter=document.getElementById('ap-footer');
+  // If deny section has content and no duplicate warning, switch footer
+  const dupVisible=document.getElementById('ap-duplicate-warning').style.display!=='none';
+  if(!dupVisible){
+    if(reason){
+      approveFooter.style.display='none';
+      denyFooter.style.display='flex';
+    } else {
+      approveFooter.style.display='flex';
+      denyFooter.style.display='none';
+    }
+  }
+}
+async function denyFromReview(){
+  // Works for both manual deny and duplicate deny
+  const dupVisible=document.getElementById('ap-duplicate-warning').style.display!=='none';
+  const reason=dupVisible
+    ? document.getElementById('ap-duplicate-deny-reason').value.trim()
+    : document.getElementById('ap-manual-deny-reason').value.trim();
+  if(!reason){
+    if(dupVisible){document.getElementById('ap-duplicate-deny-reason').style.borderColor='var(--r5)';}
+    else{document.getElementById('ap-manual-deny-reason').style.borderColor='var(--r5)';}
+    return;
+  }
+  const btn=document.getElementById('ap-deny-submit-btn');
+  btn.disabled=true;btn.textContent='Denying...';
+  await sb.from('location_requests').update({status:'denied',denial_reason:reason}).eq('id',approvingRequestId);
+  const deniedReq=allRequests.find(r=>r.id===approvingRequestId);
+  if(deniedReq?.email){
+    const firstName=deniedReq.first_name||deniedReq.owner_name||'there';
+    await sendEmail(deniedReq.email, deniedReq.owner_name,
+      'Update on Your Nemecek Org Clubs Request',
+      '<div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:32px 24px;">'+
+      '<h2 style="font-size:20px;font-weight:700;color:#1e2d3d;margin-bottom:8px;">Request Update</h2>'+
+      '<p style="font-size:15px;color:#3a5470;margin-bottom:16px;">Hi '+escHtml(firstName)+', thank you for your interest in Nemecek Org Clubs.</p>'+
+      '<p style="font-size:15px;color:#3a5470;margin-bottom:16px;">After review, we are unable to approve your request at this time.</p>'+
+      '<div style="background:#fff0f0;border-left:4px solid #c03030;border-radius:4px;padding:14px 16px;margin-bottom:24px;">'+
+      '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#c03030;margin-bottom:6px;">Reason</div>'+
+      '<ul style="margin:0;padding-left:18px;font-size:14px;color:#1e2d3d;line-height:1.7;">'+buildReasonBullets(reason)+'</ul></div>'+
+      '<p style="font-size:14px;color:#5b7087;">Questions? Contact '+escHtml(ADMIN_NAME)+' at <a href="mailto:'+escHtml(ADMIN_EMAIL)+'" style="color:#3a5470;">'+escHtml(ADMIN_EMAIL)+'</a>.</p>'+
+      '</div>'
+    );
+  }
+  btn.disabled=false;btn.textContent='✗ Deny Request';
+  closeModal('approve-modal');
+  allRequests=allRequests.filter(r=>r.id!==approvingRequestId);
+  renderRequests();
+  showToast('Request denied','success');
+}
+function resetManualDenyChips(){
+  document.querySelectorAll('#ap-manual-deny-chips button').forEach(b=>{
+    b.setAttribute('data-active','false');
+    b.style.background='#fff';
+    b.style.borderColor='var(--border)';
+    b.style.fontWeight='500';
+    b.style.color='#1e2d3d';
+  });
+  const ta=document.getElementById('ap-manual-deny-reason');
+  if(ta)ta.value='';
+}
 function resetDenyChips(){
   document.querySelectorAll('#ap-deny-chips button').forEach(b=>{
     b.setAttribute('data-active','false');
@@ -791,12 +869,7 @@ async function denyDuplicate(){
   showToast('Request denied ✓','success');
 }
 
-function openDenyModal(reqId){
-  denyingRequestId=reqId;
-  document.getElementById('deny-reason').value='';
-  document.getElementById('deny-error').classList.remove('show');
-  document.getElementById('deny-modal').classList.add('open');
-}
+// openDenyModal removed — deny now lives in review modal
 
 async function executeDeny(){
   const reason=document.getElementById('deny-reason').value.trim();
