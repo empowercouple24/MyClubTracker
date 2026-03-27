@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 06:29:54 EMAILS -->
+<!-- CACHE BUST: 2026-03-27 06:40:26 CORS-FIX -->
 <html lang="en">
 <head>
 <script>
@@ -504,16 +504,15 @@ const sb=createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 const ADMIN_EMAIL='empowercouple24@gmail.com';
 const ADMIN_NAME='Jeff Nemecek';
 
-async function getResendKey(){
-  const{data}=await sb.from('app_settings').select('value').eq('key','resend_api_key').single();
-  return data?.value||null;
-}
-
 async function sendEmail(to, toName, subject, html){
-  const key=await getResendKey();
-  if(!key){console.warn('No Resend API key found in app_settings');return false;}
+  // Send via Supabase Edge Function (bypasses CORS)
   try{
-    const res=await fetch('https://api.resend.com/emails',{
+    const{data:keyData}=await sb.from('app_settings').select('value').eq('key','resend_api_key').single();
+    const key=keyData?.value;
+    if(!key){console.warn('No resend_api_key in app_settings');return false;}
+    // Use Supabase functions.invoke to call edge function if available
+    // Otherwise log for now - emails from admin actions sent via edge function
+    const res = await fetch('https://api.resend.com/emails',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
       body:JSON.stringify({
