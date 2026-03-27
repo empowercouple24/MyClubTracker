@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 08:50:50 CHIPS-GRID -->
+<!-- CACHE BUST: 2026-03-27 08:54:19 MULTICHIP -->
 <html lang="en">
 <head>
 <script>
@@ -459,14 +459,13 @@ if('serviceWorker' in navigator){
       <div style="font-size:13px;font-weight:700;color:#1e2d3d;margin-bottom:6px;">⚠️ Possible Duplicate Detected</div>
       <div style="font-size:13px;color:#1e2d3d;line-height:1.5;" id="ap-duplicate-msg"></div>
       
-      <!-- Auto-generated reason chips -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;margin-bottom:6px;" id="ap-deny-chips">
-        <button type="button" onclick="setDenyReason(this)" data-reason="A location with a duplicate or very similar name already exists in our system." style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;background:#fff;color:#1e2d3d;border:1px solid #d0bfa0;border-radius:20px;padding:5px 12px;cursor:pointer;">Duplicate name</button>
-        <button type="button" onclick="setDenyReason(this)" data-reason="A location with the same owner is already registered in our system." style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;background:#fff;color:#1e2d3d;border:1px solid #d0bfa0;border-radius:20px;padding:5px 12px;cursor:pointer;">Duplicate owner</button>
-        <button type="button" onclick="setDenyReason(this)" data-reason="A location with a similar name and owner already exists. Please contact us if you believe this is an error." style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;background:#fff;color:#1e2d3d;border:1px solid #d0bfa0;border-radius:20px;padding:5px 12px;cursor:pointer;">Duplicate name &amp; owner</button>
-        <button type="button" onclick="setDenyReason(this)" data-reason="A location at the same or very similar address is already registered in our system." style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;background:#fff;color:#1e2d3d;border:1px solid #d0bfa0;border-radius:20px;padding:5px 12px;cursor:pointer;">Duplicate address</button>
+      <!-- Multi-select reason chips -->
+      <div style="display:flex;flex-direction:column;gap:6px;margin-top:10px;margin-bottom:6px;" id="ap-deny-chips">
+        <button type="button" onclick="toggleDenyChip(this)" data-key="name" style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;background:#fff;color:#1e2d3d;border:1px solid #d0bfa0;border-radius:8px;padding:8px 14px;cursor:pointer;text-align:left;width:100%;">Duplicate name</button>
+        <button type="button" onclick="toggleDenyChip(this)" data-key="owner" style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;background:#fff;color:#1e2d3d;border:1px solid #d0bfa0;border-radius:8px;padding:8px 14px;cursor:pointer;text-align:left;width:100%;">Duplicate owner</button>
+        <button type="button" onclick="toggleDenyChip(this)" data-key="address" style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;background:#fff;color:#1e2d3d;border:1px solid #d0bfa0;border-radius:8px;padding:8px 14px;cursor:pointer;text-align:left;width:100%;">Duplicate address</button>
       </div>
-      <textarea id="ap-duplicate-deny-reason" placeholder="Or write a custom reason..." style="width:100%;margin-top:4px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:white;border:1px solid #f0b440;border-radius:8px;padding:10px 12px;outline:none;resize:vertical;min-height:70px;box-sizing:border-box;"></textarea>
+      <textarea id="ap-duplicate-deny-reason" placeholder="Select one or more reasons above, or write a custom message..." style="width:100%;margin-top:4px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:white;border:1px solid #f0b440;border-radius:8px;padding:10px 12px;outline:none;resize:vertical;min-height:70px;box-sizing:border-box;"></textarea>
 
     </div>
     <div class="modal-footer" id="ap-footer">
@@ -631,6 +630,7 @@ function openApproveModal(reqId){
   let code='';for(let i=0;i<6;i++)code+=chars[Math.floor(Math.random()*chars.length)];
   document.getElementById('ap-code').value=code;
   document.getElementById('ap-error').classList.remove('show');
+  if(typeof resetDenyChips==='function')resetDenyChips();
   // Auto-check for duplicates on open
   const dupWarning=document.getElementById('ap-duplicate-warning');
   const dupMsg=document.getElementById('ap-duplicate-msg');
@@ -716,14 +716,35 @@ async function executeApprove(){
   showToast(`${name} approved ✓`,'success');
 }
 
-function setDenyReason(btn){
-  // Fill textarea and highlight selected chip
-  document.getElementById('ap-duplicate-deny-reason').value=btn.dataset.reason;
+const DENY_REASONS={
+  name:'A location with a duplicate or very similar name already exists in our system.',
+  owner:'A location with the same owner is already registered in our system.',
+  address:'A location at the same or very similar address is already registered in our system.'
+};
+function toggleDenyChip(btn){
+  const active=btn.getAttribute('data-active')==='true';
+  btn.setAttribute('data-active', active?'false':'true');
+  btn.style.background=active?'#fff':'#f0b440';
+  btn.style.borderColor=active?'#d0bfa0':'#a06000';
+  btn.style.fontWeight=active?'500':'700';
+  updateDenyReasonText();
+}
+function updateDenyReasonText(){
+  const chips=document.querySelectorAll('#ap-deny-chips button');
+  const selected=[];
+  chips.forEach(b=>{if(b.getAttribute('data-active')==='true')selected.push(b.dataset.key);});
+  if(!selected.length){document.getElementById('ap-duplicate-deny-reason').value='';return;}
+  const parts=selected.map(k=>DENY_REASONS[k]);
+  document.getElementById('ap-duplicate-deny-reason').value=parts.join(' ');
+}
+function resetDenyChips(){
   document.querySelectorAll('#ap-deny-chips button').forEach(b=>{
-    b.style.background=b===btn?'#f0b440':'#fff';
-    b.style.color=b===btn?'#1e2d3d':'#1e2d3d';
-    b.style.borderColor=b===btn?'#a06000':'#d0bfa0';
+    b.setAttribute('data-active','false');
+    b.style.background='#fff';
+    b.style.borderColor='#d0bfa0';
+    b.style.fontWeight='500';
   });
+  document.getElementById('ap-duplicate-deny-reason').value='';
 }
 async function denyDuplicate(){
   const reason=document.getElementById('ap-duplicate-deny-reason').value.trim();
