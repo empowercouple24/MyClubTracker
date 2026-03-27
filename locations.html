@@ -20,33 +20,11 @@ if('serviceWorker' in navigator){
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Outfit:wght@400;600;700;800&display=block" rel="stylesheet"/>
+<link rel="stylesheet" href="shared.css?v=1"/>
+<link rel="stylesheet" href="nav.css?v=1"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --b9:#1e2d3d;--b8:#2a3f56;--b7:#3a5470;--b6:#4a6a8a;--b5:#5b80a0;--b4:#7599b8;--b3:#9ab4cc;--b2:#bfd0e0;--b1:#dde7f0;--b0:#f0f4f8;
-  --g5:#2e7a35;--g4:#3d9e46;--g0:#eaf6eb;
-  --r5:#c03030;--r0:#fff0f0;
-  --a5:#c47c0a;--a0:#fef7e8;
-  --bg:#e8edf4;--surface:#fff;--border:#cdd6e0;--border-light:#e2e9f0;
-  --text:#1e2d3d;--text-muted:#5b7087;--text-faint:#8fa3b3;
-  --radius:14px;--radius-sm:9px;
-  --shadow-sm:0 1px 4px rgba(30,45,61,0.06),0 2px 10px rgba(30,45,61,0.04);
-  --shadow-md:0 4px 20px rgba(30,45,61,0.1);
-}
-html,body{min-height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text)}
-
-/* NAV */
-
-.nav-badge{font-size:12px;font-weight:700;background:var(--b7);color:white;padding:3px 8px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase}
-.dark-toggle{background:none;border:1px solid var(--border);border-radius:20px;padding:4px 10px;cursor:pointer;font-size:13px;color:var(--text-muted);}
-
-.nav-menu-badge{font-size:14px;font-weight:700;background:var(--b7);color:white;padding:4px 10px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase;}
-
-
-@keyframes dropIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
-
 /* PAGE */
 .page{max-width:1050px;width:100%;margin:32px auto;padding:0 20px calc(80px + env(safe-area-inset-bottom,0px));box-sizing:border-box;}
     .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
@@ -132,64 +110,30 @@ html,body{min-height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);
 .modal-msg.error{background:rgba(192,48,48,0.07);border:1px solid rgba(192,48,48,0.2);color:var(--r5);display:block}
 .modal-msg.success{background:var(--g0);border:1px solid rgba(46,122,53,0.2);color:var(--g5);display:block}
 
-/* LOADING */
-#loading-overlay{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:300;}
-.load-spinner{width:32px;height:32px;border:3px solid var(--b1);border-top-color:var(--b6);border-radius:50%;animation:spin 0.8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* TOAST */
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--b8);color:white;padding:10px 20px;border-radius:24px;font-size:14px;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,0.2);z-index:400;transition:transform 0.3s cubic-bezier(0.16,1,0.3,1),opacity 0.3s;opacity:0;white-space:nowrap}
-.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
-.toast.success{background:var(--g5)}
-.toast.error{background:var(--r5)}
-
 .spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:5px}
 
-/* DARK MODE */
 @media(max-width:600px){.loc-header-actions{flex-direction:column;}.invite-block{flex-direction:column;align-items:flex-start;}}
-    .topnav{display:flex;align-items:center;gap:10px;padding:0 20px;height:52px;background:var(--surface);border-bottom:1px solid var(--border-light);position:sticky;top:0;z-index:100;}
-    .nav-logo svg{width:32px;height:32px;display:block;}
-    .nav-logo{display:flex;align-items:center;flex-shrink:0;}
-    .nav-page-title{font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;color:var(--text);flex:1;}
-    .nav-admin-badge{font-size:10px;font-weight:700;background:var(--b7);color:white;padding:2px 7px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase;flex-shrink:0;}
-    .nav-menu-wrap{position:relative;flex-shrink:0;}
-    .nav-menu-btn{display:flex;align-items:center;gap:6px;background:none;border:1px solid var(--border);border-radius:20px;padding:5px 12px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text);font-family:'DM Sans',sans-serif;}
-    .nav-menu-btn:hover{background:var(--b0);}
-    .nav-drop{position:absolute;top:calc(100% + 6px);right:0;background:var(--surface);border:1px solid var(--border-light);border-radius:10px;box-shadow:0 4px 20px rgba(30,45,61,0.12);min-width:170px;z-index:999;display:none;}
-    .nav-drop.open{display:block;}
-    .nav-drop-item{display:flex;align-items:center;gap:9px;width:100%;padding:11px 16px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text);background:none;border:none;cursor:pointer;text-align:left;white-space:nowrap;}
-    .nav-drop-item:hover{background:var(--b0);}
-    .nav-drop-item.danger{color:var(--r5);}
-    .nav-drop-divider{height:1px;background:var(--border-light);margin:3px 0;}
-      #nav-dropdown.open{display:block !important;}
-  
-    #nav-dropdown{display:none;}
-    #nav-dropdown.open{display:block;}
-    .nav-drop-item:first-child{border-radius:10px 10px 0 0;}
-    .nav-drop-item:last-child{border-radius:0 0 10px 10px;}
-  
-      nav a.nav-logo:hover{opacity:0.8;}
-  </style>
+</style>
 </head>
 <body>
 <div id="loading-overlay"><div class="load-spinner"></div></div>
 
-<nav class="topnav" style="display:flex;align-items:center;padding:0 20px;height:52px;background:var(--surface);border-bottom:1px solid var(--border-light);position:sticky;top:0;z-index:100;">
-  <a href="admin.html" class="nav-logo" style="flex-shrink:0;display:flex;align-items:center;text-decoration:none;cursor:pointer;" title="Dashboard"><svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
+<nav class="topnav">
+  <a href="admin.html" class="nav-logo" title="Dashboard"><svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
   <g transform="rotate(-18, 16, 36)"><rect x="8" y="24" width="16" height="20" rx="2" fill="#1a5c2a"/><rect x="10" y="28" width="12" height="8" rx="1" fill="rgba(255,255,255,0.25)"/><line x1="16" y1="18" x2="14" y2="24" stroke="#1a5c2a" stroke-width="2.5" stroke-linecap="round"/></g>
   <g transform="rotate(14, 38, 36)"><rect x="30" y="26" width="16" height="20" rx="2" fill="#1a5c2a"/><rect x="32" y="30" width="12" height="8" rx="1" fill="rgba(255,255,255,0.25)"/><line x1="38" y1="20" x2="40" y2="26" stroke="#1a5c2a" stroke-width="2.5" stroke-linecap="round"/></g>
   <circle cx="40" cy="16" r="11" fill="#4caf60"/>
   <path d="M34 22 L44 12 M38 12 L44 12 L44 18" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
 </svg></a>
-  <div class="nav-page-title" style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;color:var(--text);flex:1;margin-left:10px;">Locations</div>
-  <div class="nav-menu-wrap" style="position:relative;flex-shrink:0;">
-    <button class="nav-menu-btn" onclick="toggleNavMenu()" style="display:flex;align-items:center;gap:6px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;color:var(--b7);border:1.5px solid var(--b3);border-radius:20px;padding:5px 14px;background:white;cursor:pointer;">ADMIN <span style="font-size:10px;">▾</span></button>
-    <div class="nav-drop" id="nav-dropdown" style="position:absolute;top:calc(100% + 6px);right:0;background:var(--surface);border:1px solid var(--border-light);border-radius:10px;box-shadow:0 4px 20px rgba(30,45,61,0.12);min-width:170px;z-index:999;">
-      <button class="nav-drop-item" onclick="window.location.href='admin.html';closeNavMenu()" style="display:flex;align-items:center;gap:9px;width:100%;padding:11px 16px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text);background:none;border:none;cursor:pointer;text-align:left;" onmouseover="this.style.background='var(--b0)'" onmouseout="this.style.background='none'">🏠 Dashboard</button>
-      <button class="nav-drop-item" onclick="window.location.href='locations.html';closeNavMenu()" style="display:flex;align-items:center;gap:9px;width:100%;padding:11px 16px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text);background:none;border:none;cursor:pointer;text-align:left;" onmouseover="this.style.background='var(--b0)'" onmouseout="this.style.background='none'">🏪 Locations</button>
-      <button class="nav-drop-item" onclick="window.location.href='settings.html';closeNavMenu()" style="display:flex;align-items:center;gap:9px;width:100%;padding:11px 16px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text);background:none;border:none;cursor:pointer;text-align:left;" onmouseover="this.style.background='var(--b0)'" onmouseout="this.style.background='none'">⚙ Settings</button>
-      <div style="height:1px;background:var(--border-light);margin:3px 0;"></div>
-      <button class="nav-drop-item danger" onclick="handleSignOut();closeNavMenu()" style="display:flex;align-items:center;gap:9px;width:100%;padding:11px 16px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--r5);background:none;border:none;cursor:pointer;text-align:left;border-radius:0 0 10px 10px;" onmouseover="this.style.background='var(--b0)'" onmouseout="this.style.background='none'">↪ Sign out</button>
+  <div class="nav-page-title" style="margin-left:10px;">Locations</div>
+  <div class="nav-menu-wrap">
+    <button class="nav-menu-btn" onclick="toggleNavMenu()">ADMIN <span style="font-size:10px;">▾</span></button>
+    <div class="nav-drop" id="nav-dropdown">
+      <button class="nav-drop-item" onclick="window.location.href='admin.html';closeNavMenu()">🏠 Dashboard</button>
+      <button class="nav-drop-item" onclick="window.location.href='locations.html';closeNavMenu()">🏪 Locations</button>
+      <button class="nav-drop-item" onclick="window.location.href='settings.html';closeNavMenu()">⚙ Settings</button>
+      <div class="nav-drop-divider"></div>
+      <button class="nav-drop-item danger" onclick="handleSignOut();closeNavMenu()">↪ Sign out</button>
     </div>
   </div>
 </nav>
@@ -323,6 +267,7 @@ html,body{min-height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);
 
 <div class="toast" id="toast"></div>
 
+<script src="nav.js?v=1"></script>
 <script>
 const SUPABASE_URL = 'https://ndaqlamzlaucigvnhgfu.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_wO6XM4pC2CcaISQ8OlbkfQ_liqKJbi_';
@@ -391,18 +336,6 @@ async function lookupZip(zip,cityId,stateId){
 function attachPlacesAutocomplete(streetInputId, cityId, stateId, zipId) {
   // Google Places removed — using manual entry + zip auto-fill only
 }
-
-// ── NAV MENU ──
-function toggleNavMenu(){var dd=document.getElementById('nav-dropdown');if(dd)dd.classList.toggle('open');}
-function closeNavMenu(){var dd=document.getElementById('nav-dropdown');if(dd)dd.classList.remove('open');}
-(function(){
-  var closeTimer;
-  var wrap=document.querySelector('.nav-menu-wrap');
-  if(!wrap)return;
-  wrap.addEventListener('mouseenter',function(){clearTimeout(closeTimer);var dd=document.getElementById('nav-dropdown');if(dd)dd.classList.add('open');});
-  wrap.addEventListener('mouseleave',function(){closeTimer=setTimeout(function(){var dd=document.getElementById('nav-dropdown');if(dd)dd.classList.remove('open');},300);});
-})();
-document.addEventListener('click',function(e){var w=document.querySelector('.nav-menu-wrap');if(w&&!w.contains(e.target))closeNavMenu();});
 
 // ── RENDER ──
 function renderLocations(){
@@ -714,7 +647,6 @@ async function init(){
 }
 
 init();
-async function handleSignOut(){await sb.auth.signOut();window.location.href='index.html';}
 </script>
 </body>
 </html>
