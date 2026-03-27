@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 03:44:20 AUTO-UPDATE -->
+<!-- CACHE BUST: 2026-03-27 03:59:19 NAVFIX2 -->
 <html lang="en">
 <head>
 <script>
@@ -947,9 +947,7 @@ async function init(){
   setLoadText('Loading club data…');
   const{data:loc}=await sb.from('locations').select('name,address,settings').eq('id',LOCATION_ID).single();
   if(loc){
-    const _ncn=document.getElementById('nav-club-name');if(_ncn)_ncn.textContent=loc.name;
-    const _nca=document.getElementById('nav-club-addr');
-    if(_nca&&loc.address){_nca.textContent=loc.address;_nca.style.display='block';}
+    setNavLocation(loc.name, loc.address);
     if(loc.settings&&Object.keys(loc.settings).length>0){SETTINGS={...SETTINGS,...loc.settings};}
     else{SETTINGS.clubName=loc.name;}
   }
@@ -977,10 +975,23 @@ async function init(){
   const _pf=document.getElementById('payout-from');if(_pf)_pf.value=new Date(now.getFullYear(),now.getMonth(),1).toISOString().slice(0,10);
   const _pt=document.getElementById('payout-to');if(_pt)_pt.value=new Date(now.getFullYear(),now.getMonth()+1,0).toISOString().slice(0,10);
   populateOperatorDropdowns();buildSettingsUI();loadDay();renderHistory();renderInventory();renderInventoryHistory();renderProjections();renderPayouts();
+  // Always update nav with location name — covers all cases
+  const _finalName = SETTINGS.clubName || (typeof LOCATION_ID !== 'undefined' ? '' : '');
+  const _finalNcn = document.getElementById('nav-club-name');
+  if(_finalNcn && _finalNcn.textContent === 'Loading…') {
+    if(_finalName) _finalNcn.textContent = _finalName;
+  }
   /* overlay hidden by default */
   if(OPEN_SETTINGS)setTimeout(()=>openSettings(),300);
 }
 function setLoadText(t){document.getElementById('load-text').textContent=t;}
+function setNavLocation(name, address){
+  const ncn=document.getElementById('nav-club-name');
+  const nca=document.getElementById('nav-club-addr');
+  if(ncn&&name){ncn.textContent=name;}
+  if(nca&&address){nca.textContent=address;nca.style.display='block';}
+  else if(nca&&!address){nca.style.display='none';}
+}
 function goBackToAdmin(){window.location.href='admin.html';}
 function switchTab(name){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -1234,6 +1245,11 @@ function renderPayouts(){
 function resolveAlias(n){for(const op of SETTINGS.operators){if(!op.name)continue;const a=(op.aliases||'').split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);if(op.name.toLowerCase()===n.toLowerCase())return op.name;if(a.includes(n.toLowerCase()))return op.name;}return n;}
 
 function buildSettingsUI(){
+  // Update nav club name from settings
+  const _bncn=document.getElementById('nav-club-name');
+  if(_bncn&&(_bncn.textContent==='Loading…'||!_bncn.textContent)){
+    if(SETTINGS.clubName)_bncn.textContent=SETTINGS.clubName;
+  }
   const c=document.getElementById('s-prod-count');if(c)c.textContent=PRODUCTS.length+' products →';
   buildSelect('s-taxrate', range(0,4,0.25), SETTINGS.taxRate,  v=>v.toFixed(2)+'%');
   buildSelect('s-ohrate',  range(15,40,1),  SETTINGS.ohRate,   v=>v+'%');
@@ -1275,7 +1291,7 @@ async function saveSettings(){
   if(clubName)updatePayload.name=clubName;
   const{error}=await sb.from('locations').update(updatePayload).eq('id',LOCATION_ID);
   if(error){showToast('Settings save failed','error');return;}
-  document.getElementById('nav-club-name').textContent=clubName||'Club';
+  setNavLocation(clubName||SETTINGS.clubName||'Club', null);
   populateOperatorDropdowns();closeSettings();recalc();showToast('Settings saved ✓','success');
 }
 function populateOperatorDropdowns(){const ops=SETTINGS.operators.filter(o=>o.name),blank='<option value="">—</option>';['f-op1','f-op2'].forEach(id=>{const el=document.getElementById(id);if(!el)return;const cur=el.value;el.innerHTML=blank+ops.map(o=>`<option value="${o.name}">${o.name}</option>`).join('');el.value=cur;});}
