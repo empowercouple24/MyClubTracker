@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 08:03:26 EMAIL-COPY -->
+<!-- CACHE BUST: 2026-03-27 08:05:40 DUPE-CHECK -->
 <html lang="en">
 <head>
 <script>
@@ -627,6 +627,13 @@ async function executeApprove(){
   const code=document.getElementById('ap-code').value.trim().toUpperCase();
   const errEl=document.getElementById('ap-error');
   if(!name||!code){errEl.textContent='Club name and invite code are required.';errEl.classList.add('show');return;}
+  // Check for similar existing locations
+  const similar=findSimilarLocation(name,owner);
+  if(similar){
+    errEl.textContent=`A similar location already exists: "${similar.name}" (${similar.owner_name||'no owner'}). Please verify this isn't a duplicate before approving.`;
+    errEl.classList.add('show');
+    return;
+  }
   const btn=document.getElementById('ap-btn');
   btn.disabled=true;btn.textContent='Creating…';
   const street2=document.getElementById('ap-street2').value.trim();
@@ -904,6 +911,29 @@ async function init(){
   renderKPIs();renderLocations();renderAlertBanner();renderCompChart();
   await loadRequests();
   /* overlay hidden by default */
+}
+
+// ── DUPLICATE DETECTION ──
+function normalize(s){return (s||'').toLowerCase().replace(/[^a-z0-9]/g,'');}
+function similarity(a,b){
+  a=normalize(a);b=normalize(b);
+  if(!a||!b)return 0;
+  if(a===b)return 1;
+  if(a.includes(b)||b.includes(a))return 0.9;
+  // Count common characters
+  let common=0;
+  const shorter=a.length<b.length?a:b;
+  const longer=a.length<b.length?b:a;
+  for(let i=0;i<shorter.length;i++){if(longer.includes(shorter[i]))common++;}
+  return common/longer.length;
+}
+function findSimilarLocation(name,ownerName){
+  const THRESHOLD=0.75;
+  return allLocations.find(loc=>{
+    const nameSim=similarity(loc.name,name);
+    const ownerSim=similarity(loc.owner_name,ownerName);
+    return nameSim>=THRESHOLD||(nameSim>=0.5&&ownerSim>=0.5);
+  });
 }
 
 function dateStr(d){return d.toISOString().slice(0,10);}
@@ -1253,6 +1283,14 @@ async function addLocation(){
   if(email) settings.ownerEmail=email;
   if(hasSecond&&(owner2||phone2||email2)){
     settings.secondContact={name:owner2,phone:phone2,email:email2};
+  }
+  // Check for similar existing locations
+  const similar=findSimilarLocation(name,owner);
+  if(similar){
+    const errEl=document.getElementById('nl-confirm-error');
+    errEl.textContent=`A similar location already exists: "${similar.name}" (${similar.owner_name||'no owner'}). Please verify this isn't a duplicate.`;
+    errEl.classList.add('show');
+    return;
   }
   const btn=document.getElementById('nl-add-btn');
   btn.disabled=true;btn.textContent='Adding…';
