@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 04:11:27 CLUBNAME-FIX -->
+<!-- CACHE BUST: 2026-03-27 04:19:24 DIRECT-DOM -->
 <html lang="en">
 <head>
 <script>
@@ -947,10 +947,14 @@ async function init(){
   setLoadText('Loading club data…');
   const{data:loc}=await sb.from('locations').select('name,address,settings').eq('id',LOCATION_ID).single();
   if(loc){
-    setNavLocation(loc.name, loc.address);
+    // Set nav immediately from database — unconditional, no fallbacks needed
+    const _ncn2=document.getElementById('nav-club-name');
+    const _nca2=document.getElementById('nav-club-addr');
+    if(_ncn2) _ncn2.textContent = loc.name;
+    if(_nca2 && loc.address){_nca2.textContent=loc.address;_nca2.style.display='block';}
+    // Merge settings and always keep loc.name as clubName
     if(loc.settings&&Object.keys(loc.settings).length>0){SETTINGS={...SETTINGS,...loc.settings};}
-    // Always ensure clubName is set — use loc.name as authoritative source
-    if(!SETTINGS.clubName) SETTINGS.clubName = loc.name;
+    SETTINGS.clubName = loc.name; // Always authoritative from DB
   }
   if(IS_ADMIN_VIEW){
     const _nab=document.getElementById('nav-admin-badge');if(_nab)_nab.style.display='block';
