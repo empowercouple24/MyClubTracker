@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 06:11:03 FRESH -->
+<!-- CACHE BUST: 2026-03-27 06:17:37 DEDUP -->
 <html lang="en">
 <head>
 <script>
@@ -917,22 +917,12 @@ async function executePush() {
 // ── NAV MENU ──
 function toggleNavMenu(){var dd=document.getElementById('nav-dropdown');if(dd)dd.classList.toggle('open');}
 function closeNavMenu(){var dd=document.getElementById('nav-dropdown');if(dd)dd.classList.remove('open');}
-// Hover open with delayed close
 (function(){
   var closeTimer;
-  var wrap = document.querySelector('.nav-menu-wrap');
-  if(!wrap) return;
-  wrap.addEventListener('mouseenter', function(){
-    clearTimeout(closeTimer);
-    var dd=document.getElementById('nav-dropdown');
-    if(dd)dd.classList.add('open');
-  });
-  wrap.addEventListener('mouseleave', function(){
-    closeTimer = setTimeout(function(){
-      var dd=document.getElementById('nav-dropdown');
-      if(dd)dd.classList.remove('open');
-    }, 300);
-  });
+  var wrap=document.querySelector('.nav-menu-wrap');
+  if(!wrap)return;
+  wrap.addEventListener('mouseenter',function(){clearTimeout(closeTimer);var dd=document.getElementById('nav-dropdown');if(dd)dd.classList.add('open');});
+  wrap.addEventListener('mouseleave',function(){closeTimer=setTimeout(function(){var dd=document.getElementById('nav-dropdown');if(dd)dd.classList.remove('open');},300);});
 })();
 document.addEventListener('click',function(e){var w=document.querySelector('.nav-menu-wrap');if(w&&!w.contains(e.target))closeNavMenu();});if(w&&!w.contains(e.target))closeNavMenu();});
 
