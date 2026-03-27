@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 03:59:19 NAVFIX2 -->
+<!-- CACHE BUST: 2026-03-27 04:07:38 NAVFIX3 -->
 <html lang="en">
 <head>
 <script>
@@ -975,12 +975,9 @@ async function init(){
   const _pf=document.getElementById('payout-from');if(_pf)_pf.value=new Date(now.getFullYear(),now.getMonth(),1).toISOString().slice(0,10);
   const _pt=document.getElementById('payout-to');if(_pt)_pt.value=new Date(now.getFullYear(),now.getMonth()+1,0).toISOString().slice(0,10);
   populateOperatorDropdowns();buildSettingsUI();loadDay();renderHistory();renderInventory();renderInventoryHistory();renderProjections();renderPayouts();
-  // Always update nav with location name — covers all cases
-  const _finalName = SETTINGS.clubName || (typeof LOCATION_ID !== 'undefined' ? '' : '');
+  // Unconditionally set nav name after everything loads
   const _finalNcn = document.getElementById('nav-club-name');
-  if(_finalNcn && _finalNcn.textContent === 'Loading…') {
-    if(_finalName) _finalNcn.textContent = _finalName;
-  }
+  if(_finalNcn && SETTINGS.clubName) _finalNcn.textContent = SETTINGS.clubName;
   /* overlay hidden by default */
   if(OPEN_SETTINGS)setTimeout(()=>openSettings(),300);
 }
@@ -1245,11 +1242,9 @@ function renderPayouts(){
 function resolveAlias(n){for(const op of SETTINGS.operators){if(!op.name)continue;const a=(op.aliases||'').split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);if(op.name.toLowerCase()===n.toLowerCase())return op.name;if(a.includes(n.toLowerCase()))return op.name;}return n;}
 
 function buildSettingsUI(){
-  // Update nav club name from settings
+  // Always update nav club name from settings — no conditional
   const _bncn=document.getElementById('nav-club-name');
-  if(_bncn&&(_bncn.textContent==='Loading…'||!_bncn.textContent)){
-    if(SETTINGS.clubName)_bncn.textContent=SETTINGS.clubName;
-  }
+  if(_bncn&&SETTINGS.clubName){_bncn.textContent=SETTINGS.clubName;}
   const c=document.getElementById('s-prod-count');if(c)c.textContent=PRODUCTS.length+' products →';
   buildSelect('s-taxrate', range(0,4,0.25), SETTINGS.taxRate,  v=>v.toFixed(2)+'%');
   buildSelect('s-ohrate',  range(15,40,1),  SETTINGS.ohRate,   v=>v+'%');
