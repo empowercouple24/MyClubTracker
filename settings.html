@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-26 06:30:50 CLEAN -->
+<!-- CACHE BUST: 2026-03-27 04:40:26 NAVUNIFY -->
 <html lang="en">
 <head>
 <script>
@@ -35,11 +35,11 @@ if('serviceWorker' in navigator){
     html,body{min-height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text)}
 
     /* NAV */
-    .topnav{position:sticky;top:0;z-index:100;background:rgba(232,237,244,0.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border-light);padding:env(safe-area-inset-top,0px) 20px 0;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:calc(54px + env(safe-area-inset-top,0px))}
-    .nav-inner{display:flex;align-items:center;gap:10px;padding-bottom:12px;padding-top:12px;width:100%}
-    .btn-back{background:none;border:none;cursor:pointer;font-size:22px;color:var(--b6);padding:0 4px;line-height:1;display:flex;align-items:center}
-    .btn-back:hover{color:var(--b8)}
-    .nav-title{font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--text);flex:1}
+    
+    
+    
+    
+    
     .nav-badge{font-size:14px;font-weight:700;background:var(--b7);color:white;padding:4px 11px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase}
 
     /* PAGE */
@@ -140,8 +140,7 @@ if('serviceWorker' in navigator){
     .divider-label{padding:8px 16px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);background:var(--b0);border-bottom:1px solid var(--border-light)}
   
     /* ── DARK MODE ── */
-    html.dark{--bg:#0f1923;--surface:#1a2736;--border:#2a3f56;--border-light:#243347;--text:#e8edf4;--text-muted:#ddeaf5;--text-faint:#c5d8e8;--b0:#1e2d3d;--b1:#243347;}
-    html.dark .topnav{background:rgba(15,25,35,0.96) !important;}
+    html.dark 
     html.dark .card{background:var(--surface) !important;}
     html.dark .settings-row{border-color:var(--border) !important;}
     html.dark .row-input{background:var(--b0) !important;color:var(--text) !important;}
@@ -149,21 +148,35 @@ if('serviceWorker' in navigator){
     html.dark input,html.dark select,html.dark textarea{background:var(--b0) !important;color:var(--text) !important;}
     html.dark body{background:var(--bg);}
     .dark-toggle{background:none;border:1px solid var(--border);border-radius:20px;padding:4px 10px;cursor:pointer;font-size:13px;color:var(--text-muted);}
-    .nav-menu-wrap{position:relative;}
-    .nav-menu-btn{display:flex;align-items:center;gap:7px;background:none;border:1px solid var(--border);border-radius:20px;padding:6px 14px 6px 10px;cursor:pointer;font-size:15px;font-weight:600;color:var(--text-muted);font-family:'DM Sans',sans-serif;transition:all 0.15s;}
-    .nav-menu-btn:hover{background:var(--b0);color:var(--text);}
+    
+    
+    
     .nav-menu-badge{font-size:14px;font-weight:700;background:var(--b7);color:white;padding:4px 10px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase;}
-    .nav-dropdown{position:absolute;top:calc(100% + 6px);right:0;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);box-shadow:0 4px 20px rgba(30,45,61,0.12);min-width:160px;z-index:999;display:none;}
-    .nav-dropdown.open{display:block;animation:dropIn 0.15s ease;}
+    
+    
     @keyframes dropIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
-    .nav-dropdown-item{display:flex;align-items:center;gap:8px;width:100%;padding:11px 16px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text);background:none;border:none;cursor:pointer;text-align:left;transition:background 0.12s;}
-    .nav-dropdown-item:hover{background:var(--b0);}
-    .nav-dropdown-item:first-child{border-radius:var(--radius-sm) var(--radius-sm) 0 0;}
-    .nav-dropdown-item:last-child{border-radius:0 0 var(--radius-sm) var(--radius-sm);}
-    .nav-dropdown-divider{height:1px;background:var(--border-light);margin:2px 0;}
-    html.dark .nav-dropdown{background:var(--surface);border-color:var(--border);}
-    html.dark .nav-dropdown-item:hover{background:var(--b1);}
-</style>
+    
+    
+    
+    
+    
+    html.dark 
+    html.dark 
+    .topnav{display:flex;align-items:center;gap:10px;padding:0 20px;height:52px;background:var(--surface);border-bottom:1px solid var(--border-light);position:sticky;top:0;z-index:100;}
+    .nav-logo svg{width:32px;height:32px;display:block;}
+    .nav-logo{display:flex;align-items:center;flex-shrink:0;}
+    .nav-page-title{font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;color:var(--text);flex:1;}
+    .nav-admin-badge{font-size:10px;font-weight:700;background:var(--b7);color:white;padding:2px 7px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase;flex-shrink:0;}
+    .nav-menu-wrap{position:relative;flex-shrink:0;}
+    .nav-menu-btn{display:flex;align-items:center;gap:6px;background:none;border:1px solid var(--border);border-radius:20px;padding:5px 12px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text);font-family:'DM Sans',sans-serif;}
+    .nav-menu-btn:hover{background:var(--b0);}
+    .nav-drop{position:absolute;top:calc(100% + 6px);right:0;background:var(--surface);border:1px solid var(--border-light);border-radius:10px;box-shadow:0 4px 20px rgba(30,45,61,0.12);min-width:170px;z-index:999;display:none;}
+    .nav-drop.open{display:block;}
+    .nav-drop-item{display:flex;align-items:center;gap:9px;width:100%;padding:11px 16px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text);background:none;border:none;cursor:pointer;text-align:left;white-space:nowrap;}
+    .nav-drop-item:hover{background:var(--b0);}
+    .nav-drop-item.danger{color:var(--r5);}
+    .nav-drop-divider{height:1px;background:var(--border-light);margin:3px 0;}
+  </style>
 
 </head>
 <body>
@@ -173,32 +186,22 @@ if('serviceWorker' in navigator){
 </div>
 
 <nav class="topnav">
-  <div class="nav-inner">
-    <button class="btn-back" onclick="window.location.href='admin.html'">←</button>
-    <div class="nav-title">Admin Settings</div>
-    <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
-      <span id="nav-display-name" style="font-size:16px;font-weight:700;color:var(--text);"></span>
-      <div class="nav-menu-wrap">
-        <button class="nav-menu-btn" onclick="toggleNavMenu()">
-          <span class="nav-menu-badge">Admin</span>
-          <span style="font-size:10px;">▾</span>
-        </button>
-        <div class="nav-dropdown" id="nav-dropdown">
-          <button class="nav-dropdown-item" onclick="toggleDarkMode();closeNavMenu()">
-            <span id="dark-icon">🌙</span> Dark mode
-          </button>
-          <button class="nav-dropdown-item" onclick="window.location.href='admin.html';closeNavMenu()">
-            🏠 Dashboard
-          </button>
-          <button class="nav-dropdown-item" onclick="window.location.href='locations.html';closeNavMenu()">
-            🏪 Locations
-          </button>
-          <div class="nav-dropdown-divider"></div>
-          <button class="nav-dropdown-item" onclick="handleSignOut()" style="color:var(--r5);">
-            ↪ Sign out
-          </button>
-        </div>
-      </div>
+  <div class="nav-logo"><svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
+  <g transform="rotate(-18, 16, 36)"><rect x="8" y="24" width="16" height="20" rx="2" fill="#1a5c2a"/><rect x="10" y="28" width="12" height="8" rx="1" fill="rgba(255,255,255,0.25)"/><line x1="16" y1="18" x2="14" y2="24" stroke="#1a5c2a" stroke-width="2.5" stroke-linecap="round"/></g>
+  <g transform="rotate(14, 38, 36)"><rect x="30" y="26" width="16" height="20" rx="2" fill="#1a5c2a"/><rect x="32" y="30" width="12" height="8" rx="1" fill="rgba(255,255,255,0.25)"/><line x1="38" y1="20" x2="40" y2="26" stroke="#1a5c2a" stroke-width="2.5" stroke-linecap="round"/></g>
+  <circle cx="40" cy="16" r="11" fill="#4caf60"/>
+  <path d="M34 22 L44 12 M38 12 L44 12 L44 18" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg></div>
+  <div class="nav-page-title">Admin Settings</div>
+  <div class="nav-admin-badge">Admin</div>
+  <div class="nav-menu-wrap">
+    <button class="nav-menu-btn" onclick="toggleNavMenu()"><span id="nav-display-name" style="font-size:13px;font-weight:600;color:var(--text-muted);"></span><span style="font-size:10px;color:var(--text-faint);">▾</span></button>
+    <div class="nav-drop" id="nav-dropdown">
+      <button class="nav-drop-item" onclick="window.location.href='admin.html';closeNavMenu()">🏠 Dashboard</button>
+      <button class="nav-drop-item" onclick="window.location.href='locations.html';closeNavMenu()">🏪 Locations</button>
+      <button class="nav-drop-item" onclick="window.location.href='settings.html';closeNavMenu()">⚙ Settings</button>
+      <div class="nav-drop-divider"></div>
+      <button class="nav-drop-item danger" onclick="handleSignOut();closeNavMenu()">↪ Sign out</button>
     </div>
   </div>
 </nav>
@@ -227,10 +230,7 @@ if('serviceWorker' in navigator){
       </div>
       <div class="divider-label">Preferences</div>
       <div class="settings-row">
-        <div>
-          <div class="row-label">Dark Mode</div>
-          <div class="row-sub">Applies across all pages</div>
-        </div>
+        
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
           <span style="font-size:13px;color:var(--text-faint);" id="dark-mode-label">Off</span>
           <div id="dark-mode-toggle" onclick="toggleDarkModeSetting()" style="width:44px;height:24px;border-radius:12px;background:var(--border);cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0;">
@@ -911,55 +911,17 @@ async function executePush() {
 // ── INIT ──
 
 // ── DARK MODE ──
-function updateDarkModeToggleUI(isDark){
-  var toggle=document.getElementById('dark-mode-toggle');
-  var knob=document.getElementById('dark-mode-knob');
-  var label=document.getElementById('dark-mode-label');
-  var icon=document.getElementById('dark-icon');
-  if(toggle)toggle.style.background=isDark?'var(--b5)':'var(--border)';
-  if(knob)knob.style.transform=isDark?'translateX(20px)':'translateX(0)';
-  if(label)label.textContent=isDark?'On':'Off';
-  if(icon)icon.textContent=isDark?'☀️':'🌙';
-}
-function initDarkMode(){
-  const saved=localStorage.getItem('noc-dark');
-  const isDark=saved==='1'||(saved===null&&window.matchMedia('(prefers-color-scheme:dark)').matches);
-  if(isDark)document.documentElement.classList.add('dark');
-  updateDarkModeToggleUI(isDark);
-}
-function toggleDarkMode(){
-  const isDark=document.documentElement.classList.toggle('dark');
-  localStorage.setItem('noc-dark',isDark?'1':'0');
-  updateDarkModeToggleUI(isDark);
-  buildDefaultsUI();
-}
-function toggleDarkModeSetting(){
-  const isDark=document.documentElement.classList.toggle('dark');
-  localStorage.setItem('noc-dark',isDark?'1':'0');
-  updateDarkModeToggleUI(isDark);
-  buildDefaultsUI();
-}
-initDarkMode();
+
+
+
+
+
 
 
 // ── NAV MENU ──
-function toggleNavMenu(){
-  var dd=document.getElementById('nav-dropdown');
-  dd.classList.toggle('open');
-}
-function closeNavMenu(){
-  var dd=document.getElementById('nav-dropdown');
-  if(dd)dd.classList.remove('open');
-}
-document.addEventListener('click',function(e){
-  var wrap=document.querySelector('.nav-menu-wrap');
-  if(wrap&&!wrap.contains(e.target))closeNavMenu();
-});
-
-async function handleSignOut(){await sb.auth.signOut();window.location.href='index.html';}
-
-async function init() {
-  const { data:{ session } } = await sb.auth.getSession();
+function toggleNavMenu(){var dd=document.getElementById('nav-dropdown');if(dd)dd.classList.toggle('open');}
+function closeNavMenu(){var dd=document.getElementById('nav-dropdown');if(dd)dd.classList.remove('open');}
+document.addEventListener('click',function(e){var w=document.querySelector('.nav-menu-wrap');if(w&&!w.contains(e.target))closeNavMenu();});
   if (!session) { window.location.href = 'index.html'; return; }
   // Populate profile fields
   const { data:u } = await sb.from('users').select('role,display_name,first_name,last_name,phone').eq('id', session.user.id).single();
@@ -968,7 +930,7 @@ async function init() {
   document.getElementById('prof-firstname').value = u.first_name || '';
   document.getElementById('prof-lastname').value  = u.last_name  || '';
   document.getElementById('prof-name').value      = u.display_name || '';
-  document.getElementById('nav-display-name').textContent = u.display_name || [u.first_name,u.last_name].filter(Boolean).join(' ') || '';
+  const _sndn=document.getElementById('nav-display-name');if(_sndn)_sndn.textContent = u.display_name || [u.first_name,u.last_name].filter(Boolean).join(' ') || '';
   const profPhoneEl = document.getElementById('prof-phone');
   profPhoneEl.value = u.phone || '';
   if (u.phone) fmtPhone(profPhoneEl);
@@ -1013,7 +975,7 @@ async function saveAdminProfile() {
   }).eq('id', session.user.id);
   if (error) { showToast('Save failed: '+error.message, 'error'); return; }
   // Sync display name to nav
-  document.getElementById('nav-display-name').textContent = display_name || [firstName, lastName].filter(Boolean).join(' ') || '';
+  const _sndn=document.getElementById('nav-display-name');if(_sndn)_sndn.textContent = display_name || [firstName, lastName].filter(Boolean).join(' ') || '';
   showToast('Profile saved ✓', 'success');
 }
 
