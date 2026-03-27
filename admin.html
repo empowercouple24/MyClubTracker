@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 08:05:40 DUPE-CHECK -->
+<!-- CACHE BUST: 2026-03-27 08:20:43 DUPE-UX -->
 <html lang="en">
 <head>
 <script>
@@ -454,7 +454,15 @@ if('serviceWorker' in navigator){
       </div>
     </div>
     <div class="modal-error" id="ap-error"></div>
-    <div class="modal-footer">
+    <!-- Duplicate warning — shown when similar location detected -->
+    <div id="ap-duplicate-warning" style="display:none;background:#fff8f0;border:1.5px solid #f0b440;border-radius:10px;padding:14px 16px;margin-bottom:14px;">
+      <div style="font-size:13px;font-weight:700;color:#7a4800;margin-bottom:6px;">⚠️ Possible Duplicate Detected</div>
+      <div style="font-size:13px;color:#a06000;line-height:1.5;" id="ap-duplicate-msg"></div>
+      <div style="margin-top:12px;font-size:13px;color:#7a4800;font-weight:600;">To proceed, deny this request below and explain the duplication:</div>
+      <textarea id="ap-duplicate-deny-reason" placeholder="e.g. A location with a very similar name already exists in our system..." style="width:100%;margin-top:8px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:white;border:1px solid #f0b440;border-radius:8px;padding:10px 12px;outline:none;resize:vertical;min-height:70px;box-sizing:border-box;"></textarea>
+      <button onclick="denyDuplicate()" style="margin-top:10px;width:100%;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;background:linear-gradient(135deg,var(--r5),var(--r4));color:white;border:none;border-radius:8px;padding:10px;cursor:pointer;">✗ Deny This Request</button>
+    </div>
+    <div class="modal-footer" id="ap-footer">
       <button class="btn-modal-primary" onclick="executeApprove()" id="ap-btn">✓ Approve & Create Location</button>
       <button class="btn-modal-cancel" onclick="closeModal('approve-modal')">Cancel</button>
     </div>
@@ -611,6 +619,24 @@ function openApproveModal(reqId){
   let code='';for(let i=0;i<6;i++)code+=chars[Math.floor(Math.random()*chars.length)];
   document.getElementById('ap-code').value=code;
   document.getElementById('ap-error').classList.remove('show');
+  // Auto-check for duplicates on open
+  const dupWarning=document.getElementById('ap-duplicate-warning');
+  const dupMsg=document.getElementById('ap-duplicate-msg');
+  const apBtn=document.getElementById('ap-btn');
+  const apFooter=document.getElementById('ap-footer');
+  const similar=findSimilarLocation(r.club_name||'',r.owner_name||'');
+  if(similar){
+    dupMsg.textContent=`A similar location already exists: "${similar.name}"${similar.owner_name?' ('+similar.owner_name+')':''}.`;
+    dupWarning.style.display='block';
+    apBtn.disabled=true;
+    apBtn.style.opacity='0.4';
+    apBtn.title='Cannot approve — possible duplicate exists';
+  } else {
+    dupWarning.style.display='none';
+    apBtn.disabled=false;
+    apBtn.style.opacity='1';
+    apBtn.title='';
+  }
   attachPlacesAutocomplete('ap-street','ap-city','ap-state','ap-zip');
   document.getElementById('approve-modal').classList.add('open');
 }
@@ -627,13 +653,6 @@ async function executeApprove(){
   const code=document.getElementById('ap-code').value.trim().toUpperCase();
   const errEl=document.getElementById('ap-error');
   if(!name||!code){errEl.textContent='Club name and invite code are required.';errEl.classList.add('show');return;}
-  // Check for similar existing locations
-  const similar=findSimilarLocation(name,owner);
-  if(similar){
-    errEl.textContent=`A similar location already exists: "${similar.name}" (${similar.owner_name||'no owner'}). Please verify this isn't a duplicate before approving.`;
-    errEl.classList.add('show');
-    return;
-  }
   const btn=document.getElementById('ap-btn');
   btn.disabled=true;btn.textContent='Creating…';
   const street2=document.getElementById('ap-street2').value.trim();
@@ -679,6 +698,39 @@ async function executeApprove(){
   allLocations.push(loc);allLocations.sort((a,b)=>a.name.localeCompare(b.name));
   renderRequests();renderLocations();renderAlertBanner();
   showToast(`${name} approved ✓`,'success');
+}
+
+async function denyDuplicate(){
+  const reason=document.getElementById('ap-duplicate-deny-reason').value.trim();
+  if(!reason){
+    document.getElementById('ap-duplicate-deny-reason').style.borderColor='var(--r5)';
+    return;
+  }
+  const btn=document.querySelector('#ap-duplicate-warning button');
+  btn.disabled=true;btn.textContent='Denying…';
+  await sb.from('location_requests').update({status:'denied',denial_reason:reason}).eq('id',approvingRequestId);
+  // Send denial email
+  const deniedReq=allRequests.find(r=>r.id===approvingRequestId);
+  if(deniedReq?.email){
+    const firstName=deniedReq.first_name||deniedReq.owner_name||'there';
+    await sendEmail(deniedReq.email, deniedReq.owner_name,
+      'Update on Your Nemecek Org Clubs Request',
+      '<div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:32px 24px;">'+
+      '<h2 style="font-size:20px;font-weight:700;color:#1e2d3d;margin-bottom:8px;">Request Update</h2>'+
+      '<p style="font-size:15px;color:#3a5470;margin-bottom:16px;">Hi '+escHtml(firstName)+', thank you for your interest in Nemecek Org Clubs.</p>'+
+      '<p style="font-size:15px;color:#3a5470;margin-bottom:16px;">After review, we're unable to approve your request at this time.</p>'+
+      '<div style="background:#fff0f0;border-left:4px solid #c03030;border-radius:4px;padding:14px 16px;margin-bottom:24px;">'+
+      '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#c03030;margin-bottom:6px;">Reason</div>'+
+      '<div style="font-size:14px;color:#1e2d3d;">'+escHtml(reason)+'</div></div>'+
+      '<p style="font-size:14px;color:#5b7087;">Questions? Contact '+escHtml(ADMIN_NAME)+' at <a href="mailto:'+escHtml(ADMIN_EMAIL)+'" style="color:#3a5470;">'+escHtml(ADMIN_EMAIL)+'</a>.</p>'+
+      '</div>'
+    );
+  }
+  btn.disabled=false;btn.textContent='✗ Deny This Request';
+  closeModal('approve-modal');
+  allRequests=allRequests.filter(r=>r.id!==approvingRequestId);
+  renderRequests();
+  showToast('Request denied ✓','success');
 }
 
 function openDenyModal(reqId){
