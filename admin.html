@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 09:11:42 FONTSIZE -->
+<!-- CACHE BUST: 2026-03-27 09:16:48 -->
 <html lang="en">
 <head>
 <script>
@@ -238,10 +238,7 @@ if('serviceWorker' in navigator){
       nav a.nav-logo:hover{opacity:0.8;}
     /* Compact approve modal */
   #approve-modal .modal-field{margin-bottom:8px;}
-  #approve-modal .modal-field input,#approve-modal .modal-field select{padding:7px 10px;font-size:15px;}
-  #approve-modal .modal-field label{margin-bottom:3px;font-size:11px;}
-  #approve-modal .modal-title{margin-bottom:4px;font-size:17px;}
-  #approve-modal > .modal-box > div:nth-child(2){margin-bottom:8px;font-size:12px;}
+  #approve-modal .modal-field label{margin-bottom:3px;}
 </style>
 
 </head>
@@ -439,7 +436,7 @@ if('serviceWorker' in navigator){
 
 <!-- APPROVE REQUEST MODAL -->
 <div class="modal-overlay" id="approve-modal" onclick="closeModalOnBg(event,'approve-modal')">
-  <div class="modal-box" style="max-height:90vh;overflow-y:auto;padding:20px;">
+  <div class="modal-box" style="max-height:90vh;overflow-y:auto;">
     <div class="modal-title">📋 Review Location Request</div>
     <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.5;">Review and edit the details below, then approve to create the location or deny with feedback.</div>
     <div class="modal-field"><label>Club Name</label><input type="text" id="ap-name"/></div>
@@ -492,7 +489,7 @@ if('serviceWorker' in navigator){
         <button type="button" onclick="toggleManualDenyChip(this)" data-key="owner" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;background:#fff;color:#1e2d3d;border:1px solid var(--border);border-radius:6px;padding:6px 10px;cursor:pointer;text-align:left;width:100%;">Duplicate owner</button>
         <button type="button" onclick="toggleManualDenyChip(this)" data-key="address" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;background:#fff;color:#1e2d3d;border:1px solid var(--border);border-radius:6px;padding:6px 10px;cursor:pointer;text-align:left;width:100%;">Duplicate address</button>
       </div>
-      <textarea id="ap-manual-deny-reason" placeholder="Select a reason above or write a custom denial message..." style="width:100%;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:6px;padding:8px 10px;outline:none;resize:vertical;min-height:52px;box-sizing:border-box;" oninput="updateDenyFooter()"></textarea>
+      <textarea id="ap-manual-deny-reason" placeholder="Select a reason above or write a custom denial message..." style="width:100%;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:6px;padding:8px 10px;outline:none;resize:none;min-height:100px;box-sizing:border-box;" oninput="updateDenyFooter()"></textarea>
     </div>
   </div>
 </div>
@@ -749,10 +746,10 @@ function updateDenyReasonText(){
 function toggleManualDenyChip(btn){
   const active=btn.getAttribute('data-active')==='true';
   btn.setAttribute('data-active',active?'false':'true');
-  btn.style.background=active?'#fff':'var(--b1)';
-  btn.style.borderColor=active?'var(--border)':'var(--b5)';
+  btn.style.background=active?'#fff':'#c03030';
+  btn.style.borderColor=active?'var(--border)':'#c03030';
   btn.style.fontWeight=active?'500':'700';
-  btn.style.color=active?'#1e2d3d':'var(--b7)';
+  btn.style.color=active?'#1e2d3d':'white';
   updateManualDenyText();
   updateDenyFooter();
 }
