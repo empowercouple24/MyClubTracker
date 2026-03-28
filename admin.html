@@ -21,14 +21,14 @@ if('serviceWorker' in navigator){
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Outfit:wght@400;600;700;800&display=block" rel="stylesheet"/>
-  <link rel="stylesheet" href="shared.css?v=5"/>
-  <link rel="stylesheet" href="nav.css?v=5"/>
+  <link rel="stylesheet" href="shared.css?v=8"/>
+  <link rel="stylesheet" href="nav.css?v=8"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     .btn-sm{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text-muted);background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer;transition:background 0.15s;text-decoration:none;display:inline-block}
     .btn-sm:hover{background:var(--b0);color:var(--text)}
-    .page{max-width:1400px;margin:0 auto;padding:24px max(20px,env(safe-area-inset-left,20px)) calc(64px + env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-right,20px))}
+    .page{max-width:1080px;margin:0 auto;padding:24px max(20px,env(safe-area-inset-left,20px)) calc(64px + env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-right,20px))}
     .section-label{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.9px;color:var(--text-faint);margin-bottom:12px;margin-top:28px}
     .section-label:first-child{margin-top:0}
     .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;margin-top:28px}
@@ -145,36 +145,25 @@ if('serviceWorker' in navigator){
 
     /* ── LAYOUT TOGGLE ── */
     #layout-body{display:block}
-
-    /* Split: equal 1fr columns, generous gap */
     #layout-body.split{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start;margin-top:28px;}
     #layout-body.split #locations-col{min-width:0}
-
-    /* Metrics sidebar: sticky, stacked */
     #layout-body.split #metrics-col{position:sticky;top:68px;display:flex;flex-direction:column;gap:20px;}
     #layout-body:not(.split) #metrics-col{display:block}
+    #layout-body:not(.split) #metrics-col .section-label{margin-top:0;}
+    #layout-body:not(.split) #locations-col{margin-top:28px;}
     #layout-body.split .locs-header{margin-top:0}
-
-    /* In split mode: KPIs stack 1-per-row */
     #layout-body.split #metrics-col .kpi-strip{grid-template-columns:1fr;}
-
-    /* In split mode: location card info wraps instead of truncating */
     #layout-body.split .loc-name{white-space:normal;overflow:visible;text-overflow:unset;}
     #layout-body.split .loc-owner{white-space:normal;overflow:visible;text-overflow:unset;line-height:1.4;}
     #layout-body.split .loc-addr{white-space:normal;overflow:visible;text-overflow:unset;line-height:1.4;}
     #layout-body.split .loc-card-header{align-items:flex-start;}
     #layout-body.split .loc-meta{display:flex;flex-direction:column;gap:3px;}
-
-    /* Toggle buttons */
     .btn-layout-toggle{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;background:var(--surface);color:var(--text-muted);border:1px solid var(--border);border-radius:6px;padding:5px 11px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:5px;white-space:nowrap;}
     .btn-layout-toggle:hover{background:var(--b0);color:var(--text);}
     .btn-layout-toggle.active{background:var(--b7);color:white;border-color:var(--b7);}
+    @media(max-width:1100px){#layout-body.split{grid-template-columns:1fr;}#layout-body.split #metrics-col{position:static;}}
 
-    /* Collapse to single column below 1100px */
-    @media(max-width:1100px){
-      #layout-body.split{grid-template-columns:1fr;}
-      #layout-body.split #metrics-col{position:static;}
-    }
+
 
     /* MISSING DAY ALERT BANNER */
     .alert-banner{background:linear-gradient(135deg,#7a1f1f,var(--r5));border-radius:var(--radius);padding:14px 16px;margin-bottom:20px;color:white;animation:alertPulse 3s ease-in-out infinite}
@@ -244,7 +233,7 @@ if('serviceWorker' in navigator){
   <!-- LAYOUT BODY — toggled between list and split via JS -->
   <div id="layout-body">
 
-    <!-- LEFT / FULL: locations requests + list -->
+    <!-- LEFT / FULL: location requests + list -->
     <div id="locations-col">
       <!-- LOCATION REQUESTS SECTION -->
       <div id="requests-section" style="display:none;margin-bottom:24px;">
@@ -512,7 +501,7 @@ if('serviceWorker' in navigator){
   </div>
 </div>
 
-<script src="nav.js?v=5"></script>
+<script src="nav.js?v=8"></script>
 <script>
 const SUPABASE_URL='https://ndaqlamzlaucigvnhgfu.supabase.co';
 const SUPABASE_ANON_KEY='sb_publishable_wO6XM4pC2CcaISQ8OlbkfQ_liqKJbi_';
@@ -1066,39 +1055,35 @@ function renderCompChart(){
 
 // ── LAYOUT TOGGLE ──
 function setLayout(mode){
-  const body=document.getElementById('layout-body');
-  const btnList=document.getElementById('btn-layout-list');
-  const btnSplit=document.getElementById('btn-layout-split');
+  var body=document.getElementById('layout-body');
+  var btnList=document.getElementById('btn-layout-list');
+  var btnSplit=document.getElementById('btn-layout-split');
   if(!body)return;
+  var metricsCol=document.getElementById('metrics-col');
+  var locsCol=document.getElementById('locations-col');
   if(mode==='split'){
     body.classList.add('split');
-    // In split mode, metrics col goes to the right — reorder columns via CSS
-    // Move metrics-col before locations-col in the DOM for proper grid order
-    const metricsCol=document.getElementById('metrics-col');
-    const locsCol=document.getElementById('locations-col');
-    if(metricsCol&&locsCol&&body.firstElementChild!==metricsCol){
-      body.insertBefore(metricsCol,locsCol);
+    // Split: locations left, metrics right — metrics goes second in DOM
+    if(metricsCol&&locsCol&&body.lastElementChild!==metricsCol){
+      body.appendChild(metricsCol);
     }
     if(btnSplit)btnSplit.classList.add('active');
     if(btnList)btnList.classList.remove('active');
-    // Redraw chart at new width
-    setTimeout(()=>renderCompChart(),50);
+    setTimeout(function(){renderCompChart();},50);
   }else{
     body.classList.remove('split');
-    // Restore original order: locations-col first, metrics-col second
-    const metricsCol=document.getElementById('metrics-col');
-    const locsCol=document.getElementById('locations-col');
-    if(metricsCol&&locsCol&&body.firstElementChild!==locsCol){
-      body.insertBefore(locsCol,metricsCol);
+    // List: metrics on top, locations below — metrics goes first in DOM
+    if(metricsCol&&locsCol&&body.firstElementChild!==metricsCol){
+      body.insertBefore(metricsCol,locsCol);
     }
     if(btnList)btnList.classList.add('active');
     if(btnSplit)btnSplit.classList.remove('active');
-    setTimeout(()=>renderCompChart(),50);
+    setTimeout(function(){renderCompChart();},50);
   }
   localStorage.setItem('admin_layout_view',mode);
 }
 function initLayout(){
-  const saved=localStorage.getItem('admin_layout_view')||'list';
+  var saved=localStorage.getItem('admin_layout_view')||'list';
   setLayout(saved);
 }
 
@@ -1271,7 +1256,11 @@ function renderLocations(){
     </div>`;
     return;
   }
-  list.innerHTML=allLocations.map(loc=>{
+  // Sort: activated locations alpha first, pending locations alpha second
+  const activated=allLocations.filter(l=>isActivated(l)).sort((a,b)=>a.name.localeCompare(b.name));
+  const pending=allLocations.filter(l=>!isActivated(l)).sort((a,b)=>a.name.localeCompare(b.name));
+  const sorted=[...activated,...pending];
+  list.innerHTML=sorted.map(loc=>{
     const ld=allDays.filter(d=>d.location_id===loc.id);
     const initials=loc.name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
     const activated=isActivated(loc);
