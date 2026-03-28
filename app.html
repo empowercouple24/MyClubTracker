@@ -237,8 +237,12 @@ if('serviceWorker' in navigator){
     .collapsible-body{overflow:hidden}
     .collapsible-body.collapsed{display:none}
     .date-nav{display:flex;align-items:center;gap:7px;margin-bottom:10px}
-    .date-nav input[type="date"]{flex:1;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;outline:none}
-    .date-nav input[type="date"]:focus{border-color:var(--b5)}
+    .date-display{flex:1;display:flex;align-items:center;gap:6px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;cursor:pointer;position:relative;user-select:none;}
+    .date-display:hover{border-color:var(--b5);}
+    .date-display-text{flex:1;}
+    .date-display-icon{font-size:15px;color:var(--text-faint);}
+    /* Hidden native date input sits over the display div to intercept clicks */
+    .date-nav input[type="date"]{position:absolute;opacity:0;width:100%;height:100%;top:0;left:0;cursor:pointer;}
     /* HISTORY DETAIL MODAL */
     .detail-overlay{position:fixed;inset:0;background:rgba(30,45,61,0.45);backdrop-filter:blur(4px);z-index:200;display:none;align-items:flex-end;justify-content:center}
     .detail-overlay.open{display:flex}
@@ -329,7 +333,11 @@ if('serviceWorker' in navigator){
 <div class="content-area">
 <div class="tab-panel active" id="panel-enter">
   <div class="date-nav">
-    <input type="date" id="entry-date"/>
+    <div class="date-display" onclick="document.getElementById('entry-date').showPicker&&document.getElementById('entry-date').showPicker()">
+      <span class="date-display-text" id="entry-date-display">Today</span>
+      <span class="date-display-icon">📅</span>
+      <input type="date" id="entry-date" onchange="updateDateDisplay();loadDay();" style="outline:none;"/>
+    </div>
     <button class="btn btn-ghost" onclick="loadDay()">Load</button>
     <button class="btn btn-primary" onclick="saveDay()">Save</button>
   </div>
@@ -1026,6 +1034,7 @@ async function init(){
   if(SETTINGS.customProducts)PRODUCTS=SETTINGS.customProducts;
   const today=new Date().toISOString().slice(0,10);
   const _ed=document.getElementById('entry-date');if(_ed)_ed.value=today;
+  updateDateDisplay();
   const now=new Date();
   const _pf=document.getElementById('payout-from');if(_pf)_pf.value=new Date(now.getFullYear(),now.getMonth(),1).toISOString().slice(0,10);
   const _pt=document.getElementById('payout-to');if(_pt)_pt.value=new Date(now.getFullYear(),now.getMonth()+1,0).toISOString().slice(0,10);
@@ -1200,7 +1209,7 @@ function renderHistory(){
     return`<div class="history-card" onclick="openDetail('${d.date}')"><div class="hcard-top"><div class="hcard-date">${dt}</div><div class="hcard-sales">${fmt$(data.totalSales||0)}</div></div><div class="hcard-row"><span class="hcard-pill">DV: ${fmtN(data.dv||0)}</span><span class="hcard-pill">$/DV: ${data.dv?fmt$(data.perDV||0):'—'}</span><span class="hcard-pill">OH: ${fmt$(data.overhead||0)}</span>${ops?`<span class="hcard-pill">${ops}</span>`:''}${data.notes?'<span class="hcard-pill">📝</span>':''}${adminTag}</div></div>`;
   }).join('');
 }
-function navToDate(d){document.getElementById('entry-date').value=d;loadDay();switchTab('enter');document.querySelector('.content-area').scrollTo({top:0,behavior:'smooth'});}
+function navToDate(d){document.getElementById('entry-date').value=d;updateDateDisplay();loadDay();switchTab('enter');document.querySelector('.content-area').scrollTo({top:0,behavior:'smooth'});}
 
 let _detailDate=null;
 function openDetail(date){
@@ -1436,6 +1445,17 @@ document.addEventListener('DOMContentLoaded',function(){
     dvEl.addEventListener('blur',function(){onDVBlur(this);recalc();});
   }
 });
+// ── DATE DISPLAY FORMATTING ──
+function updateDateDisplay(){
+  var val=document.getElementById('entry-date').value;
+  var el=document.getElementById('entry-date-display');
+  if(!el)return;
+  if(!val){el.textContent='Select date';return;}
+  // Parse YYYY-MM-DD avoiding timezone shift
+  var parts=val.split('-');
+  var d=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));
+  el.textContent=d.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+}
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function fmtPhone(input){let d=input.value.replace(/\D/g,'').slice(0,10);let f='';if(d.length>0)f='('+d.slice(0,3);if(d.length>=4)f+=') '+d.slice(3,6);if(d.length>=7)f+='-'+d.slice(6,10);input.value=f;}
 function autoSizeInput(el){
