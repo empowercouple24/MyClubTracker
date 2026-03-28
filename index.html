@@ -346,7 +346,10 @@ async function init(){
   }
   var session=(await sb.auth.getSession()).data.session;
   if(session){
-    var r=await sb.from('users').select('role,location_id').eq('id',session.user.id).single();
+    // Flush any pending registration data that couldn't write before email confirmation
+  var pending=localStorage.getItem('pending_registration');
+  if(pending){try{var pd=JSON.parse(pending);if(pd.id===session.user.id){await sb.from('users').upsert(pd,{onConflict:'id',ignoreDuplicates:false});localStorage.removeItem('pending_registration');}}catch(e){}}
+  var r=await sb.from('users').select('role,location_id').eq('id',session.user.id).single();
     var u=r.data;
     // Only auto-redirect if not coming from a failed app load (no ?from=app param)
     var fromApp=params.get('from')==='app';
@@ -435,7 +438,16 @@ async function doRegister(){
   }
   var uid=auth.data.user&&auth.data.user.id;
   if(!uid){showMsg('reg-msg2','Sign-up failed. Try again.','error');setBtn('reg-btn',false,'Create Account');return;}
-  await sb.from('users').upsert({id:uid,email:em,location_id:verifiedLocation.id,role:verifiedLocation.role,display_name:name,first_name:fn,last_name:ln,phone:ph||null},{onConflict:'id',ignoreDuplicates:false});
+  // Store pending registration data in localStorage so the trigger/confirm flow can pick it up
+  // This handles the case where RLS blocks the upsert before email confirmation
+  var pendingData={id:uid,email:em,location_id:verifiedLocation.id,role:verifiedLocation.role,display_name:name,first_name:fn,last_name:ln,phone:ph||null};
+  localStorage.setItem('pending_registration',JSON.stringify(pendingData));
+  var upsertRes=await sb.from('users').upsert(pendingData,{onConflict:'id',ignoreDuplicates:false});
+  if(upsertRes.error){
+    showMsg('reg-msg2','Account created but profile save failed: '+upsertRes.error.message+' (code: '+upsertRes.error.code+')','error');
+    setBtn('reg-btn',false,'Create Account');
+    return;
+  }
   var dn=[fn,ln].map(function(w){return w.charAt(0).toUpperCase()+w.slice(1).toLowerCase();}).join(' ');
   var rl=verifiedLocation.role==='owner'?'club owner':'employee';
   setBtn('reg-btn',false,'Create Account');
