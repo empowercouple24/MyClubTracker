@@ -228,7 +228,7 @@ if('serviceWorker' in navigator){
     /* MISC */
     .empty-state{text-align:center;padding:40px 20px;color:var(--text-faint);font-size:13px}
     .filter-row{display:flex;gap:7px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
-    #panel-inv .filter-row{position:sticky;top:60px;z-index:19;background:var(--bg);padding:6px 0 4px;margin-bottom:6px;}
+    #panel-inv .filter-row{position:sticky;top:var(--inv-filter-top,70px);z-index:19;background:var(--bg);padding:6px 0 4px;margin-bottom:6px;}
     .filter-chip{font-size:11px;font-weight:600;padding:4px 11px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;transition:all 0.15s;font-family:'DM Sans',sans-serif}
     .filter-chip.active{background:var(--b7);color:white;border-color:var(--b7)}
     .collapsible-toggle{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;cursor:pointer;font-size:12px;font-weight:600;color:var(--text-muted);border-bottom:1px solid var(--border-light);user-select:none;transition:background 0.12s}
@@ -480,7 +480,7 @@ if('serviceWorker' in navigator){
 
 <div class="tab-panel" id="panel-inv">
   <div class="inv-header"><div class="inv-header-title">Inventory</div><div class="inv-dv-row"><div><div class="inv-dv-item-label">Total VP</div><div class="inv-dv-item-val" id="inv-total-vp">0</div></div></div></div>
-  <div class="filter-row"><button class="filter-chip active" onclick="setInvFilter('all',this)">All</button><button class="filter-chip" onclick="setInvFilter('needs',this)">Needs Only</button><button class="btn btn-amber" onclick="saveInvSnapshot()" style="margin-left:auto;">📸 Snapshot</button></div>
+  <div class="filter-row"><button class="filter-chip active" onclick="setInvFilter('all',this)">All</button><button class="filter-chip" onclick="setInvFilter('needs',this)">Needs Only</button><button class="btn btn-primary" onclick="saveInvSnapshot()" style="margin-left:auto;">📸 Snapshot</button></div>
   <div id="inv-body"></div>
 </div>
 
@@ -1422,13 +1422,12 @@ async function handleSignOut(){if(IS_ADMIN_VIEW){window.location.href='admin.htm
 let toastTimer;
 function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(type?' '+type:'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2400);}
 function recalcInvCatTop(){
-  // Measure sticky elements above category headers and set CSS var
   var invH=document.querySelector('.inv-header');
   var filterR=document.querySelector('#panel-inv .filter-row');
-  var top=0;
-  if(invH)top+=invH.offsetHeight+10; // +10 for margin-bottom
-  if(filterR)top+=filterR.offsetHeight+6; // +6 for margin-bottom
-  document.documentElement.style.setProperty('--inv-cat-top',top+'px');
+  var invHH=invH?invH.offsetHeight+10:70; // inv-header height + its margin-bottom
+  var filterH=filterR?filterR.offsetHeight+6:42; // filter-row height + its margin-bottom
+  document.documentElement.style.setProperty('--inv-filter-top', invHH+'px');
+  document.documentElement.style.setProperty('--inv-cat-top', (invHH+filterH)+'px');
 }
 function recalcContentTop(){
   var total=0;
