@@ -309,7 +309,7 @@ function showNPPanel(){showTab('newpassword');document.querySelector('.tabs').st
 async function init(){
   var hash=window.location.hash;
   var params=new URLSearchParams(window.location.search);
-  // Show error passed from app2.html
+  // Show error passed from app.html
   if(params.get('err')){
     showTab('signin');
     showMsg('si-msg','Sign in error: '+decodeURIComponent(params.get('err')),'error');
@@ -365,7 +365,7 @@ async function init(){
     var fromApp=params.get('from')==='app';
     if(!fromApp){
       if(u&&u.role==='admin'){window.location.href='admin.html';return;}
-      if(u&&u.location_id){window.location.href='app2.html';return;}
+      if(u&&u.location_id){window.location.href='app.html';return;}
     }
     // User has no location, or came from failed app load — sign out and show message
     if(u&&!u.location_id){
@@ -395,12 +395,12 @@ async function doSignIn(){
   var u=ur.data;
   if(!u){showMsg('si-msg','Account not set up. Contact your admin.','error');setBtn('si-btn',false,'Sign In');return;}
   if(u.role==='admin'){window.location.href='admin.html';return;}
-  if(u.location_id){window.location.href='app2.html';return;}
+  if(u.location_id){window.location.href='app.html';return;}
   showMsg('si-msg','No location assigned. Contact your admin.','error');setBtn('si-btn',false,'Sign In');
 }
 async function doResend(){var email=document.getElementById('si-email').value.trim();if(!email){showMsg('si-msg','Enter your email above first.','error');return;}await sb.auth.resend({type:'signup',email:email});showMsg('si-msg','Confirmation email resent! Check your inbox.','success');document.getElementById('resend-wrap').style.display='none';}
 async function doReset(){var email=document.getElementById('fp-email').value.trim();if(!email){showMsg('fp-msg','Please enter your email.','error');return;}setBtn('fp-btn',true,'Sending…');var res=await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+'/index.html'});setBtn('fp-btn',false,'Send Reset Link');if(res.error){showMsg('fp-msg',res.error.message,'error');return;}showMsg('fp-msg','Reset link sent! Check your inbox and spam folder.','success');}
-async function doNewPassword(){var pw=document.getElementById('np-password').value;var pw2=document.getElementById('np-password2').value;if(!pw||pw.length<6){showMsg('np-msg','Password must be at least 6 characters.','error');return;}if(pw!==pw2){showMsg('np-msg','Passwords do not match.','error');return;}setBtn('np-btn',true,'Updating…');var res=await sb.auth.updateUser({password:pw});setBtn('np-btn',false,'Update Password');if(res.error){showMsg('np-msg',res.error.message,'error');return;}showMsg('np-msg','Password updated! Redirecting…','success');setTimeout(async function(){var s=(await sb.auth.getSession()).data.session;if(s){var r=await sb.from('users').select('role,location_id').eq('id',s.user.id).single();var u=r.data;if(u&&u.role==='admin'){window.location.href='admin.html';return;}if(u&&u.location_id){window.location.href='app2.html';return;}}},1500);}
+async function doNewPassword(){var pw=document.getElementById('np-password').value;var pw2=document.getElementById('np-password2').value;if(!pw||pw.length<6){showMsg('np-msg','Password must be at least 6 characters.','error');return;}if(pw!==pw2){showMsg('np-msg','Passwords do not match.','error');return;}setBtn('np-btn',true,'Updating…');var res=await sb.auth.updateUser({password:pw});setBtn('np-btn',false,'Update Password');if(res.error){showMsg('np-msg',res.error.message,'error');return;}showMsg('np-msg','Password updated! Redirecting…','success');setTimeout(async function(){var s=(await sb.auth.getSession()).data.session;if(s){var r=await sb.from('users').select('role,location_id').eq('id',s.user.id).single();var u=r.data;if(u&&u.role==='admin'){window.location.href='admin.html';return;}if(u&&u.location_id){window.location.href='app.html';return;}}},1500);}
 function selectRole(role){selectedRole=role;document.getElementById('role-owner').classList.toggle('selected',role==='owner');document.getElementById('role-employee').classList.toggle('selected',role==='employee');document.getElementById('code-label').textContent=role==='owner'?'Owner Invite Code':'Employee Invite Code';resetVerify();}
 function resetVerify(){verifiedLocation=null;document.getElementById('verified-badge').classList.remove('show');document.getElementById('reg-next-btn').disabled=true;clearMsg('reg-msg1');}
 async function doVerifyCode(){

@@ -20,8 +20,8 @@ if('serviceWorker' in navigator){
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Outfit:wght@400;600;700;800&display=block" rel="stylesheet"/>
-<link rel="stylesheet" href="shared.css?v=1"/>
-<link rel="stylesheet" href="nav.css?v=1"/>
+<link rel="stylesheet" href="shared.css?v=10"/>
+<link rel="stylesheet" href="nav.css?v=10"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
@@ -112,11 +112,21 @@ if('serviceWorker' in navigator){
 
 .spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:5px}
 
+/* SECTION SEPARATORS */
+.loc-section-heading{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.9px;color:var(--text-faint);margin:28px 0 12px;}
+.loc-section-heading:first-child{margin-top:0;}
+
+/* PENDING CARD — muted style */
+.loc-group.pending-card{opacity:0.75;border-style:dashed;border-color:var(--border);}
+.loc-group.pending-card .loc-group-header{background:var(--b0);}
+.loc-group.pending-card .loc-avatar{background:linear-gradient(135deg,#8fa3b3,#b0bec8);}
+.pending-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;background:#f5f5f5;color:var(--text-faint);border:1px solid var(--border);border-radius:20px;padding:2px 8px;white-space:nowrap;}
+
 @media(max-width:600px){.loc-header-actions{flex-direction:column;}.invite-block{flex-direction:column;align-items:flex-start;}}
 </style>
 </head>
 <body>
-<div id="loading-overlay"><div class="load-spinner"></div></div>
+<div id="loading-overlay" style="display:flex;"><div class="load-spinner"></div></div>
 
 <nav class="topnav">
   <a href="admin.html" class="nav-logo" title="Dashboard"><svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
@@ -267,7 +277,7 @@ if('serviceWorker' in navigator){
 
 <div class="toast" id="toast"></div>
 
-<script src="nav.js?v=1"></script>
+<script src="nav.js?v=10"></script>
 <script>
 const SUPABASE_URL = 'https://ndaqlamzlaucigvnhgfu.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_wO6XM4pC2CcaISQ8OlbkfQ_liqKJbi_';
@@ -351,18 +361,25 @@ function renderLocations(){
   var roleColors={admin:'var(--b7)',owner:'var(--g5)',employee:'var(--text-muted)'};
   var roleBg={admin:'var(--b1)',owner:'var(--g0)',employee:'var(--b0)'};
 
-  list.innerHTML=allLocations.map(function(loc){
+  // Split: approved = has registered users, pending = no registered users
+  var approved=allLocations.filter(function(loc){
+    return allUsers.some(function(u){return u.location_id===loc.id;});
+  }).sort(function(a,b){return a.name.localeCompare(b.name);});
+  var pending=allLocations.filter(function(loc){
+    return !allUsers.some(function(u){return u.location_id===loc.id;});
+  }).sort(function(a,b){return a.name.localeCompare(b.name);});
+
+  function buildCard(loc,isPending){
     var initials=loc.name.split(' ').slice(0,2).map(function(w){return w[0];}).join('').toUpperCase();
     var locUsers=allUsers.filter(function(u){return u.location_id===loc.id;});
     var sc=loc.settings&&loc.settings.secondContact;
 
-    // Users section
     var usersHtml=locUsers.length?locUsers.map(function(u){
       var fn=[u.first_name,u.last_name].filter(Boolean).join(' ')||u.display_name||u.email;
       var letter=(u.first_name||u.display_name||u.email||'?')[0].toUpperCase();
       var dn=u.display_name?'<span style="font-size:13px;color:var(--text-faint);margin-left:4px;">('+escHtml(u.display_name)+')</span>':'';
       return '<div class="user-row">'+
-        '<div class="user-avatar" style="background:'+( roleBg[u.role]||'var(--b0)')+';color:'+(roleColors[u.role]||'var(--text-muted)')+';">'+letter+'</div>'+
+        '<div class="user-avatar" style="background:'+(roleBg[u.role]||'var(--b0)')+';color:'+(roleColors[u.role]||'var(--text-muted)')+';">'+letter+'</div>'+
         '<div class="user-info">'+
           '<div class="user-name">'+escHtml(fn)+dn+'</div>'+
           '<div class="user-email">'+escHtml(u.email)+'</div>'+
@@ -375,16 +392,13 @@ function renderLocations(){
     }).join('')
     :'<div style="font-size:13px;color:var(--text-faint);padding:4px 0;">No registered users yet — share the invite code below.</div>';
 
-    // Owner contact info
-    var ownerInfo=(loc.owner_name||loc.owner_phone||loc.settings?.ownerEmail)?
+    var ownerInfo=(loc.owner_name||loc.owner_phone||(loc.settings&&loc.settings.ownerEmail))?
       '<div class="owner-row">'+
         (loc.owner_name?'<div class="owner-detail">👤 <strong>'+escHtml(loc.owner_name)+'</strong></div>':'')+
         (loc.owner_phone?'<div class="owner-detail">📞 '+escHtml(loc.owner_phone)+'</div>':'')+
         (loc.settings&&loc.settings.ownerEmail?'<div class="owner-detail">✉️ '+escHtml(loc.settings.ownerEmail)+'</div>':'')+
-      '</div>':
-      '';
+      '</div>':'';
 
-    // Second contact info
     var sc2Html=sc&&(sc.name||sc.phone||sc.email)?
       '<div style="border-top:1px dashed var(--border-light);margin-top:8px;padding-top:8px;">'+
         '<div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);margin-bottom:8px;">Second Contact</div>'+
@@ -393,52 +407,55 @@ function renderLocations(){
           (sc.phone?'<div class="owner-detail">📞 '+escHtml(sc.phone)+'</div>':'')+
           (sc.email?'<div class="owner-detail">✉️ '+escHtml(sc.email)+'</div>':'')+
         '</div>'+
-      '</div>':
-      '';
+      '</div>':'';
 
-    return '<div class="loc-group" id="locg-'+loc.id+'">'+
-      // Header
+    var cardClass='loc-group'+(isPending?' pending-card':'');
+    var pendingBadge=isPending?'<span class="pending-badge">⏳ Pending Setup</span>':'';
+
+    return '<div class="'+cardClass+'" id="locg-'+loc.id+'">'+
       '<div class="loc-group-header">'+
         '<div class="loc-avatar">'+initials+'</div>'+
         '<div class="loc-header-info">'+
-          '<div class="loc-name">'+escHtml(loc.name)+'</div>'+
+          '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'+
+            '<div class="loc-name">'+escHtml(loc.name)+'</div>'+
+            pendingBadge+
+          '</div>'+
           (loc.address?'<div class="loc-addr">📍 '+escHtml(loc.address)+'</div>':'')+
         '</div>'+
         '<div class="loc-header-actions">'+
           '<button class="btn btn-ghost btn-sm" onclick="openEditLocation(\''+loc.id+'\')">✏️ Edit</button>'+
-          '<button class="btn btn-sm" onclick="goToApp(\''+loc.id+'\')" style="background:linear-gradient(135deg,var(--b7),var(--b5));color:white;font-size:12px;padding:5px 12px;">View App →</button>'+
+          (!isPending?'<button class="btn btn-sm" onclick="goToApp(\''+loc.id+'\')" style="background:linear-gradient(135deg,var(--b7),var(--b5));color:white;font-size:12px;padding:5px 12px;">View App →</button>':'')+
           '<button class="btn btn-danger btn-sm" onclick="confirmRemoveLocation(this)" data-id="'+loc.id+'" data-name="'+escHtml(loc.name)+'" title="Remove location">🗑</button>'+
         '</div>'+
       '</div>'+
-      // Owner details section
-      (ownerInfo||sc2Html?
+      (ownerInfo||sc2Html?'<div class="loc-section"><div class="loc-section-title">Contact</div>'+ownerInfo+sc2Html+'</div>':'')+
+      '<div class="loc-section">'+
+        '<div class="loc-section-title">Invite Code<button class="btn btn-ghost btn-sm" onclick="openRegenCode(\''+loc.id+'\')" style="font-size:11px;padding:3px 8px;">Change Code</button></div>'+
+        '<div class="invite-block"><div>'+
+          '<div class="invite-code-pill" onclick="copyCode(\''+escHtml(loc.invite_code||'—')+'\')" title="Click to copy">'+escHtml(loc.invite_code||'—')+'</div>'+
+          '<div class="invite-code-copy">Click to copy · Share with club owner to register</div>'+
+        '</div></div>'+
+      '</div>'+
+      (!isPending?
         '<div class="loc-section">'+
-          '<div class="loc-section-title">Contact</div>'+
-          ownerInfo+sc2Html+
+          '<div class="loc-section-title">Team Members ('+locUsers.length+')</div>'+
+          '<div class="users-list">'+usersHtml+'</div>'+
         '</div>':'')+
-      // Invite code section
-      '<div class="loc-section">'+
-        '<div class="loc-section-title">'+
-          'Invite Code'+
-          '<button class="btn btn-ghost btn-sm" onclick="openRegenCode(\''+loc.id+'\')" style="font-size:11px;padding:3px 8px;">Change Code</button>'+
-        '</div>'+
-        '<div class="invite-block">'+
-          '<div>'+
-            '<div class="invite-code-pill" onclick="copyCode(\''+escHtml(loc.invite_code||'—')+'\')" title="Click to copy">'+escHtml(loc.invite_code||'—')+'</div>'+
-            '<div class="invite-code-copy">Click to copy · Share with club owner to register</div>'+
-          '</div>'+
-        '</div>'+
-      '</div>'+
-      // Users section
-      '<div class="loc-section">'+
-        '<div class="loc-section-title">'+
-          'Team Members ('+locUsers.length+')'+
-        '</div>'+
-        '<div class="users-list">'+usersHtml+'</div>'+
-      '</div>'+
     '</div>';
-  }).join('');
+  }
+
+  var html='';
+  if(approved.length){
+    html+='<div class="loc-section-heading">Active Locations ('+approved.length+')</div>';
+    html+=approved.map(function(loc){return buildCard(loc,false);}).join('');
+  }
+  if(pending.length){
+    html+='<div class="loc-section-heading">Pending Setup ('+pending.length+')</div>';
+    html+=pending.map(function(loc){return buildCard(loc,true);}).join('');
+  }
+  list.innerHTML=html;
 }
+
 
 function copyCode(code){
   navigator.clipboard.writeText(code).then(function(){
@@ -449,7 +466,7 @@ function copyCode(code){
 }
 
 function goToApp(locId){
-  window.location.href='app2.html?location_id='+locId+'&admin=1';
+  window.location.href='app.html?location_id='+locId+'&admin=1';
 }
 
 // ── LOAD DATA ──

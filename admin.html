@@ -21,8 +21,8 @@ if('serviceWorker' in navigator){
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Outfit:wght@400;600;700;800&display=block" rel="stylesheet"/>
-  <link rel="stylesheet" href="shared.css?v=1"/>
-  <link rel="stylesheet" href="nav.css?v=1"/>
+  <link rel="stylesheet" href="shared.css?v=10"/>
+  <link rel="stylesheet" href="nav.css?v=10"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
@@ -143,6 +143,27 @@ if('serviceWorker' in navigator){
 
     @media(max-width:640px){.kpi-strip{grid-template-columns:1fr}.expanded-grid{grid-template-columns:1fr}}
 
+    /* ── LAYOUT TOGGLE ── */
+    #layout-body{display:block}
+    #layout-body.split{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start;margin-top:28px;}
+    #layout-body.split #locations-col{min-width:0}
+    #layout-body.split #metrics-col{position:sticky;top:68px;display:flex;flex-direction:column;gap:20px;}
+    #layout-body:not(.split) #metrics-col{display:block}
+    #layout-body:not(.split) #metrics-col .section-label{margin-top:0;}
+    #layout-body:not(.split) #locations-col{margin-top:28px;}
+    #layout-body.split .locs-header{margin-top:0}
+    #layout-body.split #metrics-col .kpi-strip{grid-template-columns:1fr;}
+    #layout-body.split .loc-name{white-space:normal;overflow:visible;text-overflow:unset;}
+    #layout-body.split .loc-owner{white-space:normal;overflow:visible;text-overflow:unset;line-height:1.4;}
+    #layout-body.split .loc-addr{white-space:normal;overflow:visible;text-overflow:unset;line-height:1.4;}
+    #layout-body.split .loc-card-header{align-items:flex-start;}
+    #layout-body.split .loc-meta{display:flex;flex-direction:column;gap:3px;}
+    /* Active view indicator in nav dropdown */
+    .nav-drop-item-active{background:var(--b0);color:var(--b7);font-weight:700;}
+    @media(max-width:1100px){#layout-body.split{grid-template-columns:1fr;}#layout-body.split #metrics-col{position:static;}}
+
+
+
     /* MISSING DAY ALERT BANNER */
     .alert-banner{background:linear-gradient(135deg,#7a1f1f,var(--r5));border-radius:var(--radius);padding:14px 16px;margin-bottom:20px;color:white;animation:alertPulse 3s ease-in-out infinite}
     @keyframes alertPulse{0%,100%{box-shadow:0 4px 20px rgba(192,48,48,0.3)}50%{box-shadow:0 4px 28px rgba(192,48,48,0.55)}}
@@ -172,7 +193,7 @@ if('serviceWorker' in navigator){
 
 </head>
 <body>
-<div id="loading-overlay"><div class="load-spinner"></div><div class="load-text">Loading dashboard…</div></div>
+<div id="loading-overlay" style="display:flex;"><div class="load-spinner"></div><div class="load-text">Loading dashboard…</div></div>
 
 <nav class="topnav">
   <a href="admin.html" class="nav-logo" title="Dashboard"><svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
@@ -188,6 +209,9 @@ if('serviceWorker' in navigator){
       <button class="nav-drop-item" onclick="window.location.href='admin.html';closeNavMenu()">🏠 Dashboard</button>
       <button class="nav-drop-item" onclick="window.location.href='locations.html';closeNavMenu()">🏪 Locations</button>
       <button class="nav-drop-item" onclick="window.location.href='settings.html';closeNavMenu()">⚙ Settings</button>
+      <div class="nav-drop-divider"></div>
+      <button class="nav-drop-item" id="nav-layout-list" onclick="setLayout('list');closeNavMenu()">☰ List View</button>
+      <button class="nav-drop-item" id="nav-layout-split" onclick="setLayout('split');closeNavMenu()">⊞ Split View</button>
       <div class="nav-drop-divider"></div>
       <button class="nav-drop-item danger" onclick="handleSignOut();closeNavMenu()">↪ Sign out</button>
     </div>
@@ -208,69 +232,79 @@ if('serviceWorker' in navigator){
   </div>
   <div id="alert-banner-wrap" style="display:none;"></div>
 
-  <div class="section-label" id="kpi-label">Org Overview</div>
-  <div class="kpi-strip">
-    <div class="kpi-period yesterday">
-      <div class="kpi-period-label">Yesterday</div>
-      <div class="kpi-row"><span class="kpi-metric-label">Sales</span><span class="kpi-metric-val big" id="kpi-yday-sales">—</span></div>
-      <div class="kpi-row"><span class="kpi-metric-label">DV</span><span class="kpi-metric-val" id="kpi-yday-dv">—</span></div>
-      <div class="kpi-sub" id="kpi-yday-sub"></div>
-    </div>
-    <div class="kpi-period week">
-      <div class="kpi-period-label">Last 7 Days</div>
-      <div class="kpi-row"><span class="kpi-metric-label">Sales</span><span class="kpi-metric-val big" id="kpi-week-sales">—</span></div>
-      <div class="kpi-row"><span class="kpi-metric-label">DV</span><span class="kpi-metric-val" id="kpi-week-dv">—</span></div>
-      <div class="kpi-sub" id="kpi-week-sub"></div>
-    </div>
-    <div class="kpi-period month">
-      <div class="kpi-period-label">Last 30 Days</div>
-      <div class="kpi-row"><span class="kpi-metric-label">Sales</span><span class="kpi-metric-val big" id="kpi-month-sales">—</span></div>
-      <div class="kpi-row"><span class="kpi-metric-label">DV</span><span class="kpi-metric-val" id="kpi-month-dv">—</span></div>
-      <div class="kpi-sub" id="kpi-month-sub"></div>
-    </div>
-  </div>
+  <!-- LAYOUT BODY — toggled between list and split via JS -->
+  <div id="layout-body">
 
-  <!-- COMPARISON CHART SECTION -->
-  <div id="chart-section" style="margin-top:28px;display:none;">
-    <div class="section-header" style="margin-top:0;margin-bottom:12px;">
-      <div class="section-label" style="margin:0;">Location Comparison</div>
-      <div style="display:flex;gap:6px;">
-        <div class="chart-metric-tabs">
-          <button class="chart-metric-tab active" id="chart-metric-sales" onclick="setChartMetric('sales')">Sales</button>
-          <button class="chart-metric-tab" id="chart-metric-dv" onclick="setChartMetric('dv')">DV</button>
-          <button class="chart-metric-tab" id="chart-metric-days" onclick="setChartMetric('days')">Days</button>
+    <!-- LEFT / FULL: location requests + list -->
+    <div id="locations-col">
+      <!-- LOCATION REQUESTS SECTION -->
+      <div id="requests-section" style="display:none;margin-bottom:24px;">
+        <div class="section-header" style="margin-top:0;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="section-label" style="margin:0;">Location Requests</div>
+            <span id="requests-badge" style="background:var(--r5);color:white;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;"></span>
+          </div>
+        </div>
+        <div id="requests-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+      </div>
+
+      <!-- LOCATIONS HEADER + LIST -->
+      <div class="section-header locs-header" style="margin-top:0;">
+        <div class="section-label" id="locs-label">Locations</div>
+        <button class="btn-add-loc" onclick="openAddLocation()">+ Add Location</button>
+      </div>
+      <div class="locations-list" id="locations-list"></div>
+    </div>
+
+    <!-- RIGHT / BOTTOM: KPIs + chart (moves to sidebar in split mode) -->
+    <div id="metrics-col">
+      <div class="section-label" id="kpi-label" style="margin-top:0;">Org Overview</div>
+      <div class="kpi-strip">
+        <div class="kpi-period yesterday">
+          <div class="kpi-period-label">Yesterday</div>
+          <div class="kpi-row"><span class="kpi-metric-label">Sales</span><span class="kpi-metric-val big" id="kpi-yday-sales">—</span></div>
+          <div class="kpi-row"><span class="kpi-metric-label">DV</span><span class="kpi-metric-val" id="kpi-yday-dv">—</span></div>
+          <div class="kpi-sub" id="kpi-yday-sub"></div>
+        </div>
+        <div class="kpi-period week">
+          <div class="kpi-period-label">Last 7 Days</div>
+          <div class="kpi-row"><span class="kpi-metric-label">Sales</span><span class="kpi-metric-val big" id="kpi-week-sales">—</span></div>
+          <div class="kpi-row"><span class="kpi-metric-label">DV</span><span class="kpi-metric-val" id="kpi-week-dv">—</span></div>
+          <div class="kpi-sub" id="kpi-week-sub"></div>
+        </div>
+        <div class="kpi-period month">
+          <div class="kpi-period-label">Last 30 Days</div>
+          <div class="kpi-row"><span class="kpi-metric-label">Sales</span><span class="kpi-metric-val big" id="kpi-month-sales">—</span></div>
+          <div class="kpi-row"><span class="kpi-metric-label">DV</span><span class="kpi-metric-val" id="kpi-month-dv">—</span></div>
+          <div class="kpi-sub" id="kpi-month-sub"></div>
         </div>
       </div>
-    </div>
-    <div class="chart-card">
-      <div class="chart-tabs">
-        <button class="chart-tab active" id="chart-tab-week" onclick="setChartPeriod('week')">Last 7 Days</button>
-        <button class="chart-tab" id="chart-tab-month" onclick="setChartPeriod('month')">Last 30 Days</button>
-        <button class="chart-tab" id="chart-tab-yday" onclick="setChartPeriod('yday')">Yesterday</button>
-      </div>
-      <div style="position:relative;height:260px;">
-        <canvas id="comparison-chart"></canvas>
-      </div>
-    </div>
-  </div>
 
-  <!-- LOCATION REQUESTS SECTION -->
-  <div id="requests-section" style="display:none;margin-top:28px;">
-    <div class="section-header">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <div class="section-label" style="margin:0;">Location Requests</div>
-        <span id="requests-badge" style="background:var(--r5);color:white;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;"></span>
+      <!-- COMPARISON CHART -->
+      <div id="chart-section" style="display:none;">
+        <div class="section-header" style="margin-top:16px;margin-bottom:12px;">
+          <div class="section-label" style="margin:0;">Location Comparison</div>
+          <div class="chart-metric-tabs">
+            <button class="chart-metric-tab active" id="chart-metric-sales" onclick="setChartMetric('sales')">Sales</button>
+            <button class="chart-metric-tab" id="chart-metric-dv" onclick="setChartMetric('dv')">DV</button>
+            <button class="chart-metric-tab" id="chart-metric-days" onclick="setChartMetric('days')">Days</button>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-tabs">
+            <button class="chart-tab active" id="chart-tab-week" onclick="setChartPeriod('week')">Last 7 Days</button>
+            <button class="chart-tab" id="chart-tab-month" onclick="setChartPeriod('month')">Last 30 Days</button>
+            <button class="chart-tab" id="chart-tab-yday" onclick="setChartPeriod('yday')">Yesterday</button>
+          </div>
+          <div style="position:relative;height:260px;">
+            <canvas id="comparison-chart"></canvas>
+          </div>
+        </div>
       </div>
-    </div>
-    <div id="requests-list" style="display:flex;flex-direction:column;gap:10px;"></div>
-  </div>
+    </div><!-- /metrics-col -->
 
-  <div class="section-header" style="margin-top:28px;">
-    <div class="section-label" id="locs-label">Locations</div>
-    <button class="btn-add-loc" onclick="openAddLocation()">+ Add Location</button>
-  </div>
-  <div class="locations-list" id="locations-list"></div>
-</div>
+  </div><!-- /layout-body -->
+</div><!-- /page -->
 
 <!-- ADD LOCATION MODAL -->
 <div class="modal-overlay" id="add-loc-modal" onclick="closeModalOnBg(event,'add-loc-modal')">
@@ -465,7 +499,7 @@ if('serviceWorker' in navigator){
   </div>
 </div>
 
-<script src="nav.js?v=1"></script>
+<script src="nav.js?v=10"></script>
 <script>
 const SUPABASE_URL='https://ndaqlamzlaucigvnhgfu.supabase.co';
 const SUPABASE_ANON_KEY='sb_publishable_wO6XM4pC2CcaISQ8OlbkfQ_liqKJbi_';
@@ -528,9 +562,9 @@ function renderRequests(){
     return`<div style="background:var(--surface);border:1px solid var(--border-light);border-left:4px solid var(--b5);border-radius:var(--radius);padding:14px 16px;">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
         <div style="flex:1;min-width:0;">
-          <div class="loc-name" style="margin-bottom:4px;">${escHtml(r.club_name)}</div>
+          <div class="loc-name" style="margin-bottom:4px;text-transform:capitalize;">${escHtml(r.club_name)}</div>
           ${addr?`<div style="font-size:13px;color:var(--text-muted);margin-bottom:2px;">📍 ${escHtml(addr)}</div>`:''}
-          <div style="font-size:13px;color:var(--text-muted);">👤 ${escHtml(r.owner_name||'—')} ${r.phone?`· 📞 ${escHtml(r.phone)}`:''}</div>
+          <div style="font-size:13px;color:var(--text-muted);">👤 <span style="text-transform:capitalize;">${escHtml(r.owner_name||'—')}</span> ${r.phone?`· 📞 ${escHtml(r.phone)}`:''}</div>
           <div style="font-size:13px;color:var(--b6);">✉️ ${escHtml(r.email||'—')}</div>
           ${r.notes?`<div style="font-size:12px;color:var(--text-faint);margin-top:6px;font-style:italic;">"${escHtml(r.notes)}"</div>`:''}
           <div style="font-size:11px;color:var(--text-faint);margin-top:6px;">Submitted ${submitted}</div>
@@ -1017,6 +1051,40 @@ function renderCompChart(){
   });
 }
 
+// ── LAYOUT TOGGLE ──
+function setLayout(mode){
+  var body=document.getElementById('layout-body');
+  var btnList=document.getElementById('nav-layout-list');
+  var btnSplit=document.getElementById('nav-layout-split');
+  if(!body)return;
+  var metricsCol=document.getElementById('metrics-col');
+  var locsCol=document.getElementById('locations-col');
+  if(mode==='split'){
+    body.classList.add('split');
+    // Split: locations left, metrics right — metrics goes second in DOM
+    if(metricsCol&&locsCol&&body.lastElementChild!==metricsCol){
+      body.appendChild(metricsCol);
+    }
+    if(btnSplit)btnSplit.classList.add('nav-drop-item-active');
+    if(btnList)btnList.classList.remove('nav-drop-item-active');
+    setTimeout(function(){renderCompChart();},50);
+  }else{
+    body.classList.remove('split');
+    // List: metrics on top, locations below — metrics goes first in DOM
+    if(metricsCol&&locsCol&&body.firstElementChild!==metricsCol){
+      body.insertBefore(metricsCol,locsCol);
+    }
+    if(btnList)btnList.classList.add('nav-drop-item-active');
+    if(btnSplit)btnSplit.classList.remove('nav-drop-item-active');
+    setTimeout(function(){renderCompChart();},50);
+  }
+  localStorage.setItem('admin_layout_view',mode);
+}
+function initLayout(){
+  var saved=localStorage.getItem('admin_layout_view')||'list';
+  setLayout(saved);
+}
+
 async function init(){
   const{data:{session}}=await sb.auth.getSession();
   if(!session){window.location.href='index.html';return;}
@@ -1040,7 +1108,8 @@ async function init(){
   allLocationUsers = locUsers || [];
   renderKPIs();renderLocations();renderAlertBanner();renderCompChart();
   await loadRequests();
-  /* overlay hidden by default */
+  document.getElementById('loading-overlay').style.display='none';
+  initLayout();
 }
 
 // ── DUPLICATE DETECTION (Levenshtein distance) ──
@@ -1170,7 +1239,7 @@ function renderAlertBanner(){
 }
 
 function toggleAlertBanner(){document.getElementById('alert-banner')?.classList.toggle('expanded');}
-function goToLocation(locId){window.location.href=`app2.html?location_id=${locId}&admin=1`;}
+function goToLocation(locId){window.location.href=`app.html?location_id=${locId}&admin=1`;}
 
 function renderLocations(){
   const list=document.getElementById('locations-list');
@@ -1185,7 +1254,11 @@ function renderLocations(){
     </div>`;
     return;
   }
-  list.innerHTML=allLocations.map(loc=>{
+  // Sort: activated locations alpha first, pending locations alpha second
+  const activated=allLocations.filter(l=>isActivated(l)).sort((a,b)=>a.name.localeCompare(b.name));
+  const pending=allLocations.filter(l=>!isActivated(l)).sort((a,b)=>a.name.localeCompare(b.name));
+  const sorted=[...activated,...pending];
+  list.innerHTML=sorted.map(loc=>{
     const ld=allDays.filter(d=>d.location_id===loc.id);
     const initials=loc.name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
     const activated=isActivated(loc);
@@ -1222,8 +1295,8 @@ function renderLocations(){
           </div>
           <div class="expanded-footer">
             <button onclick="event.stopPropagation();openDeleteModal('${loc.id}','${escHtml(loc.name)}')" title="Remove location" style="background:none;border:1px solid var(--border-light);border-radius:6px;padding:6px 8px;cursor:pointer;color:var(--text-faint);font-size:14px;line-height:1;" onmouseover="this.style.background='var(--r0)';this.style.color='var(--r5)'" onmouseout="this.style.background='none';this.style.color='var(--text-faint)'">🗑</button>
-            <a class="btn-manage-settings" href="app2.html?location_id=${loc.id}&admin=1&settings=1">⚙ Manage Settings</a>
-            <a class="btn-view-app" href="app2.html?location_id=${loc.id}&admin=1">View Full App →</a>
+            <a class="btn-manage-settings" href="app.html?location_id=${loc.id}&admin=1&settings=1">⚙ Manage Settings</a>
+            <a class="btn-view-app" href="app.html?location_id=${loc.id}&admin=1">View Full App →</a>
           </div>
         </div>
       </div>`;
@@ -1291,8 +1364,8 @@ function renderLocations(){
         <div class="expanded-footer">
           ${lastFmt?`<div class="last-entry-note">Last entry: ${lastFmt}</div>`:'<div></div>'}
           <button onclick="event.stopPropagation();openDeleteModal('${loc.id}','${escHtml(loc.name)}')" title="Remove location" style="background:none;border:1px solid var(--border-light);border-radius:6px;padding:6px 8px;cursor:pointer;color:var(--text-faint);font-size:14px;line-height:1;" onmouseover="this.style.background='var(--r0)';this.style.color='var(--r5)'" onmouseout="this.style.background='none';this.style.color='var(--text-faint)'">🗑</button>
-          <a class="btn-manage-settings" href="app2.html?location_id=${loc.id}&admin=1&settings=1">⚙ Manage Settings</a>
-          <a class="btn-view-app" href="app2.html?location_id=${loc.id}&admin=1">View Full App →</a>
+          <a class="btn-manage-settings" href="app.html?location_id=${loc.id}&admin=1&settings=1">⚙ Manage Settings</a>
+          <a class="btn-view-app" href="app.html?location_id=${loc.id}&admin=1">View Full App →</a>
         </div>
       </div>
     </div>`;
