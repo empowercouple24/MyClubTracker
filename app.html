@@ -38,8 +38,11 @@ if('serviceWorker' in navigator){
     html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:13px}
     /* NAV */
     .topnav{background:var(--surface);border-bottom:1px solid var(--border-light);display:flex;align-items:center;gap:8px;padding:env(safe-area-inset-top,0px) 12px 0;min-height:calc(var(--nav-h) + env(safe-area-inset-top,0px));position:relative;z-index:50;box-shadow:var(--shadow-sm)}
-    .nav-logo{width:28px;height:28px;background:white;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,0.1);}
+    .nav-logo{width:28px;height:28px;background:white;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,0.1);cursor:pointer;}
     .nav-logo svg{width:24px;height:24px;}
+    .nav-logo:hover{background:var(--b0);}
+    .nav-menu-btn{display:flex;align-items:center;gap:6px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;color:var(--b7);border:1.5px solid var(--b3);border-radius:20px;padding:5px 14px;background:white;cursor:pointer;}
+    .nav-menu-btn:hover{background:var(--b0);}
     .nav-club-name{font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .nav-admin-badge{font-size:10px;font-weight:700;background:var(--b7);color:white;padding:2px 6px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase;flex-shrink:0}
     .nav-btn{background:none;border:1px solid var(--border);border-radius:5px;padding:3px 9px;font-size:12px;font-weight:500;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:background 0.15s;flex-shrink:0}
@@ -267,7 +270,7 @@ if('serviceWorker' in navigator){
 
 <nav class="topnav">
   <button class="nav-btn back" id="nav-back-btn" style="display:none;font-weight:700;color:var(--b5);font-size:13px;padding:4px 10px;background:var(--b0);border-radius:8px;border:1px solid var(--border);" onclick="goBackToAdmin()">← Locations</button>
-  <div class="nav-logo"><svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
+  <div class="nav-logo" onclick="switchTab('enter')" title="Go to Enter tab"><svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
   <g transform="rotate(-18, 16, 36)">
     <rect x="8" y="24" width="16" height="20" rx="2" fill="#1a5c2a"/>
     <rect x="10" y="28" width="12" height="8" rx="1" fill="rgba(255,255,255,0.25)"/>
@@ -288,7 +291,7 @@ if('serviceWorker' in navigator){
   <div class="nav-admin-badge" id="nav-admin-badge" style="display:none;">Admin View</div>
   <div class="nav-menu-wrap" style="position:relative;">
     <button class="nav-menu-btn" onclick="toggleNavMenu()">
-      <span id="nav-display-name" style="font-size:13px;font-weight:600;color:var(--text-muted);margin-right:2px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span><span id="nav-role-label" style="font-size:13px;font-weight:700;color:var(--b7);">OWNER</span> <span style="font-size:10px;">▾</span>
+      <span id="nav-display-name" style="font-size:13px;font-weight:600;color:var(--text-muted);margin-right:4px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span><span id="nav-role-label" style="font-weight:700;">OWNER</span> <span style="font-size:10px;">▾</span>
     </button>
     <div id="nav-dropdown" style="position:absolute;top:calc(100% + 6px);right:0;background:var(--surface);border:1px solid var(--border-light);border-radius:10px;box-shadow:0 4px 20px rgba(30,45,61,0.12);min-width:180px;z-index:999;display:none;">
       <button id="nav-profile-btn" onclick="openProfileModal();closeNavMenu()" style="display:none;align-items:center;gap:9px;width:100%;padding:11px 16px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text);background:none;border:none;cursor:pointer;text-align:left;" onmouseover="this.style.background='var(--b0)'" onmouseout="this.style.background='none'">👤 Profile</button>
@@ -841,7 +844,7 @@ async function saveProfile(){
   document.getElementById('nav-profile-btn').title=dispName||[firstName,lastName].filter(Boolean).join(' ')||CURRENT_SESSION.user.email;
   // Sync display name to nav
   const navDN = document.getElementById('nav-display-name');
-  if(navDN) navDN.textContent = (dispName || [firstName,lastName].filter(Boolean).join(' ') || '') + ' ';
+  if(navDN) navDN.textContent = (dispName || [firstName,lastName].filter(Boolean).join(' ') || '');
   closeProfileModal();
   showToast('Profile saved ✓','success');
 }
@@ -944,7 +947,7 @@ async function init(){
     // Show profile button for owners and employees (not admin view)
     const _pb=document.getElementById('nav-profile-btn');if(_pb)_pb.style.display='flex';
     const navDN = document.getElementById('nav-display-name');
-    if(navDN){ navDN.textContent = (u.display_name || [u.first_name,u.last_name].filter(Boolean).join(' ') || '') + ' '; }
+    if(navDN){ navDN.textContent = (u.display_name || [u.first_name,u.last_name].filter(Boolean).join(' ') || ''); }
     const navRL = document.getElementById('nav-role-label');
     if(navRL){ navRL.textContent = (USER_ROLE==='employee'?'EMPLOYEE':'OWNER'); }
     const _pb2=document.getElementById('nav-profile-btn');if(_pb2)_pb2.title=u.display_name||session.user.email;
@@ -984,7 +987,7 @@ async function init(){
     if(saveBtn){saveBtn.style.background='linear-gradient(135deg,var(--a6),var(--a4))';saveBtn.textContent='Save (Admin)';}
     // Set nav button to show admin name + ADMIN label
     const _adNavDN=document.getElementById('nav-display-name');
-    if(_adNavDN){ const _adName=session.user.user_metadata?.display_name||session.user.email||''; _adNavDN.textContent=_adName?_adName+' ':''; }
+    if(_adNavDN){ const _adName=session.user.user_metadata?.display_name||session.user.email||''; _adNavDN.textContent=_adName||''; }
     const _adRL=document.getElementById('nav-role-label');if(_adRL)_adRL.textContent='ADMIN';
     // Show admin nav items in dropdown
     const _ani=document.getElementById('admin-nav-items');if(_ani)_ani.style.display='block';
