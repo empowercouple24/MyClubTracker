@@ -179,21 +179,8 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
   <div class="panel" id="panel-register">
     <div id="reg-s1">
       <div class="msg info show">You'll need an invite code from your club owner or admin.</div>
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--gf);margin:10px 0 8px;">I am a…</div>
-      <div class="role-row">
-        <div class="role-card selected" id="role-owner" onclick="selectRole('owner')">
-          <div class="role-card-icon">🏪</div>
-          <div class="role-card-label">Club Owner</div>
-          <div class="role-card-sub">Manage my club</div>
-        </div>
-        <div class="role-card" id="role-employee" onclick="selectRole('employee')">
-          <div class="role-card-icon">👤</div>
-          <div class="role-card-label">Employee</div>
-          <div class="role-card-sub">Enter daily data</div>
-        </div>
-      </div>
       <div class="field">
-        <label id="code-label">Owner Invite Code</label>
+        <label id="code-label">Invite Code</label>
         <div class="code-row">
           <input type="text" id="reg-code" placeholder="" autocomplete="off" data-lpignore="true" data-form-type="other" oninput="this.value=this.value.toUpperCase();resetVerify()">
           <button class="btn-vfy" id="verify-btn" onclick="doVerifyCode()">Verify</button>
@@ -407,11 +394,25 @@ async function doVerifyCode(){
   var code=document.getElementById('reg-code').value.trim().toUpperCase();
   if(!code){showMsg('reg-msg1','Please enter an invite code.','error');return;}
   setBtn('verify-btn',true,'Checking…');clearMsg('reg-msg1');
-  if(selectedRole==='owner'){var res=await sb.from('locations').select('id,name,invite_code').eq('invite_code',code).single();setBtn('verify-btn',false,'Verify');if(res.error||!res.data){showMsg('reg-msg1','Invalid invite code. Check with your admin.','error');return;}verifiedLocation={id:res.data.id,name:res.data.name,role:'owner'};}
-  else{var lr=await sb.from('locations').select('id,name,settings');setBtn('verify-btn',false,'Verify');if(lr.error){showMsg('reg-msg1','Could not verify code. Try again.','error');return;}var m=(lr.data||[]).find(function(l){return l.settings&&l.settings.employeeInviteCode&&l.settings.employeeInviteCode.toUpperCase()===code.toUpperCase();});if(!m){showMsg('reg-msg1','Invalid employee code.','error');return;}verifiedLocation={id:m.id,name:m.name,role:'employee'};}
-  document.getElementById('verified-badge').classList.add('show');document.getElementById('verified-text').textContent=verifiedLocation.name;document.getElementById('reg-next-btn').disabled=false;
+  // Fetch all locations and check both owner code and employee code simultaneously
+  var lr=await sb.from('locations').select('id,name,invite_code,settings');
+  setBtn('verify-btn',false,'Verify');
+  if(lr.error){showMsg('reg-msg1','Could not verify code. Try again.','error');return;}
+  var locations=lr.data||[];
+  // Check owner code first (invite_code column)
+  var ownerMatch=locations.find(function(l){return l.invite_code&&l.invite_code.toUpperCase()===code;});
+  if(ownerMatch){verifiedLocation={id:ownerMatch.id,name:ownerMatch.name,role:'owner'};selectedRole='owner';}
+  else{
+    // Check employee code (settings.employeeInviteCode)
+    var empMatch=locations.find(function(l){return l.settings&&l.settings.employeeInviteCode&&l.settings.employeeInviteCode.toUpperCase()===code;});
+    if(empMatch){verifiedLocation={id:empMatch.id,name:empMatch.name,role:'employee'};selectedRole='employee';}
+    else{showMsg('reg-msg1','Invalid invite code. Check with your admin.','error');return;}
+  }
+  document.getElementById('verified-badge').classList.add('show');
+  document.getElementById('verified-text').textContent=(verifiedLocation.role==='owner'?'🏪 Club Owner':'👤 Employee')+' — '+verifiedLocation.name;
+  document.getElementById('reg-next-btn').disabled=false;
 }
-function goRegStep2(){if(!verifiedLocation)return;document.getElementById('reg-location-name').textContent=(selectedRole==='owner'?'🏪 Club Owner':'👤 Employee')+' — '+verifiedLocation.name;document.getElementById('reg-s1').style.display='none';document.getElementById('reg-s2').style.display='block';}
+function goRegStep2(){if(!verifiedLocation)return;document.getElementById('reg-location-name').textContent=(verifiedLocation.role==='owner'?'🏪 Club Owner':'👤 Employee')+' — '+verifiedLocation.name;document.getElementById('reg-s1').style.display='none';document.getElementById('reg-s2').style.display='block';}
 function goRegStep1(){document.getElementById('reg-s1').style.display='block';document.getElementById('reg-s2').style.display='none';clearMsg('reg-msg2');}
 async function doRegister(){
   var fn=document.getElementById('reg-firstname').value.trim();var ln=document.getElementById('reg-lastname').value.trim();
