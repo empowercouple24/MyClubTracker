@@ -166,7 +166,7 @@ if('serviceWorker' in navigator){
     .inv-dv-row{display:flex;gap:16px;align-items:baseline;}
     .inv-dv-item-label{font-size:10px;opacity:0.65;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;font-weight:600;}
     .inv-dv-item-val{font-family:'Outfit',sans-serif;font-size:28px;font-weight:800;letter-spacing:-0.5px;line-height:1;}
-    .inv-cat-header{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--a6);background:var(--a0);padding:4px 10px;border-radius:var(--radius-sm) var(--radius-sm) 0 0;border:1px solid #f0d8a0;border-bottom:none;margin-top:8px}
+    .inv-cat-header{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--a6);background:var(--a0);padding:4px 10px;border-radius:var(--radius-sm) var(--radius-sm) 0 0;border:1px solid #f0d8a0;border-bottom:none;margin-top:8px;position:sticky;top:var(--inv-cat-top,100px);z-index:18;}
     .inv-table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border-light);border-radius:0 0 var(--radius-sm) var(--radius-sm);overflow:hidden;margin-bottom:2px;table-layout:fixed;}
     .inv-table th{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);background:var(--b0);padding:6px 8px;text-align:right;border-bottom:1px solid var(--border-light);vertical-align:middle;}
     .inv-table th:first-child{text-align:left}
@@ -1068,6 +1068,7 @@ function switchTab(name){
   document.getElementById('tab-'+name).classList.add('active');
   document.getElementById('panel-'+name).classList.add('active');
   if(name==='proj')renderProjections();if(name==='payouts')renderPayouts();
+  if(name==='inv')recalcInvCatTop();
 }
 function toggleCollapse(t){const b=document.getElementById(t.dataset.target);t.classList.toggle('collapsed');b.classList.toggle('collapsed');}
 function pv(id){const el=document.getElementById(id);if(!el)return 0;return parseFloat(el.value.replace(/,/g,''))||0;}
@@ -1140,6 +1141,7 @@ function calcAll(){
 
 function fmt$(n){if(n===null||isNaN(n))return'$0.00';return'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function fmtN(n){if(n===null||isNaN(n))return'—';return n.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:1});}
+function fmtVP(n){if(n===null||n===undefined||isNaN(n))return'—';return Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
 
 function recalc(){
   const c=calcAll();
@@ -1314,27 +1316,28 @@ function setInvFilter(f,btn){invFilter=f;document.querySelectorAll('.filter-chip
 function renderInventory(){
   const cats={};PRODUCTS.forEach(p=>{if(!cats[p[0]])cats[p[0]]=[];cats[p[0]].push({cat:p[0],name:p[1],sku:p[2],vp:p[3],par:p[4]});});
   let vp=0,u=0;PRODUCTS.forEach(p=>{const q=invHave[p[2]]||0;vp+=(p[3]||0)*q;u+=q;});
-  setText('inv-total-vp',fmtN(vp));
+  setText('inv-total-vp',fmtVP(vp));
   let html='';
   Object.entries(cats).forEach(([cat,items])=>{
     const vis=invFilter==='needs'?items.filter(p=>(invHave[p.sku]||0)<p.par):items;if(!vis.length)return;
     html+=`<div class="inv-cat-header">${cat}</div><table class="inv-table"><thead><tr><th>Product</th><th>VP</th><th>PAR</th><th>HAVE</th><th>NEED</th><th>VP Total</th></tr></thead><tbody>`;
     vis.forEach(p=>{const have=invHave[p.sku]||0,need=Math.max(0,p.par-have),bc=need>0?'need':(have>0?'ok':'zero'),bt=need>0?need:(have>0?'✓':'—'),vpTot=(p.vp||0)*have;
-      html+=`<tr><td><div class="inv-name-cell"><span class="inv-name">${p.name}</span>${p.sku?`<span class="inv-sku">${p.sku}</span>`:''}</div></td><td>${p.vp||'—'}</td><td>${p.par}</td><td><input class="inv-input" type="number" min="0" value="${have}" onchange="setHave('${p.sku}',this.value)"/></td><td><span class="need-badge ${bc}">${bt}</span></td><td id="vptot-${p.sku}" style="font-size:12px;font-weight:600;color:var(--b6);">${vpTot>0?fmtN(vpTot):'—'}</td></tr>`;
+      html+=`<tr><td><div class="inv-name-cell"><span class="inv-name">${p.name}</span>${p.sku?`<span class="inv-sku">${p.sku}</span>`:''}</div></td><td>${p.vp!=null?fmtVP(p.vp):'—'}</td><td>${p.par}</td><td><input class="inv-input" type="number" min="0" value="${have}" oninput="setHave('${p.sku}',this.value)"/></td><td><span class="need-badge ${bc}">${bt}</span></td><td id="vptot-${p.sku}" style="font-size:12px;font-weight:600;color:var(--b6);">${vpTot>0?fmtVP(vpTot):'—'}</td></tr>`;
     });
     html+='</tbody></table>';
   });
   document.getElementById('inv-body').innerHTML=html||'<div class="empty-state">No items.</div>';
+  recalcInvCatTop();
 }
 function setHave(s,v){
   invHave[s]=parseInt(v)||0;
   let vp=0,u=0;
   PRODUCTS.forEach(p=>{const q=invHave[p[2]]||0;vp+=(p[3]||0)*q;u+=q;});
-  setText('inv-total-vp',fmtN(vp));
+  setText('inv-total-vp',fmtVP(vp));
   // Update this row's VP total cell live
   const prod=PRODUCTS.find(p=>p[2]===s);
   const cell=document.getElementById('vptot-'+s);
-  if(cell&&prod){const vpTot=(prod[3]||0)*(invHave[s]||0);cell.textContent=vpTot>0?fmtN(vpTot):'—';}
+  if(cell&&prod){const vpTot=(prod[3]||0)*(invHave[s]||0);cell.textContent=vpTot>0?fmtVP(vpTot):'—';}
 }
 async function saveInvSnapshot(){
   if(IS_ADMIN_VIEW){showToast('Admin view — cannot save','error');return;}
@@ -1418,6 +1421,15 @@ function populateOperatorDropdowns(){const ops=SETTINGS.operators.filter(o=>o.na
 async function handleSignOut(){if(IS_ADMIN_VIEW){window.location.href='admin.html';return;}await sb.auth.signOut();window.location.href='index.html';}
 let toastTimer;
 function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(type?' '+type:'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2400);}
+function recalcInvCatTop(){
+  // Measure sticky elements above category headers and set CSS var
+  var invH=document.querySelector('.inv-header');
+  var filterR=document.querySelector('#panel-inv .filter-row');
+  var top=0;
+  if(invH)top+=invH.offsetHeight+10; // +10 for margin-bottom
+  if(filterR)top+=filterR.offsetHeight+6; // +6 for margin-bottom
+  document.documentElement.style.setProperty('--inv-cat-top',top+'px');
+}
 function recalcContentTop(){
   var total=0;
   ['admin-edit-banner','update-banner','admin-banner'].forEach(function(id){
