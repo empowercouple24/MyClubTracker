@@ -834,14 +834,25 @@ async function openProfileModal(){
       const sc=SETTINGS.secondContact;
       const lcEl=document.getElementById('prof-loc-contact');
       const lcBody=document.getElementById('prof-loc-contact-body');
-      if(lcEl&&lcBody&&sc&&(sc.name||sc.phone||sc.email)){
+      if(lcEl&&lcBody){
         var parts=[];
-        if(sc.name)parts.push('<strong>'+escHtml(sc.name)+'</strong>');
-        if(sc.phone)parts.push('📞 '+escHtml(sc.phone));
-        if(sc.email)parts.push('✉️ '+escHtml(sc.email));
-        lcBody.innerHTML=parts.join('<br>');
-        lcEl.style.display='block';
-      } else if(lcEl){lcEl.style.display='none';}
+        const on=SETTINGS._ownerName,op=SETTINGS._ownerPhone,oe=SETTINGS._ownerEmail;
+        if(on||op||oe){
+          parts.push('<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:2px;">Primary Owner</div>');
+          if(on)parts.push('<strong>'+escHtml(on)+'</strong>');
+          if(op)parts.push('📞 '+escHtml(op));
+          if(oe)parts.push('✉️ '+escHtml(oe));
+        }
+        if(sc&&(sc.name||sc.phone||sc.email)){
+          if(parts.length)parts.push('<div style="height:6px;"></div>');
+          parts.push('<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:2px;">Second Contact</div>');
+          if(sc.name)parts.push('<strong>'+escHtml(sc.name)+'</strong>');
+          if(sc.phone)parts.push('📞 '+escHtml(sc.phone));
+          if(sc.email)parts.push('✉️ '+escHtml(sc.email));
+        }
+        if(parts.length){lcBody.innerHTML=parts.join('<br>');lcEl.style.display='block';}
+        else{lcEl.style.display='none';}
+      }
     } else {
       // Employee: hide owner sections, show club info card
       document.getElementById('prof-owner-sections').style.display='none';
@@ -849,15 +860,28 @@ async function openProfileModal(){
       const empClubBody=document.getElementById('prof-emp-club-body');
       if(empClub&&empClubBody){
         var lines=[];
-        if(SETTINGS.clubName)lines.push('<strong>'+escHtml(SETTINGS.clubName)+'</strong>');
+        if(SETTINGS.clubName)lines.push('<strong style="font-size:14px;">'+escHtml(SETTINGS.clubName)+'</strong>');
+        // Primary owner contact
+        const on=SETTINGS._ownerName,op=SETTINGS._ownerPhone,oe=SETTINGS._ownerEmail;
+        if(on||op||oe){
+          lines.push('<div style="height:4px;"></div>');
+          lines.push('<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:1px;">Owner</div>');
+          if(on)lines.push('<strong>'+escHtml(on)+'</strong>');
+          if(op)lines.push('📞 '+escHtml(op));
+          if(oe)lines.push('✉️ '+escHtml(oe));
+        }
+        // Second contact
         const sc=SETTINGS.secondContact;
-        if(sc){
-          if(sc.name)lines.push('👤 '+escHtml(sc.name));
+        if(sc&&(sc.name||sc.phone||sc.email)){
+          lines.push('<div style="height:4px;"></div>');
+          lines.push('<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:1px;">Second Contact</div>');
+          if(sc.name)lines.push('<strong>'+escHtml(sc.name)+'</strong>');
           if(sc.phone)lines.push('📞 '+escHtml(sc.phone));
           if(sc.email)lines.push('✉️ '+escHtml(sc.email));
         }
         if(SETTINGS.employeeInviteCode){
-          lines.push('<span style="font-size:11px;color:var(--text-faint);margin-top:4px;display:block;">Employee code: <strong style="font-family:monospace;letter-spacing:1px;color:var(--b6);">'+escHtml(SETTINGS.employeeInviteCode)+'</strong></span>');
+          lines.push('<div style="height:4px;"></div>');
+          lines.push('<span style="font-size:11px;color:var(--text-faint);">Employee code: <strong style="font-family:monospace;letter-spacing:1px;color:var(--b6);">'+escHtml(SETTINGS.employeeInviteCode)+'</strong></span>');
         }
         empClubBody.innerHTML=lines.join('<br>');
         empClub.style.display='block';
@@ -1076,7 +1100,7 @@ async function init(){
     return;
   }
   setLoadText('Loading club data…');
-  const{data:loc}=await sb.from('locations').select('name,address,owner_name,settings').eq('id',LOCATION_ID).single();
+  const{data:loc}=await sb.from('locations').select('name,address,owner_name,owner_phone,settings').eq('id',LOCATION_ID).single();
   if(loc){
     // Set nav immediately from database — unconditional, no fallbacks needed
     const _ncn2=document.getElementById('nav-club-name');
@@ -1091,6 +1115,10 @@ async function init(){
     // Merge settings and always keep loc.name as clubName
     if(loc.settings&&Object.keys(loc.settings).length>0){SETTINGS={...SETTINGS,...loc.settings};}
     SETTINGS.clubName = loc.name; // Always authoritative from DB
+    // Store owner contact for use in profile modal
+    SETTINGS._ownerName  = loc.owner_name||'';
+    SETTINGS._ownerPhone = loc.owner_phone||'';
+    SETTINGS._ownerEmail = (loc.settings&&loc.settings.ownerEmail)||'';
   }
   if(IS_ADMIN_VIEW){
     const _nab=document.getElementById('nav-admin-badge');if(_nab)_nab.style.display='block';
