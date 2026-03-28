@@ -161,11 +161,11 @@ if('serviceWorker' in navigator){
     .proj-cell.highlight .proj-cell-label{color:rgba(255,255,255,0.55)}
     .proj-cell.highlight .proj-cell-val{color:white}
     /* INVENTORY */
-    .inv-header{background:linear-gradient(135deg,var(--a7),var(--a5));border-radius:var(--radius);padding:10px 12px;margin-bottom:10px;color:white;position:sticky;top:0;z-index:20;}
-    .inv-header-title{font-family:'Outfit',sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;opacity:0.6;margin-bottom:6px}
-    .inv-dv-row{display:flex;gap:16px}
-    .inv-dv-item-label{font-size:9px;opacity:0.55;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:1px}
-    .inv-dv-item-val{font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.4px}
+    .inv-header{background:linear-gradient(135deg,var(--b7),var(--b5));border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;color:white;position:sticky;top:0;z-index:20;}
+    .inv-header-title{font-family:'Outfit',sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;opacity:0.6;margin-bottom:8px}
+    .inv-dv-row{display:flex;gap:16px;align-items:baseline;}
+    .inv-dv-item-label{font-size:10px;opacity:0.65;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;font-weight:600;}
+    .inv-dv-item-val{font-family:'Outfit',sans-serif;font-size:28px;font-weight:800;letter-spacing:-0.5px;line-height:1;}
     .inv-cat-header{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--a6);background:var(--a0);padding:4px 10px;border-radius:var(--radius-sm) var(--radius-sm) 0 0;border:1px solid #f0d8a0;border-bottom:none;margin-top:8px}
     .inv-table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border-light);border-radius:0 0 var(--radius-sm) var(--radius-sm);overflow:hidden;margin-bottom:2px;table-layout:fixed;}
     .inv-table th{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);background:var(--b0);padding:6px 8px;text-align:right;border-bottom:1px solid var(--border-light);vertical-align:middle;}
@@ -477,7 +477,7 @@ if('serviceWorker' in navigator){
 </div>
 
 <div class="tab-panel" id="panel-inv">
-  <div class="inv-header"><div class="inv-header-title">Inventory</div><div class="inv-dv-row"><div><div class="inv-dv-item-label">Total VP</div><div class="inv-dv-item-val" id="inv-total-vp">0</div></div><div><div class="inv-dv-item-label">Total Units</div><div class="inv-dv-item-val" id="inv-total-dv">0</div></div></div></div>
+  <div class="inv-header"><div class="inv-header-title">Inventory</div><div class="inv-dv-row"><div><div class="inv-dv-item-label">Total VP</div><div class="inv-dv-item-val" id="inv-total-vp">0</div></div></div></div>
   <div class="filter-row"><button class="filter-chip active" onclick="setInvFilter('all',this)">All</button><button class="filter-chip" onclick="setInvFilter('needs',this)">Needs Only</button><button class="btn btn-amber" onclick="saveInvSnapshot()" style="margin-left:auto;">📸 Snapshot</button></div>
   <div id="inv-body"></div>
 </div>
@@ -1312,7 +1312,7 @@ function setInvFilter(f,btn){invFilter=f;document.querySelectorAll('.filter-chip
 function renderInventory(){
   const cats={};PRODUCTS.forEach(p=>{if(!cats[p[0]])cats[p[0]]=[];cats[p[0]].push({cat:p[0],name:p[1],sku:p[2],vp:p[3],par:p[4]});});
   let vp=0,u=0;PRODUCTS.forEach(p=>{const q=invHave[p[2]]||0;vp+=(p[3]||0)*q;u+=q;});
-  setText('inv-total-vp',fmtN(vp));setText('inv-total-dv',fmtN(u));
+  setText('inv-total-vp',fmtN(vp));
   let html='';
   Object.entries(cats).forEach(([cat,items])=>{
     const vis=invFilter==='needs'?items.filter(p=>(invHave[p.sku]||0)<p.par):items;if(!vis.length)return;
@@ -1324,7 +1324,7 @@ function renderInventory(){
   });
   document.getElementById('inv-body').innerHTML=html||'<div class="empty-state">No items.</div>';
 }
-function setHave(s,v){invHave[s]=parseInt(v)||0;let vp=0,u=0;PRODUCTS.forEach(p=>{const q=invHave[p[2]]||0;vp+=(p[3]||0)*q;u+=q;});setText('inv-total-vp',fmtN(vp));setText('inv-total-dv',fmtN(u));}
+function setHave(s,v){invHave[s]=parseInt(v)||0;let vp=0,u=0;PRODUCTS.forEach(p=>{const q=invHave[p[2]]||0;vp+=(p[3]||0)*q;u+=q;});setText('inv-total-vp',fmtN(vp));}
 async function saveInvSnapshot(){
   if(IS_ADMIN_VIEW){showToast('Admin view — cannot save','error');return;}
   const{data:ns,error}=await sb.from('inventory').insert({location_id:LOCATION_ID,data:{entries:PRODUCTS.map(p=>({sku:p[2],name:p[1],have:invHave[p[2]]||0}))}}).select().single();
