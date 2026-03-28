@@ -21,8 +21,8 @@ if('serviceWorker' in navigator){
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Outfit:wght@400;600;700;800&display=block" rel="stylesheet"/>
-  <link rel="stylesheet" href="shared.css?v=8"/>
-  <link rel="stylesheet" href="nav.css?v=8"/>
+  <link rel="stylesheet" href="shared.css?v=9"/>
+  <link rel="stylesheet" href="nav.css?v=9"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
@@ -158,9 +158,8 @@ if('serviceWorker' in navigator){
     #layout-body.split .loc-addr{white-space:normal;overflow:visible;text-overflow:unset;line-height:1.4;}
     #layout-body.split .loc-card-header{align-items:flex-start;}
     #layout-body.split .loc-meta{display:flex;flex-direction:column;gap:3px;}
-    .btn-layout-toggle{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;background:var(--surface);color:var(--text-muted);border:1px solid var(--border);border-radius:6px;padding:5px 11px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:5px;white-space:nowrap;}
-    .btn-layout-toggle:hover{background:var(--b0);color:var(--text);}
-    .btn-layout-toggle.active{background:var(--b7);color:white;border-color:var(--b7);}
+    /* Active view indicator in nav dropdown */
+    .nav-drop-item-active{background:var(--b0);color:var(--b7);font-weight:700;}
     @media(max-width:1100px){#layout-body.split{grid-template-columns:1fr;}#layout-body.split #metrics-col{position:static;}}
 
 
@@ -211,6 +210,9 @@ if('serviceWorker' in navigator){
       <button class="nav-drop-item" onclick="window.location.href='locations.html';closeNavMenu()">🏪 Locations</button>
       <button class="nav-drop-item" onclick="window.location.href='settings.html';closeNavMenu()">⚙ Settings</button>
       <div class="nav-drop-divider"></div>
+      <button class="nav-drop-item" id="nav-layout-list" onclick="setLayout('list');closeNavMenu()">☰ List View</button>
+      <button class="nav-drop-item" id="nav-layout-split" onclick="setLayout('split');closeNavMenu()">⊞ Split View</button>
+      <div class="nav-drop-divider"></div>
       <button class="nav-drop-item danger" onclick="handleSignOut();closeNavMenu()">↪ Sign out</button>
     </div>
   </div>
@@ -249,11 +251,7 @@ if('serviceWorker' in navigator){
       <!-- LOCATIONS HEADER + LIST -->
       <div class="section-header locs-header" style="margin-top:0;">
         <div class="section-label" id="locs-label">Locations</div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <button class="btn-layout-toggle" id="btn-layout-list" onclick="setLayout('list')" title="List view">☰ List</button>
-          <button class="btn-layout-toggle" id="btn-layout-split" onclick="setLayout('split')" title="Split view">⊞ Split</button>
-          <button class="btn-add-loc" onclick="openAddLocation()">+ Add Location</button>
-        </div>
+        <button class="btn-add-loc" onclick="openAddLocation()">+ Add Location</button>
       </div>
       <div class="locations-list" id="locations-list"></div>
     </div>
@@ -501,7 +499,7 @@ if('serviceWorker' in navigator){
   </div>
 </div>
 
-<script src="nav.js?v=8"></script>
+<script src="nav.js?v=9"></script>
 <script>
 const SUPABASE_URL='https://ndaqlamzlaucigvnhgfu.supabase.co';
 const SUPABASE_ANON_KEY='sb_publishable_wO6XM4pC2CcaISQ8OlbkfQ_liqKJbi_';
@@ -1056,8 +1054,8 @@ function renderCompChart(){
 // ── LAYOUT TOGGLE ──
 function setLayout(mode){
   var body=document.getElementById('layout-body');
-  var btnList=document.getElementById('btn-layout-list');
-  var btnSplit=document.getElementById('btn-layout-split');
+  var btnList=document.getElementById('nav-layout-list');
+  var btnSplit=document.getElementById('nav-layout-split');
   if(!body)return;
   var metricsCol=document.getElementById('metrics-col');
   var locsCol=document.getElementById('locations-col');
@@ -1067,8 +1065,8 @@ function setLayout(mode){
     if(metricsCol&&locsCol&&body.lastElementChild!==metricsCol){
       body.appendChild(metricsCol);
     }
-    if(btnSplit)btnSplit.classList.add('active');
-    if(btnList)btnList.classList.remove('active');
+    if(btnSplit)btnSplit.classList.add('nav-drop-item-active');
+    if(btnList)btnList.classList.remove('nav-drop-item-active');
     setTimeout(function(){renderCompChart();},50);
   }else{
     body.classList.remove('split');
@@ -1076,8 +1074,8 @@ function setLayout(mode){
     if(metricsCol&&locsCol&&body.firstElementChild!==metricsCol){
       body.insertBefore(metricsCol,locsCol);
     }
-    if(btnList)btnList.classList.add('active');
-    if(btnSplit)btnSplit.classList.remove('active');
+    if(btnList)btnList.classList.add('nav-drop-item-active');
+    if(btnSplit)btnSplit.classList.remove('nav-drop-item-active');
     setTimeout(function(){renderCompChart();},50);
   }
   localStorage.setItem('admin_layout_view',mode);
