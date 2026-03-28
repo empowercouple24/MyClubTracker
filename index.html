@@ -320,6 +320,11 @@ async function init(){
     showMsg('si-msg','Your account is not linked to a location. Contact your admin.','error');
     return;
   }
+  if(params.get('msg')==='timeout'){
+    showTab('signin');
+    showMsg('si-msg','You were signed out after 30 minutes of inactivity.','info');
+    return;
+  }
   if(hash&&hash.includes('type=recovery')){
     var s=(await sb.auth.getSession()).data.session;
     if(s){showNPPanel();return;}
