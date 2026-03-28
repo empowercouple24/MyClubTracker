@@ -131,6 +131,7 @@ if('serviceWorker' in navigator){
     .summary-card-label{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.75)}
     .summary-card-sub{font-size:11px;font-weight:500;color:rgba(255,255,255,0.45);margin-top:1px}
     .summary-card-val{font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;letter-spacing:-0.5px;line-height:1;color:white}
+    .summary-card-val.green{color:#7de88a}
     .summary-balance{margin-top:2px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:space-between;font-size:11px}
     .balance-ok{color:#7de88a;font-weight:600}
     .balance-fail{color:#ff8080;font-weight:600}
@@ -372,6 +373,10 @@ if('serviceWorker' in navigator){
         </div>
         <div class="summary-card-val" id="sum-payouts">—</div>
       </div>
+      <div class="summary-card" id="sum-fundraiser-card" style="display:none;">
+        <div class="summary-card-label">Fundraiser</div>
+        <div class="summary-card-val" id="sum-fundraiser">—</div>
+      </div>
     </div>
     <div class="summary-balance">
       <span>Balance check</span>
@@ -427,26 +432,18 @@ if('serviceWorker' in navigator){
       <div class="collapsible-body" id="fund-body">
         <div class="field-row"><div class="field-label">Cash Donations</div><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" type="text" inputmode="decimal" id="f-fundraiserCash" placeholder="0.00" oninput="recalc()"/></div></div>
         <div class="field-row"><div class="field-label">Card Donations</div><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" type="text" inputmode="decimal" id="f-fundraiserCard" placeholder="0.00" oninput="recalc()"/></div></div>
-        <div class="field-row"><div class="field-label">Net Sales Donation %</div>
+        <div class="field-row" style="flex-wrap:wrap;gap:4px;">
+          <div class="field-label">Net Sales Donation %</div>
           <select class="field-input" id="f-fundraiserPct" onchange="recalc()">
             <option value="0">—</option>
             <option value="1">1%</option><option value="2">2%</option><option value="3">3%</option><option value="4">4%</option><option value="5">5%</option>
             <option value="6">6%</option><option value="7">7%</option><option value="8">8%</option><option value="9">9%</option><option value="10">10%</option>
             <option value="12">12%</option><option value="15">15%</option><option value="20">20%</option><option value="25">25%</option><option value="30">30%</option>
           </select>
+          <div id="fundraiser-pct-subtitle" style="display:none;width:100%;font-size:11px;color:var(--b6);font-weight:600;padding:2px 0 0 0;letter-spacing:0.1px;"></div>
         </div>
       </div>
     </div>
-  </div>
-
-  <!-- BANK ALLOCATIONS -->
-  <div class="section-label">Bank Allocations</div>
-  <div class="card" style="margin-bottom:10px;">
-    <div class="field-row"><div class="field-label">Tax</div><div class="field-value" id="b-tax">—</div></div>
-    <div class="field-row"><div class="field-label">Overhead</div><div class="field-value" id="b-overhead">—</div></div>
-    <div class="field-row"><div class="field-label">Donation</div><div class="field-value" id="b-donation">—</div></div>
-    <div class="field-row"><div class="field-label">Products</div><div class="field-value" id="b-products">—</div></div>
-    <div class="field-row"><div class="field-label">Payouts</div><div class="field-value positive" id="b-payouts">—</div></div>
   </div>
 
   <!-- DV (DOCUMENTED VOLUME) — full-width prominent, above Notes -->
@@ -1167,23 +1164,33 @@ function fmtVP(n){if(n===null||n===undefined||isNaN(n))return'—';return Number
 function recalc(){
   const c=calcAll();
   setText('sum-sales',  c.group1?fmt$(c.totalSales):'—');
-
   setText('sum-perdv',  c.group2?'$/DV: '+fmt$(c.perDV):'$/DV: —');
   setText('sum-tax',    c.group1?fmt$(c.tax):'—');
   setText('sum-oh',     c.group1?fmt$(c.overhead):'—');
   setText('sum-prod',   c.group2?fmt$(c.products):'—');
   setText('sum-payouts',c.group2?fmt$(c.payouts):'—');
+  // Fundraiser card — show only if any fundraiser value is entered
+  const fCash=pv('f-fundraiserCash'),fCard=pv('f-fundraiserCard'),fPct=parseFloat(document.getElementById('f-fundraiserPct')?.value||0);
+  const hasFundraiser=fCash>0||fCard>0||fPct>0;
+  const fundraiserTotal=fCash+fCard+(c.group1&&fPct>0?c.netSales*(fPct/100):0);
+  const fcEl=document.getElementById('sum-fundraiser-card');
+  if(fcEl)fcEl.style.display=hasFundraiser?'flex':'none';
+  setText('sum-fundraiser',hasFundraiser?fmt$(fundraiserTotal):'—');
+  // Donation % subtitle
+  const subEl=document.getElementById('fundraiser-pct-subtitle');
+  if(subEl){
+    if(fPct>0&&c.group1){
+      const donAmt=c.netSales*(fPct/100);
+      subEl.textContent=fPct+'% of net sales = '+fmt$(donAmt)+' donated';
+      subEl.style.display='block';
+    } else {
+      subEl.style.display='none';
+    }
+  }
   const balEl=document.getElementById('sum-balance');
   if(c.balanced===null){balEl.textContent='Enter Cash Sales, Card Sales & Card Fees';balEl.className='balance-pending';}
   else if(c.balanced){balEl.textContent='✓ Balanced';balEl.className='balance-ok';}
   else{balEl.textContent='✗ Off by '+fmt$(Math.abs(c.totalSales-c.balanceSum));balEl.className='balance-fail';}
-  setText('b-cardDeposits',c.group1?fmt$(c.cardDeposits):'—');
-  setText('b-totalSales',  c.group1?fmt$(c.totalSales):'—');
-  setText('b-tax',         c.group1?fmt$(c.tax):'—');
-  setText('b-overhead',    c.group1?fmt$(c.overhead):'—');
-  setText('b-donation',    c.group1?fmt$(c.donation):'—');
-  setText('b-products',    c.group2?fmt$(c.products):'—');
-  setText('b-payouts',     c.group2?fmt$(c.payouts):'—');
 }
 
 const ENTRY_FIELDS=['cashSales','cardSales','cardFees','giftCardRedeemed','cashAppPay','venmo','otherSales','merchSales','giftCardSales','giftCardLoadFees','fundraiserCash','fundraiserCard','dv','notes'];
