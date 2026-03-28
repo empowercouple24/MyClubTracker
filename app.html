@@ -1468,8 +1468,8 @@ async function checkForUpdate() {
   } catch(e) { /* silent fail */ }
 }
 // Check after 30 seconds (in case deploy just happened), then every 5 minutes
-setTimeout(checkForUpdate, 30000);
-setInterval(checkForUpdate, 5 * 60 * 1000);
+setTimeout(checkForUpdate, 15000);
+setInterval(checkForUpdate, 15000);
 
 // ── IDLE AUTO-LOGOUT (30 min idle, 3 min warning) ──
 (function () {
