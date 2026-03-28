@@ -428,7 +428,7 @@ async function doRegister(){
   if(pw!==pw2){showMsg('reg-msg2','Passwords do not match.','error');return;}
   if(!verifiedLocation){showMsg('reg-msg2','Invite code error — go back and re-verify.','error');return;}
   setBtn('reg-btn',true,'Creating account…');
-  var auth=await sb.auth.signUp({email:em,password:pw,options:{data:{display_name:name,first_name:fn,last_name:ln,location_id:verifiedLocation.id,role:verifiedLocation.role}}});
+  var auth=await sb.auth.signUp({email:em,password:pw,options:{data:{display_name:name,first_name:fn,last_name:ln,location_id:verifiedLocation.id}}});
   if(auth.error){showMsg('reg-msg2',auth.error.message,'error');setBtn('reg-btn',false,'Create Account');return;}
   // Supabase silently allows duplicate signups — detect by checking identities array
   if(auth.data.user&&auth.data.user.identities&&auth.data.user.identities.length===0){
