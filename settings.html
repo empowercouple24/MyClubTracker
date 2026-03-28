@@ -994,7 +994,6 @@ async function saveDefaults() {
 // ── RENDER LOCATIONS ──
 function renderLocations() {
   const el = document.getElementById('locations-card');
-  if (!el) return;
   if (!allLocations.length) {
     el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-faint);font-size:14px;">No locations yet.</div>';
     return;
@@ -1019,7 +1018,6 @@ function renderLocations() {
 // ── RENDER CODES ──
 function renderCodes() {
   const el = document.getElementById('codes-card');
-  if (!el) return;
   if (!allLocations.length) {
     el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-faint);font-size:14px;">No locations yet.</div>';
     return;

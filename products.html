@@ -105,6 +105,8 @@ if(location.protocol==='http:'&&location.hostname!=='localhost'){
     .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
     .toast.success{background:var(--g5)}
     .toast.error{background:var(--r5)}
+    .update-banner{background:var(--g5);color:white;font-size:12px;font-weight:600;text-align:center;padding:7px 12px;display:none;cursor:pointer;letter-spacing:0.2px;}
+    .update-banner:hover{background:var(--g4);}
 
     /* CONFIRM MODAL */
     .modal-overlay{position:fixed;inset:0;background:rgba(30,45,61,0.45);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
@@ -127,6 +129,7 @@ if(location.protocol==='http:'&&location.hostname!=='localhost'){
 <body>
 
 <div id="loading-overlay"><div class="load-spinner"></div></div>
+<div class="update-banner" id="update-banner" onclick="window.location.reload(true)">🔄 A new version is available — click to update</div>
 
 <nav class="topnav">
   <button class="nav-back" onclick="goBack()">← Back</button>
@@ -493,6 +496,22 @@ function showToast(msg,type=''){
 window.addEventListener('beforeunload',e=>{if(unsaved){e.preventDefault();e.returnValue='';}});
 
 init();
+
+// ── UPDATE CHECKER ──
+const PAGE_LOAD_TIME = Date.now();
+async function checkForUpdate() {
+  try {
+    const res = await fetch(window.location.pathname + '?_=' + Date.now(), { method: 'HEAD' });
+    const lastMod = res.headers.get('last-modified');
+    if (!lastMod) return;
+    if (new Date(lastMod).getTime() > PAGE_LOAD_TIME) {
+      const banner = document.getElementById('update-banner');
+      if (banner) banner.style.display = 'block';
+    }
+  } catch(e) {}
+}
+setTimeout(checkForUpdate, 30000);
+setInterval(checkForUpdate, 5 * 60 * 1000);
 </script>
 </body>
 </html>

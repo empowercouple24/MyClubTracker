@@ -384,7 +384,7 @@ function renderLocations(){
           '<div class="user-name">'+escHtml(fn)+dn+'</div>'+
           '<div class="user-email">'+escHtml(u.email)+'</div>'+
         '</div>'+
-        '<select onchange="changeUserRole(\''+u.id+'\',this.value,this)" style="font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:600;padding:3px 7px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:'+(roleColors[u.role]||'var(--text-muted)')+';cursor:pointer;outline:none;flex-shrink:0;">'+
+        '<select onchange="changeUserRole(\''+u.id+'\',this.value,this)" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:3px 7px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:'+(roleColors[u.role]||'var(--text-muted)')+';cursor:pointer;outline:none;flex-shrink:0;">'+
           '<option value="owner" '+(u.role==='owner'?'selected':'')+'>Owner</option>'+
           '<option value="employee" '+(u.role==='employee'?'selected':'')+'>Employee</option>'+
         '</select>'+
@@ -466,7 +466,7 @@ function copyCode(code){
 }
 
 function goToApp(locId){
-  window.location.href='app.html?location_id='+locId+'&admin=1';
+  window.location.href='app2.html?location_id='+locId+'&admin=1';
 }
 
 // ── LOAD DATA ──
