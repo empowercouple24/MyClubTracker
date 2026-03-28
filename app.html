@@ -1058,6 +1058,44 @@ function switchTab(name){
 function toggleCollapse(t){const b=document.getElementById(t.dataset.target);t.classList.toggle('collapsed');b.classList.toggle('collapsed');}
 function pv(id){const el=document.getElementById(id);if(!el)return 0;return parseFloat(el.value.replace(/,/g,''))||0;}
 
+// ── CURRENCY FORMATTING ──
+const CURRENCY_FIELDS=['f-cashSales','f-cardSales','f-cardFees','f-giftCardRedeemed','f-cashAppPay','f-venmo','f-otherSales','f-merchSales','f-giftCardSales','f-giftCardLoadFees','f-fundraiserCash','f-fundraiserCard'];
+function fmtCurrencyVal(raw){
+  var n=parseFloat(String(raw).replace(/,/g,''));
+  if(isNaN(n)||raw===''||raw===undefined)return '';
+  return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function onCurrencyFocus(el){
+  // Strip to raw number for easy editing
+  var raw=String(el.value).replace(/,/g,'');
+  el.value=raw==='0.00'||raw==='0'?'':raw;
+}
+function onCurrencyBlur(el){
+  var raw=String(el.value).replace(/,/g,'');
+  if(raw===''){el.value='';return;}
+  var n=parseFloat(raw);
+  el.value=isNaN(n)?'':n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function formatAllCurrencyFields(){
+  CURRENCY_FIELDS.forEach(function(id){
+    var el=document.getElementById(id);
+    if(!el)return;
+    var raw=String(el.value).replace(/,/g,'');
+    if(raw==='')return;
+    var n=parseFloat(raw);
+    if(!isNaN(n))el.value=n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  });
+}
+// Attach focus/blur handlers once DOM is ready
+document.addEventListener('DOMContentLoaded',function(){
+  CURRENCY_FIELDS.forEach(function(id){
+    var el=document.getElementById(id);
+    if(!el)return;
+    el.addEventListener('focus',function(){onCurrencyFocus(this);});
+    el.addEventListener('blur',function(){onCurrencyBlur(this);recalc();});
+  });
+});
+
 // ── FORMULAS with conditional display
 function calcAll(){
   const cashSales=pv('f-cashSales'),cardSales=pv('f-cardSales'),cardFees=pv('f-cardFees');
@@ -1126,6 +1164,7 @@ function loadDay(){
     ENTRY_FIELDS.forEach(k=>{const el=document.getElementById('f-'+k);if(el)el.value='';});
     const fp=document.getElementById('f-fundraiserPct');if(fp)fp.value='0';
   }
+  formatAllCurrencyFields();
   recalc();
 }
 
