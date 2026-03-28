@@ -319,8 +319,7 @@ if('serviceWorker' in navigator){
   <div class="nav-menu-wrap">
     <button class="nav-menu-btn" onclick="toggleNavMenu()"><span id="nav-display-name" style="font-size:13px;font-weight:600;color:var(--text-muted);margin-right:4px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span><span id="nav-role-label" style="font-weight:700;">OWNER</span> <span style="font-size:10px;">▾</span></button>
     <div class="nav-drop" id="nav-dropdown">
-      <button class="nav-drop-item" id="nav-profile-btn" onclick="openProfileModal();closeNavMenu()" style="display:none;">👤 Profile</button>
-      <button class="nav-drop-item" id="nav-settings-btn" onclick="openSettings();closeNavMenu()">⚙ Settings</button>
+      <button class="nav-drop-item" id="nav-profile-btn" onclick="openProfileModal();closeNavMenu()">⚙ Profile &amp; Settings</button>
       <div class="nav-drop-divider"></div>
       <div id="admin-nav-items" style="display:none;">
         <button class="nav-drop-item" onclick="goBackToAdmin();closeNavMenu()">🏪 Locations</button>
@@ -598,92 +597,85 @@ if('serviceWorker' in navigator){
 </div>
 
 <!-- SETTINGS MODAL -->
-<div class="modal-overlay" id="settings-modal" onclick="closeSettingsOnBg(event)">
-  <div class="modal-sheet">
-    <div class="modal-handle"></div>
-    <div class="modal-title" id="settings-modal-title">Settings</div>
-    <div class="settings-group">
-      <div class="settings-group-title">Club</div>
-      <div class="settings-row"><label>Club Name</label><input type="text" id="s-clubname" placeholder="Club name" style="flex:1;min-width:0;width:100%;"/></div>
-    </div>
-    <div class="settings-group">
-      <div class="settings-group-title">Rates</div>
-      <div class="settings-row"><label>Tax Rate</label><select id="s-taxrate"></select></div>
-      <div class="settings-row"><label>Overhead Rate</label><select id="s-ohrate"></select></div>
-      <div class="settings-row"><label>Other Sales Rate</label><select id="s-otherrate"></select></div>
-      <div class="settings-row"><label>Merchandise Rate</label><select id="s-merchrate"></select></div>
-      <div class="settings-row"><label>DV △ Rate</label><select id="s-dvdelta"></select></div>
-    </div>
-
-    <div class="settings-group">
-      <div class="settings-group-title">Operators</div>
-      <div id="s-operators"></div>
-    </div>
-    <div class="settings-group" id="s-employee-section">
-      <div class="settings-group-title">Employee Access</div>
-      <div class="settings-row" style="flex-wrap:wrap;gap:6px;">
-        <label style="flex:none;width:100%;font-size:12px;color:var(--text-faint);">Share this code with employees so they can log in.</label>
-        <div style="display:flex;gap:8px;width:100%;align-items:center;">
-          <input type="text" id="s-emp-code" style="flex:1;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;color:var(--b7);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;outline:none;" placeholder="No code set" readonly/>
-          <button class="btn btn-ghost" onclick="generateEmpCode()" style="white-space:nowrap;flex-shrink:0;">Generate</button>
-        </div>
-      </div>
-    </div>
-    <div class="settings-group">
-      <div class="settings-group-title">Products</div>
-      <button class="btn btn-ghost btn-full" onclick="openProductsEditor()" style="justify-content:space-between;padding:10px 12px;font-size:13px;"><span>Edit Products List</span><span style="color:var(--text-faint);font-size:11px;" id="s-prod-count"></span></button>
-    </div>
-    <div style="padding:0 16px;display:flex;gap:8px;">
-      <button class="btn btn-primary btn-full" onclick="saveSettings()">Save Settings</button>
-      <button class="btn btn-ghost" onclick="closeSettings()">Cancel</button>
-    </div>
-  </div>
-</div>
-<!-- PROFILE MODAL -->
+<!-- UNIFIED PROFILE & SETTINGS MODAL -->
 <div class="modal-overlay" id="profile-modal" onclick="closeProfileOnBg(event)">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
-    <div class="modal-title">My Profile</div>
+    <div class="modal-title" id="profile-modal-title">Profile &amp; Settings</div>
+
+    <!-- ── MY PROFILE (all roles) ── -->
     <div class="settings-group">
-      <div class="settings-group-title">Name</div>
+      <div class="settings-group-title">My Profile</div>
+      <div class="settings-row" style="gap:6px;"><label style="min-width:90px;">First Name</label><input type="text" class="prof-input" id="prof-firstname" placeholder="First name"/></div>
+      <div class="settings-row" style="gap:6px;"><label style="min-width:90px;">Last Name</label><input type="text" class="prof-input" id="prof-lastname" placeholder="Last name"/></div>
       <div class="settings-row" style="gap:6px;">
-        <label style="min-width:90px;">First Name</label>
-        <input type="text" class="prof-input" id="prof-firstname" placeholder="First name"/>
-      </div>
-      <div class="settings-row" style="gap:6px;">
-        <label style="min-width:90px;">Last Name</label>
-        <input type="text" class="prof-input" id="prof-lastname" placeholder="Last name"/>
-      </div>
-      <div class="settings-row" style="gap:6px;">
-        <div style="min-width:90px;">
-          <label>Display Name</label>
-          <div style="font-size:11px;color:var(--text-faint);margin-top:1px;">Shown in app</div>
-        </div>
+        <div style="min-width:90px;"><label>Display Name</label><div style="font-size:11px;color:var(--text-faint);margin-top:1px;">Shown in app</div></div>
         <input type="text" class="prof-input" id="prof-name" placeholder="e.g. Mary" style="min-width:120px;max-width:252px;" oninput="autoSizeInput(this)"/>
       </div>
-    </div>
-    <div class="settings-group">
-      <div class="settings-group-title">Contact</div>
       <div class="settings-row" style="gap:6px;"><label style="min-width:90px;">Phone</label><input type="tel" class="prof-input" id="prof-phone" placeholder="(555) 000-0000" oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"/></div>
       <div class="settings-row" style="gap:6px;"><label style="min-width:90px;">Email</label><input type="email" class="prof-input" id="prof-email" disabled style="opacity:0.5;cursor:not-allowed;"/></div>
     </div>
-    <div id="prof-role-section" style="display:none;">
+
+    <!-- ── CLUB INFO (employee read-only view) ── -->
+    <div id="prof-emp-club" style="display:none;">
       <div class="settings-group">
+        <div class="settings-group-title">My Club</div>
+        <div id="prof-emp-club-body" style="font-size:13px;color:var(--text-muted);line-height:1.9;padding:4px 0;"></div>
+      </div>
+    </div>
+
+    <!-- ── OWNER SECTIONS ── -->
+    <div id="prof-owner-sections" style="display:none;">
+      <!-- Club -->
+      <div class="settings-group">
+        <div class="settings-group-title">Club</div>
+        <div class="settings-row"><label>Club Name</label><input type="text" id="s-clubname" placeholder="Club name" style="flex:1;min-width:0;"/></div>
+      </div>
+      <!-- Rates -->
+      <div class="settings-group">
+        <div class="settings-group-title">Rates</div>
+        <div class="settings-row"><label>Tax Rate</label><select id="s-taxrate"></select></div>
+        <div class="settings-row"><label>Overhead Rate</label><select id="s-ohrate"></select></div>
+        <div class="settings-row"><label>Other Sales Rate</label><select id="s-otherrate"></select></div>
+        <div class="settings-row"><label>Merchandise Rate</label><select id="s-merchrate"></select></div>
+        <div class="settings-row"><label>DV △ Rate</label><select id="s-dvdelta"></select></div>
+      </div>
+      <!-- Operators -->
+      <div class="settings-group">
+        <div class="settings-group-title">Operators</div>
+        <div id="s-operators"></div>
+      </div>
+      <!-- Team Members -->
+      <div class="settings-group" id="prof-role-section">
         <div class="settings-group-title">Team Members</div>
         <div id="prof-team-list" style="font-size:13px;color:var(--text-muted);padding:8px 0;">Loading…</div>
       </div>
-    </div>
-    <!-- Location contact info (read-only, from location settings) -->
-    <div id="prof-loc-contact" style="display:none;">
-      <div class="settings-group">
-        <div class="settings-group-title" style="display:flex;align-items:center;justify-content:space-between;">
-          Location Contact Info
-          <span style="font-size:10px;font-weight:400;color:var(--text-faint);text-transform:none;letter-spacing:0;">Edit in Admin Settings</span>
+      <!-- Employee Access -->
+      <div class="settings-group" id="s-employee-section">
+        <div class="settings-group-title">Employee Access</div>
+        <div class="settings-row" style="flex-wrap:wrap;gap:6px;">
+          <label style="flex:none;width:100%;font-size:12px;color:var(--text-faint);">Share this code with employees so they can log in.</label>
+          <div style="display:flex;gap:8px;width:100%;align-items:center;">
+            <input type="text" id="s-emp-code" style="flex:1;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;color:var(--b7);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;outline:none;" placeholder="No code set" readonly/>
+            <button class="btn btn-ghost" onclick="generateEmpCode()" style="white-space:nowrap;flex-shrink:0;">Generate</button>
+          </div>
         </div>
-        <div id="prof-loc-contact-body" style="font-size:13px;color:var(--text-muted);padding:4px 0;line-height:1.8;"></div>
+      </div>
+      <!-- Products -->
+      <div class="settings-group">
+        <div class="settings-group-title">Products</div>
+        <button class="btn btn-ghost btn-full" onclick="openProductsEditor()" style="justify-content:space-between;padding:10px 12px;font-size:13px;"><span>Edit Products List</span><span style="color:var(--text-faint);font-size:11px;" id="s-prod-count"></span></button>
+      </div>
+      <!-- Location Contact Info -->
+      <div id="prof-loc-contact" style="display:none;">
+        <div class="settings-group">
+          <div class="settings-group-title" style="display:flex;align-items:center;justify-content:space-between;">Location Contact Info<span style="font-size:10px;font-weight:400;color:var(--text-faint);text-transform:none;letter-spacing:0;">Edit in Admin Settings</span></div>
+          <div id="prof-loc-contact-body" style="font-size:13px;color:var(--text-muted);padding:4px 0;line-height:1.8;"></div>
+        </div>
       </div>
     </div>
-    <!-- Change Password collapsible -->
+
+    <!-- ── CHANGE PASSWORD (all roles) ── -->
     <div style="padding:0 16px 12px;">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--border-light);">
         <span style="font-size:13px;font-weight:600;color:var(--text-muted);">Change Password</span>
@@ -696,8 +688,10 @@ if('serviceWorker' in navigator){
         <button class="btn btn-primary btn-full" onclick="doAppChangePassword()" style="margin-top:8px;">Update Password</button>
       </div>
     </div>
+
+    <!-- ── SAVE / CANCEL ── -->
     <div style="padding:0 16px 16px;display:flex;gap:8px;">
-      <button class="btn btn-primary btn-full" onclick="saveProfile()">Save Profile</button>
+      <button class="btn btn-primary btn-full" onclick="saveProfileAndSettings()">Save</button>
       <button class="btn btn-ghost" onclick="closeProfileModal()">Cancel</button>
     </div>
   </div>
@@ -812,35 +806,65 @@ const DEFAULT_PRODUCTS=[
 let PRODUCTS=[...DEFAULT_PRODUCTS],invFilter='all',invHave={};
 
 // PROFILE MODAL
+function openSettings(){openProfileModal();}
+function closeSettings(){closeProfileModal();}
+function closeSettingsOnBg(e){if(e.target===document.getElementById('settings-modal'))closeProfileModal();}
 async function openProfileModal(){
   try {
-    const {data:u} = await sb.from('users').select('display_name,first_name,last_name,phone').eq('id',CURRENT_SESSION.user.id).single();
+    const isOwner=(USER_ROLE==='owner'||USER_ROLE==='admin');
+    document.getElementById('profile-modal-title').textContent=isOwner?'Profile & Settings':'My Profile';
+    // Load profile fields
+    const {data:u}=await sb.from('users').select('display_name,first_name,last_name,phone').eq('id',CURRENT_SESSION.user.id).single();
     document.getElementById('prof-firstname').value=u?.first_name||'';
-    document.getElementById('prof-lastname').value =u?.last_name ||'';
+    document.getElementById('prof-lastname').value =u?.last_name||'';
     document.getElementById('prof-name').value     =u?.display_name||'';
     autoSizeInput(document.getElementById('prof-name'));
     const phoneEl=document.getElementById('prof-phone');
     phoneEl.value=u?.phone||'';
     if(u?.phone)fmtPhone(phoneEl);
     document.getElementById('prof-email').value=CURRENT_SESSION.user.email||'';
-    if(USER_ROLE==='owner'){loadTeamMembers();}
-    else{document.getElementById('prof-role-section').style.display='none';}
-    // Show location contact info from SETTINGS (secondContact)
-    const sc=SETTINGS.secondContact;
-    const locContactEl=document.getElementById('prof-loc-contact');
-    const locContactBody=document.getElementById('prof-loc-contact-body');
-    if(locContactEl&&locContactBody&&sc&&(sc.name||sc.phone||sc.email)){
-      var parts=[];
-      if(sc.name)parts.push('<strong>'+escHtml(sc.name)+'</strong>');
-      if(sc.phone)parts.push('📞 '+escHtml(sc.phone));
-      if(sc.email)parts.push('✉️ '+escHtml(sc.email));
-      locContactBody.innerHTML=parts.join('<br>');
-      locContactEl.style.display='block';
-    }else if(locContactEl){
-      locContactEl.style.display='none';
+    if(isOwner){
+      // Show owner sections, hide employee club info
+      document.getElementById('prof-owner-sections').style.display='block';
+      document.getElementById('prof-emp-club').style.display='none';
+      // Build settings UI inside the unified modal
+      buildSettingsUI();
+      loadTeamMembers();
+      // Location contact info
+      const sc=SETTINGS.secondContact;
+      const lcEl=document.getElementById('prof-loc-contact');
+      const lcBody=document.getElementById('prof-loc-contact-body');
+      if(lcEl&&lcBody&&sc&&(sc.name||sc.phone||sc.email)){
+        var parts=[];
+        if(sc.name)parts.push('<strong>'+escHtml(sc.name)+'</strong>');
+        if(sc.phone)parts.push('📞 '+escHtml(sc.phone));
+        if(sc.email)parts.push('✉️ '+escHtml(sc.email));
+        lcBody.innerHTML=parts.join('<br>');
+        lcEl.style.display='block';
+      } else if(lcEl){lcEl.style.display='none';}
+    } else {
+      // Employee: hide owner sections, show club info card
+      document.getElementById('prof-owner-sections').style.display='none';
+      const empClub=document.getElementById('prof-emp-club');
+      const empClubBody=document.getElementById('prof-emp-club-body');
+      if(empClub&&empClubBody){
+        var lines=[];
+        if(SETTINGS.clubName)lines.push('<strong>'+escHtml(SETTINGS.clubName)+'</strong>');
+        const sc=SETTINGS.secondContact;
+        if(sc){
+          if(sc.name)lines.push('👤 '+escHtml(sc.name));
+          if(sc.phone)lines.push('📞 '+escHtml(sc.phone));
+          if(sc.email)lines.push('✉️ '+escHtml(sc.email));
+        }
+        if(SETTINGS.employeeInviteCode){
+          lines.push('<span style="font-size:11px;color:var(--text-faint);margin-top:4px;display:block;">Employee code: <strong style="font-family:monospace;letter-spacing:1px;color:var(--b6);">'+escHtml(SETTINGS.employeeInviteCode)+'</strong></span>');
+        }
+        empClubBody.innerHTML=lines.join('<br>');
+        empClub.style.display='block';
+      }
     }
     document.getElementById('profile-modal').classList.add('open');
-  } catch(e) {
+  } catch(e){
     showToast('Could not load profile. Try again.','error');
   }
 }
@@ -895,24 +919,34 @@ async function removeUser(userId,name){
   await loadTeamMembers();
 }
 
-async function saveProfile(){
+async function saveProfile(){await saveProfileAndSettings();}
+async function saveProfileAndSettings(){
+  const isOwner=(USER_ROLE==='owner'||USER_ROLE==='admin');
   const firstName=document.getElementById('prof-firstname').value.trim();
   const lastName =document.getElementById('prof-lastname').value.trim();
   const dispName =document.getElementById('prof-name').value.trim();
   const phone    =document.getElementById('prof-phone').value.trim();
-  const{error}=await sb.from('users').update({
-    first_name:   firstName,
-    last_name:    lastName,
-    display_name: dispName,
-    phone
-  }).eq('id',CURRENT_SESSION.user.id);
+  const{error}=await sb.from('users').update({first_name:firstName,last_name:lastName,display_name:dispName,phone}).eq('id',CURRENT_SESSION.user.id);
   if(error){showToast('Save failed: '+error.message,'error');return;}
-  document.getElementById('nav-profile-btn').title=dispName||[firstName,lastName].filter(Boolean).join(' ')||CURRENT_SESSION.user.email;
-  // Sync display name to nav
-  const navDN = document.getElementById('nav-display-name');
-  if(navDN) navDN.textContent = (dispName || [firstName,lastName].filter(Boolean).join(' ') || '');
+  const navDN=document.getElementById('nav-display-name');
+  if(navDN)navDN.textContent=dispName||[firstName,lastName].filter(Boolean).join(' ')||'';
+  if(isOwner){
+    // Save settings too
+    SETTINGS.clubName=document.getElementById('s-clubname')?.value.trim()||SETTINGS.clubName;
+    SETTINGS.taxRate=parseFloat(document.getElementById('s-taxrate')?.value||SETTINGS.taxRate);
+    SETTINGS.ohRate=parseFloat(document.getElementById('s-ohrate')?.value||SETTINGS.ohRate);
+    SETTINGS.otherRate=parseFloat(document.getElementById('s-otherrate')?.value||SETTINGS.otherRate);
+    SETTINGS.merchRate=parseFloat(document.getElementById('s-merchrate')?.value||SETTINGS.merchRate);
+    SETTINGS.dvDelta=parseFloat(document.getElementById('s-dvdelta')?.value||SETTINGS.dvDelta);
+    SETTINGS.operators=[0,1,2,3].map(i=>({name:document.getElementById('s-op-'+i)?.value.trim()||'',visible:true,aliases:document.getElementById('s-alias-'+i)?.value.trim()||''}));
+    const empCode=document.getElementById('s-emp-code')?.value.trim();
+    if(empCode)SETTINGS.employeeInviteCode=empCode;
+    const{error:se}=await sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID);
+    if(se){showToast('Settings save failed: '+se.message,'error');return;}
+    populateOperatorDropdowns();recalc();
+  }
   closeProfileModal();
-  showToast('Profile saved ✓','success');
+  showToast(isOwner?'Profile & settings saved ✓':'Profile saved ✓','success');
 }
 function toggleAppCP(){
   const panel=document.getElementById('app-cp-panel');
@@ -1021,7 +1055,7 @@ async function init(){
     USER_ROLE=u.role||'owner';
     // Employee: restricted tabs, no settings
     if(USER_ROLE==='employee'){
-      document.getElementById('nav-settings-btn').style.display='none';
+      // settings merged into profile modal
       document.getElementById('tab-proj').style.display='none';
       document.getElementById('tab-payouts').style.display='none';
       // hide divider before payouts tab
@@ -1065,8 +1099,8 @@ async function init(){
     const bn=document.getElementById('admin-banner');if(bn){bn.style.display='block';bn.textContent='Admin View: '+(loc?.name||LOCATION_ID);}
     const _aeb=document.getElementById('admin-edit-banner');if(_aeb)_aeb.classList.add('show');
     recalcContentTop();
-    const _nsb=document.getElementById('nav-settings-btn');if(_nsb)_nsb.style.display='';
-    const _smt=document.getElementById('settings-modal-title');if(_smt)_smt.textContent='Settings — '+(loc?.name||'Location');
+    // settings merged into profile modal
+    const _smt=document.getElementById('profile-modal-title');if(_smt)_smt.textContent='Profile & Settings — '+(loc?.name||'Location');
     const saveBtn=document.querySelector('button[onclick="saveDay()"]');
     if(saveBtn){saveBtn.style.background='linear-gradient(135deg,var(--a6),var(--a4))';saveBtn.textContent='Save (Admin)';}
     // Set nav button to show admin name + ADMIN label
@@ -1475,28 +1509,8 @@ function buildSettingsUI(){
 
 function range(f,t,s){const r=[];for(let v=f;v<=t+0.001;v=Math.round((v+s)*1000)/1000)r.push(v);return r;}
 function buildSelect(id,vals,cur,fn){const el=document.getElementById(id);if(!el)return;el.innerHTML=vals.map(v=>`<option value="${v}" ${Math.abs(v-cur)<0.001?'selected':''}>${fn(v)}</option>`).join('');}
-function openSettings(){buildSettingsUI();document.getElementById('settings-modal').classList.add('open');}
-function closeSettings(){document.getElementById('settings-modal').classList.remove('open');}
-function openProductsEditor(){closeSettings();window.location.href=IS_ADMIN_VIEW?`products.html?location_id=${LOCATION_ID}&admin=1`:`products.html?location_id=${LOCATION_ID}`;}
-function closeSettingsOnBg(e){if(e.target===document.getElementById('settings-modal'))closeSettings();}
-async function saveSettings(){
-  SETTINGS.clubName=document.getElementById('s-clubname').value.trim();
-  SETTINGS.taxRate=parseFloat(document.getElementById('s-taxrate').value);
-  SETTINGS.ohRate=parseFloat(document.getElementById('s-ohrate').value);
-  SETTINGS.otherRate=parseFloat(document.getElementById('s-otherrate').value);
-  SETTINGS.merchRate=parseFloat(document.getElementById('s-merchrate').value);
-  SETTINGS.dvDelta=parseFloat(document.getElementById('s-dvdelta').value);
-  SETTINGS.operators=[0,1,2,3].map(i=>({name:document.getElementById(`s-op-${i}`)?.value.trim()||'',visible:true,aliases:document.getElementById(`s-alias-${i}`)?.value.trim()||''}));
-  const empCode=document.getElementById('s-emp-code')?.value.trim().toUpperCase();
-  if(empCode)SETTINGS.employeeInviteCode=empCode;
-  const clubName=SETTINGS.clubName||'';
-  const updatePayload={settings:SETTINGS};
-  if(clubName)updatePayload.name=clubName;
-  const{error}=await sb.from('locations').update(updatePayload).eq('id',LOCATION_ID);
-  if(error){showToast('Settings save failed','error');return;}
-  setNavLocation(clubName||SETTINGS.clubName||'Club', null);
-  populateOperatorDropdowns();closeSettings();recalc();showToast('Settings saved ✓','success');
-}
+function openProductsEditor(){closeProfileModal();window.location.href=IS_ADMIN_VIEW?`products.html?location_id=${LOCATION_ID}&admin=1`:`products.html?location_id=${LOCATION_ID}`;}
+
 function populateOperatorDropdowns(){const ops=SETTINGS.operators.filter(o=>o.name),blank='<option value="">—</option>';['f-op1','f-op2'].forEach(id=>{const el=document.getElementById(id);if(!el)return;const cur=el.value;el.innerHTML=blank+ops.map(o=>`<option value="${o.name}">${o.name}</option>`).join('');el.value=cur;});}
 async function handleSignOut(){if(IS_ADMIN_VIEW){window.location.href='admin.html';return;}await sb.auth.signOut();window.location.href='index.html';}
 let toastTimer;
