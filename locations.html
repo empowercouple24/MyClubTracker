@@ -137,7 +137,7 @@ if('serviceWorker' in navigator){
 </svg></a>
   <div class="nav-page-title" style="margin-left:10px;">Locations</div>
   <div class="nav-menu-wrap">
-    <button class="nav-menu-btn" onclick="toggleNavMenu()">ADMIN <span style="font-size:10px;">▾</span></button>
+    <button class="nav-menu-btn" onclick="toggleNavMenu()"><span id="nav-display-name" style="font-size:13px;font-weight:600;color:var(--text-muted);margin-right:4px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>ADMIN <span style="font-size:10px;">▾</span></button>
     <div class="nav-drop" id="nav-dropdown">
       <button class="nav-drop-item" onclick="window.location.href='admin.html';closeNavMenu()">🏠 Dashboard</button>
       <button class="nav-drop-item" onclick="window.location.href='locations.html';closeNavMenu()">🏪 Locations</button>
@@ -657,8 +657,10 @@ async function init(){
   var sessionRes=await sb.auth.getSession();
   var session=sessionRes.data.session;
   if(!session){window.location.href='index.html';return;}
-  var userRes=await sb.from('users').select('role').eq('id',session.user.id).single();
+  var userRes=await sb.from('users').select('role,display_name,first_name,last_name').eq('id',session.user.id).single();
   if(!userRes.data||userRes.data.role!=='admin'){window.location.href='index.html';return;}
+  var _ndn=document.getElementById('nav-display-name');
+  if(_ndn){var u=userRes.data;_ndn.textContent=u.display_name||[u.first_name,u.last_name].filter(Boolean).join(' ')||'';}
   await loadData();
   document.getElementById('loading-overlay').style.display='none';
 }

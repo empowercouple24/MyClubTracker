@@ -72,9 +72,10 @@ nav a.nav-logo:hover {
   color: var(--b7);
   border: 1.5px solid var(--b3);
   border-radius: 20px;
-  padding: 5px 14px;
+  padding: 5px 16px;
   background: white;
   cursor: pointer;
+  max-width: 260px;
 }
 .nav-menu-btn:hover {
   background: var(--b0);
