@@ -125,14 +125,12 @@ if('serviceWorker' in navigator){
     .summary-box{background:linear-gradient(135deg,var(--b8) 0%,var(--b7) 100%);border-radius:var(--radius);padding:14px 14px 12px;color:white;margin-bottom:10px}
     .summary-title{font-family:'Outfit',sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;opacity:0.6;margin-bottom:4px}
     .summary-net-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;opacity:0.7;margin-bottom:2px}
-    .summary-net-val{font-family:'Outfit',sans-serif;font-size:38px;font-weight:800;letter-spacing:-1.5px;line-height:1;color:#7de88a;margin-bottom:14px}
-    .summary-cards{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
-    .summary-card{background:rgba(255,255,255,0.13);border-radius:9px;padding:10px 12px}
-    .summary-card.fyi{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12)}
-    .summary-card-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:rgba(255,255,255,0.65);margin-bottom:4px}
-    .summary-card-val{font-family:'Outfit',sans-serif;font-size:26px;font-weight:800;letter-spacing:-0.8px;line-height:1;color:white}
-    .summary-card-val.green{color:#7de88a}
-    .summary-card-val.fyi{font-size:22px;color:rgba(255,255,255,0.8)}
+    .summary-net-val{font-family:'Outfit',sans-serif;font-size:38px;font-weight:800;letter-spacing:-1.5px;line-height:1;color:#7de88a;margin-bottom:12px}
+    .summary-cards{display:flex;flex-direction:column;gap:7px;margin-bottom:10px}
+    .summary-card{background:rgba(255,255,255,0.13);border-radius:9px;padding:9px 14px;display:flex;align-items:center;justify-content:space-between}
+    .summary-card-label{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.75)}
+    .summary-card-sub{font-size:11px;font-weight:500;color:rgba(255,255,255,0.45);margin-top:1px}
+    .summary-card-val{font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;letter-spacing:-0.5px;line-height:1;color:white}
     .summary-balance{margin-top:2px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:space-between;font-size:11px}
     .balance-ok{color:#7de88a;font-weight:600}
     .balance-fail{color:#ff8080;font-weight:600}
@@ -368,16 +366,11 @@ if('serviceWorker' in navigator){
         <div class="summary-card-val" id="sum-prod">—</div>
       </div>
       <div class="summary-card">
-        <div class="summary-card-label">Operator Payouts</div>
-        <div class="summary-card-val green" id="sum-payouts">—</div>
-      </div>
-      <div class="summary-card fyi">
-        <div class="summary-card-label">DV</div>
-        <div class="summary-card-val fyi" id="sum-dv">—</div>
-      </div>
-      <div class="summary-card fyi">
-        <div class="summary-card-label">$/DV</div>
-        <div class="summary-card-val fyi" id="sum-perdv">—</div>
+        <div>
+          <div class="summary-card-label">Payouts</div>
+          <div class="summary-card-sub" id="sum-perdv">—</div>
+        </div>
+        <div class="summary-card-val" id="sum-payouts">—</div>
       </div>
     </div>
     <div class="summary-balance">
@@ -1174,8 +1167,8 @@ function fmtVP(n){if(n===null||n===undefined||isNaN(n))return'—';return Number
 function recalc(){
   const c=calcAll();
   setText('sum-sales',  c.group1?fmt$(c.totalSales):'—');
-  setText('sum-dv',     c.group2?fmtN(c.dv):'—');
-  setText('sum-perdv',  c.group2?fmt$(c.perDV):'—');
+
+  setText('sum-perdv',  c.group2?'$/DV: '+fmt$(c.perDV):'$/DV: —');
   setText('sum-tax',    c.group1?fmt$(c.tax):'—');
   setText('sum-oh',     c.group1?fmt$(c.overhead):'—');
   setText('sum-prod',   c.group2?fmt$(c.products):'—');
