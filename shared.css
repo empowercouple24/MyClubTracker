@@ -68,6 +68,35 @@ html, body {
   color: var(--text);
 }
 
+/* ── AUTO-UPDATE BANNER ── */
+.nav-update-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background: linear-gradient(135deg, var(--b8), var(--b6));
+  color: white;
+  text-align: center;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transform: translateY(-100%);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 12px rgba(30, 45, 61, 0.25);
+}
+.nav-update-banner strong {
+  font-weight: 700;
+  text-decoration: underline;
+}
+.nav-update-banner:hover {
+  background: linear-gradient(135deg, var(--b7), var(--b5));
+}
+.nav-update-banner.show {
+  transform: translateY(0);
+}
+
 /* ── LOADING OVERLAY ── */
 #loading-overlay {
   position: fixed;
