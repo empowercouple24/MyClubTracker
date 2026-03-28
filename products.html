@@ -476,7 +476,7 @@ function goBack(){
     if(!confirm('You have unsaved changes. Leave without saving?'))return;
   }
   if(IS_GLOBAL){window.location.href='settings.html';return;}
-  const base=IS_ADMIN?`app.html?location_id=${LOCATION_ID}&admin=1`:`app.html?location_id=${LOCATION_ID}`;
+  const base=IS_ADMIN?`app2.html?location_id=${LOCATION_ID}&admin=1`:`app2.html?location_id=${LOCATION_ID}`;
   window.location.href=base;
 }
 

@@ -770,7 +770,8 @@ let PRODUCTS=[...DEFAULT_PRODUCTS],invFilter='all',invHave={};
 
 // PROFILE MODAL
 async function openProfileModal(){
-  sb.from('users').select('display_name,first_name,last_name,phone').eq('id',CURRENT_SESSION.user.id).single().then(({data:u})=>{
+  try {
+    const {data:u} = await sb.from('users').select('display_name,first_name,last_name,phone').eq('id',CURRENT_SESSION.user.id).single();
     document.getElementById('prof-firstname').value=u?.first_name||'';
     document.getElementById('prof-lastname').value =u?.last_name ||'';
     document.getElementById('prof-name').value     =u?.display_name||'';
@@ -795,7 +796,9 @@ async function openProfileModal(){
       locContactEl.style.display='none';
     }
     document.getElementById('profile-modal').classList.add('open');
-  });
+  } catch(e) {
+    showToast('Could not load profile. Try again.','error');
+  }
 }
 
 async function loadTeamMembers(){
