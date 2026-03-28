@@ -935,9 +935,9 @@ function confirmRemoveUser(userId,name){
 }
 
 async function removeUser(userId,name){
-  // Detach user from this location without deleting their auth account.
-  // They can re-join later using an invite code.
-  const{error}=await sb.from('users').update({location_id:null,role:'pending'}).eq('id',userId).eq('location_id',LOCATION_ID);
+  // Remove from public.users — this immediately locks them out of the app.
+  // Their auth.users account is also deleted via ON DELETE CASCADE on the FK.
+  const{error}=await sb.from('users').delete().eq('id',userId).eq('location_id',LOCATION_ID);
   if(error){showToast('Remove failed: '+error.message,'error');return;}
   showToast(`${name} removed ✓`,'success');
   await loadTeamMembers();

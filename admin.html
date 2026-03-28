@@ -183,29 +183,22 @@ if('serviceWorker' in navigator){
 
 
 
-    /* MISSING DAY ALERT BANNER */
-    .alert-banner{background:linear-gradient(135deg,#7a1f1f,var(--r5));border-radius:var(--radius);padding:14px 16px;margin-bottom:20px;color:white;animation:alertPulse 3s ease-in-out infinite}
-    @keyframes alertPulse{0%,100%{box-shadow:0 4px 20px rgba(192,48,48,0.3)}50%{box-shadow:0 4px 28px rgba(192,48,48,0.55)}}
-    .alert-banner-header{display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;user-select:none}
-    .alert-dismiss{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:5px;padding:3px 9px;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;flex-shrink:0;line-height:1.4;transition:background 0.15s;}
-    .alert-dismiss:hover{background:rgba(255,255,255,0.28);}
-    .alert-restore{display:none;align-items:center;gap:8px;background:linear-gradient(135deg,#7a1f1f,var(--r5));color:white;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:16px;box-shadow:0 2px 8px rgba(192,48,48,0.25);}
-    .alert-restore:hover{opacity:0.9;}
-    .alert-restore.visible{display:flex;}
-    .alert-banner-left{display:flex;align-items:center;gap:10px}
-    .alert-icon{font-size:20px;flex-shrink:0}
-    .alert-title{font-family:'Outfit',sans-serif;font-size:15px;font-weight:700}
-    .alert-sub{font-size:12px;opacity:0.75;margin-top:1px}
-    .alert-chevron{font-size:11px;opacity:0.7;transition:transform 0.2s;flex-shrink:0}
-    .alert-banner.expanded .alert-chevron{transform:rotate(180deg)}
-    .alert-detail{display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.2)}
-    .alert-banner.expanded .alert-detail{display:block}
-    .alert-loc-row{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.12)}
-    .alert-loc-row:last-child{border-bottom:none}
-    .alert-loc-name{font-size:13px;font-weight:700;flex:1}
-    .alert-loc-days{font-size:12px;opacity:0.8;margin-top:2px;line-height:1.5}
-    .alert-loc-action{background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:5px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;flex-shrink:0;transition:background 0.15s}
-    .alert-loc-action:hover{background:rgba(255,255,255,0.3)}
+    /* MISSING SUBMISSIONS — inline chip */
+    .kpi-header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;margin-top:0;}
+    .missing-chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--r5);cursor:pointer;user-select:none;padding:3px 0;}
+    .missing-chip:hover{opacity:0.75;}
+    @keyframes missingPulse{0%,100%{opacity:1}50%{opacity:0.25}}
+    .missing-dot{width:7px;height:7px;border-radius:50%;background:var(--r5);flex-shrink:0;animation:missingPulse 2s ease-in-out infinite;}
+    .missing-chevron{font-size:10px;opacity:0.6;transition:transform 0.2s;}
+    .missing-chip.open .missing-chevron{transform:rotate(180deg);}
+    .missing-detail{display:none;margin-top:10px;border-top:1px solid var(--border-light);padding-top:10px;}
+    .missing-detail.open{display:block;}
+    .missing-loc-row{display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid var(--border-light);}
+    .missing-loc-row:last-child{border-bottom:none;}
+    .missing-loc-name{font-size:13px;font-weight:700;color:var(--text);flex:1;}
+    .missing-loc-days{font-size:12px;color:var(--r5);margin-top:2px;line-height:1.5;}
+    .missing-loc-action{background:none;border:1px solid var(--border);color:var(--text-muted);border-radius:5px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;flex-shrink:0;transition:background 0.15s;}
+    .missing-loc-action:hover{background:var(--r0);border-color:var(--r3);color:var(--r5);}
     /* Compact approve modal */
   #approve-modal .modal-field{margin-bottom:8px;}
   #approve-modal .modal-field label{margin-bottom:3px;}
@@ -254,8 +247,7 @@ if('serviceWorker' in navigator){
       <div style="margin-left:auto;font-size:20px;opacity:0.7;">↓</div>
     </div>
   </div>
-  <button class="alert-restore" id="alert-restore-btn" onclick="restoreAlertBanner()">⚠️ Show Missing Submissions</button>
-  <div id="alert-banner-wrap" style="display:none;"></div>
+  <div id="alert-banner-wrap"></div>
 
   <!-- LAYOUT BODY — toggled between list and split via JS -->
   <div id="layout-body">
@@ -283,7 +275,11 @@ if('serviceWorker' in navigator){
 
     <!-- RIGHT / BOTTOM: KPIs + chart (moves to sidebar in split mode) -->
     <div id="metrics-col">
-      <div class="section-label" id="kpi-label" style="margin-top:0;">Org Overview</div>
+      <div class="kpi-header-row">
+        <div class="section-label" id="kpi-label" style="margin:0;">Org Overview</div>
+        <span id="missing-chip-wrap"></span>
+      </div>
+      <div id="missing-detail-wrap"></div>
       <div class="kpi-strip">
         <div class="kpi-period yesterday">
           <div class="kpi-period-label">Yesterday</div>
@@ -1222,73 +1218,54 @@ function inGracePeriod(loc){
 }
 
 function renderAlertBanner(){
+  const chip=document.getElementById('missing-chip-wrap');
+  const detail=document.getElementById('missing-detail-wrap');
   const wrap=document.getElementById('alert-banner-wrap');
-  if(!allLocations.length){wrap.style.display='none';return;}
+  if(wrap)wrap.style.display='none';
+  if(!chip||!detail)return;
 
-  // Only alert on activated locations that are past their grace period
+  if(!allLocations.length){chip.innerHTML='';detail.innerHTML='';return;}
+
   const alerts=allLocations
     .filter(loc=>isActivated(loc)&&!inGracePeriod(loc))
     .map(loc=>({loc,missing:getMissingDays(loc,7)}))
     .filter(a=>a.missing.length>0);
 
-  if(!alerts.length){wrap.style.display='none';return;}
+  if(!alerts.length){chip.innerHTML='';detail.innerHTML='';return;}
 
-  // Respect previously dismissed state
-  if(localStorage.getItem('alertBannerDismissed')==='1'){
-    wrap.style.display='none';
-    const rb=document.getElementById('alert-restore-btn');
-    if(rb)rb.classList.add('visible');
-    return;
-  }
-
-  const totalMissing=alerts.reduce((s,a)=>s+a.missing.length,0);
+  const total=alerts.reduce((s,a)=>s+a.missing.length,0);
   const locCount=alerts.length;
+
+  chip.innerHTML=`<span class="missing-chip" id="missing-chip" onclick="toggleMissingDetail()">
+    <span class="missing-dot"></span>
+    ${total} missing submission${total!==1?'s':''} across ${locCount} location${locCount!==1?'s':''}
+    <span class="missing-chevron">▼</span>
+  </span>`;
+
   const rows=alerts.map(({loc,missing})=>{
     const dayList=missing.map(d=>new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})).join(', ');
-    return`<div class="alert-loc-row">
+    return`<div class="missing-loc-row">
       <div style="flex:1;min-width:0;">
-        <div class="alert-loc-name">${escHtml(loc.name)}</div>
-        <div class="alert-loc-days">${missing.length} missing: ${dayList}</div>
+        <div class="missing-loc-name">${escHtml(loc.name)}</div>
+        <div class="missing-loc-days">${missing.length} missing: ${dayList}</div>
       </div>
-      <button class="alert-loc-action" onclick="goToLocation('${loc.id}')">View App →</button>
+      <button class="missing-loc-action" onclick="goToLocation('${loc.id}')">View App →</button>
     </div>`;
   }).join('');
 
-  wrap.style.display='block';
-  wrap.innerHTML=`
-    <div class="alert-banner" id="alert-banner">
-      <div class="alert-banner-header" onclick="toggleAlertBanner()">
-        <div class="alert-banner-left">
-          <div class="alert-icon">⚠️</div>
-          <div>
-            <div class="alert-title">${totalMissing} Missing Submission${totalMissing!==1?'s':''} Across ${locCount} Location${locCount!==1?'s':''}</div>
-            <div class="alert-sub">Click to see which days are missing — last 7 operating days checked</div>
-          </div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <button class="alert-dismiss" onclick="event.stopPropagation();dismissAlertBanner()" title="Hide banner">✕ Hide</button>
-          <div class="alert-chevron">▼</div>
-        </div>
-      </div>
-      <div class="alert-detail">${rows}</div>
-    </div>`;
+  detail.innerHTML=`<div class="missing-detail" id="missing-detail">${rows}</div>`;
 }
 
-function toggleAlertBanner(){document.getElementById('alert-banner')?.classList.toggle('expanded');}
-
-function dismissAlertBanner(){
-  localStorage.setItem('alertBannerDismissed','1');
-  document.getElementById('alert-banner-wrap').style.display='none';
-  const rb=document.getElementById('alert-restore-btn');
-  if(rb)rb.classList.add('visible');
+function toggleMissingDetail(){
+  const chip=document.getElementById('missing-chip');
+  const detail=document.getElementById('missing-detail');
+  if(!chip||!detail)return;
+  chip.classList.toggle('open');
+  detail.classList.toggle('open');
 }
 
-function restoreAlertBanner(){
-  localStorage.removeItem('alertBannerDismissed');
-  const rb=document.getElementById('alert-restore-btn');
-  if(rb)rb.classList.remove('visible');
-  renderAlertBanner();
-}
+function dismissAlertBanner(){}
+function restoreAlertBanner(){}
 function goToLocation(locId){window.location.href=`app.html?location_id=${locId}&admin=1`;}
 
 function renderLocations(){
