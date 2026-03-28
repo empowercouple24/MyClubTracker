@@ -90,6 +90,25 @@ if('serviceWorker' in navigator){
     .exp-label{font-size:14px;color:var(--text-muted)}
     .exp-val{font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;color:var(--text)}
     .expanded-footer{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:14px}
+    .admin-team-section{margin-top:14px;border-top:1px solid var(--border-light);padding-top:12px;}
+    .admin-team-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);margin-bottom:8px;}
+    .admin-user-row{background:var(--surface);border:1px solid var(--border-light);border-radius:8px;padding:10px 12px;margin-bottom:8px;}
+    .admin-user-row:last-child{margin-bottom:0;}
+    .admin-user-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;}
+    .admin-user-name{font-size:13px;font-weight:700;color:var(--text);}
+    .admin-user-email{font-size:11px;color:var(--text-faint);margin-top:1px;}
+    .admin-user-actions{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+    .admin-role-select{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;padding:3px 7px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;outline:none;}
+    .admin-reset-btn{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;padding:4px 9px;border-radius:6px;border:1px solid var(--border);background:var(--b0);color:var(--b6);cursor:pointer;white-space:nowrap;}
+    .admin-reset-btn:hover{background:var(--b1);}
+    .admin-user-fields{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+    .admin-user-field{display:flex;flex-direction:column;gap:2px;}
+    .admin-user-field label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);}
+    .admin-user-field input{font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:5px;background:var(--b0);outline:none;color:var(--text);}
+    .admin-user-field input:focus{border-color:var(--b4);}
+    .admin-user-save{margin-top:8px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border-radius:6px;border:none;background:var(--b6);color:white;cursor:pointer;}
+    .admin-user-save:hover{background:var(--b7);}
+    .admin-no-users{font-size:12px;color:var(--text-faint);padding:4px 0;}
     .btn-view-app{font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;background:linear-gradient(135deg,var(--b7),var(--b5));color:white;border:none;border-radius:6px;padding:8px 16px;cursor:pointer;box-shadow:0 2px 8px rgba(58,84,112,0.2);transition:transform 0.12s,box-shadow 0.12s;white-space:nowrap;text-decoration:none;display:inline-block}
     .btn-view-app:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(58,84,112,0.28)}
     .btn-manage-settings{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;background:var(--surface);color:var(--b7);border:1px solid var(--b3);border-radius:6px;padding:7px 14px;cursor:pointer;transition:background 0.15s;white-space:nowrap;text-decoration:none;display:inline-block}
@@ -1109,7 +1128,7 @@ async function init(){
   const{data:days}=await sb.from('days').select('location_id,date,data').gte('date',since);
   allDays = days || [];
   // Fetch all owner/employee users so we can check which locations have registered accounts
-  const{data:locUsers,error:luErr}=await sb.from('users').select('location_id,role').in('role',['owner','employee']);
+  const{data:locUsers,error:luErr}=await sb.from('users').select('id,email,first_name,last_name,display_name,phone,role,location_id').in('role',['owner','employee']);
   if(luErr){console.warn('Could not load location users:',luErr.message);}
   allLocationUsers = locUsers || [];
   renderKPIs();renderLocations();renderAlertBanner();renderCompChart();
@@ -1398,12 +1417,73 @@ function renderLocations(){
           <a class="btn-manage-settings" href="app.html?location_id=${loc.id}&admin=1&settings=1">⚙ Manage Settings</a>
           <a class="btn-view-app" href="app.html?location_id=${loc.id}&admin=1">View Full App →</a>
         </div>
+        ${renderAdminUserSection(loc.id)}
       </div>
     </div>`;
   }).join('');
 }
 
 function toggleCard(id){document.getElementById('lc-'+id).classList.toggle('expanded');}
+
+function renderAdminUserSection(locId){
+  const users=allLocationUsers.filter(u=>u.location_id===locId);
+  if(!users.length)return`<div class="admin-team-section"><div class="admin-team-title">Team</div><div class="admin-no-users">No registered users yet.</div></div>`;
+  const rows=users.map(u=>{
+    const name=[u.first_name,u.last_name].filter(Boolean).join(' ')||u.display_name||u.email;
+    const roleColor=u.role==='owner'?'color:var(--g5)':'color:var(--text-muted)';
+    return`<div class="admin-user-row" id="adm-user-${u.id}">
+      <div class="admin-user-top">
+        <div>
+          <div class="admin-user-name">${escHtml(name)}</div>
+          <div class="admin-user-email">${escHtml(u.email)}</div>
+        </div>
+        <div class="admin-user-actions">
+          <select class="admin-role-select" style="${roleColor}" onchange="adminChangeRole('${u.id}',this.value,this)">
+            <option value="owner"    ${u.role==='owner'   ?'selected':''}>Owner</option>
+            <option value="employee" ${u.role==='employee'?'selected':''}>Employee</option>
+          </select>
+          <button class="admin-reset-btn" onclick="adminResetPassword('${escHtml(u.email)}','${escHtml(name)}')">🔑 Reset PW</button>
+        </div>
+      </div>
+      <div class="admin-user-fields">
+        <div class="admin-user-field"><label>First Name</label><input type="text" id="adm-fn-${u.id}" value="${escHtml(u.first_name||'')}" placeholder="First name"/></div>
+        <div class="admin-user-field"><label>Last Name</label><input type="text" id="adm-ln-${u.id}" value="${escHtml(u.last_name||'')}" placeholder="Last name"/></div>
+        <div class="admin-user-field"><label>Display Name</label><input type="text" id="adm-dn-${u.id}" value="${escHtml(u.display_name||'')}" placeholder="Display name"/></div>
+        <div class="admin-user-field"><label>Phone</label><input type="tel" id="adm-ph-${u.id}" value="${escHtml(u.phone||'')}" placeholder="(555) 000-0000"/></div>
+      </div>
+      <button class="admin-user-save" onclick="adminSaveUser('${u.id}')">Save Changes</button>
+    </div>`;
+  }).join('');
+  return`<div class="admin-team-section"><div class="admin-team-title">Team (${users.length})</div>${rows}</div>`;
+}
+
+async function adminChangeRole(userId,newRole,selectEl){
+  const{error}=await sb.from('users').update({role:newRole}).eq('id',userId);
+  if(error){showToast('Role change failed: '+error.message,'error');selectEl.value=selectEl.value==='owner'?'employee':'owner';return;}
+  const u=allLocationUsers.find(u=>u.id===userId);
+  if(u){u.role=newRole;selectEl.style.color=newRole==='owner'?'var(--g5)':'var(--text-muted)';}
+  showToast('Role updated to '+newRole+' ✓','success');
+}
+
+async function adminResetPassword(email,name){
+  if(!confirm('Send a password reset email to '+name+' ('+email+')?'))return;
+  const{error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+'/index.html'});
+  if(error){showToast('Reset failed: '+error.message,'error');return;}
+  showToast('Password reset sent to '+email+' ✓','success');
+}
+
+async function adminSaveUser(userId){
+  const fn=document.getElementById('adm-fn-'+userId)?.value.trim()||'';
+  const ln=document.getElementById('adm-ln-'+userId)?.value.trim()||'';
+  const dn=document.getElementById('adm-dn-'+userId)?.value.trim()||'';
+  const ph=document.getElementById('adm-ph-'+userId)?.value.trim()||'';
+  const displayName=dn||(fn&&ln?fn+' '+ln:fn||ln||'');
+  const{error}=await sb.from('users').update({first_name:fn,last_name:ln,display_name:displayName,phone:ph||null}).eq('id',userId);
+  if(error){showToast('Save failed: '+error.message,'error');return;}
+  const u=allLocationUsers.find(u=>u.id===userId);
+  if(u){u.first_name=fn;u.last_name=ln;u.display_name=displayName;u.phone=ph;}
+  showToast('User updated ✓','success');
+}
 
 function toggleSecondContact(prefix){
   const checked=document.getElementById(prefix+'-second-toggle').checked;
