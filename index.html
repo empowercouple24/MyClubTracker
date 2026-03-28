@@ -425,15 +425,14 @@ async function doRegister(){
   if(pw!==pw2){showMsg('reg-msg2','Passwords do not match.','error');return;}
   if(!verifiedLocation){showMsg('reg-msg2','Invite code error — go back and re-verify.','error');return;}
   setBtn('reg-btn',true,'Creating account…');
-  // Pre-check: see if this email already exists in our users table
-  var existing=await sb.from('users').select('id,email').eq('email',em).maybeSingle();
-  if(existing.data){
-    showMsg('reg-msg2','An account with that email already exists. Try signing in instead, or use a different email address.','error');
+  var auth=await sb.auth.signUp({email:em,password:pw,options:{data:{display_name:name,first_name:fn,last_name:ln,location_id:verifiedLocation.id,role:verifiedLocation.role}}});
+  if(auth.error){showMsg('reg-msg2',auth.error.message,'error');setBtn('reg-btn',false,'Create Account');return;}
+  // Supabase silently allows duplicate signups — detect by checking identities array
+  if(auth.data.user&&auth.data.user.identities&&auth.data.user.identities.length===0){
+    showMsg('reg-msg2','An account with that email already exists. Please sign in instead, or use a different email address.','error');
     setBtn('reg-btn',false,'Create Account');
     return;
   }
-  var auth=await sb.auth.signUp({email:em,password:pw,options:{data:{display_name:name,first_name:fn,last_name:ln,location_id:verifiedLocation.id,role:verifiedLocation.role}}});
-  if(auth.error){showMsg('reg-msg2',auth.error.message,'error');setBtn('reg-btn',false,'Create Account');return;}
   var uid=auth.data.user&&auth.data.user.id;
   if(!uid){showMsg('reg-msg2','Sign-up failed. Try again.','error');setBtn('reg-btn',false,'Create Account');return;}
   await sb.from('users').upsert({id:uid,email:em,location_id:verifiedLocation.id,role:verifiedLocation.role,display_name:name,first_name:fn,last_name:ln,phone:ph||null},{onConflict:'id',ignoreDuplicates:false});
