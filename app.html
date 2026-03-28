@@ -123,25 +123,25 @@ if('serviceWorker' in navigator){
 }
     /* SUMMARY BOX */
     .summary-box{background:linear-gradient(135deg,var(--b8) 0%,var(--b7) 100%);border-radius:var(--radius);padding:14px 14px 12px;color:white;margin-bottom:10px}
-    .summary-title{font-family:'Outfit',sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:rgba(255,255,255,0.55);margin-bottom:6px}
+    .summary-title{font-family:'Outfit',sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;opacity:0.6;margin-bottom:6px}
     .summary-hero{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;gap:10px}
-    .summary-net-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:rgba(255,255,255,0.6);margin-bottom:2px}
+    .summary-net-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;opacity:0.7;margin-bottom:2px}
     .summary-net-val{font-family:'Outfit',sans-serif;font-size:38px;font-weight:800;letter-spacing:-1.5px;line-height:1;color:#7de88a}
-    .summary-fund-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:rgba(255,255,255,0.6);margin-bottom:4px}
-    .summary-fund-val{font-family:'Outfit',sans-serif;font-size:26px;font-weight:800;letter-spacing:-1px;line-height:1;color:rgba(255,255,255,0.9);margin-bottom:6px}
-    .summary-fund-breakdown{font-size:10px;color:rgba(255,255,255,0.55);line-height:1.7;text-align:right}
+    .summary-fund-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;opacity:0.6;margin-bottom:4px}
+    .summary-fund-val{font-family:'Outfit',sans-serif;font-size:26px;font-weight:800;letter-spacing:-1px;line-height:1;color:rgba(255,255,255,0.85);margin-bottom:6px}
+    .summary-fund-breakdown{font-size:10px;color:rgba(255,255,255,0.45);line-height:1.6;text-align:right}
     .summary-fund-breakdown span{display:block}
     .summary-hero-right{text-align:right;display:none}
     .summary-hero-right.visible{display:block}
     .summary-cards{display:flex;flex-direction:column;gap:7px;margin-bottom:10px}
     .summary-card{background:rgba(255,255,255,0.13);border-radius:9px;padding:9px 14px;display:flex;align-items:center;justify-content:space-between}
-    .summary-card-label{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.8)}
-    .summary-card-sub{font-size:11px;font-weight:500;color:rgba(255,255,255,0.55);margin-top:1px}
+    .summary-card-label{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.75)}
+    .summary-card-sub{font-size:11px;font-weight:500;color:rgba(255,255,255,0.45);margin-top:1px}
     .summary-card-val{font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;letter-spacing:-0.5px;line-height:1;color:white}
-    .summary-balance{margin-top:2px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:space-between;font-size:11px;color:rgba(255,255,255,0.6)}
+    .summary-balance{margin-top:2px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:space-between;font-size:11px}
     .balance-ok{color:#7de88a;font-weight:600}
     .balance-fail{color:#ff8080;font-weight:600}
-    .balance-pending{color:rgba(255,255,255,0.5);font-style:italic}
+    .balance-pending{color:rgba(255,255,255,0.4);font-style:italic}
     /* BUTTONS */
     .btn{font-family:'DM Sans',sans-serif;border:none;border-radius:var(--radius-sm);cursor:pointer;font-weight:600;transition:transform 0.12s,box-shadow 0.12s,opacity 0.12s;display:inline-flex;align-items:center;justify-content:center;gap:5px}
     .btn:active{transform:scale(0.97)}
@@ -859,15 +859,18 @@ async function loadTeamMembers(){
   const roleColors={owner:'var(--g5)',employee:'var(--text-muted)'};
   list.innerHTML=members.map(m=>{
     const name=[m.first_name,m.last_name].filter(Boolean).join(' ')||m.display_name||m.email;
-    return`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-light);">
-      <div>
-        <div style="font-size:13px;font-weight:600;color:var(--text);">${escHtml(name)}</div>
-        <div style="font-size:11px;color:var(--text-faint);">${escHtml(m.email)}</div>
+    return`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-light);gap:8px;">
+      <div style="min-width:0;flex:1;">
+        <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(name)}</div>
+        <div style="font-size:11px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(m.email)}</div>
       </div>
-      <select onchange="changeTeamRole('${m.id}',this.value,this)" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:3px 6px;border-radius:5px;border:1px solid var(--border);background:var(--surface);color:${roleColors[m.role]||'var(--text-muted)'};cursor:pointer;outline:none;">
-        <option value="owner"    ${m.role==='owner'   ?'selected':''}>Owner</option>
-        <option value="employee" ${m.role==='employee'?'selected':''}>Employee</option>
-      </select>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+        <select onchange="changeTeamRole('${m.id}',this.value,this)" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:3px 6px;border-radius:5px;border:1px solid var(--border);background:var(--surface);color:${roleColors[m.role]||'var(--text-muted)'};cursor:pointer;outline:none;">
+          <option value="owner"    ${m.role==='owner'   ?'selected':''}>Owner</option>
+          <option value="employee" ${m.role==='employee'?'selected':''}>Employee</option>
+        </select>
+        <button onclick="confirmRemoveUser('${m.id}','${escHtml(name)}')" title="Remove user" style="background:none;border:1px solid var(--border);border-radius:5px;padding:3px 7px;cursor:pointer;font-size:13px;color:var(--r5);line-height:1;" onmouseover="this.style.background='var(--r0)'" onmouseout="this.style.background='none'">✕</button>
+      </div>
     </div>`;
   }).join('');
 }
@@ -876,6 +879,20 @@ async function changeTeamRole(userId,newRole,selectEl){
   const{error}=await sb.from('users').update({role:newRole}).eq('id',userId);
   if(error){showToast('Role change failed: '+error.message,'error');await loadTeamMembers();return;}
   showToast(`Role updated to ${newRole} ✓`,'success');
+}
+
+function confirmRemoveUser(userId,name){
+  if(!confirm(`Remove ${name} from this location?\n\nThis will revoke their access immediately. They will need a new invite code to re-register.`))return;
+  removeUser(userId,name);
+}
+
+async function removeUser(userId,name){
+  // Remove from public.users — this immediately locks them out of the app.
+  // Their auth.users account is also deleted via ON DELETE CASCADE on the FK.
+  const{error}=await sb.from('users').delete().eq('id',userId).eq('location_id',LOCATION_ID);
+  if(error){showToast('Remove failed: '+error.message,'error');return;}
+  showToast(`${name} removed ✓`,'success');
+  await loadTeamMembers();
 }
 
 async function saveProfile(){
@@ -1152,15 +1169,26 @@ function calcAll(){
   const group1=cashSales>0&&cardSales>0&&cardFees>0;
   const group2=group1&&dv>0;
   const taxRate=SETTINGS.taxRate/100,ohRate=SETTINGS.ohRate/100,otherRate=SETTINGS.otherRate/100,merchRate=SETTINGS.merchRate/100,dvDelta=SETTINGS.dvDelta/100;
+  // Row 15: cardDeposits = cardSales - cardFees + cashAppPay - giftCardLoadFees
   const cardDeposits=cardSales-cardFees+cashAppPay-giftCardLoadFees;
+  // Row 16: totalSales = cashSales + venmo + cardDeposits (no fundraiserCash — that's outside Square)
   const totalSales=cashSales+venmo+cardDeposits;
+  // Row 17: tax = totalSales * taxRate
   const tax=group1?totalSales*taxRate:null;
+  // Row 14 pct donation = totalSales * pct%
   const donation=group1&&fundraiserPct>0?totalSales*(fundraiserPct/100):0;
+  // Row 18: overhead = (totalSales-otherSales-merchSales-giftCardSales)*ohRate + merchSales*100% + otherSales*otherRate + giftCardSales*100% - pctDonation - fundraiserCard
   const overhead=group1?((totalSales-otherSales-merchSales-giftCardSales)*ohRate)+(merchSales*merchRate)+(otherSales*otherRate)+(giftCardSales*1)-donation-fundraiserCard:null;
+  // Row 19: products = dv * (dvDelta+1)
   const products=group2?dv*(dvDelta+1):null;
+  // Row 20: payouts = totalSales - tax - overhead - products - fundraiserCard
   const payouts=group2&&tax!==null&&overhead!==null?totalSales-tax-overhead-products-fundraiserCard:null;
+  // Row 21: fundraiserTotal = fundraiserCard + fundraiserCash + pctDonation
   const fundraiserTotal=fundraiserCard+fundraiserCash+donation;
+  // Row 32: $/DV = (tax+overhead+products+payouts+fundraiserTotal - fundraiserCash) / dv
   const perDV=group2&&tax!==null&&overhead!==null?(tax+overhead+products+payouts+fundraiserTotal-fundraiserCash)/dv:null;
+  // Balance: sheet formula = ROUND(tax+overhead+products+payouts+IF(hasFundraiser,fundraiserTotal,0),2) == ROUND(totalSales,2)
+  // fundraiserCash (tips) are physical cash not in Square deposits so they show as expected offset
   const hasFundraiser=fundraiserCard>0||fundraiserCash>0||fundraiserPct>0;
   const balLHS=tax!==null&&overhead!==null&&products!==null&&payouts!==null?Math.round((tax+overhead+products+payouts+(hasFundraiser?fundraiserTotal:0))*100)/100:null;
   const balRHS=group1?Math.round(totalSales*100)/100:null;
@@ -1190,15 +1218,15 @@ function recalc(){
     const lines=[];
     if(c.fundraiserCard>0)lines.push('Card: '+fmt$(c.fundraiserCard));
     if(c.fundraiserCash>0)lines.push('Cash: '+fmt$(c.fundraiserCash));
-    if(fPct>0&&c.group1)lines.push(fPct+'% of net sales: '+fmt$(c.donation));
+    if(fPct>0&&c.group1)lines.push(fPct+'% of deposits: '+fmt$(c.donation));
     const bdEl=document.getElementById('sum-fundraiser-breakdown');
-    if(bdEl)bdEl.innerHTML=lines.map(function(l){return'<span>'+l+'</span>';}).join('');
+    if(bdEl)bdEl.innerHTML=lines.map(l=>'<span>'+l+'</span>').join('');
   }
-  // Donation % subtitle under dropdown
+  // Donation % subtitle
   const fPct=parseFloat(document.getElementById('f-fundraiserPct')?.value||0);
   const subEl=document.getElementById('fundraiser-pct-subtitle');
   if(subEl){
-    if(fPct>0&&c.group1){subEl.textContent=fPct+'% of net sales = '+fmt$(c.donation)+' donated';subEl.style.display='block';}
+    if(fPct>0&&c.group1){subEl.textContent=fPct+'% of deposits = '+fmt$(c.donation)+' donated';subEl.style.display='block';}
     else{subEl.style.display='none';}
   }
   // Balance check
