@@ -161,7 +161,7 @@ if('serviceWorker' in navigator){
     .proj-cell.highlight .proj-cell-label{color:rgba(255,255,255,0.55)}
     .proj-cell.highlight .proj-cell-val{color:white}
     /* INVENTORY */
-    .inv-header{background:linear-gradient(135deg,var(--a7),var(--a5));border-radius:var(--radius);padding:10px 12px;margin-bottom:10px;color:white}
+    .inv-header{background:linear-gradient(135deg,var(--a7),var(--a5));border-radius:var(--radius);padding:10px 12px;margin-bottom:10px;color:white;position:sticky;top:0;z-index:20;}
     .inv-header-title{font-family:'Outfit',sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;opacity:0.6;margin-bottom:6px}
     .inv-dv-row{display:flex;gap:16px}
     .inv-dv-item-label{font-size:9px;opacity:0.55;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:1px}
@@ -227,6 +227,7 @@ if('serviceWorker' in navigator){
     /* MISC */
     .empty-state{text-align:center;padding:40px 20px;color:var(--text-faint);font-size:13px}
     .filter-row{display:flex;gap:7px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+    #panel-inv .filter-row{position:sticky;top:60px;z-index:19;background:var(--bg);padding:6px 0 4px;margin-bottom:6px;}
     .filter-chip{font-size:11px;font-weight:600;padding:4px 11px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;transition:all 0.15s;font-family:'DM Sans',sans-serif}
     .filter-chip.active{background:var(--b7);color:white;border-color:var(--b7)}
     .collapsible-toggle{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;cursor:pointer;font-size:12px;font-weight:600;color:var(--text-muted);border-bottom:1px solid var(--border-light);user-select:none;transition:background 0.12s}
@@ -427,7 +428,7 @@ if('serviceWorker' in navigator){
   <div class="dv-section">
     <div class="dv-box">
       <div class="dv-box-label">DV — Documented Volume<span>Enter total documented volume for this day</span></div>
-      <input class="dv-input" type="text" inputmode="decimal" id="f-dv" placeholder="0" oninput="recalc()"/>
+      <input class="dv-input" type="text" inputmode="decimal" id="f-dv" placeholder="0.00" oninput="recalc()"/>
     </div>
   </div>
 
@@ -1167,6 +1168,12 @@ function loadDay(){
     const fp=document.getElementById('f-fundraiserPct');if(fp)fp.value='0';
   }
   formatAllCurrencyFields();
+  // Format DV field
+  var dvEl=document.getElementById('f-dv');
+  if(dvEl&&dvEl.value&&dvEl.value!=='0'){
+    var dvN=parseFloat(String(dvEl.value).replace(/,/g,''));
+    if(!isNaN(dvN)&&dvN>0)dvEl.value=dvN.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  }
   recalc();
 }
 
@@ -1405,6 +1412,30 @@ function recalcContentTop(){
   if(ca)ca.style.top=total+'px';
 }
 window.addEventListener('resize',recalcContentTop);
+
+// ── DV FIELD FORMATTING (decimal with commas, 2 decimal places) ──
+function fmtDV(n){
+  var v=parseFloat(String(n).replace(/,/g,''));
+  if(isNaN(v)||n===''||n===undefined)return '';
+  return v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function onDVFocus(el){
+  var raw=String(el.value).replace(/,/g,'');
+  el.value=raw==='0.00'||raw==='0'||raw===''?'':raw;
+}
+function onDVBlur(el){
+  var raw=String(el.value).replace(/,/g,'').trim();
+  if(raw===''){el.value='';return;}
+  var n=parseFloat(raw);
+  el.value=isNaN(n)?'':n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+document.addEventListener('DOMContentLoaded',function(){
+  var dvEl=document.getElementById('f-dv');
+  if(dvEl){
+    dvEl.addEventListener('focus',function(){onDVFocus(this);});
+    dvEl.addEventListener('blur',function(){onDVBlur(this);recalc();});
+  }
+});
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function fmtPhone(input){let d=input.value.replace(/\D/g,'').slice(0,10);let f='';if(d.length>0)f='('+d.slice(0,3);if(d.length>=4)f+=') '+d.slice(3,6);if(d.length>=7)f+='-'+d.slice(6,10);input.value=f;}
 function autoSizeInput(el){
