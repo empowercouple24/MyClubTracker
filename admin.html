@@ -21,8 +21,8 @@ if('serviceWorker' in navigator){
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Outfit:wght@400;600;700;800&display=block" rel="stylesheet"/>
-  <link rel="stylesheet" href="shared.css?v=3"/>
-  <link rel="stylesheet" href="nav.css?v=3"/>
+  <link rel="stylesheet" href="shared.css?v=4"/>
+  <link rel="stylesheet" href="nav.css?v=4"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
@@ -143,6 +143,19 @@ if('serviceWorker' in navigator){
 
     @media(max-width:640px){.kpi-strip{grid-template-columns:1fr}.expanded-grid{grid-template-columns:1fr}}
 
+    /* ── LAYOUT TOGGLE ── */
+    #layout-body{display:block}
+    #layout-body.split{display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start;margin-top:28px;}
+    #layout-body.split #locations-col{min-width:0}
+    #layout-body.split #metrics-col{position:sticky;top:68px;display:flex;flex-direction:column;gap:20px;}
+    #layout-body.split .locs-header{margin-top:0}
+    #layout-body:not(.split) #metrics-col{display:block}
+    .btn-layout-toggle{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;background:var(--surface);color:var(--text-muted);border:1px solid var(--border);border-radius:6px;padding:5px 11px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:5px;white-space:nowrap;}
+    .btn-layout-toggle:hover{background:var(--b0);color:var(--text);}
+    .btn-layout-toggle.active{background:var(--b7);color:white;border-color:var(--b7);}
+    #layout-body.split #metrics-col .kpi-strip{grid-template-columns:1fr;}
+    @media(max-width:900px){#layout-body.split{grid-template-columns:1fr}#layout-body.split #metrics-col{position:static;}}
+
     /* MISSING DAY ALERT BANNER */
     .alert-banner{background:linear-gradient(135deg,#7a1f1f,var(--r5));border-radius:var(--radius);padding:14px 16px;margin-bottom:20px;color:white;animation:alertPulse 3s ease-in-out infinite}
     @keyframes alertPulse{0%,100%{box-shadow:0 4px 20px rgba(192,48,48,0.3)}50%{box-shadow:0 4px 28px rgba(192,48,48,0.55)}}
@@ -208,69 +221,83 @@ if('serviceWorker' in navigator){
   </div>
   <div id="alert-banner-wrap" style="display:none;"></div>
 
-  <div class="section-label" id="kpi-label">Org Overview</div>
-  <div class="kpi-strip">
-    <div class="kpi-period yesterday">
-      <div class="kpi-period-label">Yesterday</div>
-      <div class="kpi-row"><span class="kpi-metric-label">Sales</span><span class="kpi-metric-val big" id="kpi-yday-sales">—</span></div>
-      <div class="kpi-row"><span class="kpi-metric-label">DV</span><span class="kpi-metric-val" id="kpi-yday-dv">—</span></div>
-      <div class="kpi-sub" id="kpi-yday-sub"></div>
-    </div>
-    <div class="kpi-period week">
-      <div class="kpi-period-label">Last 7 Days</div>
-      <div class="kpi-row"><span class="kpi-metric-label">Sales</span><span class="kpi-metric-val big" id="kpi-week-sales">—</span></div>
-      <div class="kpi-row"><span class="kpi-metric-label">DV</span><span class="kpi-metric-val" id="kpi-week-dv">—</span></div>
-      <div class="kpi-sub" id="kpi-week-sub"></div>
-    </div>
-    <div class="kpi-period month">
-      <div class="kpi-period-label">Last 30 Days</div>
-      <div class="kpi-row"><span class="kpi-metric-label">Sales</span><span class="kpi-metric-val big" id="kpi-month-sales">—</span></div>
-      <div class="kpi-row"><span class="kpi-metric-label">DV</span><span class="kpi-metric-val" id="kpi-month-dv">—</span></div>
-      <div class="kpi-sub" id="kpi-month-sub"></div>
-    </div>
-  </div>
+  <!-- LAYOUT BODY — toggled between list and split via JS -->
+  <div id="layout-body">
 
-  <!-- COMPARISON CHART SECTION -->
-  <div id="chart-section" style="margin-top:28px;display:none;">
-    <div class="section-header" style="margin-top:0;margin-bottom:12px;">
-      <div class="section-label" style="margin:0;">Location Comparison</div>
-      <div style="display:flex;gap:6px;">
-        <div class="chart-metric-tabs">
-          <button class="chart-metric-tab active" id="chart-metric-sales" onclick="setChartMetric('sales')">Sales</button>
-          <button class="chart-metric-tab" id="chart-metric-dv" onclick="setChartMetric('dv')">DV</button>
-          <button class="chart-metric-tab" id="chart-metric-days" onclick="setChartMetric('days')">Days</button>
+    <!-- LEFT / FULL: locations requests + list -->
+    <div id="locations-col">
+      <!-- LOCATION REQUESTS SECTION -->
+      <div id="requests-section" style="display:none;margin-bottom:24px;">
+        <div class="section-header" style="margin-top:0;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="section-label" style="margin:0;">Location Requests</div>
+            <span id="requests-badge" style="background:var(--r5);color:white;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;"></span>
+          </div>
+        </div>
+        <div id="requests-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+      </div>
+
+      <!-- LOCATIONS HEADER + LIST -->
+      <div class="section-header locs-header" style="margin-top:0;">
+        <div class="section-label" id="locs-label">Locations</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button class="btn-layout-toggle" id="btn-layout-list" onclick="setLayout('list')" title="List view">☰ List</button>
+          <button class="btn-layout-toggle" id="btn-layout-split" onclick="setLayout('split')" title="Split view">⊞ Split</button>
+          <button class="btn-add-loc" onclick="openAddLocation()">+ Add Location</button>
         </div>
       </div>
+      <div class="locations-list" id="locations-list"></div>
     </div>
-    <div class="chart-card">
-      <div class="chart-tabs">
-        <button class="chart-tab active" id="chart-tab-week" onclick="setChartPeriod('week')">Last 7 Days</button>
-        <button class="chart-tab" id="chart-tab-month" onclick="setChartPeriod('month')">Last 30 Days</button>
-        <button class="chart-tab" id="chart-tab-yday" onclick="setChartPeriod('yday')">Yesterday</button>
-      </div>
-      <div style="position:relative;height:260px;">
-        <canvas id="comparison-chart"></canvas>
-      </div>
-    </div>
-  </div>
 
-  <!-- LOCATION REQUESTS SECTION -->
-  <div id="requests-section" style="display:none;margin-top:28px;">
-    <div class="section-header">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <div class="section-label" style="margin:0;">Location Requests</div>
-        <span id="requests-badge" style="background:var(--r5);color:white;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;"></span>
+    <!-- RIGHT / BOTTOM: KPIs + chart (moves to sidebar in split mode) -->
+    <div id="metrics-col">
+      <div class="section-label" id="kpi-label" style="margin-top:0;">Org Overview</div>
+      <div class="kpi-strip">
+        <div class="kpi-period yesterday">
+          <div class="kpi-period-label">Yesterday</div>
+          <div class="kpi-row"><span class="kpi-metric-label">Sales</span><span class="kpi-metric-val big" id="kpi-yday-sales">—</span></div>
+          <div class="kpi-row"><span class="kpi-metric-label">DV</span><span class="kpi-metric-val" id="kpi-yday-dv">—</span></div>
+          <div class="kpi-sub" id="kpi-yday-sub"></div>
+        </div>
+        <div class="kpi-period week">
+          <div class="kpi-period-label">Last 7 Days</div>
+          <div class="kpi-row"><span class="kpi-metric-label">Sales</span><span class="kpi-metric-val big" id="kpi-week-sales">—</span></div>
+          <div class="kpi-row"><span class="kpi-metric-label">DV</span><span class="kpi-metric-val" id="kpi-week-dv">—</span></div>
+          <div class="kpi-sub" id="kpi-week-sub"></div>
+        </div>
+        <div class="kpi-period month">
+          <div class="kpi-period-label">Last 30 Days</div>
+          <div class="kpi-row"><span class="kpi-metric-label">Sales</span><span class="kpi-metric-val big" id="kpi-month-sales">—</span></div>
+          <div class="kpi-row"><span class="kpi-metric-label">DV</span><span class="kpi-metric-val" id="kpi-month-dv">—</span></div>
+          <div class="kpi-sub" id="kpi-month-sub"></div>
+        </div>
       </div>
-    </div>
-    <div id="requests-list" style="display:flex;flex-direction:column;gap:10px;"></div>
-  </div>
 
-  <div class="section-header" style="margin-top:28px;">
-    <div class="section-label" id="locs-label">Locations</div>
-    <button class="btn-add-loc" onclick="openAddLocation()">+ Add Location</button>
-  </div>
-  <div class="locations-list" id="locations-list"></div>
-</div>
+      <!-- COMPARISON CHART -->
+      <div id="chart-section" style="display:none;">
+        <div class="section-header" style="margin-top:16px;margin-bottom:12px;">
+          <div class="section-label" style="margin:0;">Location Comparison</div>
+          <div class="chart-metric-tabs">
+            <button class="chart-metric-tab active" id="chart-metric-sales" onclick="setChartMetric('sales')">Sales</button>
+            <button class="chart-metric-tab" id="chart-metric-dv" onclick="setChartMetric('dv')">DV</button>
+            <button class="chart-metric-tab" id="chart-metric-days" onclick="setChartMetric('days')">Days</button>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-tabs">
+            <button class="chart-tab active" id="chart-tab-week" onclick="setChartPeriod('week')">Last 7 Days</button>
+            <button class="chart-tab" id="chart-tab-month" onclick="setChartPeriod('month')">Last 30 Days</button>
+            <button class="chart-tab" id="chart-tab-yday" onclick="setChartPeriod('yday')">Yesterday</button>
+          </div>
+          <div style="position:relative;height:220px;">
+            <canvas id="comparison-chart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div><!-- /metrics-col -->
+
+  </div><!-- /layout-body -->
+</div><!-- /page -->
 
 <!-- ADD LOCATION MODAL -->
 <div class="modal-overlay" id="add-loc-modal" onclick="closeModalOnBg(event,'add-loc-modal')">
@@ -465,7 +492,7 @@ if('serviceWorker' in navigator){
   </div>
 </div>
 
-<script src="nav.js?v=3"></script>
+<script src="nav.js?v=4"></script>
 <script>
 const SUPABASE_URL='https://ndaqlamzlaucigvnhgfu.supabase.co';
 const SUPABASE_ANON_KEY='sb_publishable_wO6XM4pC2CcaISQ8OlbkfQ_liqKJbi_';
@@ -1017,6 +1044,44 @@ function renderCompChart(){
   });
 }
 
+// ── LAYOUT TOGGLE ──
+function setLayout(mode){
+  const body=document.getElementById('layout-body');
+  const btnList=document.getElementById('btn-layout-list');
+  const btnSplit=document.getElementById('btn-layout-split');
+  if(!body)return;
+  if(mode==='split'){
+    body.classList.add('split');
+    // In split mode, metrics col goes to the right — reorder columns via CSS
+    // Move metrics-col before locations-col in the DOM for proper grid order
+    const metricsCol=document.getElementById('metrics-col');
+    const locsCol=document.getElementById('locations-col');
+    if(metricsCol&&locsCol&&body.firstElementChild!==metricsCol){
+      body.insertBefore(metricsCol,locsCol);
+    }
+    if(btnSplit)btnSplit.classList.add('active');
+    if(btnList)btnList.classList.remove('active');
+    // Redraw chart at new width
+    setTimeout(()=>renderCompChart(),50);
+  }else{
+    body.classList.remove('split');
+    // Restore original order: locations-col first, metrics-col second
+    const metricsCol=document.getElementById('metrics-col');
+    const locsCol=document.getElementById('locations-col');
+    if(metricsCol&&locsCol&&body.firstElementChild!==locsCol){
+      body.insertBefore(locsCol,metricsCol);
+    }
+    if(btnList)btnList.classList.add('active');
+    if(btnSplit)btnSplit.classList.remove('active');
+    setTimeout(()=>renderCompChart(),50);
+  }
+  localStorage.setItem('admin_layout_view',mode);
+}
+function initLayout(){
+  const saved=localStorage.getItem('admin_layout_view')||'list';
+  setLayout(saved);
+}
+
 async function init(){
   const{data:{session}}=await sb.auth.getSession();
   if(!session){window.location.href='index.html';return;}
@@ -1041,6 +1106,7 @@ async function init(){
   renderKPIs();renderLocations();renderAlertBanner();renderCompChart();
   await loadRequests();
   document.getElementById('loading-overlay').style.display='none';
+  initLayout();
 }
 
 // ── DUPLICATE DETECTION (Levenshtein distance) ──
