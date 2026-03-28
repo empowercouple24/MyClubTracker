@@ -125,13 +125,12 @@ if('serviceWorker' in navigator){
     .summary-box{background:linear-gradient(135deg,var(--b8) 0%,var(--b7) 100%);border-radius:var(--radius);padding:14px 14px 12px;color:white;margin-bottom:10px}
     .summary-title{font-family:'Outfit',sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;opacity:0.6;margin-bottom:6px}
     .summary-hero{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;gap:10px}
-    .summary-hero-left{}
-    .summary-hero-right{text-align:right;display:none}
-    .summary-hero-right.visible{display:block}
     .summary-net-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;opacity:0.7;margin-bottom:2px}
     .summary-net-val{font-family:'Outfit',sans-serif;font-size:38px;font-weight:800;letter-spacing:-1.5px;line-height:1;color:#7de88a}
     .summary-fund-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;opacity:0.6;margin-bottom:2px}
     .summary-fund-val{font-family:'Outfit',sans-serif;font-size:26px;font-weight:800;letter-spacing:-1px;line-height:1;color:rgba(255,255,255,0.85)}
+    .summary-hero-right{text-align:right;display:none}
+    .summary-hero-right.visible{display:block}
     .summary-cards{display:flex;flex-direction:column;gap:7px;margin-bottom:10px}
     .summary-card{background:rgba(255,255,255,0.13);border-radius:9px;padding:9px 14px;display:flex;align-items:center;justify-content:space-between}
     .summary-card-label{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.75)}
@@ -357,8 +356,8 @@ if('serviceWorker' in navigator){
   <div class="summary-box">
     <div class="summary-title">Daily Summary</div>
     <div class="summary-hero">
-      <div class="summary-hero-left">
-        <div class="summary-net-label">Total Net Sales</div>
+      <div>
+        <div class="summary-net-label">Total Sales Deposits</div>
         <div class="summary-net-val" id="sum-sales">—</div>
       </div>
       <div class="summary-hero-right" id="sum-fundraiser-hero">
@@ -1149,23 +1148,30 @@ function calcAll(){
   const group1=cashSales>0&&cardSales>0&&cardFees>0;
   const group2=group1&&dv>0;
   const taxRate=SETTINGS.taxRate/100,ohRate=SETTINGS.ohRate/100,otherRate=SETTINGS.otherRate/100,merchRate=SETTINGS.merchRate/100,dvDelta=SETTINGS.dvDelta/100;
+  // Row 15: cardDeposits = cardSales - cardFees + cashAppPay - giftCardLoadFees
   const cardDeposits=cardSales-cardFees+cashAppPay-giftCardLoadFees;
-  // netSales = actual customer revenue only, excludes donations
-  const netSales=cashSales+venmo+cardDeposits-fundraiserCard;
-  // totalSales = all money received including donations (used for balance check)
-  const totalSales=netSales+fundraiserCash;
-  const tax=group1?netSales*taxRate:null;
-  const ohBase=netSales-otherSales-merchSales-giftCardSales;
-  const overheadRaw=group1?ohBase*ohRate+(merchSales+giftCardSales)*merchRate+otherSales*otherRate:null;
-  const donation=(group1&&fundraiserPct>0)?netSales*(fundraiserPct/100):0;
-  const overhead=overheadRaw!==null?overheadRaw-donation:null;
+  // Row 16: totalSales = cashSales + venmo + cardDeposits (no fundraiserCash)
+  const totalSales=cashSales+venmo+cardDeposits;
+  // Row 17: tax = totalSales * taxRate
+  const tax=group1?totalSales*taxRate:null;
+  // Row 14 pct donation amount based on totalSales
+  const donation=group1&&fundraiserPct>0?totalSales*(fundraiserPct/100):0;
+  // Row 18: overhead = (totalSales - otherSales - merchSales - giftCardSales) * ohRate
+  //                  + merchSales * 100% + otherSales * otherRate + giftCardSales * 100%
+  //                  - fundraiserPctAmount - fundraiserCard
+  const overhead=group1?((totalSales-otherSales-merchSales-giftCardSales)*ohRate)+(merchSales*merchRate)+(otherSales*otherRate)+(giftCardSales*1)-donation-fundraiserCard:null;
+  // Row 19: products = dv * (dvDelta + 1)
   const products=group2?dv*(dvDelta+1):null;
-  // payouts uses overheadRaw so pct donation isn't double-deducted
-  const payouts=(group2&&tax!==null&&overheadRaw!==null)?netSales-tax-overheadRaw-products:null;
-  const perDV=group2?netSales/dv:null;
-  const balanceSum=(tax!==null&&overhead!==null&&products!==null&&payouts!==null)?tax+overhead+donation+products+payouts+fundraiserCash+fundraiserCard:null;
-  const balanced=balanceSum!==null?Math.abs(balanceSum-totalSales)<0.02:null;
-  return{cashSales,cardSales,cardFees,dv,venmo,fundraiserCard,fundraiserCash,donation,cardDeposits,totalSales,netSales,tax,overhead,overheadRaw,products,payouts,perDV,group1,group2,balanced,balanceSum};
+  // Row 20: payouts = totalSales - tax - overhead - products - fundraiserCard
+  const payouts=group2&&tax!==null&&overhead!==null?totalSales-tax-overhead-products-fundraiserCard:null;
+  // Row 21: fundraiserTotal = fundraiserCard + fundraiserCash + pctAmount
+  const fundraiserTotal=fundraiserCard+fundraiserCash+donation;
+  // Row 32: $/DV = (sum rows17-21 - fundraiserCash) / dv
+  const perDV=group2?(tax+overhead+products+payouts+fundraiserTotal-fundraiserCash)/dv:null;
+  // Balance: rows 17-21 should equal totalSales + fundraiserCash
+  const balanceSum=tax!==null&&overhead!==null&&products!==null&&payouts!==null?tax+overhead+products+payouts+fundraiserTotal:null;
+  const balanced=balanceSum!==null?Math.abs(balanceSum-(totalSales+fundraiserCash))<0.02:null;
+  return{cashSales,cardSales,cardFees,dv,venmo,fundraiserCard,fundraiserCash,donation,fundraiserTotal,cardDeposits,totalSales,tax,overhead,products,payouts,perDV,group1,group2,balanced,balanceSum};
 }
 
 function fmt$(n){if(n===null||isNaN(n))return'$0.00';return'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
@@ -1174,29 +1180,28 @@ function fmtVP(n){if(n===null||n===undefined||isNaN(n))return'—';return Number
 
 function recalc(){
   const c=calcAll();
-  setText('sum-sales',  c.group1?fmt$(c.netSales):'—');
-  setText('sum-perdv',  c.group2?'$/DV: '+fmt$(c.perDV):'$/DV: —');
-  setText('sum-tax',    c.group1?fmt$(c.tax):'—');
-  setText('sum-oh',     c.group1?fmt$(c.overhead):'—');
-  setText('sum-prod',   c.group2?fmt$(c.products):'—');
-  setText('sum-payouts',c.group2?fmt$(c.payouts):'—');
-  // Fundraiser hero — show on right of Total Net Sales when any fundraiser value exists
+  setText('sum-sales',   c.group1?fmt$(c.totalSales):'—');
+  setText('sum-tax',     c.group1?fmt$(c.tax):'—');
+  setText('sum-oh',      c.group1?fmt$(c.overhead):'—');
+  setText('sum-prod',    c.group2?fmt$(c.products):'—');
+  setText('sum-payouts', c.group2?fmt$(c.payouts):'—');
+  setText('sum-perdv',   c.group2?'$/DV: '+fmt$(c.perDV):'$/DV: —');
+  // Fundraiser hero — show on right when any fundraiser value exists
   const fCash=pv('f-fundraiserCash'),fCard=pv('f-fundraiserCard'),fPct=parseFloat(document.getElementById('f-fundraiserPct')?.value||0);
   const hasFundraiser=fCash>0||fCard>0||fPct>0;
-  const fundraiserTotal=fCash+fCard+c.donation;
   const heroEl=document.getElementById('sum-fundraiser-hero');
   if(heroEl)heroEl.classList.toggle('visible',hasFundraiser);
-  setText('sum-fundraiser',hasFundraiser?fmt$(fundraiserTotal):'—');
+  setText('sum-fundraiser',hasFundraiser?fmt$(c.fundraiserTotal):'—');
   // Donation % subtitle under the dropdown
   const subEl=document.getElementById('fundraiser-pct-subtitle');
   if(subEl){
-    if(fPct>0&&c.group1){subEl.textContent=fPct+'% of net sales = '+fmt$(c.donation)+' donated';subEl.style.display='block';}
+    if(fPct>0&&c.group1){subEl.textContent=fPct+'% of sales deposits = '+fmt$(c.donation)+' donated';subEl.style.display='block';}
     else{subEl.style.display='none';}
   }
   const balEl=document.getElementById('sum-balance');
   if(c.balanced===null){balEl.textContent='Enter Cash Sales, Card Sales & Card Fees';balEl.className='balance-pending';}
   else if(c.balanced){balEl.textContent='✓ Balanced';balEl.className='balance-ok';}
-  else{balEl.textContent='✗ Off by '+fmt$(Math.abs(c.totalSales-c.balanceSum));balEl.className='balance-fail';}
+  else{balEl.textContent='✗ Off by '+fmt$(Math.abs((c.totalSales+c.fundraiserCash)-c.balanceSum));balEl.className='balance-fail';}
 }
 
 const ENTRY_FIELDS=['cashSales','cardSales','cardFees','giftCardRedeemed','cashAppPay','venmo','otherSales','merchSales','giftCardSales','giftCardLoadFees','fundraiserCash','fundraiserCard','dv','notes'];
