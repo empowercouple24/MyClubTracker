@@ -42,7 +42,7 @@ if('serviceWorker' in navigator){
     select.row-input option{color:var(--text);background:var(--surface);}
     html.dark select.row-input option{color:#e8edf4 !important;background:#1a2736 !important;}
     select.row-input:focus,input.row-input:focus{border-color:var(--b5)}
-    input.row-input{width:210px}
+    input.row-input{width:252px}
 
     /* DAY TOGGLES */
     .day-toggles{display:flex;gap:5px;flex-wrap:wrap}
@@ -145,28 +145,28 @@ if('serviceWorker' in navigator){
       <div class="divider-label">Name</div>
       <div class="settings-row" style="gap:8px;flex-wrap:wrap;">
         <div class="row-label">First Name</div>
-        <input type="text" class="row-input" id="prof-firstname" placeholder="First name" style="text-align:right;max-width:210px;"/>
+        <input type="text" class="row-input" id="prof-firstname" placeholder="First name" style="text-align:right;max-width:252px;"/>
       </div>
       <div class="settings-row" style="gap:8px;flex-wrap:wrap;">
         <div class="row-label">Last Name</div>
-        <input type="text" class="row-input" id="prof-lastname" placeholder="Last name" style="text-align:right;max-width:210px;"/>
+        <input type="text" class="row-input" id="prof-lastname" placeholder="Last name" style="text-align:right;max-width:252px;"/>
       </div>
       <div class="settings-row" style="gap:8px;flex-wrap:wrap;">
         <div>
           <div class="row-label">Display Name</div>
           <div class="row-sub">How your name appears in the app</div>
         </div>
-        <input type="text" class="row-input" id="prof-name" placeholder="e.g. Jeff" style="text-align:right;max-width:210px;"/>
+        <input type="text" class="row-input" id="prof-name" placeholder="e.g. Jeff" style="text-align:right;max-width:252px;"/>
       </div>
 
       <div class="divider-label">Contact</div>
       <div class="settings-row">
         <div class="row-label">Phone</div>
-        <input type="tel" class="row-input" id="prof-phone" placeholder="(555) 000-0000" style="text-align:right;max-width:210px;" oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"/>
+        <input type="tel" class="row-input" id="prof-phone" placeholder="(555) 000-0000" style="text-align:right;max-width:252px;" oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"/>
       </div>
       <div class="settings-row">
         <div class="row-label">Email</div>
-        <input type="email" class="row-input" id="prof-email-display" disabled style="text-align:right;max-width:210px;opacity:0.55;cursor:not-allowed;"/>
+        <input type="email" class="row-input" id="prof-email-display" disabled style="text-align:right;max-width:252px;opacity:0.55;cursor:not-allowed;"/>
       </div>
     </div>
     <div style="margin-top:10px;">
