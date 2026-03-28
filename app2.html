@@ -287,7 +287,6 @@ if('serviceWorker' in navigator){
   </div>
   <div class="nav-admin-badge" id="nav-admin-badge" style="display:none;">Admin View</div>
   <button class="nav-btn" id="nav-settings-btn" onclick="openSettings()">⚙</button>
-  <button class="nav-btn" id="nav-profile-btn" style="display:none;" onclick="openProfileModal()">👤</button>
   <div class="nav-menu-wrap" style="position:relative;">
     <button class="nav-menu-btn" onclick="toggleNavMenu()" style="display:flex;align-items:center;gap:6px;background:none;border:1px solid var(--border);border-radius:20px;padding:4px 10px;cursor:pointer;font-size:13px;color:var(--text-muted);font-family:'DM Sans',sans-serif;">
       <span id="nav-display-name" style="display:none;font-size:13px;font-weight:600;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
@@ -631,6 +630,16 @@ if('serviceWorker' in navigator){
         <div id="prof-team-list" style="font-size:13px;color:var(--text-muted);padding:8px 0;">Loading…</div>
       </div>
     </div>
+    <!-- Location contact info (read-only, from location settings) -->
+    <div id="prof-loc-contact" style="display:none;">
+      <div class="settings-group">
+        <div class="settings-group-title" style="display:flex;align-items:center;justify-content:space-between;">
+          Location Contact Info
+          <span style="font-size:10px;font-weight:400;color:var(--text-faint);text-transform:none;letter-spacing:0;">Edit in Admin Settings</span>
+        </div>
+        <div id="prof-loc-contact-body" style="font-size:13px;color:var(--text-muted);padding:4px 0;line-height:1.8;"></div>
+      </div>
+    </div>
     <!-- Change Password collapsible -->
     <div style="padding:0 16px 12px;">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--border-light);">
@@ -771,6 +780,20 @@ async function openProfileModal(){
     document.getElementById('prof-email').value=CURRENT_SESSION.user.email||'';
     if(USER_ROLE==='owner'){loadTeamMembers();}
     else{document.getElementById('prof-role-section').style.display='none';}
+    // Show location contact info from SETTINGS (secondContact)
+    const sc=SETTINGS.secondContact;
+    const locContactEl=document.getElementById('prof-loc-contact');
+    const locContactBody=document.getElementById('prof-loc-contact-body');
+    if(locContactEl&&locContactBody&&sc&&(sc.name||sc.phone||sc.email)){
+      var parts=[];
+      if(sc.name)parts.push('<strong>'+escHtml(sc.name)+'</strong>');
+      if(sc.phone)parts.push('📞 '+escHtml(sc.phone));
+      if(sc.email)parts.push('✉️ '+escHtml(sc.email));
+      locContactBody.innerHTML=parts.join('<br>');
+      locContactEl.style.display='block';
+    }else if(locContactEl){
+      locContactEl.style.display='none';
+    }
     document.getElementById('profile-modal').classList.add('open');
   });
 }
