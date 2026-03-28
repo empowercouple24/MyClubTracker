@@ -172,10 +172,11 @@ if('serviceWorker' in navigator){
     .inv-table th:first-child{text-align:left}
     .inv-table th:nth-child(1){width:auto}
     .inv-table th:nth-child(2){width:52px}
-    .inv-table th:nth-child(3){width:44px}
-    .inv-table th:nth-child(4){width:60px}
-    .inv-table th:nth-child(5){width:62px}
-    .inv-table th:nth-child(6){width:70px}
+    .inv-table th:nth-child(3){width:40px}
+    .inv-table th:nth-child(4){width:56px}
+    .inv-table th:nth-child(5){width:54px}
+    .inv-table th:nth-child(6){width:66px}
+    .inv-table th:nth-child(7){width:66px}
     .inv-table td{padding:5px 8px;font-size:13px;border-bottom:1px solid var(--border-light);vertical-align:middle;height:36px;}
     .inv-table tr:last-child td{border-bottom:none}
     .inv-table td:not(:first-child){text-align:right}
@@ -1327,9 +1328,9 @@ function renderInventory(){
   let html='';
   Object.entries(cats).forEach(([cat,items])=>{
     const vis=invFilter==='needs'?items.filter(p=>(invHave[p.sku]||0)<p.par):items;if(!vis.length)return;
-    html+=`<div class="inv-cat-header">${cat}</div><table class="inv-table"><thead><tr><th>Product</th><th>VP</th><th>PAR</th><th>HAVE</th><th>NEED</th><th>VP Total</th></tr></thead><tbody>`;
-    vis.forEach(p=>{const have=invHave[p.sku]||0,need=Math.max(0,p.par-have),bc=need>0?'need':(have>0?'ok':'zero'),bt=need>0?need:(have>0?'✓':'—'),vpTot=(p.vp||0)*have;
-      html+=`<tr><td><div class="inv-name-cell"><span class="inv-name">${p.name}</span>${p.sku?`<span class="inv-sku">${p.sku}</span>`:''}</div></td><td>${p.vp!=null?fmtVP(p.vp):'—'}</td><td>${p.par}</td><td><input class="inv-input" type="number" min="0" value="${have}" oninput="setHave('${p.sku}',this.value)"/></td><td><span class="need-badge ${bc}">${bt}</span></td><td id="vptot-${p.sku}" style="font-size:12px;font-weight:600;color:var(--b6);">${vpTot>0?fmtVP(vpTot):'—'}</td></tr>`;
+    html+=`<div class="inv-cat-header">${cat}</div><table class="inv-table"><thead><tr><th>Product</th><th>VP</th><th>PAR</th><th>HAVE</th><th>NEED</th><th>DV Need</th><th>DV Have</th></tr></thead><tbody>`;
+    vis.forEach(p=>{const have=invHave[p.sku]||0,need=Math.max(0,p.par-have),bc=need>0?'need':(have>0?'ok':'zero'),bt=need>0?need:(have>0?'✓':'—'),dvHave=(p.vp||0)*have,dvNeed=(p.vp||0)*need;
+      html+=`<tr><td><div class="inv-name-cell"><span class="inv-name">${p.name}</span>${p.sku?`<span class="inv-sku">${p.sku}</span>`:''}</div></td><td>${p.vp!=null?fmtVP(p.vp):'—'}</td><td>${p.par}</td><td><input class="inv-input" type="number" min="0" value="${have}" oninput="setHave('${p.sku}',this.value)"/></td><td><span class="need-badge ${bc}">${bt}</span></td><td id="dvneed-${p.sku}" style="font-size:12px;font-weight:600;color:var(--r5);opacity:0.8;">${dvNeed>0?fmtVP(dvNeed):'—'}</td><td id="vptot-${p.sku}" style="font-size:12px;font-weight:600;color:var(--b6);">${dvHave>0?fmtVP(dvHave):'—'}</td></tr>`;
     });
     html+='</tbody></table>';
   });
@@ -1341,10 +1342,17 @@ function setHave(s,v){
   let vp=0,u=0;
   PRODUCTS.forEach(p=>{const q=invHave[p[2]]||0;vp+=(p[3]||0)*q;u+=q;});
   setText('inv-total-vp',fmtVP(vp));
-  // Update this row's VP total cell live
   const prod=PRODUCTS.find(p=>p[2]===s);
-  const cell=document.getElementById('vptot-'+s);
-  if(cell&&prod){const vpTot=(prod[3]||0)*(invHave[s]||0);cell.textContent=vpTot>0?fmtVP(vpTot):'—';}
+  if(prod){
+    const have=invHave[s]||0;
+    const need=Math.max(0,(prod[4]||0)-have);
+    const dvHave=(prod[3]||0)*have;
+    const dvNeed=(prod[3]||0)*need;
+    const haveCell=document.getElementById('vptot-'+s);
+    const needCell=document.getElementById('dvneed-'+s);
+    if(haveCell)haveCell.textContent=dvHave>0?fmtVP(dvHave):'—';
+    if(needCell)needCell.textContent=dvNeed>0?fmtVP(dvNeed):'—';
+  }
 }
 async function saveInvSnapshot(){
   if(IS_ADMIN_VIEW){showToast('Admin view — cannot save','error');return;}
