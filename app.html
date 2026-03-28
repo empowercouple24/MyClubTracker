@@ -1006,6 +1006,7 @@ async function init(){
     const _so=document.getElementById('nav-signout-btn');if(_so)_so.style.display='none';
     const bn=document.getElementById('admin-banner');if(bn){bn.style.display='block';bn.textContent='Admin View: '+(loc?.name||LOCATION_ID);}
     const _aeb=document.getElementById('admin-edit-banner');if(_aeb)_aeb.classList.add('show');
+    recalcContentTop();
     const _nsb=document.getElementById('nav-settings-btn');if(_nsb)_nsb.style.display='';
     const _smt=document.getElementById('settings-modal-title');if(_smt)_smt.textContent='Settings — '+(loc?.name||'Location');
     const saveBtn=document.querySelector('button[onclick="saveDay()"]');
@@ -1028,6 +1029,7 @@ async function init(){
   const _pf=document.getElementById('payout-from');if(_pf)_pf.value=new Date(now.getFullYear(),now.getMonth(),1).toISOString().slice(0,10);
   const _pt=document.getElementById('payout-to');if(_pt)_pt.value=new Date(now.getFullYear(),now.getMonth()+1,0).toISOString().slice(0,10);
   populateOperatorDropdowns();buildSettingsUI();loadDay();renderHistory();renderInventory();renderInventoryHistory();renderProjections();renderPayouts();
+  recalcContentTop();
   // Unconditionally set nav name after everything loads
   const _finalNcn = document.getElementById('nav-club-name');
   if(_finalNcn && SETTINGS.clubName) _finalNcn.textContent = SETTINGS.clubName;
@@ -1389,6 +1391,20 @@ function populateOperatorDropdowns(){const ops=SETTINGS.operators.filter(o=>o.na
 async function handleSignOut(){if(IS_ADMIN_VIEW){window.location.href='admin.html';return;}await sb.auth.signOut();window.location.href='index.html';}
 let toastTimer;
 function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(type?' '+type:'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2400);}
+function recalcContentTop(){
+  var total=0;
+  ['admin-edit-banner','update-banner','admin-banner'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el&&el.offsetHeight>0)total+=el.offsetHeight;
+  });
+  var nav=document.querySelector('.topnav');
+  var tab=document.querySelector('.tabbar');
+  if(nav)total+=nav.offsetHeight;
+  if(tab)total+=tab.offsetHeight;
+  var ca=document.querySelector('.content-area');
+  if(ca)ca.style.top=total+'px';
+}
+window.addEventListener('resize',recalcContentTop);
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function fmtPhone(input){let d=input.value.replace(/\D/g,'').slice(0,10);let f='';if(d.length>0)f='('+d.slice(0,3);if(d.length>=4)f+=') '+d.slice(3,6);if(d.length>=7)f+='-'+d.slice(6,10);input.value=f;}
 function autoSizeInput(el){
