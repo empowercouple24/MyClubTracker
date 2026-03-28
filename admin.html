@@ -168,6 +168,11 @@ if('serviceWorker' in navigator){
     .alert-banner{background:linear-gradient(135deg,#7a1f1f,var(--r5));border-radius:var(--radius);padding:14px 16px;margin-bottom:20px;color:white;animation:alertPulse 3s ease-in-out infinite}
     @keyframes alertPulse{0%,100%{box-shadow:0 4px 20px rgba(192,48,48,0.3)}50%{box-shadow:0 4px 28px rgba(192,48,48,0.55)}}
     .alert-banner-header{display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;user-select:none}
+    .alert-dismiss{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:5px;padding:3px 9px;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;flex-shrink:0;line-height:1.4;transition:background 0.15s;}
+    .alert-dismiss:hover{background:rgba(255,255,255,0.28);}
+    .alert-restore{display:none;align-items:center;gap:8px;background:linear-gradient(135deg,#7a1f1f,var(--r5));color:white;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:16px;box-shadow:0 2px 8px rgba(192,48,48,0.25);}
+    .alert-restore:hover{opacity:0.9;}
+    .alert-restore.visible{display:flex;}
     .alert-banner-left{display:flex;align-items:center;gap:10px}
     .alert-icon{font-size:20px;flex-shrink:0}
     .alert-title{font-family:'Outfit',sans-serif;font-size:15px;font-weight:700}
@@ -230,6 +235,7 @@ if('serviceWorker' in navigator){
       <div style="margin-left:auto;font-size:20px;opacity:0.7;">↓</div>
     </div>
   </div>
+  <button class="alert-restore" id="alert-restore-btn" onclick="restoreAlertBanner()">⚠️ Show Missing Submissions</button>
   <div id="alert-banner-wrap" style="display:none;"></div>
 
   <!-- LAYOUT BODY — toggled between list and split via JS -->
@@ -1208,6 +1214,14 @@ function renderAlertBanner(){
 
   if(!alerts.length){wrap.style.display='none';return;}
 
+  // Respect previously dismissed state
+  if(localStorage.getItem('alertBannerDismissed')==='1'){
+    wrap.style.display='none';
+    const rb=document.getElementById('alert-restore-btn');
+    if(rb)rb.classList.add('visible');
+    return;
+  }
+
   const totalMissing=alerts.reduce((s,a)=>s+a.missing.length,0);
   const locCount=alerts.length;
   const rows=alerts.map(({loc,missing})=>{
@@ -1232,13 +1246,30 @@ function renderAlertBanner(){
             <div class="alert-sub">Click to see which days are missing — last 7 operating days checked</div>
           </div>
         </div>
-        <div class="alert-chevron">▼</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button class="alert-dismiss" onclick="event.stopPropagation();dismissAlertBanner()" title="Hide banner">✕ Hide</button>
+          <div class="alert-chevron">▼</div>
+        </div>
       </div>
       <div class="alert-detail">${rows}</div>
     </div>`;
 }
 
 function toggleAlertBanner(){document.getElementById('alert-banner')?.classList.toggle('expanded');}
+
+function dismissAlertBanner(){
+  localStorage.setItem('alertBannerDismissed','1');
+  document.getElementById('alert-banner-wrap').style.display='none';
+  const rb=document.getElementById('alert-restore-btn');
+  if(rb)rb.classList.add('visible');
+}
+
+function restoreAlertBanner(){
+  localStorage.removeItem('alertBannerDismissed');
+  const rb=document.getElementById('alert-restore-btn');
+  if(rb)rb.classList.remove('visible');
+  renderAlertBanner();
+}
 function goToLocation(locId){window.location.href=`app.html?location_id=${locId}&admin=1`;}
 
 function renderLocations(){
