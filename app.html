@@ -187,7 +187,8 @@ if('serviceWorker' in navigator){
     .inv-name-cell{display:flex;align-items:baseline;gap:6px;overflow:hidden;}
     .inv-name{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .inv-sku{font-size:11px;color:var(--text-faint);flex-shrink:0}
-    .inv-input{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;width:52px;text-align:center;background:var(--b0);border:1px solid var(--border);border-radius:4px;padding:3px 4px;outline:none;transition:border-color 0.15s;display:block;margin-left:auto;}
+    .inv-input{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;width:52px;text-align:center;background:var(--b0);border:1px solid var(--border);border-radius:4px;padding:3px 4px;outline:none;-moz-appearance:textfield;transition:border-color 0.15s;display:block;margin-left:auto;}
+    .inv-input::-webkit-inner-spin-button,.inv-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
     #panel-invhist{max-width:740px;margin:0 auto;}
     .inv-input:focus{border-color:var(--a4);box-shadow:0 0 0 2px rgba(224,152,32,0.15);background:#fff}
     .need-badge{display:inline-block;font-size:11px;font-weight:700;padding:1px 6px;border-radius:20px;min-width:28px;text-align:center}
@@ -482,7 +483,7 @@ if('serviceWorker' in navigator){
 <div class="tab-panel" id="panel-inv" style="padding:0;">
   <div id="inv-sticky-wrap">
     <div style="max-width:740px;margin:0 auto;padding:10px 12px 0;">
-      <div class="inv-header"><div class="inv-header-title">Inventory</div><div class="inv-dv-row"><div><div class="inv-dv-item-label">Total VP</div><div class="inv-dv-item-val" id="inv-total-vp">0</div></div></div></div>
+      <div class="inv-header"><div class="inv-header-title">Inventory</div><div class="inv-dv-row"><div><div class="inv-dv-item-label">Total VP Needed</div><div class="inv-dv-item-val" id="inv-total-vp-needed">—</div></div><div><div class="inv-dv-item-label">Total VP Have</div><div class="inv-dv-item-val" id="inv-total-vp">—</div></div></div></div>
     </div>
     <div style="max-width:740px;margin:0 auto;padding:0 12px;">
       <div class="filter-row"><button class="filter-chip active" onclick="setInvFilter('all',this)">All</button><button class="filter-chip" onclick="setInvFilter('needs',this)">Needs Only</button><button class="btn btn-primary" onclick="saveInvSnapshot()" style="margin-left:auto;">📸 Snapshot</button></div>
@@ -1322,33 +1323,29 @@ function setText(id,v){const el=document.getElementById(id);if(el)el.textContent
 function setInvFilter(f,btn){invFilter=f;document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));btn.classList.add('active');renderInventory();}
 function renderInventory(){
   const cats={};PRODUCTS.forEach(p=>{if(!cats[p[0]])cats[p[0]]=[];cats[p[0]].push({cat:p[0],name:p[1],sku:p[2],vp:p[3],par:p[4]});});
-  let vp=0,u=0;PRODUCTS.forEach(p=>{const q=invHave[p[2]]||0;vp+=(p[3]||0)*q;u+=q;});
-  setText('inv-total-vp',fmtVP(vp));
+  let vp=0,vpNeeded=0,u=0;PRODUCTS.forEach(p=>{const q=invHave[p[2]]||0;vp+=(p[3]||0)*q;u+=q;vpNeeded+=(p[3]||0)*Math.max(0,(p[4]||0)-q);});
+  setText('inv-total-vp',vp>0?fmtVP(vp):'—');
+  setText('inv-total-vp-needed',vpNeeded>0?fmtVP(vpNeeded):'—');
   let html='';
   Object.entries(cats).forEach(([cat,items])=>{
     const vis=invFilter==='needs'?items.filter(p=>(invHave[p.sku]||0)<p.par):items;if(!vis.length)return;
     html+=`<div class="inv-cat-header">${cat}</div><table class="inv-table"><thead><tr><th>Product</th><th>VP</th><th>PAR</th><th>HAVE</th><th>NEED</th><th>DV Need</th><th>DV Have</th></tr></thead><tbody>`;
     vis.forEach(p=>{const haveRaw=invHave[p.sku],have=haveRaw||0,haveEntered=haveRaw!=null&&haveRaw!==undefined,need=Math.max(0,p.par-have),bc=need>0?'need':(have>0?'ok':'zero'),bt=need>0?need:(have>0?'✓':'—'),dvHave=(p.vp||0)*have,dvNeed=(p.vp||0)*need;
-      html+=`<tr><td><div class="inv-name-cell"><span class="inv-name">${p.name}</span>${p.sku?`<span class="inv-sku">${p.sku}</span>`:''}</div></td><td>${p.vp!=null?fmtVP(p.vp):'—'}</td><td>${p.par}</td><td><input class="inv-input" type="text" inputmode="numeric" value="${have||''}" ondblclick="this.select()" onkeydown="invKeydown(event)" oninput="setHave('${p.sku}',this.value)"/></td><td><span class="need-badge ${bc}">${bt}</span></td><td id="dvneed-${p.sku}" style="font-size:12px;font-weight:600;color:var(--r5);opacity:0.8;">${haveEntered&&dvNeed>0?fmtVP(dvNeed):'—'}</td><td id="vptot-${p.sku}" style="font-size:12px;font-weight:600;color:var(--b6);">${dvHave>0?fmtVP(dvHave):'—'}</td></tr>`;
+      html+=`<tr><td><div class="inv-name-cell"><span class="inv-name">${p.name}</span>${p.sku?`<span class="inv-sku">${p.sku}</span>`:''}</div></td><td>${p.vp!=null?fmtVP(p.vp):'—'}</td><td>${p.par}</td><td><input class="inv-input" type="number" min="0" value="${have||''}" oninput="setHave('${p.sku}',this.value)"/></td><td><span class="need-badge ${bc}">${bt}</span></td><td id="dvneed-${p.sku}" style="font-size:12px;font-weight:600;color:var(--r5);opacity:0.8;">${haveEntered&&dvNeed>0?fmtVP(dvNeed):'—'}</td><td id="vptot-${p.sku}" style="font-size:12px;font-weight:600;color:var(--b6);">${dvHave>0?fmtVP(dvHave):'—'}</td></tr>`;
     });
     html+='</tbody></table>';
   });
   document.getElementById('inv-body').innerHTML=html||'<div class="empty-state">No items.</div>';
   recalcInvCatTop();
 }
-function invKeydown(e){
-  // Allow: digits 0-9, backspace, delete, tab, enter, arrows, home, end
-  const allowed=['Backspace','Delete','Tab','Enter','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'];
-  if(allowed.includes(e.key)||/^[0-9]$/.test(e.key))return;
-  e.preventDefault();
-}
 function setHave(s,v){
   const parsed=parseInt(v);
   invHave[s]=(v===''||v===null||v===undefined||isNaN(parsed))?null:parsed;
   const have=invHave[s]||0;
-  let vp=0,u=0;
-  PRODUCTS.forEach(p=>{const q=invHave[p[2]]||0;vp+=(p[3]||0)*q;u+=q;});
-  setText('inv-total-vp',fmtVP(vp));
+  let vp=0,vpNeeded=0,u=0;
+  PRODUCTS.forEach(p=>{const q=invHave[p[2]]||0;vp+=(p[3]||0)*q;u+=q;vpNeeded+=(p[3]||0)*Math.max(0,(p[4]||0)-q);});
+  setText('inv-total-vp',vp>0?fmtVP(vp):'—');
+  setText('inv-total-vp-needed',vpNeeded>0?fmtVP(vpNeeded):'—');
   const prod=PRODUCTS.find(p=>p[2]===s);
   if(prod){
     const need=Math.max(0,(prod[4]||0)-have);
