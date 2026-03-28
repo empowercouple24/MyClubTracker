@@ -287,9 +287,8 @@ if('serviceWorker' in navigator){
   </div>
   <div class="nav-admin-badge" id="nav-admin-badge" style="display:none;">Admin View</div>
   <div class="nav-menu-wrap" style="position:relative;">
-    <button class="nav-menu-btn" onclick="toggleNavMenu()" style="display:flex;align-items:center;gap:6px;background:none;border:1px solid var(--border);border-radius:20px;padding:4px 10px;cursor:pointer;font-size:13px;color:var(--text-muted);font-family:'DM Sans',sans-serif;">
-      <span id="nav-display-name" style="display:none;font-size:13px;font-weight:600;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
-      <span style="font-size:10px;">▾</span>
+    <button class="nav-menu-btn" onclick="toggleNavMenu()">
+      <span id="nav-display-name" style="font-size:13px;font-weight:600;color:var(--text-muted);margin-right:2px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span><span id="nav-role-label" style="font-size:13px;font-weight:700;color:var(--b7);">OWNER</span> <span style="font-size:10px;">▾</span>
     </button>
     <div id="nav-dropdown" style="position:absolute;top:calc(100% + 6px);right:0;background:var(--surface);border:1px solid var(--border-light);border-radius:10px;box-shadow:0 4px 20px rgba(30,45,61,0.12);min-width:180px;z-index:999;display:none;">
       <button id="nav-profile-btn" onclick="openProfileModal();closeNavMenu()" style="display:none;align-items:center;gap:9px;width:100%;padding:11px 16px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text);background:none;border:none;cursor:pointer;text-align:left;" onmouseover="this.style.background='var(--b0)'" onmouseout="this.style.background='none'">👤 Profile</button>
@@ -842,7 +841,7 @@ async function saveProfile(){
   document.getElementById('nav-profile-btn').title=dispName||[firstName,lastName].filter(Boolean).join(' ')||CURRENT_SESSION.user.email;
   // Sync display name to nav
   const navDN = document.getElementById('nav-display-name');
-  if(navDN) navDN.textContent = dispName || [firstName,lastName].filter(Boolean).join(' ') || '';
+  if(navDN) navDN.textContent = (dispName || [firstName,lastName].filter(Boolean).join(' ') || '') + ' ';
   closeProfileModal();
   showToast('Profile saved ✓','success');
 }
@@ -945,7 +944,9 @@ async function init(){
     // Show profile button for owners and employees (not admin view)
     const _pb=document.getElementById('nav-profile-btn');if(_pb)_pb.style.display='flex';
     const navDN = document.getElementById('nav-display-name');
-    if(navDN){ navDN.style.display='inline'; navDN.textContent = u.display_name || [u.first_name,u.last_name].filter(Boolean).join(' ') || ''; }
+    if(navDN){ navDN.textContent = (u.display_name || [u.first_name,u.last_name].filter(Boolean).join(' ') || '') + ' '; }
+    const navRL = document.getElementById('nav-role-label');
+    if(navRL){ navRL.textContent = (USER_ROLE==='employee'?'EMPLOYEE':'OWNER'); }
     const _pb2=document.getElementById('nav-profile-btn');if(_pb2)_pb2.title=u.display_name||session.user.email;
   }
   if(!LOCATION_ID){
@@ -981,6 +982,10 @@ async function init(){
     const _smt=document.getElementById('settings-modal-title');if(_smt)_smt.textContent='Settings — '+(loc?.name||'Location');
     const saveBtn=document.querySelector('button[onclick="saveDay()"]');
     if(saveBtn){saveBtn.style.background='linear-gradient(135deg,var(--a6),var(--a4))';saveBtn.textContent='Save (Admin)';}
+    // Set nav button to show admin name + ADMIN label
+    const _adNavDN=document.getElementById('nav-display-name');
+    if(_adNavDN){ const _adName=session.user.user_metadata?.display_name||session.user.email||''; _adNavDN.textContent=_adName?_adName+' ':''; }
+    const _adRL=document.getElementById('nav-role-label');if(_adRL)_adRL.textContent='ADMIN';
     // Show admin nav items in dropdown
     const _ani=document.getElementById('admin-nav-items');if(_ani)_ani.style.display='block';
   }
