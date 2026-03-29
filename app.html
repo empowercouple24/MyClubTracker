@@ -173,8 +173,9 @@ if('serviceWorker' in navigator){
     /* INVENTORY */
     .inv-header{background:linear-gradient(135deg,var(--b7),var(--b5));border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;color:white;}
     .inv-header-title{font-family:'Outfit',sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;opacity:0.6;margin-bottom:8px}
-    .inv-dv-row{display:flex;gap:16px;align-items:baseline;}
-    .inv-dv-item-label{font-size:10px;opacity:0.65;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;font-weight:600;}
+    .inv-dv-row{display:flex;gap:10px;}
+    .inv-dv-card{flex:1;background:rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;}
+    .inv-dv-item-label{font-size:10px;opacity:0.65;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;font-weight:600;}
     .inv-dv-item-val{font-family:'Outfit',sans-serif;font-size:28px;font-weight:800;letter-spacing:-0.5px;line-height:1;}
     .inv-cat-header{font-size:18px;font-weight:700;color:white;background:linear-gradient(135deg,#2d4a6b,#3a5f87);padding:12px 16px;border-radius:var(--radius-sm) var(--radius-sm) 0 0;margin-top:8px;position:sticky;top:var(--inv-cat-top,100px);z-index:18;}
     .inv-table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border-light);border-radius:0 0 var(--radius-sm) var(--radius-sm);overflow:hidden;margin-bottom:2px;table-layout:fixed;}
@@ -506,7 +507,7 @@ if('serviceWorker' in navigator){
 <div class="tab-panel" id="panel-inv" style="padding:0;">
   <div id="inv-sticky-wrap">
     <div style="max-width:740px;margin:0 auto;padding:10px 12px 0;">
-      <div class="inv-header"><div class="inv-header-title">Inventory</div><div class="inv-dv-row"><div><div class="inv-dv-item-label">Total VP</div><div class="inv-dv-item-val" id="inv-total-vp">0</div></div></div></div>
+      <div class="inv-header"><div class="inv-header-title">Inventory</div><div class="inv-dv-row"><div class="inv-dv-card"><div class="inv-dv-item-label">DV Need</div><div class="inv-dv-item-val" id="inv-total-dvneed">0</div></div><div class="inv-dv-card"><div class="inv-dv-item-label">DV Have</div><div class="inv-dv-item-val" id="inv-total-vp">0</div></div></div></div>
     </div>
     <div style="max-width:740px;margin:0 auto;padding:0 12px;">
       <div class="filter-row"><button class="filter-chip active" onclick="setInvFilter('all',this)">All</button><button class="filter-chip" onclick="setInvFilter('needs',this)">Needs Only</button><button class="btn btn-primary" onclick="saveInvSnapshot()" style="margin-left:auto;">📸 Snapshot</button></div>
@@ -1468,8 +1469,10 @@ function setText(id,v){const el=document.getElementById(id);if(el)el.textContent
 function setInvFilter(f,btn){invFilter=f;document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));btn.classList.add('active');renderInventory();}
 function renderInventory(){
   const cats={};PRODUCTS.forEach(p=>{if(!cats[p[0]])cats[p[0]]=[];cats[p[0]].push({cat:p[0],name:p[1],sku:p[2],vp:p[3],par:p[4]});});
-  let vp=0,u=0;PRODUCTS.forEach(p=>{const q=invHave[p[2]]||0;vp+=(p[3]||0)*q;u+=q;});
+  let vp=0,u=0,totalDvNeed=0;
+  PRODUCTS.forEach(p=>{const q=invHave[p[2]]||0;vp+=(p[3]||0)*q;u+=q;const haveEntered=invHave[p[2]]!=null;const need=Math.max(0,(p[4]||0)-q);if(haveEntered)totalDvNeed+=(p[3]||0)*need;});
   setText('inv-total-vp',fmtVP(vp));
+  setText('inv-total-dvneed',fmtVP(totalDvNeed));
   let html='';
   Object.entries(cats).forEach(([cat,items])=>{
     const vis=invFilter==='needs'?items.filter(p=>(invHave[p.sku]||0)<p.par):items;if(!vis.length)return;
@@ -1486,9 +1489,10 @@ function setHave(s,v){
   const parsed=parseInt(v);
   invHave[s]=(v===''||v===null||v===undefined||isNaN(parsed))?null:parsed;
   const have=invHave[s]||0;
-  let vp=0,u=0;
-  PRODUCTS.forEach(p=>{const q=invHave[p[2]]||0;vp+=(p[3]||0)*q;u+=q;});
+  let vp=0,u=0,totalDvNeed=0;
+  PRODUCTS.forEach(p=>{const q=invHave[p[2]]||0;vp+=(p[3]||0)*q;u+=q;const haveEntered=invHave[p[2]]!=null;const need=Math.max(0,(p[4]||0)-q);if(haveEntered)totalDvNeed+=(p[3]||0)*need;});
   setText('inv-total-vp',fmtVP(vp));
+  setText('inv-total-dvneed',fmtVP(totalDvNeed));
   const prod=PRODUCTS.find(p=>p[2]===s);
   if(prod){
     const need=Math.max(0,(prod[4]||0)-have);
