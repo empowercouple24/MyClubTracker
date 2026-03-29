@@ -606,6 +606,23 @@ if('serviceWorker' in navigator){
     <!-- ── MY PROFILE (all roles) ── -->
     <div class="settings-group">
       <div class="settings-group-title">My Profile</div>
+      <!-- Avatar -->
+      <div style="display:flex;align-items:center;gap:12px;padding:6px 0 10px;border-bottom:1px solid var(--border-light);margin-bottom:8px;">
+        <div style="position:relative;width:54px;height:54px;flex-shrink:0;cursor:pointer;" onclick="document.getElementById('prof-avatar-input').click()" title="Click to change photo">
+          <div id="prof-avatar-circle" style="width:54px;height:54px;border-radius:50%;background:var(--b1);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--b7);overflow:hidden;">
+            <span id="prof-avatar-initials"></span>
+            <img id="prof-avatar-img" src="" style="display:none;width:54px;height:54px;object-fit:cover;border-radius:50%;"/>
+          </div>
+          <div style="position:absolute;bottom:0;right:0;width:18px;height:18px;border-radius:50%;background:var(--b7);display:flex;align-items:center;justify-content:center;border:2px solid white;">
+            <svg width="8" height="8" viewBox="0 0 10 10" fill="none"><path d="M5 1v8M1 5h8" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:13px;color:var(--text-faint);">Click photo to update</div>
+          <div id="prof-avatar-status" style="font-size:12px;margin-top:2px;"></div>
+        </div>
+        <input type="file" id="prof-avatar-input" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="uploadAvatar(this)"/>
+      </div>
       <div class="settings-row" style="gap:6px;"><label style="min-width:90px;">First Name</label><input type="text" class="prof-input" id="prof-firstname" placeholder="First name"/></div>
       <div class="settings-row" style="gap:6px;"><label style="min-width:90px;">Last Name</label><input type="text" class="prof-input" id="prof-lastname" placeholder="Last name"/></div>
       <div class="settings-row" style="gap:6px;">
@@ -812,11 +829,12 @@ async function openProfileModal(){
     const isOwner=(USER_ROLE==='owner'||USER_ROLE==='admin');
     document.getElementById('profile-modal-title').textContent=isOwner?'Profile & Settings':'My Profile';
     // Load profile fields
-    const {data:u}=await sb.from('users').select('display_name,first_name,last_name,phone').eq('id',CURRENT_SESSION.user.id).single();
+    const {data:u}=await sb.from('users').select('display_name,first_name,last_name,phone,avatar_url').eq('id',CURRENT_SESSION.user.id).single();
     document.getElementById('prof-firstname').value=u?.first_name||'';
     document.getElementById('prof-lastname').value =u?.last_name||'';
     document.getElementById('prof-name').value     =u?.display_name||'';
     autoSizeInput(document.getElementById('prof-name'));
+    loadAvatar(u?.avatar_url, u?.first_name, u?.last_name, u?.display_name);
     const phoneEl=document.getElementById('prof-phone');
     phoneEl.value=u?.phone||'';
     if(u?.phone)fmtPhone(phoneEl);
@@ -1015,6 +1033,66 @@ function copyEmpCode(){
     if(copyBtn){copyBtn.textContent='Copied ✓';}
     setTimeout(()=>{if(copyBtn)copyBtn.textContent=orig;},1800);
   }).catch(()=>{el.select();document.execCommand('copy');});
+}
+
+// ── AVATAR ──
+function loadAvatar(avatarUrl, firstName, lastName, displayName) {
+  const initials = ((firstName||'').charAt(0) + (lastName||'').charAt(0)).toUpperCase()
+    || (displayName||'').charAt(0).toUpperCase() || '?';
+  const initialsEl = document.getElementById('prof-avatar-initials');
+  const imgEl = document.getElementById('prof-avatar-img');
+  if(avatarUrl && imgEl) {
+    imgEl.src = avatarUrl;
+    imgEl.style.display = 'block';
+    if(initialsEl) initialsEl.style.display = 'none';
+  } else {
+    if(initialsEl) { initialsEl.textContent = initials; initialsEl.style.display = ''; }
+    if(imgEl) imgEl.style.display = 'none';
+  }
+}
+
+async function uploadAvatar(input) {
+  const file = input.files[0];
+  if(!file) return;
+  const statusEl = document.getElementById('prof-avatar-status');
+  if(statusEl) { statusEl.textContent = 'Uploading…'; statusEl.style.color = 'var(--text-faint)'; }
+  const resized = await resizeImage(file, 256);
+  const userId = CURRENT_SESSION?.user?.id;
+  if(!userId) return;
+  const { error } = await sb.storage.from('avatars').upload(userId, resized, {
+    upsert: true, contentType: 'image/jpeg'
+  });
+  if(error) {
+    if(statusEl) { statusEl.textContent = 'Upload failed: ' + error.message; statusEl.style.color = 'var(--r5)'; }
+    return;
+  }
+  const { data: { publicUrl } } = sb.storage.from('avatars').getPublicUrl(userId);
+  const cacheBusted = publicUrl + '?t=' + Date.now();
+  await sb.from('users').update({ avatar_url: cacheBusted }).eq('id', userId);
+  const imgEl = document.getElementById('prof-avatar-img');
+  const initialsEl = document.getElementById('prof-avatar-initials');
+  if(imgEl) { imgEl.src = cacheBusted; imgEl.style.display = 'block'; }
+  if(initialsEl) initialsEl.style.display = 'none';
+  if(statusEl) { statusEl.textContent = 'Photo updated ✓'; statusEl.style.color = 'var(--g5)'; }
+  input.value = '';
+}
+
+function resizeImage(file, maxPx) {
+  return new Promise(resolve => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const scale = Math.min(1, maxPx / Math.max(img.width, img.height));
+      const w = Math.round(img.width * scale);
+      const h = Math.round(img.height * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      canvas.toBlob(blob => resolve(blob), 'image/jpeg', 0.88);
+    };
+    img.src = url;
+  });
 }
 
 // ── DARK MODE ──
