@@ -530,9 +530,9 @@ if('serviceWorker' in navigator){
   <div class="enter-ops-row">
     <div class="card">
       <div class="collapsible-toggle" onclick="toggleCollapse(this)" data-target="ops-body">Operators <span style="display:flex;align-items:center;gap:10px;margin-left:auto;"><span id="ops-earnings-preview" style="font-family:'Outfit',sans-serif;font-size:13px;font-weight:800;color:var(--b7);display:none;"></span><span class="arrow">▼</span></span></div>
-      <div class="collapsible-body" id="ops-body">
-        <div class="field-row"><div class="field-label">Operator 1</div><select class="field-input" id="f-op1" onchange="markDirty();recalc()"></select></div>
-        <div class="field-row"><div class="field-label">Operator 2</div><select class="field-input" id="f-op2" onchange="markDirty();recalc()"></select></div>
+      <div class="collapsible-body" id="ops-body" style="display:flex;flex-direction:column;gap:6px;padding:8px 0;">
+        <div class="field-row" style="border-bottom:none;"><div class="field-label">Operator 1</div><select class="field-input" id="f-op1" onchange="markDirty();recalc()"></select></div>
+        <div class="field-row" style="border-bottom:none;"><div class="field-label">Operator 2</div><select class="field-input" id="f-op2" onchange="markDirty();recalc()"></select></div>
       </div>
     </div>
     <!-- Fundraiser — expanded by default -->
@@ -2035,10 +2035,12 @@ function renderOpsEarningsPreview(){
   const ops = [op1, op2].filter(Boolean);
   const share = (c.group2 && c.payouts !== null && ops.length > 0) ? c.payouts / ops.length : null;
   if(share !== null && ops.length > 0){
-    const label = ops.length === 1
-      ? fmt$(share)
-      : ops.map(o => o.split(' ')[0] + ' ' + fmt$(share)).join(' · ');
+    const label = ops.map(o => o.split(' ')[0] + ' ' + fmt$(share)).join(' · ');
     previewEl.textContent = label;
+    previewEl.style.display = 'inline';
+  } else if(ops.length > 0 && (op1 || op2)){
+    // Operator selected but payouts not yet calculable — show name only
+    previewEl.textContent = ops.map(o => o.split(' ')[0]).join(' · ');
     previewEl.style.display = 'inline';
   } else {
     previewEl.style.display = 'none';
@@ -2780,7 +2782,7 @@ function range(f,t,s){const r=[];for(let v=f;v<=t+0.001;v=Math.round((v+s)*1000)
 function buildSelect(id,vals,cur,fn){const el=document.getElementById(id);if(!el)return;el.innerHTML=vals.map(v=>`<option value="${v}" ${Math.abs(v-cur)<0.001?'selected':''}>${fn(v)}</option>`).join('');}
 function openProductsEditor(){closeProfileModal();window.location.href=IS_ADMIN_VIEW?`products.html?location_id=${LOCATION_ID}&admin=1`:`products.html?location_id=${LOCATION_ID}`;}
 
-function populateOperatorDropdowns(){const ops=SETTINGS.operators.filter(o=>o.name&&o.visible!==false),blank='<option value="">—</option>';['f-op1','f-op2'].forEach(id=>{const el=document.getElementById(id);if(!el)return;const cur=el.value;el.innerHTML=blank+ops.map(o=>`<option value="${o.name}">${o.name}</option>`).join('');el.value=cur;});}
+function populateOperatorDropdowns(){const ops=SETTINGS.operators.filter(o=>o.name&&o.visible!==false),blank='<option value="">—</option>';['f-op1','f-op2'].forEach(id=>{const el=document.getElementById(id);if(!el)return;const cur=el.value;el.innerHTML=blank+ops.map(o=>`<option value="${o.name}">${o.name}</option>`).join('');el.value=cur;});renderOpsEarningsPreview();}
 async function handleSignOut(){if(IS_ADMIN_VIEW){window.location.href='admin.html';return;}await sb.auth.signOut();window.location.href='index.html';}
 let toastTimer;
 function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(type?' '+type:'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2400);}
