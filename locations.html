@@ -433,14 +433,6 @@ function renderLocations(){
           '<span class="loc-user-chevron">▼</span>'+
         '</div>'+
         '<div class="loc-user-fields">'+
-          '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border-light);">'+
-            '<select class="loc-role-select" style="'+roleColor+'" onchange="changeUserRole(\''+u.id+'\',this.value,this)">'+
-              '<option value="owner" '+(u.role==='owner'?'selected':'')+'>Owner</option>'+
-              '<option value="employee" '+(u.role==='employee'?'selected':'')+'>Operator</option>'+
-            '</select>'+
-            '<button class="loc-reset-btn" onclick="locResetPassword(\''+escAttr(u.email)+'\',\''+escAttr(fn)+'\')">🔑 Reset Password</button>'+
-            '<button onclick="confirmRemoveUser(\''+u.id+'\',\''+escAttr(fn)+'\')" title="Remove user" style="margin-left:auto;background:none;border:1px solid var(--border-light);border-radius:6px;padding:5px 9px;cursor:pointer;color:var(--text-faint);font-size:14px;line-height:1;" onmouseover="this.style.background=\'var(--r0)\';this.style.color=\'var(--r5)\';this.style.borderColor=\'var(--r3)\'" onmouseout="this.style.background=\'none\';this.style.color=\'var(--text-faint)\';this.style.borderColor=\'var(--border-light)\'">🗑 Remove</button>'+
-          '</div>'+
           '<div class="loc-user-grid">'+
             '<div class="loc-user-field"><label>First Name</label><input type="text" id="luf-fn-'+u.id+'" value="'+escHtml(u.first_name||'')+'" placeholder="First name"/></div>'+
             '<div class="loc-user-field"><label>Last Name</label><input type="text" id="luf-ln-'+u.id+'" value="'+escHtml(u.last_name||'')+'" placeholder="Last name"/></div>'+
@@ -448,6 +440,15 @@ function renderLocations(){
             '<div class="loc-user-field"><label>Phone</label><input type="tel" id="luf-ph-'+u.id+'" value="'+escHtml(u.phone||'')+'" placeholder="(555) 000-0000"/></div>'+
           '</div>'+
           '<button class="loc-user-save" onclick="locSaveUser(\''+u.id+'\')">Save Changes</button>'+
+          '<div style="display:flex;justify-content:flex-end;align-items:center;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border-light);">'+
+            '<select class="loc-role-select" style="font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:700;padding:6px 10px;border-radius:8px;border:1px solid var(--b2);background:var(--b0);color:var(--b7);cursor:pointer;outline:none;min-width:110px;" onchange="changeUserRole(\''+u.id+'\',this.value,this)">'+
+              '<option value="owner" '+(u.role==='owner'?'selected':'')+'>Owner</option>'+
+              '<option value="employee" '+(u.role==='employee'?'selected':'')+'>Operator</option>'+
+            '</select>'+
+            '<button onclick="locResetPassword(\''+escAttr(u.email)+'\',\''+escAttr(fn)+'\')" style="font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:700;padding:6px 0;border-radius:8px;border:1px solid var(--b2);background:var(--b0);color:var(--b7);cursor:pointer;width:110px;white-space:nowrap;">🔑 Reset PW</button>'+
+            '<button onclick="confirmRemoveUser(\''+u.id+'\',\''+escAttr(fn)+'\')" style="font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:700;padding:6px 0;border-radius:8px;border:1px solid var(--r2);background:var(--r0);color:var(--r5);cursor:pointer;width:110px;white-space:nowrap;" onmouseover="this.style.background=\'var(--r1)\'" onmouseout="this.style.background=\'var(--r0)\'">🗑 Remove</button>'+
+          '</div>'+
+        '</div>'+
         '</div>'+
       '</div>';
     }).join('')
