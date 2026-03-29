@@ -64,11 +64,19 @@ if('serviceWorker' in navigator){
 .loc-section:last-child{border-bottom:none}
 .loc-section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-faint);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
 
-/* INVITE CODE BLOCK */
-.invite-block{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.invite-code-pill{font-family:monospace;font-size:23px;font-weight:700;letter-spacing:4px;color:#ffffff;background:#3a5470;border:2px solid #4a6a8a;border-radius:10px;padding:10px 18px;cursor:pointer;user-select:all;transition:background 0.15s}
-.invite-code-pill:hover{background:#4a6a8a}
-.invite-code-copy{font-size:13px;color:var(--text-faint);margin-top:6px}
+/* INVITE CODES */
+.invite-codes{display:flex;gap:10px;flex-wrap:wrap;}
+.invite-code-card{flex:1;min-width:140px;background:var(--b0);border:1px solid var(--b2);border-radius:8px;padding:8px 12px;cursor:pointer;transition:background 0.15s;}
+.invite-code-card:hover{background:var(--b1);}
+.invite-code-card-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);margin-bottom:4px;display:flex;align-items:center;justify-content:space-between;}
+.invite-code-card-value{font-family:monospace;font-size:15px;font-weight:700;letter-spacing:2px;color:var(--b7);}
+.invite-code-card-sub{font-size:11px;color:var(--text-faint);margin-top:3px;}
+/* CONTACT CARDS */
+.contact-cards{display:flex;gap:10px;flex-wrap:wrap;}
+.contact-card{flex:1;min-width:150px;background:var(--b0);border:1px solid var(--border-light);border-radius:10px;padding:10px 12px;}
+.contact-card-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);margin-bottom:5px;}
+.contact-card-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;}
+.contact-card-detail{font-size:12px;color:var(--text-muted);line-height:1.7;}
 
 /* USERS GRID */
 .users-list{display:flex;flex-direction:column;gap:1px}
@@ -82,10 +90,6 @@ if('serviceWorker' in navigator){
 .role-pill.admin{background:var(--b1);color:var(--b7)}
 .role-pill.owner{background:var(--g0);color:var(--g5)}
 .role-pill.employee{background:var(--b0);color:var(--text-faint);border:1px solid var(--border)}
-
-/* OWNER INFO ROW */
-.owner-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:16px;color:var(--text-muted)}
-.owner-detail{display:flex;align-items:center;gap:4px}
 
 /* EMPTY STATE */
 .empty-state{text-align:center;padding:60px 24px;color:var(--text-faint)}
@@ -122,7 +126,7 @@ if('serviceWorker' in navigator){
 .loc-group.pending-card .loc-avatar{background:linear-gradient(135deg,#8fa3b3,#b0bec8);}
 .pending-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;background:#f5f5f5;color:var(--text-faint);border:1px solid var(--border);border-radius:20px;padding:2px 8px;white-space:nowrap;}
 
-@media(max-width:600px){.loc-header-actions{flex-direction:column;}.invite-block{flex-direction:column;align-items:flex-start;}}
+@media(max-width:600px){.loc-header-actions{flex-direction:column;}.contact-cards,.invite-codes{flex-direction:column;}}
 </style>
 </head>
 <body>
@@ -137,7 +141,7 @@ if('serviceWorker' in navigator){
 </svg></a>
   <div class="nav-page-title" style="margin-left:10px;">Locations</div>
   <div class="nav-menu-wrap">
-    <button class="nav-menu-btn" onclick="toggleNavMenu()"><span id="nav-display-name" style="font-size:13px;font-weight:600;color:var(--text-muted);margin-right:4px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>ADMIN <span style="font-size:10px;">▾</span></button>
+    <button class="nav-menu-btn" onclick="toggleNavMenu()"><div class="nav-avatar" id="nav-avatar"><span></span><img alt=""/></div><span id="nav-display-name" style="font-size:13px;font-weight:600;color:var(--text-muted);margin-right:4px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>ADMIN <span style="font-size:10px;">▾</span></button>
     <div class="nav-drop" id="nav-dropdown">
       <button class="nav-drop-item" onclick="window.location.href='admin.html';closeNavMenu()">🏠 Dashboard</button>
       <button class="nav-drop-item" onclick="window.location.href='locations.html';closeNavMenu()">🏪 Locations</button>
@@ -165,6 +169,26 @@ if('serviceWorker' in navigator){
 </div>
 
 <!-- ══ EDIT LOCATION MODAL ══ -->
+<!-- EDIT USER MODAL -->
+<div class="modal-overlay" id="modal-edituser" onclick="closeMOnBg(event,'modal-edituser')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Edit User</div>
+    <div class="modal-body">
+      <input type="hidden" id="eu-id"/>
+      <div class="modal-field"><label>First Name</label><input type="text" id="eu-firstname"/></div>
+      <div class="modal-field"><label>Last Name</label><input type="text" id="eu-lastname"/></div>
+      <div class="modal-field"><label>Display Name</label><input type="text" id="eu-displayname" placeholder="How their name appears in the app"/></div>
+      <div class="modal-field"><label>Phone</label><input type="tel" id="eu-phone" placeholder="(555) 000-0000" oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"/></div>
+    </div>
+    <div class="modal-msg" id="eu-msg"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-full" onclick="saveEditUser()" style="font-size:14px;padding:11px;">Save Changes</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-edituser')">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-editloc" onclick="closeMOnBg(event,'modal-editloc')">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
@@ -372,42 +396,69 @@ function renderLocations(){
   function buildCard(loc,isPending){
     var initials=loc.name.split(' ').slice(0,2).map(function(w){return w[0];}).join('').toUpperCase();
     var locUsers=allUsers.filter(function(u){return u.location_id===loc.id;});
+    var roleOrder={owner:0,employee:1};
+    locUsers.sort(function(a,b){return (roleOrder[a.role]??9)-(roleOrder[b.role]??9);});
     var sc=loc.settings&&loc.settings.secondContact;
 
     var usersHtml=locUsers.length?locUsers.map(function(u){
       var fn=[u.first_name,u.last_name].filter(Boolean).join(' ')||u.display_name||u.email;
       var letter=(u.first_name||u.display_name||u.email||'?')[0].toUpperCase();
       var dn=u.display_name?'<span style="font-size:13px;color:var(--text-faint);margin-left:4px;">('+escHtml(u.display_name)+')</span>':'';
+      var avatarInner=u.avatar_url?'<img src="'+u.avatar_url+'" style="width:32px;height:32px;object-fit:cover;border-radius:50%;display:block;"/>':letter;
       return '<div class="user-row">'+
-        '<div class="user-avatar" style="background:'+(roleBg[u.role]||'var(--b0)')+';color:'+(roleColors[u.role]||'var(--text-muted)')+';">'+letter+'</div>'+
+        '<div class="user-avatar" style="background:'+(u.avatar_url?'transparent':roleBg[u.role]||'var(--b0)')+';color:'+(roleColors[u.role]||'var(--text-muted)')+';overflow:hidden;">'+avatarInner+'</div>'+
         '<div class="user-info">'+
           '<div class="user-name">'+escHtml(fn)+dn+'</div>'+
           '<div class="user-email">'+escHtml(u.email)+'</div>'+
         '</div>'+
         '<select onchange="changeUserRole(\''+u.id+'\',this.value,this)" style="font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:600;padding:3px 7px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:'+(roleColors[u.role]||'var(--text-muted)')+';cursor:pointer;outline:none;flex-shrink:0;">'+
           '<option value="owner" '+(u.role==='owner'?'selected':'')+'>Owner</option>'+
-          '<option value="employee" '+(u.role==='employee'?'selected':'')+'>Employee</option>'+
+          '<option value="employee" '+(u.role==='employee'?'selected':'')+'>Operator</option>'+
         '</select>'+
+        '<button onclick="openEditUser(\''+u.id+'\',\''+escAttr(u.first_name)+'\',\''+escAttr(u.last_name)+'\',\''+escAttr(u.display_name)+'\',\''+escAttr(u.phone)+'\')" title="Edit user" style="background:none;border:1px solid var(--border);border-radius:5px;padding:3px 8px;cursor:pointer;font-size:13px;color:var(--text-muted);line-height:1;flex-shrink:0;" onmouseover="this.style.background=\'var(--b0)\'" onmouseout="this.style.background=\'none\'">✎</button>'+
+        '<button onclick="confirmRemoveUser(\''+u.id+'\',\''+escAttr(fn)+'\')" title="Remove user" style="background:none;border:1px solid var(--border);border-radius:5px;padding:3px 8px;cursor:pointer;font-size:13px;color:var(--r5);line-height:1;flex-shrink:0;" onmouseover="this.style.background=\'var(--r0)\'" onmouseout="this.style.background=\'none\'">✕</button>'+
       '</div>';
     }).join('')
     :'<div style="font-size:13px;color:var(--text-faint);padding:4px 0;">No registered users yet — share the invite code below.</div>';
 
-    var ownerInfo=(loc.owner_name||loc.owner_phone||(loc.settings&&loc.settings.ownerEmail))?
-      '<div class="owner-row">'+
-        (loc.owner_name?'<div class="owner-detail">👤 <strong>'+escHtml(loc.owner_name)+'</strong></div>':'')+
-        (loc.owner_phone?'<div class="owner-detail">📞 '+escHtml(loc.owner_phone)+'</div>':'')+
-        (loc.settings&&loc.settings.ownerEmail?'<div class="owner-detail">✉️ '+escHtml(loc.settings.ownerEmail)+'</div>':'')+
-      '</div>':'';
-
-    var sc2Html=sc&&(sc.name||sc.phone||sc.email)?
-      '<div style="border-top:1px dashed var(--border-light);margin-top:8px;padding-top:8px;">'+
-        '<div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);margin-bottom:8px;">Second Contact</div>'+
-        '<div class="owner-row">'+
-          (sc.name?'<div class="owner-detail">👤 <strong>'+escHtml(sc.name)+'</strong></div>':'')+
-          (sc.phone?'<div class="owner-detail">📞 '+escHtml(sc.phone)+'</div>':'')+
-          (sc.email?'<div class="owner-detail">✉️ '+escHtml(sc.email)+'</div>':'')+
+    var ownerCard=(loc.owner_name||loc.owner_phone||(loc.settings&&loc.settings.ownerEmail))?
+      '<div class="contact-card">'+
+        '<div class="contact-card-title">Primary Owner</div>'+
+        (loc.owner_name?'<div class="contact-card-name">'+escHtml(loc.owner_name)+'</div>':'')+
+        '<div class="contact-card-detail">'+
+          (loc.owner_phone?'📞 '+escHtml(loc.owner_phone)+'<br>':'')+
+          (loc.settings&&loc.settings.ownerEmail?'✉️ '+escHtml(loc.settings.ownerEmail):'')+
         '</div>'+
       '</div>':'';
+
+    var sc2Card=sc&&(sc.name||sc.phone||sc.email)?
+      '<div class="contact-card">'+
+        '<div class="contact-card-title">Second Contact</div>'+
+        (sc.name?'<div class="contact-card-name">'+escHtml(sc.name)+'</div>':'')+
+        '<div class="contact-card-detail">'+
+          (sc.phone?'📞 '+escHtml(sc.phone)+'<br>':'')+
+          (sc.email?'✉️ '+escHtml(sc.email):'')+
+        '</div>'+
+      '</div>':'';
+
+    var copyIcon='<svg width="12" height="12" viewBox="0 0 14 14" fill="none"><rect x="4" y="4" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M2 9.5V2h7.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
+    var empCode=loc.settings&&loc.settings.employeeInviteCode;
+    var ownerCodeCard='<div class="invite-code-card" onclick="copyCode(\''+escHtml(loc.invite_code||'')+'\')" title="Click to copy">'+
+      '<div class="invite-code-card-label">Owner '+copyIcon+'</div>'+
+      '<div class="invite-code-card-value">'+escHtml(loc.invite_code||'—')+'</div>'+
+      '<div class="invite-code-card-sub">Register as club owner</div>'+
+    '</div>';
+    var empCodeCard=empCode?
+      '<div class="invite-code-card" onclick="copyCode(\''+escHtml(empCode)+'\')" title="Click to copy">'+
+        '<div class="invite-code-card-label">Operator '+copyIcon+'</div>'+
+        '<div class="invite-code-card-value">'+escHtml(empCode)+'</div>'+
+        '<div class="invite-code-card-sub">Register as operator</div>'+
+      '</div>':
+      '<div class="invite-code-card" style="opacity:0.5;cursor:default;">'+
+        '<div class="invite-code-card-label">Operator</div>'+
+        '<div class="invite-code-card-value" style="font-size:12px;letter-spacing:0;color:var(--text-faint);">Not set</div>'+
+        '<div class="invite-code-card-sub">Set in app settings</div>'+
+      '</div>';
 
     var cardClass='loc-group'+(isPending?' pending-card':'');
     var pendingBadge=isPending?'<span class="pending-badge">⏳ Pending Setup</span>':'';
@@ -428,13 +479,10 @@ function renderLocations(){
           '<button class="btn btn-danger btn-sm" onclick="confirmRemoveLocation(this)" data-id="'+loc.id+'" data-name="'+escHtml(loc.name)+'" title="Remove location">🗑</button>'+
         '</div>'+
       '</div>'+
-      (ownerInfo||sc2Html?'<div class="loc-section"><div class="loc-section-title">Contact</div>'+ownerInfo+sc2Html+'</div>':'')+
+      (ownerCard||sc2Card?'<div class="loc-section"><div class="loc-section-title">Contact</div><div class="contact-cards">'+ownerCard+sc2Card+'</div></div>':'')+
       '<div class="loc-section">'+
-        '<div class="loc-section-title">Invite Code<button class="btn btn-ghost btn-sm" onclick="openRegenCode(\''+loc.id+'\')" style="font-size:11px;padding:3px 8px;">Change Code</button></div>'+
-        '<div class="invite-block"><div>'+
-          '<div class="invite-code-pill" onclick="copyCode(\''+escHtml(loc.invite_code||'—')+'\')" title="Click to copy">'+escHtml(loc.invite_code||'—')+'</div>'+
-          '<div class="invite-code-copy">Click to copy · Share with club owner to register</div>'+
-        '</div></div>'+
+        '<div class="loc-section-title">Invite Codes<button class="btn btn-ghost btn-sm" onclick="openRegenCode(\''+loc.id+'\')" style="font-size:11px;padding:3px 8px;">Change Owner Code</button></div>'+
+        '<div class="invite-codes">'+ownerCodeCard+empCodeCard+'</div>'+
       '</div>'+
       (!isPending?
         '<div class="loc-section">'+
@@ -473,7 +521,7 @@ function goToApp(locId){
 async function loadData(){
   var locRes=await sb.from('locations').select('id,name,address,owner_name,owner_phone,invite_code,settings').order('name');
   allLocations=locRes.data||[];
-  var userRes=await sb.from('users').select('id,email,role,location_id,display_name,first_name,last_name').in('role',['owner','employee']).order('role');
+  var userRes=await sb.from('users').select('id,email,role,location_id,display_name,first_name,last_name,phone,avatar_url').in('role',['owner','employee']).order('role');
   allUsers=userRes.data||[];
   renderLocations();
 }
@@ -485,7 +533,51 @@ async function changeUserRole(userId,newRole,selectEl){
   var u=allUsers.find(function(x){return x.id===userId;});
   if(u)u.role=newRole;
   renderLocations();
-  showToast('Role updated to '+newRole+' ✓','success');
+  var roleLabel={owner:'owner',employee:'operator'};
+  showToast('Role updated to '+(roleLabel[newRole]||newRole)+' ✓','success');
+}
+
+function escAttr(s){return String(s||'').replace(/'/g,'&#39;').replace(/"/g,'&quot;');}
+
+// ── EDIT USER ──
+function openEditUser(id,firstName,lastName,displayName,phone){
+  document.getElementById('eu-id').value=id;
+  document.getElementById('eu-firstname').value=firstName||'';
+  document.getElementById('eu-lastname').value=lastName||'';
+  document.getElementById('eu-displayname').value=displayName||'';
+  document.getElementById('eu-phone').value=phone||'';
+  var msgEl=document.getElementById('eu-msg');
+  msgEl.className='modal-msg';msgEl.textContent='';
+  openModal('modal-edituser');
+}
+
+async function saveEditUser(){
+  var id=document.getElementById('eu-id').value;
+  var firstName=document.getElementById('eu-firstname').value.trim();
+  var lastName=document.getElementById('eu-lastname').value.trim();
+  var displayName=document.getElementById('eu-displayname').value.trim();
+  var phone=document.getElementById('eu-phone').value.trim();
+  var msgEl=document.getElementById('eu-msg');
+  var res=await sb.from('users').update({
+    first_name:firstName,last_name:lastName,
+    display_name:displayName,phone:phone||null
+  }).eq('id',id);
+  if(res.error){msgEl.textContent='Save failed: '+res.error.message;msgEl.className='modal-msg error';return;}
+  closeModal('modal-edituser');
+  showToast('Profile updated ✓','success');
+  await loadData();
+}
+
+function confirmRemoveUser(userId,name){
+  if(!confirm('Remove '+name+' from this location?\n\nThey will lose access immediately but can rejoin with an invite code.'))return;
+  removeUserFromLocation(userId,name);
+}
+
+async function removeUserFromLocation(userId,name){
+  var res=await sb.from('users').update({location_id:null,role:'pending'}).eq('id',userId);
+  if(res.error){showToast('Remove failed: '+res.error.message,'error');return;}
+  showToast(name+' removed ✓','success');
+  await loadData();
 }
 
 // ── EDIT LOCATION ──
@@ -657,10 +749,11 @@ async function init(){
   var sessionRes=await sb.auth.getSession();
   var session=sessionRes.data.session;
   if(!session){window.location.href='index.html';return;}
-  var userRes=await sb.from('users').select('role,display_name,first_name,last_name').eq('id',session.user.id).single();
+  var userRes=await sb.from('users').select('role,display_name,first_name,last_name,avatar_url').eq('id',session.user.id).single();
   if(!userRes.data||userRes.data.role!=='admin'){window.location.href='index.html';return;}
   var _ndn=document.getElementById('nav-display-name');
   if(_ndn){var u=userRes.data;_ndn.textContent=u.display_name||[u.first_name,u.last_name].filter(Boolean).join(' ')||'';}
+  setNavAvatar(userRes.data.avatar_url, userRes.data.first_name, userRes.data.last_name, userRes.data.display_name);
   await loadData();
   document.getElementById('loading-overlay').style.display='none';
 }

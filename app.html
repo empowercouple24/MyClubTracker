@@ -937,9 +937,8 @@ function confirmRemoveUser(userId,name){
 }
 
 async function removeUser(userId,name){
-  // Remove from public.users — this immediately locks them out of the app.
-  // Their auth.users account is also deleted via ON DELETE CASCADE on the FK.
-  const{error}=await sb.from('users').delete().eq('id',userId).eq('location_id',LOCATION_ID);
+  // Detach user from location — preserves auth account so they can rejoin with invite code
+  const{error}=await sb.from('users').update({location_id:null,role:'pending'}).eq('id',userId).eq('location_id',LOCATION_ID);
   if(error){showToast('Remove failed: '+error.message,'error');return;}
   showToast(`${name} removed ✓`,'success');
   await loadTeamMembers();
@@ -1652,6 +1651,39 @@ async function checkForUpdate() {
 // Check after 30 seconds (in case deploy just happened), then every 5 minutes
 setTimeout(checkForUpdate, 15000);
 setInterval(checkForUpdate, 15000);
+
+// ── DEACTIVATION POLL ──
+(function() {
+  var deactivationShown = false;
+  function injectDeactivationOverlay() {
+    if (document.getElementById('deactivation-overlay')) return;
+    var el = document.createElement('div');
+    el.id = 'deactivation-overlay';
+    el.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(30,45,61,0.72);display:flex;align-items:center;justify-content:center;padding:20px;';
+    el.innerHTML =
+      '<div style="background:#fff;border-radius:18px;width:100%;max-width:380px;padding:36px 28px 28px;text-align:center;font-family:\'DM Sans\',sans-serif;">' +
+        '<div style="font-size:40px;margin-bottom:14px;">🔒</div>' +
+        '<div style="font-family:\'Outfit\',sans-serif;font-size:20px;font-weight:700;color:#1e2d3d;margin-bottom:10px;">Account Deactivated</div>' +
+        '<div style="font-size:14px;color:#5b7087;line-height:1.6;margin-bottom:24px;">Your account has been removed from this location. Contact your admin to request reactivation.</div>' +
+        '<button onclick="window.location.href=\'index.html\'" style="width:100%;font-family:\'DM Sans\',sans-serif;font-size:15px;font-weight:600;background:linear-gradient(135deg,#3a5470,#5b80a0);color:white;border:none;border-radius:10px;padding:13px;cursor:pointer;">OK</button>' +
+      '</div>';
+    document.body.appendChild(el);
+  }
+  async function checkDeactivation() {
+    if (deactivationShown || IS_ADMIN_VIEW) return;
+    if (!CURRENT_SESSION) return;
+    try {
+      var res = await sb.from('users').select('role,location_id').eq('id', CURRENT_SESSION.user.id).single();
+      var u = res.data;
+      if (!u || u.role === 'pending' || !u.location_id) {
+        deactivationShown = true;
+        await sb.auth.signOut();
+        injectDeactivationOverlay();
+      }
+    } catch(e) {}
+  }
+  setTimeout(function() { checkDeactivation(); setInterval(checkDeactivation, 30000); }, 10000);
+})();
 
 // ── IDLE AUTO-LOGOUT (30 min idle, 3 min warning) ──
 (function () {
