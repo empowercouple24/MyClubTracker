@@ -550,7 +550,7 @@ if('serviceWorker' in navigator){
         </div>
       </div>
       <div style="background:var(--b1);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--b7);line-height:1.6;margin-bottom:16px;">
-        📋 After saving, share the <strong>Invite Code</strong> above with the club owner so they can register their account at <strong>nemecekorgclubs.com</strong>. The location will appear as <em>Pending Setup</em> until they register.
+        📋 After saving, share the <strong>Invite Code</strong> above with the club owner so they can register their account at <strong>myclubtracker.com</strong>. The location will appear as <em>Pending Setup</em> until they register.
       </div>
       <div class="modal-error" id="nl-confirm-error"></div>
       <div class="modal-footer">
@@ -850,7 +850,7 @@ async function executeApprove(){
           <div style="font-family:monospace;font-size:28px;font-weight:800;letter-spacing:4px;color:#1e2d3d;">${escHtml(code)}</div>
           <div style="font-size:13px;color:#5b7087;margin-top:8px;">This code is pre-filled in your registration form — just click the link below to get started.</div>
         </div>
-        <a href="https://nemecekorgclubs.com/index.html?tab=register&amp;code=${encodeURIComponent(code)}" style="display:inline-block;color:#3a5470;text-decoration:none;font-size:15px;font-weight:700;">Register Now →</a>
+        <a href="https://myclubtracker.com/index.html?tab=register&amp;code=${encodeURIComponent(code)}" style="display:inline-block;color:#3a5470;text-decoration:none;font-size:15px;font-weight:700;">Register Now →</a>
         <p style="font-size:13px;color:#8fa3b3;margin-top:24px;">Questions? Contact ${escHtml(ADMIN_NAME)} at ${escHtml(ADMIN_EMAIL)}</p>
       </div>`
     );
@@ -1477,7 +1477,7 @@ function renderLocations(){
         </div>
         <div class="loc-expanded">
           <div style="padding:4px 0 10px;font-size:13px;color:var(--text-muted);line-height:1.6;">
-            Waiting for the club owner to register at <strong>nemecekorgclubs.com</strong> using the invite code above.
+            Waiting for the club owner to register at <strong>myclubtracker.com</strong> using the invite code above.
           </div>
           <div class="expanded-footer">
             <a class="btn-view-app" href="locations.html#locg-${loc.id}">Manage Club</a>
