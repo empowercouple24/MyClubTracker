@@ -297,15 +297,18 @@ async function submitOnboard(){
     if(authErr)throw authErr;
     const userId=authData.user?.id;if(!userId)throw new Error('Account creation failed — please try again.');
     const first=document.getElementById('s2-first').value.trim(),last=document.getElementById('s2-last').value.trim(),display=document.getElementById('s2-display').value.trim()||first,phone=document.getElementById('s2-phone').value.trim(),orgName=document.getElementById('s2-org').value.trim(),fullAddr=`${addr}, ${city}, ${state} ${zip}`.trim();
-    const{data:loc,error:locErr}=await sb.from('locations').insert({name:clubName,address:fullAddr,org_id:_orgId,settings:{clubName,taxRate:1.25,ohRate:32,otherRate:50,merchRate:100,dvDelta:3,opDays:[false,true,true,true,true,true,true],operators:[{name:'',visible:true,aliases:''},{name:'',visible:true,aliases:''},{name:'',visible:false,aliases:''},{name:'',visible:false,aliases:''}]}}).select().single();
-    if(locErr)throw locErr;
-    const{error:userErr}=await sb.from('users').upsert({id:userId,email,first_name:first,last_name:last,display_name:display,phone,role:'org_leader',org_id:_orgId,location_id:loc.id});
-    if(userErr)throw userErr;
-    const{error:orgErr}=await sb.from('organizations').update({name:orgName,leader_name:`${first} ${last}`.trim(),leader_email:email,owner_user_id:userId,status:'active',activated_at:new Date().toISOString(),invite_token:null,invite_expires_at:null}).eq('id',_orgId);
-    if(orgErr)throw orgErr;
-    await sb.from('org_leaders').upsert({org_id:_orgId,user_id:userId,is_primary:true},{onConflict:'org_id,user_id'});
-    document.getElementById('success-org').textContent=orgName;
-    document.getElementById('success-loc').textContent=clubName;
+    // All DB writes go through Edge Function with service role — bypasses RLS
+    const{data:fnData,error:fnErr}=await sb.functions.invoke('complete-onboarding',{
+      body:{
+        userId,email,
+        firstName:first,lastName:last,displayName:display,phone,
+        orgId:_orgId,orgName,
+        clubName,address:fullAddr,
+      }
+    });
+    if(fnErr||!fnData?.ok)throw new Error(fnData?.error||fnErr?.message||'Setup failed — please try again.');
+    document.getElementById('success-org').textContent=fnData.orgName||orgName;
+    document.getElementById('success-loc').textContent=fnData.clubName||clubName;
     document.getElementById('ob-steps').style.display='none';
     document.querySelectorAll('.ob-panel').forEach(p=>p.classList.remove('active'));
     document.getElementById('panel-success').classList.add('active');
