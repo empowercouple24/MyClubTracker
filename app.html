@@ -946,7 +946,7 @@ async function loadTeamMembers(){
 async function changeTeamRole(userId,newRole,selectEl){
   const{error}=await sb.from('users').update({role:newRole}).eq('id',userId);
   if(error){showToast('Role change failed: '+error.message,'error');await loadTeamMembers();return;}
-  showToast(`Role updated to ${newRole} ✓`,'success');
+  const roleLabel={owner:'owner',employee:'operator'};showToast(`Role updated to ${roleLabel[newRole]||newRole} ✓`,'success');
 }
 
 function confirmRemoveUser(userId,name){
@@ -1204,7 +1204,7 @@ async function init(){
     const navDN = document.getElementById('nav-display-name');
     if(navDN){ navDN.textContent = (u.display_name || [u.first_name,u.last_name].filter(Boolean).join(' ') || ''); }
     const navRL = document.getElementById('nav-role-label');
-    if(navRL){ navRL.textContent = (USER_ROLE==='employee'?'EMPLOYEE':'OWNER'); }
+    if(navRL){ navRL.textContent = (USER_ROLE==='employee'?'OPERATOR':'OWNER'); }
     const _pb2=document.getElementById('nav-profile-btn');if(_pb2)_pb2.title=u.display_name||session.user.email;
     setNavAvatar(u.avatar_url, u.first_name, u.last_name, u.display_name);
   }

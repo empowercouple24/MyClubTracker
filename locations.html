@@ -237,7 +237,7 @@ if('serviceWorker' in navigator){
     <div class="modal-title">Change Invite Code</div>
     <div class="modal-body">
       <div style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:14px;">
-        Changing the invite code will invalidate the old one. Any owner or employee who hasn't registered yet will need the new code.
+        Changing the invite code will invalidate the old one. Any owner or operator who hasn't registered yet will need the new code.
       </div>
       <div class="modal-field"><label>New Invite Code</label>
         <div style="display:flex;gap:8px;align-items:center;">
@@ -386,7 +386,7 @@ function renderLocations(){
         '</div>'+
         '<select onchange="changeUserRole(\''+u.id+'\',this.value,this)" style="font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:600;padding:3px 7px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:'+(roleColors[u.role]||'var(--text-muted)')+';cursor:pointer;outline:none;flex-shrink:0;">'+
           '<option value="owner" '+(u.role==='owner'?'selected':'')+'>Owner</option>'+
-          '<option value="employee" '+(u.role==='employee'?'selected':'')+'>Employee</option>'+
+          '<option value="employee" '+(u.role==='employee'?'selected':'')+'>Operator</option>'+
         '</select>'+
       '</div>';
     }).join('')
@@ -485,7 +485,7 @@ async function changeUserRole(userId,newRole,selectEl){
   var u=allUsers.find(function(x){return x.id===userId;});
   if(u)u.role=newRole;
   renderLocations();
-  showToast('Role updated to '+newRole+' ✓','success');
+  var roleLabel={owner:'owner',employee:'operator'};showToast('Role updated to '+(roleLabel[newRole]||newRole)+' ✓','success');
 }
 
 // ── EDIT LOCATION ──

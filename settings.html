@@ -1175,7 +1175,8 @@ async function changeUserRole(userId, newRole, selectEl) {
   const u = allAdmins.find(x=>x.id===userId);
   if (u) u.role = newRole;
   renderAdmins();
-  showToast(`Role updated to ${newRole} ✓`, 'success');
+  const roleLabel={owner:'owner',employee:'operator'};
+  showToast(`Role updated to ${roleLabel[newRole]||newRole} ✓`, 'success');
 }
 
 // ── ADD LOCATION ──
