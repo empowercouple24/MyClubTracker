@@ -195,7 +195,7 @@ if('serviceWorker' in navigator){
     /* Constrain inventory panel width so it doesn't stretch across full screen */
     #panel-enter{max-width:860px;margin:0 auto;}
     /* ── Dashboard Widgets ── */
-    .dashboard-widgets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;}
+    .dashboard-widgets{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px;}
     .dw-card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:12px 14px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow-sm);min-width:0;}
     .dw-icon{font-size:22px;flex-shrink:0;line-height:1;}
     .dw-body{min-width:0;flex:1;}
@@ -205,6 +205,9 @@ if('serviceWorker' in navigator){
     .dw-streak .dw-value{color:var(--b7);}
     .dw-week .dw-value{color:var(--g6,#16a34a);}
     .dw-month .dw-value{color:var(--a6,#d97706);}
+    .dw-inv .dw-value{color:var(--text);font-size:13px;}
+    .dw-inv{transition:border-color 0.15s,background 0.15s;}
+    .dw-inv:hover{border-color:var(--b5);background:var(--b0);}
     /* Operator earnings preview */
     .dw-ops-preview{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;box-shadow:var(--shadow-sm);}
     .dw-ops-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:8px;}
@@ -216,7 +219,7 @@ if('serviceWorker' in navigator){
     /* Operating day toggles */
     .opday-btn{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;padding:5px 8px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);color:var(--text-faint);cursor:pointer;transition:all 0.15s;}
     .opday-btn.active{background:var(--b7);color:#fff;border-color:var(--b7);}
-    @media(max-width:520px){.dashboard-widgets{grid-template-columns:1fr 1fr;}.dw-card:last-child{grid-column:span 2;}}
+    @media(max-width:680px){.dashboard-widgets{grid-template-columns:1fr 1fr;}}
     #panel-inv{max-width:none;margin:0;padding:0;}
     #inv-sticky-wrap{position:sticky;top:0;z-index:20;background:var(--bg);padding-bottom:4px;}
     .inv-name-cell{display:flex;align-items:baseline;gap:6px;overflow:hidden;}
@@ -399,6 +402,15 @@ if('serviceWorker' in navigator){
         <div class="dw-value" id="dw-month-val">—</div>
         <div class="dw-label">This Month</div>
         <div class="dw-sub" id="dw-month-sub"></div>
+      </div>
+    </div>
+    <!-- Inventory Widget -->
+    <div class="dw-card dw-inv" onclick="switchTab('inv')" style="cursor:pointer;">
+      <div class="dw-icon">📦</div>
+      <div class="dw-body">
+        <div class="dw-value" id="dw-inv-val">—</div>
+        <div class="dw-label">Inventory</div>
+        <div class="dw-sub" id="dw-inv-sub"></div>
       </div>
     </div>
   </div>
@@ -1508,6 +1520,30 @@ function renderDashboardWidgets(){
     const mn = today.toLocaleDateString('en-US',{month:'long'});
     monthSubEl.textContent = mn + ' · ' + monthDays.length + ' day' + (monthDays.length!==1?'s':'') + ' entered';
   }
+
+  // ── INVENTORY ──
+  const invValEl = document.getElementById('dw-inv-val');
+  const invSubEl = document.getElementById('dw-inv-sub');
+  if(invValEl && invSubEl){
+    if(INV_SNAPSHOTS.length){
+      const last = INV_SNAPSHOTS[0];
+      const savedAt = new Date(last.saved_at);
+      const now = new Date();
+      const diffMs = now - savedAt;
+      const diffDays = Math.floor(diffMs / 86400000);
+      // Value: relative time
+      let valText;
+      if(diffDays === 0) valText = 'Today';
+      else if(diffDays === 1) valText = 'Yesterday';
+      else valText = diffDays + 'd ago';
+      invValEl.textContent = valText;
+      // Sub: exact date + time
+      invSubEl.textContent = savedAt.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' · ' + savedAt.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+    } else {
+      invValEl.textContent = 'Never';
+      invSubEl.textContent = 'No snapshots yet';
+    }
+  }
 }
 
 function renderOpsEarningsPreview(){
@@ -1695,7 +1731,7 @@ function setHave(s,v){
 async function saveInvSnapshot(){
   if(IS_ADMIN_VIEW){showToast('Admin view — cannot save','error');return;}
   const{data:ns,error}=await sb.from('inventory').insert({location_id:LOCATION_ID,data:{entries:PRODUCTS.map(p=>({sku:p[2],name:p[1],have:invHave[p[2]]||0}))}}).select().single();
-  if(error){showToast('Snapshot failed','error');return;}INV_SNAPSHOTS.unshift(ns);showToast('Snapshot saved ✓','success');renderInventoryHistory();
+  if(error){showToast('Snapshot failed','error');return;}INV_SNAPSHOTS.unshift(ns);showToast('Snapshot saved ✓','success');renderInventoryHistory();renderDashboardWidgets();
 }
 function renderInventoryHistory(){
   const el=document.getElementById('invhist-list');
