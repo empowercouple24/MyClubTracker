@@ -383,6 +383,11 @@ async function doSignIn(){
   if(!u){showMsg('si-msg','Account not set up. Contact your admin.','error');setBtn('si-btn',false,'Sign In');return;}
   if(u.role==='admin'){window.location.href='admin.html';return;}
   if(u.location_id){window.location.href='app.html';return;}
+  if(u.role==='pending'||!u.location_id){
+    await sb.auth.signOut();
+    showMsg('si-msg','Your account has been deactivated. Contact your admin to request reactivation.','error');
+    setBtn('si-btn',false,'Sign In');return;
+  }
   showMsg('si-msg','No location assigned. Contact your admin.','error');setBtn('si-btn',false,'Sign In');
 }
 async function doResend(){var email=document.getElementById('si-email').value.trim();if(!email){showMsg('si-msg','Enter your email above first.','error');return;}await sb.auth.resend({type:'signup',email:email});showMsg('si-msg','Confirmation email resent! Check your inbox.','success');document.getElementById('resend-wrap').style.display='none';}
