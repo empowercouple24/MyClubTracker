@@ -299,6 +299,26 @@ async function submitOnboard(){
 function goToDashboard(){window.location.href='org-admin.html';}
 document.addEventListener('DOMContentLoaded',()=>{
   const st=document.getElementById('s3-state');if(st)st.addEventListener('input',()=>st.value=st.value.toUpperCase());
+
+  // ZIP code auto-populate city and state
+  const zipEl=document.getElementById('s3-zip');
+  const cityEl=document.getElementById('s3-city');
+  const stateEl=document.getElementById('s3-state');
+  if(zipEl){
+    zipEl.addEventListener('input',async()=>{
+      const zip=zipEl.value.replace(/\D/g,'');
+      if(zip.length!==5)return;
+      try{
+        const res=await fetch(`https://api.zippopotam.us/us/${zip}`);
+        if(!res.ok)return;
+        const data=await res.json();
+        const place=data.places?.[0];
+        if(!place)return;
+        if(cityEl&&!cityEl.value)cityEl.value=place['place name']||'';
+        if(stateEl&&!stateEl.value)stateEl.value=place['state abbreviation']||'';
+      }catch(e){/* silently fail */}
+    });
+  }
   const fn=document.getElementById('s2-first'),dn=document.getElementById('s2-display');
   if(fn&&dn)fn.addEventListener('input',()=>{if(!dn.value)dn.value=fn.value;});
 });
