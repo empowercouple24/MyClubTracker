@@ -182,12 +182,12 @@ if('serviceWorker' in navigator){
     .inv-table th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);background:#f8fafc;padding:8px 14px;text-align:right;border-bottom:1px solid var(--border-light);vertical-align:middle;}
     .inv-table th:first-child{text-align:left}
     .inv-table th:nth-child(1){width:auto}
-    .inv-table th:nth-child(2){width:52px}
-    .inv-table th:nth-child(3){width:40px}
-    .inv-table th:nth-child(4){width:56px}
-    .inv-table th:nth-child(5){width:54px}
-    .inv-table th:nth-child(6){width:66px}
-    .inv-table th:nth-child(7){width:66px}
+    .inv-table th:nth-child(2){width:58px}
+    .inv-table th:nth-child(3){width:44px}
+    .inv-table th:nth-child(4){width:62px}
+    .inv-table th:nth-child(5){width:60px}
+    .inv-table th:nth-child(6){width:88px}
+    .inv-table th:nth-child(7){width:88px}
     .inv-table td{padding:11px 14px;font-size:16px;font-weight:500;border-bottom:1px solid var(--border-light);vertical-align:middle;height:42px;}
     .inv-table tr:last-child td{border-bottom:none}
     .inv-table td:not(:first-child){text-align:right}
@@ -198,12 +198,12 @@ if('serviceWorker' in navigator){
     #inv-sticky-wrap{position:sticky;top:0;z-index:20;background:var(--bg);padding-bottom:4px;}
     .inv-name-cell{display:flex;align-items:baseline;gap:6px;overflow:hidden;}
     .inv-name{font-size:16px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .inv-sku{font-size:12px;color:var(--text-faint);flex-shrink:0;}
-    .inv-input{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;width:52px;text-align:center;background:var(--b0);border:1px solid var(--border);border-radius:4px;padding:3px 4px;outline:none;-moz-appearance:textfield;transition:border-color 0.15s;display:block;margin-left:auto;}
+    .inv-sku{font-size:16px;color:var(--text-faint);flex-shrink:0;}
+    .inv-input{font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;width:56px;text-align:center;background:var(--b0);border:1px solid var(--border);border-radius:4px;padding:3px 4px;outline:none;-moz-appearance:textfield;transition:border-color 0.15s;display:block;margin-left:auto;}
     .inv-input::-webkit-inner-spin-button,.inv-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
     #panel-invhist{max-width:740px;margin:0 auto;}
     .inv-input:focus{border-color:var(--a4);box-shadow:0 0 0 2px rgba(224,152,32,0.15);background:#fff}
-    .need-badge{display:inline-block;font-size:13px;font-weight:700;padding:3px 12px;border-radius:20px;min-width:36px;text-align:center;}
+    .need-badge{display:inline-block;font-size:16px;font-weight:700;padding:3px 12px;border-radius:20px;min-width:36px;text-align:center;}
     .need-badge.need{background:#bfdbfe;color:#1d4ed8;}
     .need-badge.ok{background:var(--g0);color:var(--g5);}
     .need-badge.zero{background:var(--b0);color:var(--text-faint);}
@@ -506,14 +506,14 @@ if('serviceWorker' in navigator){
 
 <div class="tab-panel" id="panel-inv" style="padding:0;">
   <div id="inv-sticky-wrap">
-    <div style="max-width:740px;margin:0 auto;padding:10px 12px 0;">
+    <div style="max-width:900px;margin:0 auto;padding:10px 12px 0;">
       <div class="inv-header"><div class="inv-header-title">Inventory</div><div class="inv-dv-row"><div class="inv-dv-card"><div class="inv-dv-item-label">DV Need</div><div class="inv-dv-item-val" id="inv-total-dvneed">0</div></div><div class="inv-dv-card"><div class="inv-dv-item-label">DV Have</div><div class="inv-dv-item-val" id="inv-total-vp">0</div></div></div></div>
     </div>
-    <div style="max-width:740px;margin:0 auto;padding:0 12px;">
+    <div style="max-width:900px;margin:0 auto;padding:0 12px;">
       <div class="filter-row"><button class="filter-chip active" onclick="setInvFilter('all',this)">All</button><button class="filter-chip" onclick="setInvFilter('needs',this)">Needs Only</button><button class="btn btn-primary" onclick="saveInvSnapshot()" style="margin-left:auto;">📸 Snapshot</button></div>
     </div>
   </div>
-  <div style="max-width:740px;margin:0 auto;padding:0 12px 10px;" id="inv-body"></div>
+  <div style="max-width:900px;margin:0 auto;padding:0 12px 10px;" id="inv-body"></div>
 </div>
 
 <div class="tab-panel" id="panel-invhist"><div id="invhist-list"><div class="empty-state">No snapshots yet.</div></div></div>
@@ -1478,7 +1478,7 @@ function renderInventory(){
     const vis=invFilter==='needs'?items.filter(p=>(invHave[p.sku]||0)<p.par):items;if(!vis.length)return;
     html+=`<div class="inv-cat-header">${cat}</div><table class="inv-table"><thead><tr><th>Product</th><th>VP</th><th>PAR</th><th>HAVE</th><th>NEED</th><th>DV Need</th><th>DV Have</th></tr></thead><tbody>`;
     vis.forEach(p=>{const haveRaw=invHave[p.sku],have=haveRaw||0,haveEntered=haveRaw!=null&&haveRaw!==undefined,need=Math.max(0,p.par-have),bc=need>0?'need':(have>0?'ok':'zero'),bt=need>0?need:(have>0?'✓':'—'),dvHave=(p.vp||0)*have,dvNeed=(p.vp||0)*need;
-      html+=`<tr><td><div class="inv-name-cell"><span class="inv-name">${p.name}</span>${p.sku?`<span class="inv-sku">${p.sku}</span>`:''}</div></td><td>${p.vp!=null?fmtVP(p.vp):'—'}</td><td>${p.par}</td><td><input class="inv-input" type="number" min="0" value="${have||''}" oninput="setHave('${p.sku}',this.value)"/></td><td><span class="need-badge ${bc}">${bt}</span></td><td id="dvneed-${p.sku}" style="font-size:15px;font-weight:600;color:var(--r5);opacity:0.8;">${haveEntered&&dvNeed>0?fmtVP(dvNeed):'—'}</td><td id="vptot-${p.sku}" style="font-size:15px;font-weight:600;color:var(--b6);">${dvHave>0?fmtVP(dvHave):'—'}</td></tr>`;
+      html+=`<tr><td><div class="inv-name-cell"><span class="inv-name">${p.name}</span>${p.sku?`<span class="inv-sku">${p.sku}</span>`:''}</div></td><td>${p.vp!=null?fmtVP(p.vp):'—'}</td><td>${p.par}</td><td><input class="inv-input" type="number" min="0" value="${have||''}" oninput="setHave('${p.sku}',this.value)"/></td><td><span class="need-badge ${bc}">${bt}</span></td><td id="dvneed-${p.sku}" style="font-size:16px;font-weight:600;color:var(--r5);opacity:0.8;">${haveEntered&&dvNeed>0?fmtVP(dvNeed):'—'}</td><td id="vptot-${p.sku}" style="font-size:16px;font-weight:600;color:var(--b6);">${dvHave>0?fmtVP(dvHave):'—'}</td></tr>`;
     });
     html+='</tbody></table>';
   });
