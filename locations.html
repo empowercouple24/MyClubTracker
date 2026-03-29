@@ -504,9 +504,9 @@ function renderLocations(){
           (loc.address?'<div class="loc-addr">📍 '+escHtml(loc.address)+'</div>':'')+
         '</div>'+
         '<div class="loc-header-actions">'+
-          '<button class="btn btn-ghost btn-sm" onclick="openEditLocation(\''+loc.id+'\')">✏️ Edit</button>'+
-          (!isPending?'<button class="btn btn-sm" onclick="goToApp(\''+loc.id+'\')" style="background:linear-gradient(135deg,var(--b7),var(--b5));color:white;font-size:12px;padding:5px 12px;">Enter Club View →</button>':'')+
-          '<button class="btn btn-danger btn-sm" onclick="confirmRemoveLocation(this)" data-id="'+loc.id+'" data-name="'+escHtml(loc.name)+'" title="Remove location">🗑</button>'+
+          (!isPending?'<button onclick="goToApp(\''+loc.id+'\')" style="font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:700;background:linear-gradient(135deg,var(--b7),var(--b5));color:white;border:none;border-radius:8px;padding:8px 24px;cursor:pointer;white-space:nowrap;">Enter Club View →</button>':'')+
+          '<button onclick="openEditLocation(\''+loc.id+'\')" style="font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:600;background:white;color:var(--text-muted);border:1px solid var(--border);border-radius:8px;padding:8px 14px;cursor:pointer;white-space:nowrap;">✏️ Edit Club Details</button>'+
+          '<button onclick="confirmRemoveLocation(this)" data-id="'+loc.id+'" data-name="'+escHtml(loc.name)+'" title="Remove location" style="font-family:\'DM Sans\',sans-serif;font-size:14px;background:white;border:1px solid var(--border);border-radius:8px;padding:8px 10px;cursor:pointer;color:var(--text-faint);line-height:1;" onmouseover="this.style.background=\'var(--r0)\';this.style.color=\'var(--r5)\';this.style.borderColor=\'var(--r3)\'" onmouseout="this.style.background=\'white\';this.style.color=\'var(--text-faint)\';this.style.borderColor=\'var(--border)\'">🗑</button>'+
         '</div>'+
       '</div>'+
       (ownerCard||sc2Card?'<div class="loc-section"><div class="loc-section-title">Contact</div><div class="contact-cards">'+ownerCard+sc2Card+'</div></div>':'')+
