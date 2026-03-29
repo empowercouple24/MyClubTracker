@@ -1322,9 +1322,7 @@ function renderLocations(){
             Waiting for the club owner to register at <strong>nemecekorgclubs.com</strong> using the invite code above.
           </div>
           <div class="expanded-footer">
-            <button onclick="event.stopPropagation();openDeleteModal('${loc.id}','${escHtml(loc.name)}')" title="Remove location" style="background:none;border:1px solid var(--border-light);border-radius:6px;padding:6px 8px;cursor:pointer;color:var(--text-faint);font-size:14px;line-height:1;" onmouseover="this.style.background='var(--r0)';this.style.color='var(--r5)'" onmouseout="this.style.background='none';this.style.color='var(--text-faint)'">🗑</button>
-            <a class="btn-manage-settings" href="app.html?location_id=${loc.id}&admin=1&settings=1">⚙ Manage Settings</a>
-            <a class="btn-view-app" href="app.html?location_id=${loc.id}&admin=1">View Full App →</a>
+            <a class="btn-view-app" href="app.html?location_id=${loc.id}&admin=1">Manage Club</a>
           </div>
         </div>
       </div>`;
@@ -1391,9 +1389,7 @@ function renderLocations(){
         </div>
         <div class="expanded-footer">
           ${lastFmt?`<div class="last-entry-note">Last entry: ${lastFmt}</div>`:'<div></div>'}
-          <button onclick="event.stopPropagation();openDeleteModal('${loc.id}','${escHtml(loc.name)}')" title="Remove location" style="background:none;border:1px solid var(--border-light);border-radius:6px;padding:6px 8px;cursor:pointer;color:var(--text-faint);font-size:14px;line-height:1;" onmouseover="this.style.background='var(--r0)';this.style.color='var(--r5)'" onmouseout="this.style.background='none';this.style.color='var(--text-faint)'">🗑</button>
-          <a class="btn-manage-settings" href="app.html?location_id=${loc.id}&admin=1&settings=1">⚙ Manage Settings</a>
-          <a class="btn-view-app" href="app.html?location_id=${loc.id}&admin=1">View Full App →</a>
+          <a class="btn-view-app" href="app.html?location_id=${loc.id}&admin=1">Manage Club</a>
         </div>
         ${renderAdminUserSection(loc.id)}
       </div>
