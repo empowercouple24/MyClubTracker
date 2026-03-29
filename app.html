@@ -170,6 +170,8 @@ if('serviceWorker' in navigator){
     .proj-cell.highlight{background:var(--b8);border-color:var(--b7)}
     .proj-cell.highlight .proj-cell-label{color:rgba(255,255,255,0.55)}
     .proj-cell.highlight .proj-cell-val{color:white}
+    .proj-mult-btn{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;padding:7px 18px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;transition:all 0.15s;flex:1;}
+    .proj-mult-btn.active{background:var(--b7);color:#fff;border-color:var(--b7);}
     /* INVENTORY */
     .inv-header{background:linear-gradient(135deg,var(--b7),var(--b5));border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;color:white;}
     .inv-header-title{font-family:'Outfit',sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;opacity:0.6;margin-bottom:8px}
@@ -391,12 +393,12 @@ if('serviceWorker' in navigator){
 <div class="tabbar">
   <button class="tab active" onclick="switchTab('enter')"   id="tab-enter">Enter</button>
   <button class="tab"        onclick="switchTab('history')" id="tab-history">History</button>
-  <button class="tab"        onclick="switchTab('proj')"    id="tab-proj">Projections</button>
   <div class="tab-divider"></div>
   <button class="tab amber"  onclick="switchTab('inv')"     id="tab-inv">Inventory</button>
   <button class="tab amber"  onclick="switchTab('invhist')" id="tab-invhist">Inv History</button>
   <div class="tab-divider"></div>
   <button class="tab"        onclick="switchTab('payouts')" id="tab-payouts">Payouts</button>
+  <button class="tab"        onclick="switchTab('proj')"    id="tab-proj">Projections</button>
 </div>
 
 <div class="content-area">
@@ -583,27 +585,87 @@ if('serviceWorker' in navigator){
 <div class="tab-panel" id="panel-history"><div id="history-list"><div class="empty-state">No entries yet.</div></div></div>
 
 <div class="tab-panel" id="panel-proj">
-  <div class="section-label">Current Month</div>
-  <div class="proj-grid">
-    <div class="proj-cell"><div class="proj-cell-label">Days In</div><div class="proj-cell-val" id="proj-daysin">0</div></div>
-    <div class="proj-cell"><div class="proj-cell-label">Avg Sales/Day</div><div class="proj-cell-val" id="proj-avgsales">$0</div></div>
-    <div class="proj-cell highlight"><div class="proj-cell-label">Proj Sales</div><div class="proj-cell-val" id="proj-sales">$0</div></div>
-    <div class="proj-cell"><div class="proj-cell-label">Total Sales</div><div class="proj-cell-val" id="proj-totalsales">$0</div></div>
-    <div class="proj-cell"><div class="proj-cell-label">Avg DV/Day</div><div class="proj-cell-val" id="proj-avgdv">0</div></div>
-    <div class="proj-cell highlight"><div class="proj-cell-label">Proj DV</div><div class="proj-cell-val" id="proj-dv">0</div></div>
-  </div>
-  <div class="section-label">Operating Days</div>
-  <div class="card" style="margin-bottom:10px;"><div class="field-row"><div class="field-label">Operating days / month</div><input class="field-input" type="text" inputmode="numeric" id="proj-opdays" value="26" oninput="renderProjections()"/></div></div>
-  <div class="section-label">What If</div>
-  <div class="card" style="margin-bottom:10px;">
-    <div class="field-row"><div class="field-label">Base Day</div><select class="field-input" id="whatif-base" onchange="renderWhatIf()"><option value="avg">Avg Day</option><option value="custom">Custom</option></select></div>
-    <div class="field-row" id="whatif-custom-row" style="display:none;"><div class="field-label">Custom Sales</div><input class="field-input" type="text" inputmode="decimal" id="whatif-custom-val" placeholder="0.00" oninput="renderWhatIf()"/></div>
-  </div>
-  <div class="proj-grid">
-    <div class="proj-cell"><div class="proj-cell-label">1×</div><div class="proj-cell-val" id="wi-1x">$0</div></div>
-    <div class="proj-cell"><div class="proj-cell-label">1.2×</div><div class="proj-cell-val" id="wi-12x">$0</div></div>
-    <div class="proj-cell highlight"><div class="proj-cell-label">1.5×</div><div class="proj-cell-val" id="wi-15x">$0</div></div>
-    <div class="proj-cell"><div class="proj-cell-label">2×</div><div class="proj-cell-val" id="wi-2x">$0</div></div>
+  <div style="max-width:700px;margin:0 auto;padding:12px 12px 40px;">
+
+    <!-- Day selector -->
+    <div class="section-label">Base Day</div>
+    <div class="card" style="margin-bottom:12px;">
+      <div class="field-row" style="gap:8px;align-items:center;flex-wrap:wrap;">
+        <div style="flex:1;min-width:0;">
+          <select id="proj-day-picker" class="field-input" onchange="loadProjDay(this.value)" style="font-size:13px;">
+            <option value="">— Choose a day from history —</option>
+          </select>
+        </div>
+        <button class="btn btn-ghost" onclick="loadProjAvg()" style="flex-shrink:0;font-size:12px;">Use Avg Day</button>
+      </div>
+      <div id="proj-day-info" style="display:none;padding:8px 10px 4px;font-size:11px;color:var(--text-faint);border-top:1px solid var(--border-light);margin-top:6px;"></div>
+    </div>
+
+    <!-- Base day summary -->
+    <div id="proj-base-section" style="display:none;">
+      <div class="section-label">Base Day Sales</div>
+      <div class="proj-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:12px;">
+        <div class="proj-cell"><div class="proj-cell-label">Total Sales</div><div class="proj-cell-val" id="proj-base-sales">—</div></div>
+        <div class="proj-cell"><div class="proj-cell-label">Overhead</div><div class="proj-cell-val" id="proj-base-oh">—</div></div>
+        <div class="proj-cell"><div class="proj-cell-label">Payouts</div><div class="proj-cell-val" id="proj-base-payouts">—</div></div>
+        <div class="proj-cell"><div class="proj-cell-label">Taxes</div><div class="proj-cell-val" id="proj-base-tax">—</div></div>
+        <div class="proj-cell"><div class="proj-cell-label">Herbalife</div><div class="proj-cell-val" id="proj-base-prod">—</div></div>
+        <div class="proj-cell"><div class="proj-cell-label">DV</div><div class="proj-cell-val" id="proj-base-dv">—</div></div>
+      </div>
+
+      <!-- Multiplier selector -->
+      <div class="section-label">Multiplier</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <button class="proj-mult-btn active" data-mult="1.0" onclick="setProjMult(1.0,this)">1×</button>
+        <button class="proj-mult-btn" data-mult="1.2" onclick="setProjMult(1.2,this)">1.2×</button>
+        <button class="proj-mult-btn" data-mult="1.5" onclick="setProjMult(1.5,this)">1.5×</button>
+        <button class="proj-mult-btn" data-mult="2.0" onclick="setProjMult(2.0,this)">2×</button>
+      </div>
+
+      <!-- Projected day -->
+      <div class="section-label">Projected Day <span id="proj-mult-label" style="color:var(--b6);font-weight:800;font-size:11px;">@ 1×</span></div>
+      <div class="proj-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:12px;">
+        <div class="proj-cell highlight"><div class="proj-cell-label">Sales</div><div class="proj-cell-val" id="proj-day-sales">—</div></div>
+        <div class="proj-cell"><div class="proj-cell-label">Overhead</div><div class="proj-cell-val" id="proj-day-oh">—</div></div>
+        <div class="proj-cell"><div class="proj-cell-label">Payouts</div><div class="proj-cell-val" id="proj-day-payouts">—</div></div>
+        <div class="proj-cell"><div class="proj-cell-label">Taxes</div><div class="proj-cell-val" id="proj-day-tax">—</div></div>
+        <div class="proj-cell"><div class="proj-cell-label">Herbalife</div><div class="proj-cell-val" id="proj-day-prod">—</div></div>
+        <div class="proj-cell"><div class="proj-cell-label">DV</div><div class="proj-cell-val" id="proj-day-dv">—</div></div>
+      </div>
+
+      <!-- Operating days -->
+      <div class="section-label">Operating Days / Month</div>
+      <div class="card" style="margin-bottom:12px;">
+        <div class="field-row"><div class="field-label">Days per month</div><input class="field-input" type="text" inputmode="numeric" id="proj-opdays" value="26" oninput="renderProjScenario()"/></div>
+      </div>
+
+      <!-- Weekly & Monthly projections -->
+      <div class="section-label">Projected Period Totals</div>
+      <div class="proj-grid" style="grid-template-columns:repeat(2,1fr);margin-bottom:12px;">
+        <div class="proj-cell highlight"><div class="proj-cell-label">Week (5 days)</div><div class="proj-cell-val" id="proj-week-sales">—</div></div>
+        <div class="proj-cell highlight"><div class="proj-cell-label">Month</div><div class="proj-cell-val" id="proj-month-sales">—</div></div>
+        <div class="proj-cell"><div class="proj-cell-label">Week Payouts</div><div class="proj-cell-val" id="proj-week-payouts">—</div></div>
+        <div class="proj-cell"><div class="proj-cell-label">Month Payouts</div><div class="proj-cell-val" id="proj-month-payouts">—</div></div>
+        <div class="proj-cell"><div class="proj-cell-label">Week DV</div><div class="proj-cell-val" id="proj-week-dv">—</div></div>
+        <div class="proj-cell"><div class="proj-cell-month">Month DV</div><div class="proj-cell-val" id="proj-month-dv">—</div></div>
+      </div>
+
+      <!-- Current month context -->
+      <div class="section-label">Current Month Actuals</div>
+      <div class="proj-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:4px;">
+        <div class="proj-cell"><div class="proj-cell-label">Days In</div><div class="proj-cell-val" id="proj-daysin">0</div></div>
+        <div class="proj-cell"><div class="proj-cell-label">Total Sales</div><div class="proj-cell-val" id="proj-totalsales">$0</div></div>
+        <div class="proj-cell"><div class="proj-cell-label">Avg/Day</div><div class="proj-cell-val" id="proj-avgsales">$0</div></div>
+        <div class="proj-cell"><div class="proj-cell-label">Proj Month</div><div class="proj-cell-val" id="proj-sales">$0</div></div>
+        <div class="proj-cell"><div class="proj-cell-label">Total DV</div><div class="proj-cell-val" id="proj-avgdv">0</div></div>
+        <div class="proj-cell"><div class="proj-cell-label">Proj DV</div><div class="proj-cell-val" id="proj-dv">0</div></div>
+      </div>
+    </div>
+
+    <!-- Empty state before day is picked -->
+    <div id="proj-empty" style="padding:40px 0;text-align:center;color:var(--text-faint);font-size:13px;">
+      Choose a day above to start projecting, or use the average day.
+    </div>
   </div>
 </div>
 
@@ -705,13 +767,43 @@ if('serviceWorker' in navigator){
 </div>
 
 <div class="tab-panel" id="panel-payouts">
-  <div class="filter-row" style="margin-bottom:10px;">
-    <input type="date" id="payout-from" style="font-family:'DM Sans',sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 8px;background:var(--surface);color:var(--text);outline:none;flex:1;"/>
-    <span style="color:var(--text-faint);font-size:12px;flex-shrink:0;">–</span>
-    <input type="date" id="payout-to" style="font-family:'DM Sans',sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 8px;background:var(--surface);color:var(--text);outline:none;flex:1;"/>
-    <button class="btn btn-primary" onclick="renderPayouts()" style="padding:6px 12px;font-size:12px;flex-shrink:0;">Apply</button>
+  <div style="max-width:620px;margin:0 auto;padding:12px 12px 40px;">
+
+    <!-- Date range selector -->
+    <div class="section-label">Date Range</div>
+    <div class="card" style="margin-bottom:12px;">
+      <div class="field-row" style="gap:8px;align-items:center;flex-wrap:wrap;">
+        <input type="date" id="payout-from" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;background:var(--surface);color:var(--text);outline:none;flex:1;min-width:130px;"/>
+        <span style="color:var(--text-faint);font-size:13px;flex-shrink:0;">to</span>
+        <input type="date" id="payout-to" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;background:var(--surface);color:var(--text);outline:none;flex:1;min-width:130px;"/>
+        <button class="btn btn-primary" onclick="renderPayouts()" style="flex-shrink:0;">Load</button>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div id="payouts-body"></div>
+
+    <!-- Snapshot save — shown after load -->
+    <div id="payout-snapshot-wrap" style="display:none;margin-top:4px;">
+      <div class="section-label">Save Snapshot</div>
+      <div class="card" style="margin-bottom:12px;">
+        <div class="field-row" style="flex-direction:column;align-items:stretch;gap:8px;padding:8px 10px;">
+          <input type="text" id="payout-snap-label" placeholder="Label (optional) e.g. Mary — March week 1"
+            style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;outline:none;width:100%;box-sizing:border-box;"/>
+          <button class="btn btn-primary" onclick="savePayoutSnapshot()" style="align-self:flex-end;min-width:140px;">💾 Save Snapshot</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Saved snapshots -->
+    <div id="payout-snaps-section" style="display:none;">
+      <div class="section-label" style="display:flex;justify-content:space-between;align-items:center;">
+        <span>Saved Snapshots</span>
+      </div>
+      <div id="payout-snaps-list"></div>
+    </div>
+
   </div>
-  <div id="payouts-body"></div>
 </div>
 </div><!-- /content-area -->
 
@@ -1615,7 +1707,7 @@ async function init(){
   const now=new Date();
   const _pf=document.getElementById('payout-from');if(_pf)_pf.value=new Date(now.getFullYear(),now.getMonth(),1).toISOString().slice(0,10);
   const _pt=document.getElementById('payout-to');if(_pt)_pt.value=new Date(now.getFullYear(),now.getMonth()+1,0).toISOString().slice(0,10);
-  populateOperatorDropdowns();buildSettingsUI();loadDay();renderHistory();renderInventory();renderInventoryHistory();renderProjections();renderPayouts();
+  populateOperatorDropdowns();buildSettingsUI();loadDay();renderHistory();renderInventory();renderInventoryHistory();renderProjections();renderPayoutSnapshots();
   recalcContentTop();
   // Unconditionally set nav name after everything loads
   const _finalNcn = document.getElementById('nav-club-name');
@@ -1642,7 +1734,7 @@ function switchTab(name){
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
   document.getElementById('panel-'+name).classList.add('active');
-  if(name==='proj')renderProjections();if(name==='payouts')renderPayouts();
+  if(name==='proj')renderProjections();if(name==='payouts'){renderPayoutSnapshots();}
   if(name==='inv')recalcInvCatTop();
   if(name==='invhist'){
     setTimeout(()=>{
@@ -1807,7 +1899,7 @@ async function saveDay(){
   else{const{data:nr,error:e}=await sb.from('days').insert({location_id:LOCATION_ID,date,data}).select().single();error=e;if(!e&&nr)ALL_DAYS.unshift(nr);}
   if(error){showToast('Save failed: '+error.message,'error');return;}
   showToast(IS_ADMIN_VIEW?'Saved (Admin Edit) ✓':'Day saved ✓','success');
-  renderHistory();renderProjections();renderPayouts();renderDashboardWidgets();
+  renderHistory();renderProjections();renderPayoutSnapshots();renderDashboardWidgets();
 }
 
 function renderDashboardWidgets(){
@@ -2040,20 +2132,91 @@ function closeDetail(){document.getElementById('detail-overlay').classList.remov
 function closeDetailOnBg(e){if(e.target===document.getElementById('detail-overlay'))closeDetail();}
 function editFromDetail(){closeDetail();if(_detailDate)navToDate(_detailDate);}
 
+let _projBaseSales=0,_projBaseOh=0,_projBasePayouts=0,_projBaseTax=0,_projBaseProd=0,_projBaseDv=0,_projMult=1.0;
+
 function renderProjections(){
-  const op=parseInt(document.getElementById('proj-opdays')?.value)||26,now=new Date(),y=now.getFullYear(),m=now.getMonth();
+  const picker=document.getElementById('proj-day-picker');
+  if(!picker)return;
+  const cur=picker.value;
+  picker.innerHTML='<option value="">— Choose a day from history —</option>';
+  [...ALL_DAYS].sort((a,b)=>b.date.localeCompare(a.date)).forEach(d=>{
+    const dt=new Date(d.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+    picker.innerHTML+=`<option value="${d.date}">${dt} — ${fmt$(d.data?.totalSales||0)}</option>`;
+  });
+  if(cur)picker.value=cur;
+  const now=new Date(),y=now.getFullYear(),m=now.getMonth();
+  const op=parseInt(document.getElementById('proj-opdays')?.value)||26;
   const md=ALL_DAYS.filter(d=>{const dt=new Date(d.date+'T00:00:00');return dt.getFullYear()===y&&dt.getMonth()===m;});
   const di=md.length,ts=md.reduce((s,d)=>s+(d.data?.totalSales||0),0),tdv=md.reduce((s,d)=>s+(d.data?.dv||0),0);
   const as=di>0?ts/di:0,adv=di>0?tdv/di:0;
-  setText('proj-daysin',di);setText('proj-avgsales',fmt$(as));setText('proj-sales',fmt$(as*op));setText('proj-totalsales',fmt$(ts));setText('proj-avgdv',fmtN(adv));setText('proj-dv',fmtN(adv*op));
-  renderWhatIf(as,op);
+  setText('proj-daysin',di);setText('proj-totalsales',fmt$(ts));setText('proj-avgsales',fmt$(as));
+  setText('proj-sales',fmt$(as*op));setText('proj-avgdv',fmtN(tdv));setText('proj-dv',fmtN(adv*op));
 }
-function renderWhatIf(avgS,opD){
-  if(avgS===undefined){const op=parseInt(document.getElementById('proj-opdays')?.value)||26,now=new Date(),y=now.getFullYear(),m=now.getMonth();const md=ALL_DAYS.filter(d=>{const dt=new Date(d.date+'T00:00:00');return dt.getFullYear()===y&&dt.getMonth()===m;});avgS=md.length>0?md.reduce((s,d)=>s+(d.data?.totalSales||0),0)/md.length:0;opD=op;}
-  const b=document.getElementById('whatif-base')?.value,cr=document.getElementById('whatif-custom-row');
-  if(b==='custom'){cr.style.display='flex';avgS=parseFloat(document.getElementById('whatif-custom-val')?.value)||avgS;}else cr.style.display='none';
-  setText('wi-1x',fmt$(avgS*1.0*opD));setText('wi-12x',fmt$(avgS*1.2*opD));setText('wi-15x',fmt$(avgS*1.5*opD));setText('wi-2x',fmt$(avgS*2.0*opD));
+function loadProjDay(date){
+  if(!date){document.getElementById('proj-base-section').style.display='none';document.getElementById('proj-empty').style.display='block';return;}
+  const day=ALL_DAYS.find(d=>d.date===date);if(!day)return;
+  const d=day.data||{};
+  _projBaseSales=d.totalSales||0;_projBaseOh=d.overhead||0;_projBasePayouts=d.payouts||0;
+  _projBaseTax=d.taxes||0;_projBaseProd=d.products||0;_projBaseDv=d.dv||0;
+  const dt=new Date(date+'T00:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  const infoEl=document.getElementById('proj-day-info');
+  if(infoEl){infoEl.textContent=dt;infoEl.style.display='block';}
+  setText('proj-base-sales',fmt$(_projBaseSales));setText('proj-base-oh',fmt$(_projBaseOh));
+  setText('proj-base-payouts',fmt$(_projBasePayouts));setText('proj-base-tax',fmt$(_projBaseTax));
+  setText('proj-base-prod',fmt$(_projBaseProd));setText('proj-base-dv',fmtN(_projBaseDv));
+  document.getElementById('proj-base-section').style.display='block';
+  document.getElementById('proj-empty').style.display='none';
+  renderProjScenario();
 }
+function loadProjAvg(){
+  const now=new Date(),y=now.getFullYear(),m=now.getMonth();
+  const md=ALL_DAYS.filter(d=>{const dt=new Date(d.date+'T00:00:00');return dt.getFullYear()===y&&dt.getMonth()===m;});
+  if(!md.length){showToast('No entries this month yet','');return;}
+  const n=md.length;
+  _projBaseSales=md.reduce((s,d)=>s+(d.data?.totalSales||0),0)/n;
+  _projBaseOh=md.reduce((s,d)=>s+(d.data?.overhead||0),0)/n;
+  _projBasePayouts=md.reduce((s,d)=>s+(d.data?.payouts||0),0)/n;
+  _projBaseTax=md.reduce((s,d)=>s+(d.data?.taxes||0),0)/n;
+  _projBaseProd=md.reduce((s,d)=>s+(d.data?.products||0),0)/n;
+  _projBaseDv=md.reduce((s,d)=>s+(d.data?.dv||0),0)/n;
+  const picker=document.getElementById('proj-day-picker');if(picker)picker.value='';
+  const infoEl=document.getElementById('proj-day-info');
+  if(infoEl){infoEl.textContent='Average of '+n+' days this month';infoEl.style.display='block';}
+  setText('proj-base-sales',fmt$(_projBaseSales));setText('proj-base-oh',fmt$(_projBaseOh));
+  setText('proj-base-payouts',fmt$(_projBasePayouts));setText('proj-base-tax',fmt$(_projBaseTax));
+  setText('proj-base-prod',fmt$(_projBaseProd));setText('proj-base-dv',fmtN(_projBaseDv));
+  document.getElementById('proj-base-section').style.display='block';
+  document.getElementById('proj-empty').style.display='none';
+  renderProjScenario();
+}
+function setProjMult(mult,btn){
+  _projMult=mult;
+  document.querySelectorAll('.proj-mult-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  const lbl=document.getElementById('proj-mult-label');
+  if(lbl)lbl.textContent='@ '+mult+'×';
+  renderProjScenario();
+}
+function renderProjScenario(){
+  const op=parseInt(document.getElementById('proj-opdays')?.value)||26;
+  const m=_projMult;
+  const projSales=_projBaseSales*m,projOh=_projBaseOh*m,projPay=_projBasePayouts*m;
+  const projTax=_projBaseTax*m,projProd=_projBaseProd*m,projDv=_projBaseDv*m;
+  setText('proj-day-sales',fmt$(projSales));setText('proj-day-oh',fmt$(projOh));
+  setText('proj-day-payouts',fmt$(projPay));setText('proj-day-tax',fmt$(projTax));
+  setText('proj-day-prod',fmt$(projProd));setText('proj-day-dv',fmtN(projDv));
+  setText('proj-week-sales',fmt$(projSales*5));setText('proj-month-sales',fmt$(projSales*op));
+  setText('proj-week-payouts',fmt$(projPay*5));setText('proj-month-payouts',fmt$(projPay*op));
+  setText('proj-week-dv',fmtN(projDv*5));setText('proj-month-dv',fmtN(projDv*op));
+  const now=new Date(),y=now.getFullYear(),mo=now.getMonth();
+  const md=ALL_DAYS.filter(d=>{const dt=new Date(d.date+'T00:00:00');return dt.getFullYear()===y&&dt.getMonth()===mo;});
+  const di=md.length,ts=md.reduce((s,d)=>s+(d.data?.totalSales||0),0),tdv=md.reduce((s,d)=>s+(d.data?.dv||0),0);
+  const as=di>0?ts/di:0,adv=di>0?tdv/di:0;
+  setText('proj-daysin',di);setText('proj-totalsales',fmt$(ts));setText('proj-avgsales',fmt$(as));
+  setText('proj-sales',fmt$(as*op));setText('proj-avgdv',fmtN(tdv));setText('proj-dv',fmtN(adv*op));
+}
+function renderWhatIf(){}
+
 function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
 
 function setInvFilter(f,btn){invFilter=f;document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));btn.classList.add('active');renderInventory();}
@@ -2435,17 +2598,116 @@ function renderInvHistSnapshot(snapId){
 }
 
 function renderPayouts(){
-  const from=document.getElementById('payout-from')?.value,to=document.getElementById('payout-to')?.value,el=document.getElementById('payouts-body');if(!el)return;
+  const from=document.getElementById('payout-from')?.value;
+  const to=document.getElementById('payout-to')?.value;
+  const el=document.getElementById('payouts-body');
+  const snapWrap=document.getElementById('payout-snapshot-wrap');
+  if(!el)return;
+  if(!from||!to){el.innerHTML='<div class="empty-state">Select a date range and tap Load.</div>';if(snapWrap)snapWrap.style.display='none';return;}
   const fl=ALL_DAYS.filter(d=>d.date>=from&&d.date<=to).sort((a,b)=>a.date.localeCompare(b.date));
-  if(!fl.length){el.innerHTML='<div class="empty-state">No entries in this range.</div>';return;}
+  if(!fl.length){el.innerHTML='<div class="empty-state">No entries in this range.</div>';if(snapWrap)snapWrap.style.display='none';return;}
+
   const ot={};
-  const html=fl.map(d=>{
-    const data=d.data||{},dt=new Date(d.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}),py=data.payouts||0,ops=[data.op1,data.op2].filter(Boolean),sh=ops.length>0?py/ops.length:0;
+  const dayRows=fl.map(d=>{
+    const data=d.data||{};
+    const dt=new Date(d.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    const py=data.payouts||0;
+    const ops=[data.op1,data.op2].filter(Boolean);
+    const sh=ops.length>0?py/ops.length:0;
     ops.forEach(o=>{const k=resolveAlias(o);ot[k]=(ot[k]||0)+sh;});
-    return`<div class="payout-day-card"><div class="payout-day-header"><div class="payout-day-date">${dt}</div><div style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:var(--g5)">${fmt$(py)}</div></div><div class="payout-ops">${ops.map(o=>`<div class="payout-op-row"><div class="payout-op-name">${o}</div><div class="payout-op-amt">${fmt$(sh)}</div></div>`).join('')||'<div style="font-size:11px;color:var(--text-faint)">No operators</div>'}</div></div>`;
+    return`<div class="payout-day-card">
+      <div class="payout-day-header"><div class="payout-day-date">${dt}</div><div style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:var(--g5)">${fmt$(py)}</div></div>
+      <div class="payout-ops">${ops.map(o=>`<div class="payout-op-row"><div class="payout-op-name">${o}</div><div class="payout-op-amt">${fmt$(sh)}</div></div>`).join('')||'<div style="font-size:11px;color:var(--text-faint)">No operators</div>'}</div>
+    </div>`;
   }).join('');
+
   const grand=Object.values(ot).reduce((s,v)=>s+v,0);
-  el.innerHTML=`<div class="card" style="padding:12px;margin-bottom:10px;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);margin-bottom:7px;">Grand Totals</div>${Object.entries(ot).map(([o,t])=>`<div class="payout-op-row" style="background:var(--b1);"><div class="payout-op-name" style="font-weight:700;">${o}</div><div class="payout-op-amt" style="font-size:15px;">${fmt$(t)}</div></div>`).join('')||'<div style="font-size:12px;color:var(--text-faint)">No operators.</div>'}<div style="display:flex;justify-content:space-between;padding:8px 8px 0;margin-top:5px;border-top:1px solid var(--border-light);"><span style="font-weight:700;font-size:13px;">Total Payouts</span><span style="font-family:'Outfit',sans-serif;font-size:15px;font-weight:800;color:var(--g5)">${fmt$(grand)}</span></div></div>${html}`;
+  const fromFmt=new Date(from+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const toFmt=new Date(to+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+
+  el.innerHTML=`
+    <div class="section-label">Summary · ${fromFmt} – ${toFmt}</div>
+    <div class="card" style="padding:12px;margin-bottom:12px;">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);margin-bottom:8px;">Operator Totals</div>
+      ${Object.entries(ot).map(([o,t])=>`<div class="payout-op-row" style="background:var(--b1);margin-bottom:4px;"><div class="payout-op-name" style="font-weight:700;">${o}</div><div class="payout-op-amt" style="font-size:15px;">${fmt$(t)}</div></div>`).join('')||'<div style="font-size:12px;color:var(--text-faint)">No operators found in this range.</div>'}
+      <div style="display:flex;justify-content:space-between;padding:8px 8px 0;margin-top:6px;border-top:1px solid var(--border-light);">
+        <span style="font-weight:700;font-size:13px;">Total Payouts</span>
+        <span style="font-family:'Outfit',sans-serif;font-size:15px;font-weight:800;color:var(--g5)">${fmt$(grand)}</span>
+      </div>
+    </div>
+    <div class="section-label">Daily Breakdown</div>
+    ${dayRows}`;
+
+  if(snapWrap)snapWrap.style.display='block';
+  renderPayoutSnapshots();
+}
+
+async function savePayoutSnapshot(){
+  const from=document.getElementById('payout-from')?.value;
+  const to=document.getElementById('payout-to')?.value;
+  const label=document.getElementById('payout-snap-label')?.value.trim()||'';
+  if(!from||!to)return;
+
+  // Gather operator totals from current range
+  const fl=ALL_DAYS.filter(d=>d.date>=from&&d.date<=to);
+  const ot={};let grand=0;
+  fl.forEach(d=>{
+    const data=d.data||{};
+    const ops=[data.op1,data.op2].filter(Boolean);
+    const sh=ops.length>0?(data.payouts||0)/ops.length:0;
+    ops.forEach(o=>{const k=resolveAlias(o);ot[k]=(ot[k]||0)+sh;});
+  });
+  grand=Object.values(ot).reduce((s,v)=>s+v,0);
+
+  const snap={id:Date.now().toString(),label,from,to,operatorTotals:ot,grand,savedAt:new Date().toISOString()};
+  if(!SETTINGS.payoutSnapshots)SETTINGS.payoutSnapshots=[];
+  SETTINGS.payoutSnapshots.unshift(snap);
+  // Keep last 50
+  SETTINGS.payoutSnapshots=SETTINGS.payoutSnapshots.slice(0,50);
+  const{error}=await sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID);
+  if(error){showToast('Save failed: '+error.message,'error');return;}
+  if(document.getElementById('payout-snap-label'))document.getElementById('payout-snap-label').value='';
+  showToast('Payout snapshot saved ✓','success');
+  renderPayoutSnapshots();
+}
+
+function renderPayoutSnapshots(){
+  const snaps=SETTINGS.payoutSnapshots||[];
+  const section=document.getElementById('payout-snaps-section');
+  const list=document.getElementById('payout-snaps-list');
+  if(!section||!list)return;
+  if(!snaps.length){section.style.display='none';return;}
+  section.style.display='block';
+  list.innerHTML=snaps.map((s,i)=>{
+    const fromFmt=new Date(s.from+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    const toFmt=new Date(s.to+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    const savedFmt=new Date(s.savedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    const opRows=Object.entries(s.operatorTotals||{}).map(([o,t])=>`<div class="payout-op-row" style="background:var(--b0);margin-bottom:3px;"><div class="payout-op-name">${o}</div><div class="payout-op-amt">${fmt$(t)}</div></div>`).join('');
+    return`<div class="payout-day-card" style="margin-bottom:8px;">
+      <div class="payout-day-header" onclick="togglePaySnap('ps-${i}')" style="cursor:pointer;">
+        <div>
+          <div class="payout-day-date">${s.label||'Snapshot'} · ${fromFmt} – ${toFmt}</div>
+          <div style="font-size:10px;color:var(--text-faint);margin-top:2px;">Saved ${savedFmt}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:var(--g5)">${fmt$(s.grand||0)}</div>
+          <button onclick="event.stopPropagation();deletePayoutSnap(${i})" style="background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:13px;padding:2px 4px;" title="Delete">🗑</button>
+        </div>
+      </div>
+      <div id="ps-${i}" style="display:none;margin-top:6px;">${opRows}</div>
+    </div>`;
+  }).join('');
+}
+
+function togglePaySnap(id){const el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
+
+async function deletePayoutSnap(i){
+  if(!confirm('Delete this payout snapshot?'))return;
+  SETTINGS.payoutSnapshots.splice(i,1);
+  const{error}=await sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID);
+  if(error){showToast('Delete failed','error');return;}
+  showToast('Snapshot deleted','success');
+  renderPayoutSnapshots();
 }
 function resolveAlias(n){for(const op of SETTINGS.operators){if(!op.name)continue;const a=(op.aliases||'').split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);if(op.name.toLowerCase()===n.toLowerCase())return op.name;if(a.includes(n.toLowerCase()))return op.name;}return n;}
 
