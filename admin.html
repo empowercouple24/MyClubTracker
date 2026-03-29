@@ -2172,9 +2172,10 @@ async function submitInviteOrg() {
     const { data: fnData, error: fnErr } = await sb.functions.invoke('send-org-invite', {
       body: { to: email, orgName: orgName || 'your organization', inviteLink, expiresAt }
     });
+    console.log('send-org-invite response:', JSON.stringify(fnData), 'error:', fnErr);
     const sent = fnData?.sent === true;
     if (fnErr || !sent) {
-      showOrgModalAlert('io-success', `Org created but email failed — copy the link below to send manually.`);
+      showOrgModalAlert('io-success', `Org created but email failed (${fnErr?.message||fnData?.error||'unknown'}) — copy the link below to send manually.`);
     } else {
       showOrgModalAlert('io-success', `Invite sent to ${email}. Link also shown below if needed.`);
     }
