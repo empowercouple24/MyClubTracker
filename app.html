@@ -531,8 +531,8 @@ if('serviceWorker' in navigator){
     <div class="card">
       <div class="collapsible-toggle" onclick="toggleCollapse(this)" data-target="ops-body">Operators <span class="arrow">▼</span></div>
       <div class="collapsible-body" id="ops-body">
-        <div class="field-row"><div class="field-label">Operator 1</div><select class="field-input" id="f-op1" onchange="markDirty();recalc()"></select><span id="op1-earnings" style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--b7);white-space:nowrap;padding-left:10px;display:none;"></span></div>
-        <div class="field-row"><div class="field-label">Operator 2</div><select class="field-input" id="f-op2" onchange="markDirty();recalc()"></select><span id="op2-earnings" style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--b7);white-space:nowrap;padding-left:10px;display:none;"></span></div>
+        <div class="field-row" style="position:relative;"><div class="field-label">Operator 1</div><select class="field-input" id="f-op1" onchange="markDirty();recalc()"></select><span id="op1-earnings" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--b7);white-space:nowrap;display:none;pointer-events:none;background:var(--surface);padding-left:6px;"></span></div>
+        <div class="field-row" style="position:relative;"><div class="field-label">Operator 2</div><select class="field-input" id="f-op2" onchange="markDirty();recalc()"></select><span id="op2-earnings" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--b7);white-space:nowrap;display:none;pointer-events:none;background:var(--surface);padding-left:6px;"></span></div>
       </div>
     </div>
     <!-- Fundraiser — expanded by default -->
