@@ -196,8 +196,8 @@ if('serviceWorker' in navigator){
     .inv-table tr.inv-row-active .inv-input{border-color:var(--a4);box-shadow:0 0 0 2px rgba(224,152,32,0.15);background:#fff;}
     .inv-cat-subtotal td{background:#f1f5f9;border-top:2px solid var(--border-light);padding:7px 14px;}
     .inv-table tbody tr:hover td{background:var(--b0)}
-    .inv-row-need td{background:rgba(59,130,246,0.05);}
-    .inv-row-need:hover td{background:rgba(59,130,246,0.09);}
+    .inv-row-need td{background:rgba(59,130,246,0.04);}
+    .inv-row-need:hover td{background:rgba(59,130,246,0.07);}
     /* OOS checkbox */
     .oos-check{width:16px;height:16px;cursor:pointer;accent-color:var(--r5,#ef4444);flex-shrink:0;}
     .oos-badge{display:inline-block;font-size:10px;font-weight:700;background:#fee2e2;color:#dc2626;border-radius:4px;padding:1px 5px;margin-left:4px;vertical-align:middle;white-space:nowrap;}
@@ -241,7 +241,7 @@ if('serviceWorker' in navigator){
     .inv-name-cell{display:flex;align-items:baseline;gap:6px;overflow:hidden;}
     .inv-name{font-size:16px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .inv-sku{font-size:16px;color:var(--text-faint);flex-shrink:0;}
-    .inv-input{font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;width:56px;text-align:center;background:var(--b0);border:1px solid var(--border);border-radius:4px;padding:3px 4px;outline:none;-moz-appearance:textfield;transition:border-color 0.15s;display:block;margin-left:auto;}
+    .inv-input{font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;width:46px;text-align:center;background:var(--b0);border:1px solid var(--border);border-radius:4px;padding:3px 2px;outline:none;-moz-appearance:textfield;transition:border-color 0.15s;display:block;margin-left:auto;}
     .inv-input::-webkit-inner-spin-button,.inv-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
     #panel-invhist{max-width:none;margin:0;padding:0;}
     #panel-invhist .inv-cat-header{top:var(--invhist-cat-top,160px);z-index:10;}
@@ -647,8 +647,8 @@ if('serviceWorker' in navigator){
       <div class="inv-header">
         <div class="inv-header-title">Inventory History</div>
         <div class="inv-dv-row">
-          <div class="inv-dv-card"><div class="inv-dv-item-label">DV Have</div><div class="inv-dv-item-val" id="invhist-total-dvhave">—</div></div>
           <div class="inv-dv-card"><div class="inv-dv-item-label">DV Need</div><div class="inv-dv-item-val" id="invhist-total-dvneed">—</div></div>
+          <div class="inv-dv-card"><div class="inv-dv-item-label">DV Have</div><div class="inv-dv-item-val" id="invhist-total-dvhave">—</div></div>
         </div>
       </div>
     </div>
@@ -1887,6 +1887,7 @@ function renderInventory(){
     const vis=invFilter==='needs'?items.filter(p=>(invHave[p.sku]||0)<p.par):items;if(!vis.length)return;
     const catSlug=cat.replace(/[^a-z0-9]/gi,'_');
     const catDvHave=items.reduce((s,p)=>{const q=invHave[p.sku]||0;return s+(p.vp||0)*q;},0);
+    const catAnyFilled=items.some(p=>invHave[p.sku]!=null);
     const catDvNeed=items.reduce((s,p)=>{const q=invHave[p.sku]||0;const he=invHave[p.sku]!=null;const need=Math.max(0,(p.par||0)-q);return s+(he?(p.vp||0)*need:0);},0);
     html+=`<div class="inv-cat-header">${cat}</div><table class="inv-table"><thead><tr><th style="text-align:left">Product</th><th style="text-align:center;font-size:10px;">OOS</th><th>VP</th><th>PAR</th><th>HAVE</th><th>NEED</th><th>DV Have</th><th>DV Need</th></tr></thead><tbody>`;
     vis.forEach(p=>{
@@ -1913,8 +1914,8 @@ function renderInventory(){
     html+=`<tr class="inv-cat-subtotal">
       <td style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">${cat} Total</td>
       <td></td><td></td><td></td><td></td><td></td>
-      <td id="cat-dvhave-${catSlug}" style="font-size:13px;font-weight:700;color:var(--b6);">${catDvHave>0?fmtVP(catDvHave):'—'}</td>
-      <td id="cat-dvneed-${catSlug}" style="font-size:13px;font-weight:700;color:var(--r5);opacity:0.85;">${catDvNeed>0?fmtVP(catDvNeed):'—'}</td>
+      <td id="cat-dvhave-${catSlug}" style="font-size:13px;font-weight:700;color:var(--b6);">${catAnyFilled?fmtVP(catDvHave):'—'}</td>
+      <td id="cat-dvneed-${catSlug}" style="font-size:13px;font-weight:700;color:var(--r5);opacity:0.85;">${catAnyFilled?fmtVP(catDvNeed):'—'}</td>
     </tr>`;
     html+='</tbody></table>';
   });
@@ -1957,12 +1958,13 @@ function setHave(s,v){
     // Update category subtotal
     const catSlug=prod[0].replace(/[^a-z0-9]/gi,'_');
     const catItems=PRODUCTS.filter(p=>p[0]===prod[0]);
+    const catAnyFilled=catItems.some(p=>invHave[p[2]]!=null);
     const catDvHave=catItems.reduce((sum,p)=>{const q=invHave[p[2]]||0;return sum+(p[3]||0)*q;},0);
     const catDvNeed=catItems.reduce((sum,p)=>{const q=invHave[p[2]]||0;const he=invHave[p[2]]!=null;const n=Math.max(0,(p[4]||0)-q);return sum+(he?(p[3]||0)*n:0);},0);
     const catHaveEl=document.getElementById('cat-dvhave-'+catSlug);
     const catNeedEl=document.getElementById('cat-dvneed-'+catSlug);
-    if(catHaveEl)catHaveEl.textContent=catDvHave>0?fmtVP(catDvHave):'—';
-    if(catNeedEl)catNeedEl.textContent=catDvNeed>0?fmtVP(catDvNeed):'—';
+    if(catHaveEl)catHaveEl.textContent=catAnyFilled?fmtVP(catDvHave):'—';
+    if(catNeedEl)catNeedEl.textContent=catAnyFilled?fmtVP(catDvNeed):'—';
   }
 }
 // OOS functions
@@ -2005,18 +2007,16 @@ async function saveOosToSettings(){
 }
 function loadInvSnapshot(id){
   if(!id){
-    // Reset to blank slate then re-render
     invHave={};
     renderInventory();return;
   }
   const snap=INV_SNAPSHOTS.find(s=>s.id===id);
   if(!snap)return;
   const entries=snap.data?.entries||[];
-  // Clear first, then only set rows that had a value entered (have > 0 or explicitly saved as 0 with a non-null marker)
   invHave={};
   entries.forEach(e=>{
-    if(e.sku!=null && e.have!=null && e.have > 0){
-      invHave[e.sku]=e.have;
+    if(e.sku!=null && e.have!==null && e.have!==undefined){
+      invHave[e.sku]=e.have; // restores 0 as filled, null rows stay absent from invHave
     }
   });
   renderInventory();
@@ -2024,7 +2024,9 @@ function loadInvSnapshot(id){
 }
 async function saveInvSnapshot(){
   if(IS_ADMIN_VIEW){showToast('Admin view — cannot save','error');return;}
-  const{data:ns,error}=await sb.from('inventory').insert({location_id:LOCATION_ID,data:{entries:PRODUCTS.map(p=>({sku:p[2],name:p[1],have:invHave[p[2]]||0}))}}).select().single();
+  // Preserve null (unfilled) vs 0 (explicitly entered as zero)
+  const entries=PRODUCTS.map(p=>({sku:p[2],name:p[1],have:invHave[p[2]]!==undefined?invHave[p[2]]:null}));
+  const{data:ns,error}=await sb.from('inventory').insert({location_id:LOCATION_ID,data:{entries}}).select().single();
   if(error){showToast('Snapshot failed','error');return;}INV_SNAPSHOTS.unshift(ns);showToast('Snapshot saved ✓','success');renderInventoryHistory();renderDashboardWidgets();
 }
 function renderInventoryHistory(){
@@ -2057,42 +2059,43 @@ function renderInvHistSnapshot(snapId){
   const snap=INV_SNAPSHOTS.find(s=>s.id===snapId);
   if(!snap){body.innerHTML='<div class="empty-state">Snapshot not found.</div>';return;}
   const entries=snap.data?.entries||[];
-  const entryMap={};entries.forEach(e=>{if(e.sku!=null)entryMap[e.sku]=e.have;});
+  // Build entryMap preserving null (unfilled) vs number (filled, including 0)
+  const entryMap={};
+  entries.forEach(e=>{if(e.sku!=null)entryMap[e.sku]=e.have!==undefined?e.have:null;});
   const cats={};PRODUCTS.forEach(p=>{if(!cats[p[0]])cats[p[0]]=[];cats[p[0]].push({name:p[1],sku:p[2],vp:p[3],par:p[4]});});
+  // Grand totals — only count filled rows
   let snapDvHave=0,snapDvNeed=0;
   PRODUCTS.forEach(p=>{
-    const have=entryMap[p[2]]||0;
-    const haveEntered=entryMap[p[2]]!=null&&entryMap[p[2]]>0;
-    if(haveEntered){snapDvHave+=(p[3]||0)*have;const need=Math.max(0,(p[4]||0)-have);snapDvNeed+=(p[3]||0)*need;}
+    const haveRaw=entryMap[p[2]];
+    const haveEntered=haveRaw!=null;
+    if(haveEntered){const have=haveRaw;snapDvHave+=(p[3]||0)*have;const need=Math.max(0,(p[4]||0)-have);snapDvNeed+=(p[3]||0)*need;}
   });
-  if(dvHaveEl)dvHaveEl.textContent=fmtVP(snapDvHave);
   if(dvNeedEl)dvNeedEl.textContent=fmtVP(snapDvNeed);
+  if(dvHaveEl)dvHaveEl.textContent=fmtVP(snapDvHave);
   let html='';
   Object.entries(cats).forEach(([cat,items])=>{
-    const catSlug='ih_'+cat.replace(/[^a-z0-9]/gi,'_');
-    let catDvHave=0,catDvNeed=0,hasAny=false;
+    let catDvHave=0,catDvNeed=0,catAnyFilled=false;
     const rows=items.map(p=>{
       const haveRaw=entryMap[p.sku];
-      const haveEntered=haveRaw!=null&&haveRaw>0;
-      if(!haveEntered)return null;
-      hasAny=true;
-      const have=haveRaw;
+      const haveEntered=haveRaw!=null;
+      const have=haveEntered?haveRaw:0;
       const need=Math.max(0,(p.par||0)-have);
       const dvHave=(p.vp||0)*have,dvNeed=(p.vp||0)*need;
-      catDvHave+=dvHave;catDvNeed+=dvNeed;
-      const bc=need>0?'need':'ok',bt=need>0?need:'✓';
-      const needClass=need>0?'inv-row-need':'';
+      if(haveEntered){catAnyFilled=true;catDvHave+=dvHave;catDvNeed+=dvNeed;}
+      const bc=need>0?'need':(haveEntered?'ok':'zero'),bt=need>0?need:(haveEntered?'✓':'—');
+      const needClass=need>0&&haveEntered?'inv-row-need':'';
+      const dvHaveStr=haveEntered?fmtVP(dvHave):'—';
+      const dvNeedStr=haveEntered?fmtVP(dvNeed):'—';
       return`<tr class="${needClass}">
         <td><div class="inv-name-cell"><span class="inv-name">${p.name}</span>${p.sku?`<span class="inv-sku">${p.sku}</span>`:''}</div></td>
         <td>${p.vp!=null?fmtVP(p.vp):'—'}</td>
         <td>${p.par}</td>
-        <td style="text-align:right;font-size:16px;font-weight:700;">${have}</td>
+        <td style="text-align:right;font-size:16px;font-weight:700;">${haveEntered?have:'—'}</td>
         <td><span class="need-badge ${bc}">${bt}</span></td>
-        <td style="font-size:16px;font-weight:600;color:var(--b6);">${fmtVP(dvHave)}</td>
-        <td style="font-size:16px;font-weight:600;color:var(--r5);opacity:0.85;">${dvNeed>0?fmtVP(dvNeed):'—'}</td>
+        <td style="font-size:16px;font-weight:600;color:var(--b6);">${dvHaveStr}</td>
+        <td style="font-size:16px;font-weight:600;color:var(--r5);opacity:0.85;">${dvNeedStr}</td>
       </tr>`;
-    }).filter(Boolean);
-    if(!hasAny)return;
+    });
     html+=`<div class="inv-cat-header">${cat}</div>
       <table class="inv-table">
         <thead><tr>
@@ -2103,19 +2106,16 @@ function renderInvHistSnapshot(snapId){
           <tr class="inv-cat-subtotal">
             <td style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">${cat} Total</td>
             <td></td><td></td><td></td><td></td>
-            <td style="font-size:13px;font-weight:700;color:var(--b6);">${catDvHave>0?fmtVP(catDvHave):'—'}</td>
-            <td style="font-size:13px;font-weight:700;color:var(--r5);opacity:0.85;">${catDvNeed>0?fmtVP(catDvNeed):'—'}</td>
+            <td style="font-size:13px;font-weight:700;color:var(--b6);">${catAnyFilled?fmtVP(catDvHave):'—'}</td>
+            <td style="font-size:13px;font-weight:700;color:var(--r5);opacity:0.85;">${catAnyFilled?fmtVP(catDvNeed):'—'}</td>
           </tr>
         </tbody>
       </table>`;
   });
-  body.innerHTML=html||'<div class="empty-state">No items recorded in this snapshot.</div>';
+  body.innerHTML=html||'<div class="empty-state">No items in this snapshot.</div>';
   // Recalc sticky cat top offset
   const stickyWrap=document.getElementById('invhist-sticky-wrap');
-  if(stickyWrap){
-    const h=stickyWrap.offsetHeight;
-    document.documentElement.style.setProperty('--invhist-cat-top',h+'px');
-  }
+  if(stickyWrap)document.documentElement.style.setProperty('--invhist-cat-top',stickyWrap.offsetHeight+'px');
 }
 
 function renderPayouts(){
