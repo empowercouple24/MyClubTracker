@@ -1144,7 +1144,6 @@ function renderAdmins() {
       const roleControl = isSelf
         ? `<span style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--b1);color:var(--b7);flex-shrink:0;">Admin (You)</span>`
         : `<select onchange="changeUserRole('${u.id}',this.value,this)" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:${roleColors[u.role]||'var(--text-muted)'};cursor:pointer;outline:none;flex-shrink:0;">
-        <option value="admin"    ${u.role==='admin'   ?'selected':''}>Admin</option>
         <option value="owner"    ${u.role==='owner'   ?'selected':''}>Owner</option>
         <option value="employee" ${u.role==='employee'?'selected':''}>Employee</option>
       </select>`;
@@ -1162,6 +1161,8 @@ function renderAdmins() {
 }
 
 async function changeUserRole(userId, newRole, selectEl) {
+  if (newRole === 'admin') { showToast('Cannot assign global admin role.', 'error'); await loadAdmins(); return; }
+  if (userId === currentUserId) { showToast('Cannot change your own role.', 'error'); await loadAdmins(); return; }
   const { error } = await sb.from('users').update({ role: newRole }).eq('id', userId);
   if (error) {
     showToast('Role change failed: '+error.message, 'error');
