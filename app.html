@@ -645,33 +645,30 @@ if('serviceWorker' in navigator){
         <div class="settings-group-title">Operators</div>
         <div id="s-operators"></div>
       </div>
-      <!-- Team Members -->
-      <div class="settings-group" id="prof-role-section">
-        <div class="settings-group-title">Team Members</div>
-        <div id="prof-team-list" style="font-size:13px;color:var(--text-muted);padding:8px 0;">Loading…</div>
-      </div>
-      <!-- Employee Access -->
-      <div class="settings-group" id="s-employee-section">
-        <div class="settings-group-title">Employee Access</div>
-        <div class="settings-row" style="flex-wrap:wrap;gap:6px;">
-          <label style="flex:none;width:100%;font-size:12px;color:var(--text-faint);">Share this code with employees so they can log in.</label>
-          <div style="display:flex;gap:8px;width:100%;align-items:center;">
-            <input type="text" id="s-emp-code" style="flex:1;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;color:var(--b7);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;outline:none;cursor:pointer;" placeholder="No code set" readonly onclick="copyEmpCode()" title="Click to copy"/>
-            <button class="btn btn-ghost" id="s-emp-copy-btn" onclick="copyEmpCode()" style="white-space:nowrap;flex-shrink:0;display:none;">Copy</button>
-            <button class="btn btn-ghost" onclick="generateEmpCode()" style="white-space:nowrap;flex-shrink:0;">Generate</button>
-          </div>
-        </div>
-      </div>
       <!-- Products -->
       <div class="settings-group">
         <div class="settings-group-title">Products</div>
         <button class="btn btn-ghost btn-full" onclick="openProductsEditor()" style="justify-content:space-between;padding:10px 12px;font-size:13px;"><span>Edit Products List</span><span style="color:var(--text-faint);font-size:11px;" id="s-prod-count"></span></button>
       </div>
-      <!-- Location Contact Info -->
-      <div id="prof-loc-contact" style="display:none;">
-        <div class="settings-group">
-          <div class="settings-group-title" style="display:flex;align-items:center;justify-content:space-between;">Location Contact Info<span style="font-size:10px;font-weight:400;color:var(--text-faint);text-transform:none;letter-spacing:0;">Edit in Admin Settings</span></div>
-          <div id="prof-loc-contact-body" style="font-size:13px;color:var(--text-muted);padding:4px 0;line-height:1.8;"></div>
+      <!-- People — unified section -->
+      <div class="settings-group" id="prof-role-section">
+        <div class="settings-group-title">People</div>
+        <!-- Primary Owner + Second Contact -->
+        <div id="prof-loc-contact" style="display:none;">
+          <div id="prof-loc-contact-body" style="font-size:13px;color:var(--text-muted);line-height:1.8;padding-bottom:10px;border-bottom:1px solid var(--border-light);margin-bottom:10px;"></div>
+        </div>
+        <!-- Team Members -->
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:6px;">Team Members</div>
+        <div id="prof-team-list" style="font-size:13px;color:var(--text-muted);">Loading…</div>
+        <!-- Employee Invite Code -->
+        <div id="s-employee-section" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border-light);">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:6px;">Employee Invite Code</div>
+          <div style="font-size:12px;color:var(--text-faint);margin-bottom:7px;">Share this code with employees so they can log in.</div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="text" id="s-emp-code" style="flex:1;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;color:var(--b7);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;outline:none;cursor:pointer;" placeholder="No code set" readonly onclick="copyEmpCode()" title="Click to copy"/>
+            <button class="btn btn-ghost" id="s-emp-copy-btn" onclick="copyEmpCode()" style="white-space:nowrap;flex-shrink:0;display:none;">Copy</button>
+            <button class="btn btn-ghost" onclick="generateEmpCode()" style="white-space:nowrap;flex-shrink:0;">Generate</button>
+          </div>
         </div>
       </div>
     </div>
@@ -936,9 +933,9 @@ function confirmRemoveUser(userId,name){
 }
 
 async function removeUser(userId,name){
-  // Remove from public.users — this immediately locks them out of the app.
-  // Their auth.users account is also deleted via ON DELETE CASCADE on the FK.
-  const{error}=await sb.from('users').delete().eq('id',userId).eq('location_id',LOCATION_ID);
+  // Detach user from this location without deleting their auth account.
+  // They can re-join later using an invite code.
+  const{error}=await sb.from('users').update({location_id:null,role:'pending'}).eq('id',userId).eq('location_id',LOCATION_ID);
   if(error){showToast('Remove failed: '+error.message,'error');return;}
   showToast(`${name} removed ✓`,'success');
   await loadTeamMembers();
@@ -1015,9 +1012,7 @@ function copyEmpCode(){
     const orig=copyBtn?.textContent;
     if(copyBtn){copyBtn.textContent='Copied ✓';}
     setTimeout(()=>{if(copyBtn)copyBtn.textContent=orig;},1800);
-  }).catch(()=>{
-    el.select();document.execCommand('copy');
-  });
+  }).catch(()=>{el.select();document.execCommand('copy');});
 }
 
 // ── DARK MODE ──
