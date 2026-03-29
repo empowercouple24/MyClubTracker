@@ -273,10 +273,10 @@ if('serviceWorker' in navigator){
 <div class="modal-overlay" id="modal-recode" onclick="closeMOnBg(event,'modal-recode')">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
-    <div class="modal-title">Change Invite Code</div>
+    <div class="modal-title">Change Owner Invite Code</div>
     <div class="modal-body">
       <div style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:14px;">
-        Changing the invite code will invalidate the old one. Any owner or employee who hasn't registered yet will need the new code.
+        Changing the invite code will invalidate the old one. Any owner or operator who hasn't registered yet will need the new code.
       </div>
       <div class="modal-field"><label>New Invite Code</label>
         <div style="display:flex;gap:8px;align-items:center;">
@@ -289,6 +289,29 @@ if('serviceWorker' in navigator){
     <div class="modal-actions">
       <button class="btn btn-primary btn-full" id="rc-btn" onclick="submitRegenCode()">Save Code</button>
       <button class="btn btn-ghost" onclick="closeModal('modal-recode')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-recode-emp" onclick="closeMOnBg(event,'modal-recode-emp')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Change Operator Invite Code</div>
+    <div class="modal-body">
+      <div style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:14px;">
+        Changing the operator code will invalidate the old one. Any operators who haven't registered yet will need the new code.
+      </div>
+      <div class="modal-field"><label>New Operator Code</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="text" id="rc-emp-code" style="text-transform:uppercase;font-family:monospace;font-weight:700;letter-spacing:2px;flex:1"/>
+          <button class="btn btn-ghost btn-sm" onclick="genCode('rc-emp-code')">Generate</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-msg" id="rc-emp-msg"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-full" id="rc-emp-btn" onclick="submitRegenEmpCode()">Save Code</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-recode-emp')">Cancel</button>
     </div>
   </div>
 </div>
@@ -478,21 +501,30 @@ function renderLocations(){
 
     var copyIcon='<svg width="12" height="12" viewBox="0 0 14 14" fill="none"><rect x="4" y="4" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M2 9.5V2h7.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
     var empCode=loc.settings&&loc.settings.employeeInviteCode;
-    var ownerCodeCard='<div class="invite-code-card" onclick="copyCode(\''+escHtml(loc.invite_code||'')+'\')" title="Click to copy">'+
-      '<div class="invite-code-card-label">Owner '+copyIcon+'</div>'+
-      '<div class="invite-code-card-value">'+escHtml(loc.invite_code||'—')+'</div>'+
-      '<div class="invite-code-card-sub">Register as club owner</div>'+
+    var ownerCodeCard='<div style="flex:1;min-width:140px;">'+
+      '<div class="invite-code-card" onclick="copyCode(\''+escHtml(loc.invite_code||'')+'\')\" title="Click to copy">'+
+        '<div class="invite-code-card-label">Owner '+copyIcon+'</div>'+
+        '<div class="invite-code-card-value">'+escHtml(loc.invite_code||'—')+'</div>'+
+        '<div class="invite-code-card-sub">Register as club owner</div>'+
+      '</div>'+
+      '<button onclick="openRegenCode(\''+loc.id+'\')" style="margin-top:6px;width:100%;font-family:\'DM Sans\',sans-serif;font-size:11px;font-weight:600;padding:5px 0;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;">Change Owner Code</button>'+
     '</div>';
     var empCodeCard=empCode?
-      '<div class="invite-code-card" onclick="copyCode(\''+escHtml(empCode)+'\')" title="Click to copy">'+
-        '<div class="invite-code-card-label">Operator '+copyIcon+'</div>'+
-        '<div class="invite-code-card-value">'+escHtml(empCode)+'</div>'+
-        '<div class="invite-code-card-sub">Register as operator</div>'+
+      '<div style="flex:1;min-width:140px;">'+
+        '<div class="invite-code-card" onclick="copyCode(\''+escHtml(empCode)+'\')\" title="Click to copy">'+
+          '<div class="invite-code-card-label">Operator '+copyIcon+'</div>'+
+          '<div class="invite-code-card-value">'+escHtml(empCode)+'</div>'+
+          '<div class="invite-code-card-sub">Register as operator</div>'+
+        '</div>'+
+        '<button onclick="openRegenEmpCode(\''+loc.id+'\')" style="margin-top:6px;width:100%;font-family:\'DM Sans\',sans-serif;font-size:11px;font-weight:600;padding:5px 0;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;">Change Operator Code</button>'+
       '</div>':
-      '<div class="invite-code-card" style="opacity:0.5;cursor:default;">'+
-        '<div class="invite-code-card-label">Operator</div>'+
-        '<div class="invite-code-card-value" style="font-size:12px;letter-spacing:0;color:var(--text-faint);">Not set</div>'+
-        '<div class="invite-code-card-sub">Set in app settings</div>'+
+      '<div style="flex:1;min-width:140px;">'+
+        '<div class="invite-code-card" style="opacity:0.5;cursor:default;">'+
+          '<div class="invite-code-card-label">Operator</div>'+
+          '<div class="invite-code-card-value" style="font-size:12px;letter-spacing:0;color:var(--text-faint);">Not set</div>'+
+          '<div class="invite-code-card-sub">Set in app settings</div>'+
+        '</div>'+
+        '<button onclick="openRegenEmpCode(\''+loc.id+'\')" style="margin-top:6px;width:100%;font-family:\'DM Sans\',sans-serif;font-size:11px;font-weight:600;padding:5px 0;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;">Set Operator Code</button>'+
       '</div>';
 
     var cardClass='loc-group'+(isPending?' pending-card':'');
@@ -516,7 +548,7 @@ function renderLocations(){
       '</div>'+
       (ownerCard||sc2Card?'<div class="loc-section"><div class="loc-section-title">Contact</div><div class="contact-cards">'+ownerCard+sc2Card+'</div></div>':'')+
       '<div class="loc-section">'+
-        '<div class="loc-section-title">Invite Codes<button class="btn btn-ghost btn-sm" onclick="openRegenCode(\''+loc.id+'\')" style="font-size:11px;padding:3px 8px;">Change Owner Code</button></div>'+
+        '<div class="loc-section-title">Invite Codes</div>'+
         '<div class="invite-codes">'+ownerCodeCard+empCodeCard+'</div>'+
       '</div>'+
       (!isPending?
@@ -748,6 +780,28 @@ function openRegenCode(locId){
   genCode('rc-code');
   clearModalMsg('rc-msg');
   openModal('modal-recode');
+}
+
+function openRegenEmpCode(locId){
+  recodingLocId=locId;
+  genCode('rc-emp-code');
+  clearModalMsg('rc-emp-msg');
+  openModal('modal-recode-emp');
+}
+
+async function submitRegenEmpCode(){
+  var code=document.getElementById('rc-emp-code').value.trim().toUpperCase();
+  if(!code){showModalMsg('rc-emp-msg','error','Please enter or generate a code.');return;}
+  var btn=document.getElementById('rc-emp-btn');
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Saving…';
+  var loc=allLocations.find(function(l){return l.id===recodingLocId;});
+  var settings=Object.assign({},loc&&loc.settings||{});
+  settings.employeeInviteCode=code;
+  var res=await sb.from('locations').update({settings:settings}).eq('id',recodingLocId);
+  btn.disabled=false;btn.textContent='Save Code';
+  if(res.error){showModalMsg('rc-emp-msg','error',res.error.message);return;}
+  closeModal('modal-recode-emp');showToast('Operator code updated ✓','success');
+  await loadData();
 }
 
 async function submitRegenCode(){
