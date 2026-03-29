@@ -529,10 +529,10 @@ if('serviceWorker' in navigator){
   <!-- Operators + Fundraiser side by side -->
   <div class="enter-ops-row">
     <div class="card">
-      <div class="collapsible-toggle" onclick="toggleCollapse(this)" data-target="ops-body">Operators <span class="arrow">▼</span></div>
+      <div class="collapsible-toggle" onclick="toggleCollapse(this)" data-target="ops-body">Operators <span style="display:flex;align-items:center;gap:10px;margin-left:auto;"><span id="ops-earnings-preview" style="font-family:'Outfit',sans-serif;font-size:13px;font-weight:800;color:var(--b7);display:none;"></span><span class="arrow">▼</span></span></div>
       <div class="collapsible-body" id="ops-body">
-        <div class="field-row" style="position:relative;"><div class="field-label">Operator 1</div><select class="field-input" id="f-op1" onchange="markDirty();recalc()"></select><span id="op1-earnings" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--b7);white-space:nowrap;display:none;pointer-events:none;background:var(--surface);padding-left:6px;"></span></div>
-        <div class="field-row" style="position:relative;"><div class="field-label">Operator 2</div><select class="field-input" id="f-op2" onchange="markDirty();recalc()"></select><span id="op2-earnings" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--b7);white-space:nowrap;display:none;pointer-events:none;background:var(--surface);padding-left:6px;"></span></div>
+        <div class="field-row"><div class="field-label">Operator 1</div><select class="field-input" id="f-op1" onchange="markDirty();recalc()"></select></div>
+        <div class="field-row"><div class="field-label">Operator 2</div><select class="field-input" id="f-op2" onchange="markDirty();recalc()"></select></div>
       </div>
     </div>
     <!-- Fundraiser — expanded by default -->
@@ -2028,14 +2028,21 @@ function renderDashboardWidgets(){
 
 function renderOpsEarningsPreview(){
   const c = calcAll();
-  const op1El = document.getElementById('op1-earnings');
-  const op2El = document.getElementById('op2-earnings');
+  const previewEl = document.getElementById('ops-earnings-preview');
+  if(!previewEl) return;
   const op1 = document.getElementById('f-op1')?.value || '';
   const op2 = document.getElementById('f-op2')?.value || '';
   const ops = [op1, op2].filter(Boolean);
   const share = (c.group2 && c.payouts !== null && ops.length > 0) ? c.payouts / ops.length : null;
-  if(op1El){ if(op1 && share !== null){ op1El.textContent = fmt$(share); op1El.style.display='inline'; } else op1El.style.display='none'; }
-  if(op2El){ if(op2 && share !== null){ op2El.textContent = fmt$(share); op2El.style.display='inline'; } else op2El.style.display='none'; }
+  if(share !== null && ops.length > 0){
+    const label = ops.length === 1
+      ? fmt$(share)
+      : ops.map(o => o.split(' ')[0] + ' ' + fmt$(share)).join(' · ');
+    previewEl.textContent = label;
+    previewEl.style.display = 'inline';
+  } else {
+    previewEl.style.display = 'none';
+  }
 }
 
 function renderHistory(){
