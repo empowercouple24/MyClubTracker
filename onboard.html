@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Welcome to MyClubTracker</title>
+<script>
+if(location.protocol==='http:'&&location.hostname!=='localhost'){
+  location.replace('https://'+location.host+location.pathname+location.search+location.hash);
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Outfit:wght@700;800&display=block" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bdk:#1e2d3d;--bmd:#3a5470;--blt:#5b80a0;--bpl:#f0f4f8;--bsf:#dde7f0;
+  --grn:#2e7a35;--gpale:#eaf6eb;
+  --red:#c03030;--rpale:#fff0f0;
+  --bg:#0f1923;--white:#fff;
+  --gt:#5b7087;--gf:#8fa3b3;--bdr:#e2e9f0;
+  --r:12px;--rs:8px;
+}
+html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--bdk);}
+.page-bg{position:fixed;inset:0;background:radial-gradient(ellipse at 25% 20%,rgba(58,84,112,0.4) 0%,transparent 55%),radial-gradient(ellipse at 80% 85%,rgba(46,122,53,0.15) 0%,transparent 50%),linear-gradient(155deg,#0d1821 0%,#1a2d3e 55%,#0f1923 100%);z-index:0;}
+.page-wrap{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 16px;}
+.card{background:#fff;border-radius:var(--r);width:100%;max-width:420px;box-shadow:0 12px 40px rgba(0,0,0,0.25);overflow:hidden;}
+.logo-row{display:flex;align-items:center;gap:10px;padding:20px 24px 0;}
+.logo-icon{width:40px;height:40px;background:var(--bpl);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.logo-name{font-family:'Outfit',sans-serif;font-size:15px;font-weight:800;color:var(--bdk);line-height:1.2;}
+.logo-sub{font-size:10px;color:var(--gf);margin-top:1px;}
+.ob-steps{display:flex;border-bottom:1px solid var(--bdr);margin-top:16px;}
+.ob-step{flex:1;padding:10px 6px;text-align:center;font-size:11px;font-weight:700;color:var(--gf);border-bottom:2px solid transparent;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:5px;}
+.ob-step.active{color:var(--bmd);border-bottom-color:var(--bmd);}
+.ob-step.done{color:var(--grn);border-bottom-color:var(--grn);}
+.ob-step-dot{width:18px;height:18px;border-radius:50%;background:var(--bdr);color:var(--gf);font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;}
+.ob-step.active .ob-step-dot{background:var(--bmd);color:#fff;}
+.ob-step.done .ob-step-dot{background:var(--grn);color:#fff;}
+.ob-panel{display:none;padding:24px;}
+.ob-panel.active{display:block;}
+.ob-state{padding:48px 24px;text-align:center;}
+.ob-spinner{width:32px;height:32px;border:3px solid var(--bsf);border-top-color:var(--bmd);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 14px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.ob-state-title{font-family:'Outfit',sans-serif;font-size:20px;font-weight:800;color:var(--bdk);margin-bottom:6px;}
+.ob-state-msg{font-size:13px;color:var(--gt);line-height:1.6;}
+.ob-state-contact{margin-top:14px;font-size:12px;color:var(--gf);}
+.ob-state-contact a{color:var(--bmd);text-decoration:none;font-weight:600;}
+.eyebrow{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--gf);margin-bottom:4px;}
+.panel-title{font-family:'Outfit',sans-serif;font-size:20px;font-weight:800;color:var(--bdk);margin-bottom:4px;line-height:1.2;}
+.panel-sub{font-size:12px;color:var(--gt);margin-bottom:20px;line-height:1.5;}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--gf);margin-bottom:4px;}
+.field label span{font-weight:400;text-transform:none;letter-spacing:0;}
+.field input{width:100%;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--bdk);background:var(--bpl);border:1.5px solid var(--bdr);border-radius:var(--rs);padding:9px 11px;outline:none;transition:border-color 0.15s;}
+.field input:focus{border-color:var(--bmd);background:#fff;}
+.field input:disabled{opacity:0.6;cursor:not-allowed;}
+.field input::placeholder{color:var(--gf);}
+.field-hint{font-size:11px;color:var(--gf);margin-top:3px;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.pw-bar{height:3px;background:var(--bdr);border-radius:2px;margin-top:5px;overflow:hidden;}
+.pw-fill{height:100%;border-radius:2px;width:0;transition:all 0.3s;}
+.pw-hint{font-size:11px;margin-top:3px;}
+.alert{font-size:12px;padding:9px 12px;border-radius:var(--rs);margin-bottom:14px;display:none;}
+.alert.error{background:var(--rpale);color:var(--red);border:1px solid #fca5a5;}
+.alert.show{display:block;}
+.btn-primary{width:100%;padding:11px;background:linear-gradient(135deg,var(--bdk),var(--bmd));color:#fff;border:none;border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:opacity 0.15s;}
+.btn-primary:hover{opacity:0.88;}
+.btn-primary:disabled{opacity:0.5;cursor:not-allowed;}
+.btn-ghost{width:100%;padding:9px;background:none;border:1.5px solid var(--bdr);border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--gt);cursor:pointer;margin-top:8px;transition:all 0.15s;}
+.btn-ghost:hover{border-color:var(--bmd);color:var(--bmd);}
+.divider{border:none;border-top:1px solid var(--bdr);margin:16px 0;}
+.success-badge{background:var(--bpl);border:1px solid var(--bsf);border-radius:var(--rs);padding:12px 14px;margin:10px 0;text-align:left;}
+.success-badge-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--gf);margin-bottom:3px;}
+.success-badge-val{font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;color:var(--bdk);}
+.page-footer{position:relative;z-index:1;text-align:center;margin-top:16px;font-size:11px;color:rgba(255,255,255,0.3);}
+.page-footer a{color:rgba(255,255,255,0.45);text-decoration:none;}
+</style>
+</head>
+<body>
+<div class="page-bg"></div>
+<div class="page-wrap">
+<div class="card">
+
+  <div class="logo-row">
+    <div class="logo-icon">
+      <svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg" width="32" height="32">
+        <rect width="56" height="56" rx="12" fill="#2d4a6b"/>
+        <path d="M14 38 L28 16 L42 38" stroke="white" stroke-width="4" fill="none" stroke-linejoin="round"/>
+        <circle cx="28" cy="38" r="4" fill="#5b9bd5"/>
+      </svg>
+    </div>
+    <div>
+      <div class="logo-name">MyClubTracker</div>
+      <div class="logo-sub">Nutrition Club Management</div>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div class="ob-state" id="ob-loading">
+    <div class="ob-spinner"></div>
+    <div class="ob-state-title">Validating your invite…</div>
+    <div class="ob-state-msg">Just a moment.</div>
+  </div>
+
+  <!-- ERROR -->
+  <div class="ob-state" id="ob-error" style="display:none;">
+    <div style="font-size:40px;margin-bottom:12px;">⛔</div>
+    <div class="ob-state-title" id="ob-error-title">Invalid Invite</div>
+    <div class="ob-state-msg" id="ob-error-msg">This invite link is not valid.</div>
+    <div class="ob-state-contact">Questions? Email <a href="mailto:support@myclubtracker.com">support@myclubtracker.com</a></div>
+  </div>
+
+  <!-- STEPS -->
+  <div class="ob-steps" id="ob-steps" style="display:none;">
+    <div class="ob-step active" id="tab-1"><span class="ob-step-dot">1</span>Account</div>
+    <div class="ob-step" id="tab-2"><span class="ob-step-dot">2</span>Organization</div>
+    <div class="ob-step" id="tab-3"><span class="ob-step-dot">3</span>Location</div>
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="ob-panel" id="panel-1">
+    <div class="eyebrow">Step 1 of 3</div>
+    <div class="panel-title">Create your account</div>
+    <div class="panel-sub">Set up your login credentials for MyClubTracker.</div>
+    <div class="alert error" id="s1-alert"></div>
+    <div class="field">
+      <label>Email address</label>
+      <input type="email" id="s1-email" disabled/>
+      <div class="field-hint">Your invite was sent to this address.</div>
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="s1-password" placeholder="At least 8 characters" oninput="checkPw(this.value)"/>
+      <div class="pw-bar"><div class="pw-fill" id="pw-fill"></div></div>
+      <div class="pw-hint" id="pw-hint"></div>
+    </div>
+    <div class="field">
+      <label>Confirm password</label>
+      <input type="password" id="s1-confirm" placeholder="Re-enter password"/>
+    </div>
+    <button class="btn-primary" onclick="goStep2()">Continue →</button>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="ob-panel" id="panel-2">
+    <div class="eyebrow">Step 2 of 3</div>
+    <div class="panel-title">About your organization</div>
+    <div class="panel-sub">This is your Herbalife team identity inside MyClubTracker.</div>
+    <div class="alert error" id="s2-alert"></div>
+    <div class="field">
+      <label>Organization name <span>— your team or downline name</span></label>
+      <input type="text" id="s2-org" placeholder="e.g. Johnson Nutrition Team"/>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>First name</label><input type="text" id="s2-first" placeholder="First"/></div>
+      <div class="field"><label>Last name</label><input type="text" id="s2-last" placeholder="Last"/></div>
+    </div>
+    <div class="field">
+      <label>Display name <span>— shown in the app</span></label>
+      <input type="text" id="s2-display" placeholder="e.g. Sarah"/>
+    </div>
+    <div class="field">
+      <label>Phone <span>— optional</span></label>
+      <input type="tel" id="s2-phone" placeholder="(555) 000-0000"/>
+    </div>
+    <button class="btn-primary" onclick="goStep3()">Continue →</button>
+    <button class="btn-ghost" onclick="showPanel(1)">← Back</button>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="ob-panel" id="panel-3">
+    <div class="eyebrow">Step 3 of 3</div>
+    <div class="panel-title">Your first club location</div>
+    <div class="panel-sub">You can add more locations from your dashboard after setup.</div>
+    <div class="alert error" id="s3-alert"></div>
+    <div class="field">
+      <label>Club name</label>
+      <input type="text" id="s3-name" placeholder="e.g. Johnson Nutrition &amp; Energy"/>
+    </div>
+    <div class="field">
+      <label>Street address</label>
+      <input type="text" id="s3-addr" placeholder="123 Main St"/>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>City</label><input type="text" id="s3-city" placeholder="City"/></div>
+      <div class="field"><label>State</label><input type="text" id="s3-state" placeholder="OH" maxlength="2"/></div>
+    </div>
+    <div class="field">
+      <label>ZIP code</label>
+      <input type="text" id="s3-zip" placeholder="44060" maxlength="10" style="max-width:140px;"/>
+    </div>
+    <hr class="divider"/>
+    <button class="btn-primary" id="s3-btn" onclick="submitOnboard()">Complete Setup →</button>
+    <button class="btn-ghost" onclick="showPanel(2)">← Back</button>
+  </div>
+
+  <!-- SUCCESS -->
+  <div class="ob-panel" id="panel-success">
+    <div style="text-align:center;padding:16px 0 8px;">
+      <div style="font-size:48px;margin-bottom:14px;">🎉</div>
+      <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;color:var(--grn);margin-bottom:6px;">You're all set!</div>
+      <div style="font-size:13px;color:var(--gt);line-height:1.6;margin-bottom:20px;">Your organization has been created and your first club location is ready to go.</div>
+      <div class="success-badge"><div class="success-badge-label">Organization</div><div class="success-badge-val" id="success-org"></div></div>
+      <div class="success-badge"><div class="success-badge-label">First Location</div><div class="success-badge-val" id="success-loc"></div></div>
+      <button class="btn-primary" style="margin-top:16px;" onclick="goToDashboard()">Go to my Dashboard →</button>
+    </div>
+  </div>
+
+</div>
+<div class="page-footer">MyClubTracker · <a href="mailto:support@myclubtracker.com">support@myclubtracker.com</a></div>
+</div>
+
+<script>
+const SURL='https://ndaqlamzlaucigvnhgfu.supabase.co';
+const SKEY='sb_publishable_wO6XM4pC2CcaISQ8OlbkfQ_liqKJbi_';
+const sb=supabase.createClient(SURL,SKEY);
+let _orgId=null,_inviteEmail=null;
+
+(async()=>{
+  const token=new URLSearchParams(window.location.search).get('token');
+  if(!token){showError('No Invite Token','This link is missing an invite token. Please use the link from your invitation email.');return;}
+  const{data:org,error}=await sb.from('organizations').select('id,name,leader_email,invite_expires_at,status').eq('invite_token',token).single();
+  if(error||!org){showError('Invalid Invite','This invite link is not valid. It may have already been used or does not exist.');return;}
+  if(org.status==='active'){showError('Already Activated','This organization has already been set up. Please sign in at the main page.');return;}
+  if(org.status==='suspended'){showError('Account Suspended','This account has been suspended. Contact support@myclubtracker.com for help.');return;}
+  if(org.status!=='invited'){showError('Invalid Invite','This invite link is not valid.');return;}
+  if(org.invite_expires_at&&new Date(org.invite_expires_at)<new Date()){showError('Invite Expired','This invite link expired after 30 days. Please contact your administrator to request a new one.');return;}
+  _orgId=org.id;_inviteEmail=org.leader_email||'';
+  document.getElementById('s1-email').value=_inviteEmail;
+  document.getElementById('ob-loading').style.display='none';
+  document.getElementById('ob-steps').style.display='flex';
+  showPanel(1);
+})();
+
+function showError(title,msg){
+  document.getElementById('ob-loading').style.display='none';
+  document.getElementById('ob-error').style.display='block';
+  document.getElementById('ob-error-title').textContent=title;
+  document.getElementById('ob-error-msg').textContent=msg;
+}
+function showPanel(n){
+  document.querySelectorAll('.ob-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+n).classList.add('active');
+  for(let i=1;i<=3;i++){const t=document.getElementById('tab-'+i);if(!t)continue;t.classList.remove('active','done');if(i<n)t.classList.add('done');else if(i===n)t.classList.add('active');}
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function showAlert(id,msg){const el=document.getElementById(id);el.textContent=msg;el.classList.add('show');}
+function clearAlert(id){document.getElementById(id).classList.remove('show');}
+function checkPw(pw){
+  const fill=document.getElementById('pw-fill'),hint=document.getElementById('pw-hint');
+  if(!pw){fill.style.width='0';hint.textContent='';return;}
+  let s=0;if(pw.length>=8)s++;if(pw.length>=12)s++;if(/[A-Z]/.test(pw))s++;if(/[0-9]/.test(pw))s++;if(/[^A-Za-z0-9]/.test(pw))s++;
+  const lvl=[{w:'20%',c:'#c03030',t:'Too short'},{w:'40%',c:'#d97706',t:'Weak'},{w:'60%',c:'#ca8a04',t:'Fair'},{w:'80%',c:'#65a30d',t:'Good'},{w:'100%',c:'#16a34a',t:'Strong'}][Math.min(s-1,4)]||{w:'20%',c:'#c03030',t:'Too short'};
+  fill.style.width=lvl.w;fill.style.background=lvl.c;hint.style.color=lvl.c;hint.textContent=lvl.t;
+}
+function goStep2(){
+  clearAlert('s1-alert');
+  const pw=document.getElementById('s1-password').value,cn=document.getElementById('s1-confirm').value;
+  if(pw.length<8){showAlert('s1-alert','Password must be at least 8 characters.');return;}
+  if(pw!==cn){showAlert('s1-alert','Passwords do not match.');return;}
+  showPanel(2);
+}
+function goStep3(){
+  clearAlert('s2-alert');
+  const org=document.getElementById('s2-org').value.trim(),first=document.getElementById('s2-first').value.trim(),last=document.getElementById('s2-last').value.trim();
+  if(!org){showAlert('s2-alert','Please enter your organization name.');return;}
+  if(!first||!last){showAlert('s2-alert','Please enter your first and last name.');return;}
+  if(!document.getElementById('s2-display').value.trim())document.getElementById('s2-display').value=first;
+  showPanel(3);
+}
+async function submitOnboard(){
+  clearAlert('s3-alert');
+  const clubName=document.getElementById('s3-name').value.trim(),addr=document.getElementById('s3-addr').value.trim(),city=document.getElementById('s3-city').value.trim(),state=document.getElementById('s3-state').value.trim().toUpperCase(),zip=document.getElementById('s3-zip').value.trim();
+  if(!clubName){showAlert('s3-alert','Please enter your club name.');return;}
+  if(!addr||!city||!state){showAlert('s3-alert','Please fill in the address, city, and state.');return;}
+  const btn=document.getElementById('s3-btn');btn.disabled=true;btn.textContent='Setting up your account…';
+  try{
+    const email=document.getElementById('s1-email').value,pw=document.getElementById('s1-password').value;
+    const{data:authData,error:authErr}=await sb.auth.signUp({email,password:pw});
+    if(authErr)throw authErr;
+    const userId=authData.user?.id;if(!userId)throw new Error('Account creation failed — please try again.');
+    const first=document.getElementById('s2-first').value.trim(),last=document.getElementById('s2-last').value.trim(),display=document.getElementById('s2-display').value.trim()||first,phone=document.getElementById('s2-phone').value.trim(),orgName=document.getElementById('s2-org').value.trim(),fullAddr=`${addr}, ${city}, ${state} ${zip}`.trim();
+    const{data:loc,error:locErr}=await sb.from('locations').insert({name:clubName,address:fullAddr,org_id:_orgId,settings:{clubName,taxRate:1.25,ohRate:32,otherRate:50,merchRate:100,dvDelta:3,opDays:[false,true,true,true,true,true,true],operators:[{name:'',visible:true,aliases:''},{name:'',visible:true,aliases:''},{name:'',visible:false,aliases:''},{name:'',visible:false,aliases:''}]}}).select().single();
+    if(locErr)throw locErr;
+    const{error:userErr}=await sb.from('users').upsert({id:userId,email,first_name:first,last_name:last,display_name:display,phone,role:'org_leader',org_id:_orgId,location_id:loc.id});
+    if(userErr)throw userErr;
+    const{error:orgErr}=await sb.from('organizations').update({name:orgName,leader_name:`${first} ${last}`.trim(),leader_email:email,owner_user_id:userId,status:'active',activated_at:new Date().toISOString(),invite_token:null,invite_expires_at:null}).eq('id',_orgId);
+    if(orgErr)throw orgErr;
+    await sb.from('org_leaders').upsert({org_id:_orgId,user_id:userId,is_primary:true},{onConflict:'org_id,user_id'});
+    document.getElementById('success-org').textContent=orgName;
+    document.getElementById('success-loc').textContent=clubName;
+    document.getElementById('ob-steps').style.display='none';
+    document.querySelectorAll('.ob-panel').forEach(p=>p.classList.remove('active'));
+    document.getElementById('panel-success').classList.add('active');
+  }catch(err){btn.disabled=false;btn.textContent='Complete Setup →';showAlert('s3-alert',err.message||'Something went wrong. Please try again.');}
+}
+function goToDashboard(){window.location.href='org-admin.html';}
+document.addEventListener('DOMContentLoaded',()=>{
+  const st=document.getElementById('s3-state');if(st)st.addEventListener('input',()=>st.value=st.value.toUpperCase());
+  const fn=document.getElementById('s2-first'),dn=document.getElementById('s2-display');
+  if(fn&&dn)fn.addEventListener('input',()=>{if(!dn.value)dn.value=fn.value;});
+});
+</script>
+</body>
+</html>
