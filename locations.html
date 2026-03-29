@@ -439,14 +439,16 @@ function renderLocations(){
             '<div class="loc-user-field"><label>Display Name</label><input type="text" id="luf-dn-'+u.id+'" value="'+escHtml(u.display_name||'')+'" placeholder="Display name"/></div>'+
             '<div class="loc-user-field"><label>Phone</label><input type="tel" id="luf-ph-'+u.id+'" value="'+escHtml(u.phone||'')+'" placeholder="(555) 000-0000"/></div>'+
           '</div>'+
-          '<button class="loc-user-save" onclick="locSaveUser(\''+u.id+'\')">Save Changes</button>'+
-          '<div style="display:flex;justify-content:flex-end;align-items:center;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border-light);">'+
-            '<select class="loc-role-select" style="font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:700;padding:6px 10px;border-radius:8px;border:1px solid var(--b2);background:var(--b0);color:var(--b7);cursor:pointer;outline:none;min-width:110px;" onchange="changeUserRole(\''+u.id+'\',this.value,this)">'+
-              '<option value="owner" '+(u.role==='owner'?'selected':'')+'>Owner</option>'+
-              '<option value="employee" '+(u.role==='employee'?'selected':'')+'>Operator</option>'+
-            '</select>'+
-            '<button onclick="locResetPassword(\''+escAttr(u.email)+'\',\''+escAttr(fn)+'\')" style="font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:700;padding:6px 0;border-radius:8px;border:1px solid var(--b2);background:var(--b0);color:var(--b7);cursor:pointer;width:110px;white-space:nowrap;">🔑 Reset PW</button>'+
-            '<button onclick="confirmRemoveUser(\''+u.id+'\',\''+escAttr(fn)+'\')" style="font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:700;padding:6px 0;border-radius:8px;border:1px solid var(--r2);background:var(--r0);color:var(--r5);cursor:pointer;width:110px;white-space:nowrap;" onmouseover="this.style.background=\'var(--r1)\'" onmouseout="this.style.background=\'var(--r0)\'">🗑 Remove</button>'+
+          '<div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;">'+
+            '<button class="loc-user-save" onclick="locSaveUser(\''+u.id+'\')" style="margin-top:0;padding:8px 16px;">Save Changes</button>'+
+            '<div style="margin-left:auto;display:flex;gap:8px;">'+
+              '<select onchange="changeUserRole(\''+u.id+'\',this.value,this)" style="font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:700;padding:8px 10px;border-radius:6px;border:none;background:var(--b6);color:white;cursor:pointer;outline:none;">'+
+                '<option value="owner" '+(u.role==='owner'?'selected':'')+'>Owner</option>'+
+                '<option value="employee" '+(u.role==='employee'?'selected':'')+'>Operator</option>'+
+              '</select>'+
+              '<button onclick="locResetPassword(\''+escAttr(u.email)+'\',\''+escAttr(fn)+'\')" style="font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:700;padding:8px 14px;border-radius:6px;border:none;background:var(--b6);color:white;cursor:pointer;white-space:nowrap;">🔑 Reset PW</button>'+
+              '<button onclick="confirmRemoveUser(\''+u.id+'\',\''+escAttr(fn)+'\')" style="font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:700;padding:8px 14px;border-radius:6px;border:none;background:var(--b6);color:white;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background=\'var(--r5)\'" onmouseout="this.style.background=\'var(--b6)\'">🗑 Remove</button>'+
+            '</div>'+
           '</div>'+
         '</div>'+
         '</div>'+
@@ -507,8 +509,8 @@ function renderLocations(){
           (loc.address?'<div class="loc-addr">📍 '+escHtml(loc.address)+'</div>':'')+
         '</div>'+
         '<div class="loc-header-actions">'+
-          (!isPending?'<button onclick="goToApp(\''+loc.id+'\')" style="font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:700;background:linear-gradient(135deg,var(--b7),var(--b5));color:white;border:none;border-radius:8px;padding:8px 24px;cursor:pointer;white-space:nowrap;">Enter Club View →</button>':'')+
-          '<button onclick="openEditLocation(\''+loc.id+'\')" style="font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:600;background:white;color:var(--text-muted);border:1px solid var(--border);border-radius:8px;padding:8px 14px;cursor:pointer;white-space:nowrap;">✏️ Edit Club Details</button>'+
+          (!isPending?'<button onclick="goToApp(\''+loc.id+'\')" style="font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:700;background:linear-gradient(135deg,var(--b7),var(--b5));color:white;border:none;border-radius:8px;padding:8px 24px;cursor:pointer;white-space:nowrap;">Enter Club View</button>':'')+
+          '<button onclick="openEditLocation(\''+loc.id+'\')" style="font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:700;background:linear-gradient(135deg,var(--b7),var(--b5));color:white;border:none;border-radius:8px;padding:8px 24px;cursor:pointer;white-space:nowrap;">Edit Club Details</button>'+
           '<button onclick="confirmRemoveLocation(this)" data-id="'+loc.id+'" data-name="'+escHtml(loc.name)+'" title="Remove location" style="font-family:\'DM Sans\',sans-serif;font-size:14px;background:white;border:1px solid var(--border);border-radius:8px;padding:8px 10px;cursor:pointer;color:var(--text-faint);line-height:1;" onmouseover="this.style.background=\'var(--r0)\';this.style.color=\'var(--r5)\';this.style.borderColor=\'var(--r3)\'" onmouseout="this.style.background=\'white\';this.style.color=\'var(--text-faint)\';this.style.borderColor=\'var(--border)\'">🗑</button>'+
         '</div>'+
       '</div>'+
