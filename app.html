@@ -182,16 +182,27 @@ if('serviceWorker' in navigator){
     .inv-table th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);background:#f8fafc;padding:8px 14px;text-align:right;border-bottom:1px solid var(--border-light);vertical-align:middle;}
     .inv-table th:first-child{text-align:left}
     .inv-table th:nth-child(1){width:auto}
-    .inv-table th:nth-child(2){width:58px}
-    .inv-table th:nth-child(3){width:44px}
-    .inv-table th:nth-child(4){width:62px}
-    .inv-table th:nth-child(5){width:60px}
-    .inv-table th:nth-child(6){width:88px}
+    .inv-table th:nth-child(2){width:32px}
+    .inv-table th:nth-child(3){width:58px}
+    .inv-table th:nth-child(4){width:44px}
+    .inv-table th:nth-child(5){width:62px}
+    .inv-table th:nth-child(6){width:60px}
     .inv-table th:nth-child(7){width:88px}
+    .inv-table th:nth-child(8){width:88px}
     .inv-table td{padding:6px 14px;font-size:16px;font-weight:500;border-bottom:1px solid var(--border-light);vertical-align:middle;height:32px;}
     .inv-table tr:last-child td{border-bottom:none}
     .inv-table td:not(:first-child){text-align:right}
+    .inv-table tr.inv-row-active{background:rgba(59,130,246,0.06);}
+    .inv-table tr.inv-row-active .inv-input{border-color:var(--a4);box-shadow:0 0 0 2px rgba(224,152,32,0.15);background:#fff;}
+    .inv-cat-subtotal td{background:#f1f5f9;border-top:2px solid var(--border-light);padding:7px 14px;}
     .inv-table tbody tr:hover td{background:var(--b0)}
+    .inv-row-need td{background:rgba(239,68,68,0.04);}
+    .inv-row-need:hover td{background:rgba(239,68,68,0.07);}
+    /* OOS checkbox */
+    .oos-check{width:16px;height:16px;cursor:pointer;accent-color:var(--r5,#ef4444);flex-shrink:0;}
+    .oos-badge{display:inline-block;font-size:10px;font-weight:700;background:#fee2e2;color:#dc2626;border-radius:4px;padding:1px 5px;margin-left:4px;vertical-align:middle;white-space:nowrap;}
+    .inv-row-oos td{opacity:0.55;}
+    .inv-row-oos .inv-name{text-decoration:line-through;}
     /* Constrain inventory panel width so it doesn't stretch across full screen */
     #panel-enter{max-width:860px;margin:0 auto;}
     /* ── Dashboard Widgets ── */
@@ -219,6 +230,11 @@ if('serviceWorker' in navigator){
     /* Operating day toggles */
     .opday-btn{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;padding:5px 8px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);color:var(--text-faint);cursor:pointer;transition:all 0.15s;}
     .opday-btn.active{background:var(--b7);color:#fff;border-color:var(--b7);}
+    /* Profile avatar upload */
+    .prof-avatar-wrap{position:relative;width:64px;height:64px;flex-shrink:0;cursor:pointer;}
+    .prof-avatar-circle{width:64px;height:64px;border-radius:50%;background:var(--b1);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;color:var(--b7);}
+    .prof-avatar-circle img{width:64px;height:64px;object-fit:cover;border-radius:50%;}
+    .prof-avatar-overlay{position:absolute;bottom:0;right:0;width:22px;height:22px;border-radius:50%;background:var(--b7);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;border:2px solid var(--surface);}
     @media(max-width:680px){.dashboard-widgets{grid-template-columns:1fr 1fr;}}
     #panel-inv{max-width:none;margin:0;padding:0;}
     #inv-sticky-wrap{position:sticky;top:0;z-index:20;background:var(--bg);padding-bottom:4px;}
@@ -582,13 +598,46 @@ if('serviceWorker' in navigator){
 <div class="tab-panel" id="panel-inv" style="padding:0;">
   <div id="inv-sticky-wrap">
     <div style="max-width:900px;margin:0 auto;padding:10px 12px 0;">
-      <div class="inv-header"><div class="inv-header-title">Inventory</div><div class="inv-dv-row"><div class="inv-dv-card"><div class="inv-dv-item-label">DV Need</div><div class="inv-dv-item-val" id="inv-total-dvneed">0</div></div><div class="inv-dv-card"><div class="inv-dv-item-label">DV Have</div><div class="inv-dv-item-val" id="inv-total-vp">0</div></div></div></div>
+      <div class="inv-header"><div class="inv-header-title">Inventory</div><div class="inv-dv-row"><div class="inv-dv-card"><div class="inv-dv-item-label">DV Have</div><div class="inv-dv-item-val" id="inv-total-vp">0</div></div><div class="inv-dv-card"><div class="inv-dv-item-label">DV Need</div><div class="inv-dv-item-val" id="inv-total-dvneed">0</div></div></div></div>
     </div>
     <div style="max-width:900px;margin:0 auto;padding:0 12px;">
-      <div class="filter-row"><button class="filter-chip active" onclick="setInvFilter('all',this)">All</button><button class="filter-chip" onclick="setInvFilter('needs',this)">Needs Only</button><button class="btn btn-primary" onclick="saveInvSnapshot()" style="margin-left:auto;">📸 Snapshot</button></div>
+      <div class="filter-row" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <button class="filter-chip active" onclick="setInvFilter('all',this)">All</button>
+        <button class="filter-chip" onclick="setInvFilter('needs',this)">Needs Only</button>
+        <div style="display:flex;align-items:center;gap:6px;margin-left:8px;">
+          <label style="font-size:11px;font-weight:600;color:var(--text-faint);white-space:nowrap;">Load Snapshot:</label>
+          <select id="inv-snapshot-picker" style="font-family:'DM Sans',sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 8px;background:var(--surface);color:var(--text);outline:none;" onchange="loadInvSnapshot(this.value)">
+            <option value="">— Current —</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="saveInvSnapshot()" style="margin-left:auto;">📸 Snapshot</button>
+      </div>
     </div>
   </div>
   <div style="max-width:900px;margin:0 auto;padding:0 12px 10px;" id="inv-body"></div>
+</div>
+
+<!-- OOS MODAL -->
+<div class="modal-overlay" id="oos-modal" onclick="closeOosOnBg(event)" style="display:none;">
+  <div class="modal-sheet" style="max-width:420px;">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Out of Stock</div>
+    <div style="padding:0 16px 16px;">
+      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:12px;" id="oos-product-name"></div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);display:block;margin-bottom:5px;">Note (optional)</label>
+        <textarea id="oos-note" rows="3" placeholder="e.g. Backordered from Herbalife, check mid-April" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;outline:none;resize:vertical;box-sizing:border-box;"></textarea>
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);display:block;margin-bottom:5px;">Expected Availability</label>
+        <input type="date" id="oos-date" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;outline:none;background:var(--surface);color:var(--text);width:100%;box-sizing:border-box;"/>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-primary" onclick="saveOos()" style="flex:1;">Save</button>
+        <button class="btn btn-ghost" onclick="closeOosModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="tab-panel" id="panel-invhist"><div id="invhist-list"><div class="empty-state">No snapshots yet.</div></div></div>
@@ -684,6 +733,19 @@ if('serviceWorker' in navigator){
     <!-- ── MY PROFILE (all roles) ── -->
     <div class="settings-group">
       <div class="settings-group-title">My Profile</div>
+      <!-- Avatar upload -->
+      <div class="settings-row" style="gap:12px;align-items:center;padding:6px 0 10px;">
+        <div class="prof-avatar-wrap" onclick="document.getElementById('prof-avatar-input').click()" title="Upload photo">
+          <div class="prof-avatar-circle" id="prof-avatar-circle"><span id="prof-avatar-initials"></span><img id="prof-avatar-img" alt="" style="display:none;"/></div>
+          <div class="prof-avatar-overlay">📷</div>
+          <input type="file" id="prof-avatar-input" accept="image/*" style="display:none;" onchange="handleAvatarUpload(this)"/>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:600;color:var(--text);">Profile Photo</div>
+          <div style="font-size:11px;color:var(--text-faint);margin-top:2px;">Tap the circle to upload. Shown in nav and team views.</div>
+          <button id="prof-avatar-remove-btn" class="btn btn-ghost" onclick="removeAvatar()" style="display:none;margin-top:6px;font-size:11px;padding:3px 10px;color:var(--danger,#dc2626);">Remove photo</button>
+        </div>
+      </div>
       <div class="settings-row" style="gap:6px;"><label style="min-width:90px;">First Name</label><input type="text" class="prof-input" id="prof-firstname" placeholder="First name"/></div>
       <div class="settings-row" style="gap:6px;"><label style="min-width:90px;">Last Name</label><input type="text" class="prof-input" id="prof-lastname" placeholder="Last name"/></div>
       <div class="settings-row" style="gap:6px;">
@@ -792,6 +854,7 @@ const {createClient}=supabase;
 const sb=createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 
 let LOCATION_ID=null,IS_ADMIN_VIEW=false,OPEN_SETTINGS=false,ALL_DAYS=[],INV_SNAPSHOTS=[],USER_ROLE='owner',CURRENT_SESSION=null;
+let invOos={}; // {sku: {note:'', expectedDate:''}} — out of stock map
 const DAY_NAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 let SETTINGS={clubName:'',taxRate:1.25,ohRate:32,otherRate:50,merchRate:100,dvDelta:3,
   opDays:[false,true,true,true,true,true,true],
@@ -900,10 +963,12 @@ async function openProfileModal(){
     const isOwner=(USER_ROLE==='owner'||USER_ROLE==='admin');
     document.getElementById('profile-modal-title').textContent=isOwner?'Profile & Settings':'My Profile';
     // Load profile fields
-    const {data:u}=await sb.from('users').select('display_name,first_name,last_name,phone').eq('id',CURRENT_SESSION.user.id).single();
+    const {data:u}=await sb.from('users').select('display_name,first_name,last_name,phone,avatar_url').eq('id',CURRENT_SESSION.user.id).single();
     document.getElementById('prof-firstname').value=u?.first_name||'';
     document.getElementById('prof-lastname').value =u?.last_name||'';
     document.getElementById('prof-name').value     =u?.display_name||'';
+    // Populate avatar UI
+    populateProfAvatar(u?.avatar_url, u?.first_name, u?.last_name, u?.display_name);
     autoSizeInput(document.getElementById('prof-name'));
     const phoneEl=document.getElementById('prof-phone');
     phoneEl.value=u?.phone||'';
@@ -1107,6 +1172,96 @@ function setNavAvatar(avatarUrl, firstName, lastName, displayName) {
   }
 }
 
+function setNavAvatar(avatarUrl, firstName, lastName, displayName) {
+  var circle = document.getElementById('nav-avatar');
+  if (!circle) return;
+  var initials = ((firstName||'').charAt(0) + (lastName||'').charAt(0)).toUpperCase()
+    || (displayName||'').charAt(0).toUpperCase() || '?';
+  var img = circle.querySelector('img');
+  var span = circle.querySelector('span');
+  if (avatarUrl && img) {
+    img.src = avatarUrl;
+    img.style.display = 'block';
+    if (span) span.style.display = 'none';
+  } else {
+    if (span) { span.textContent = initials; span.style.display = ''; }
+    if (img) img.style.display = 'none';
+  }
+}
+
+function populateProfAvatar(avatarUrl, firstName, lastName, displayName) {
+  const circle = document.getElementById('prof-avatar-circle');
+  const img = document.getElementById('prof-avatar-img');
+  const initSpan = document.getElementById('prof-avatar-initials');
+  const removeBtn = document.getElementById('prof-avatar-remove-btn');
+  if (!circle) return;
+  const initials = ((firstName||'').charAt(0) + (lastName||'').charAt(0)).toUpperCase()
+    || (displayName||'').charAt(0).toUpperCase() || '?';
+  if (avatarUrl) {
+    img.src = avatarUrl;
+    img.style.display = 'block';
+    initSpan.style.display = 'none';
+    if (removeBtn) removeBtn.style.display = 'inline-flex';
+  } else {
+    img.style.display = 'none';
+    initSpan.textContent = initials;
+    initSpan.style.display = '';
+    if (removeBtn) removeBtn.style.display = 'none';
+  }
+}
+
+async function handleAvatarUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  showToast('Uploading photo…');
+  try {
+    // Resize to 256×256 on canvas
+    const bitmap = await createImageBitmap(file);
+    const canvas = document.createElement('canvas');
+    canvas.width = 256; canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+    // Cover crop
+    const ratio = Math.max(256 / bitmap.width, 256 / bitmap.height);
+    const w = bitmap.width * ratio, h = bitmap.height * ratio;
+    ctx.drawImage(bitmap, (256 - w) / 2, (256 - h) / 2, w, h);
+    const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.85));
+    // Upload to Supabase Storage
+    const path = `${CURRENT_SESSION.user.id}/avatar.jpg`;
+    const { error: upErr } = await sb.storage.from('avatars').upload(path, blob, { upsert: true, contentType: 'image/jpeg' });
+    if (upErr) throw upErr;
+    const { data: urlData } = sb.storage.from('avatars').getPublicUrl(path);
+    const avatarUrl = urlData.publicUrl + '?t=' + Date.now();
+    // Save to public.users
+    await sb.from('users').update({ avatar_url: avatarUrl }).eq('id', CURRENT_SESSION.user.id);
+    // Update UI
+    const fn = document.getElementById('prof-firstname')?.value || '';
+    const ln = document.getElementById('prof-lastname')?.value || '';
+    const dn = document.getElementById('prof-name')?.value || '';
+    populateProfAvatar(avatarUrl, fn, ln, dn);
+    setNavAvatar(avatarUrl, fn, ln, dn);
+    showToast('Photo saved ✓', 'success');
+  } catch(e) {
+    showToast('Upload failed: ' + (e.message || e), 'error');
+  }
+  input.value = '';
+}
+
+async function removeAvatar() {
+  try {
+    const path = `${CURRENT_SESSION.user.id}/avatar.jpg`;
+    await sb.storage.from('avatars').remove([path]);
+    await sb.from('users').update({ avatar_url: null }).eq('id', CURRENT_SESSION.user.id);
+    const fn = document.getElementById('prof-firstname')?.value || '';
+    const ln = document.getElementById('prof-lastname')?.value || '';
+    const dn = document.getElementById('prof-name')?.value || '';
+    populateProfAvatar(null, fn, ln, dn);
+    setNavAvatar(null, fn, ln, dn);
+    showToast('Photo removed', 'success');
+  } catch(e) {
+    showToast('Remove failed: ' + (e.message || e), 'error');
+  }
+}
+
 // ── DARK MODE ──
 
 
@@ -1248,6 +1403,7 @@ async function init(){
   const{data:snaps}=await sb.from('inventory').select('id,data,saved_at').eq('location_id',LOCATION_ID).order('saved_at',{ascending:false});
   INV_SNAPSHOTS=snaps||[];
   if(SETTINGS.customProducts)PRODUCTS=SETTINGS.customProducts;
+  if(SETTINGS.invOos)invOos=SETTINGS.invOos;
   const today=new Date().toISOString().slice(0,10);
   const _ed=document.getElementById('entry-date');if(_ed)_ed.value=today;
   updateDateDisplay();
@@ -1699,34 +1855,135 @@ function renderInventory(){
   let html='';
   Object.entries(cats).forEach(([cat,items])=>{
     const vis=invFilter==='needs'?items.filter(p=>(invHave[p.sku]||0)<p.par):items;if(!vis.length)return;
-    html+=`<div class="inv-cat-header">${cat}</div><table class="inv-table"><thead><tr><th>Product</th><th>VP</th><th>PAR</th><th>HAVE</th><th>NEED</th><th>DV Need</th><th>DV Have</th></tr></thead><tbody>`;
-    vis.forEach(p=>{const haveRaw=invHave[p.sku],have=haveRaw||0,haveEntered=haveRaw!=null&&haveRaw!==undefined,need=Math.max(0,p.par-have),bc=need>0?'need':(have>0?'ok':'zero'),bt=need>0?need:(have>0?'✓':'—'),dvHave=(p.vp||0)*have,dvNeed=(p.vp||0)*need;
-      html+=`<tr><td><div class="inv-name-cell"><span class="inv-name">${p.name}</span>${p.sku?`<span class="inv-sku">${p.sku}</span>`:''}</div></td><td>${p.vp!=null?fmtVP(p.vp):'—'}</td><td>${p.par}</td><td><input class="inv-input" type="number" min="0" value="${have||''}" oninput="setHave('${p.sku}',this.value)"/></td><td><span class="need-badge ${bc}">${bt}</span></td><td id="dvneed-${p.sku}" style="font-size:16px;font-weight:600;color:var(--r5);opacity:0.8;">${haveEntered&&dvNeed>0?fmtVP(dvNeed):'—'}</td><td id="vptot-${p.sku}" style="font-size:16px;font-weight:600;color:var(--b6);">${dvHave>0?fmtVP(dvHave):'—'}</td></tr>`;
+    const catSlug=cat.replace(/[^a-z0-9]/gi,'_');
+    const catDvHave=items.reduce((s,p)=>{const q=invHave[p.sku]||0;return s+(p.vp||0)*q;},0);
+    const catDvNeed=items.reduce((s,p)=>{const q=invHave[p.sku]||0;const he=invHave[p.sku]!=null;const need=Math.max(0,(p.par||0)-q);return s+(he?(p.vp||0)*need:0);},0);
+    html+=`<div class="inv-cat-header">${cat}</div><table class="inv-table"><thead><tr><th style="text-align:left">Product</th><th></th><th>VP</th><th>PAR</th><th>HAVE</th><th>NEED</th><th>DV Have</th><th>DV Need</th></tr></thead><tbody>`;
+    vis.forEach(p=>{
+      const haveRaw=invHave[p.sku],have=haveRaw||0,haveEntered=haveRaw!=null&&haveRaw!==undefined;
+      const need=Math.max(0,p.par-have),bc=need>0?'need':(haveEntered?'ok':'zero'),bt=need>0?need:(haveEntered?'✓':'—');
+      const dvHave=(p.vp||0)*have,dvNeed=(p.vp||0)*need;
+      const oos=invOos[p.sku];
+      const isOos=!!oos;
+      const rowClass=(isOos?'inv-row-oos':(need>0&&haveEntered?'inv-row-need':''));
+      const dvHaveStr=haveEntered?fmtVP(dvHave):'—';
+      const dvNeedStr=haveEntered&&dvNeed>0?fmtVP(dvNeed):'—';
+      const oosInfo=isOos&&oos.expectedDate?`<span class="oos-badge">OOS · ${new Date(oos.expectedDate+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>`:(isOos?`<span class="oos-badge">OOS</span>`:'');
+      html+=`<tr class="${rowClass}" id="inv-row-${p.sku}">
+        <td><div class="inv-name-cell"><span class="inv-name">${p.name}</span>${p.sku?`<span class="inv-sku">${p.sku}</span>`:''}</div>${oosInfo}</td>
+        <td style="text-align:center;padding:6px 4px;"><input type="checkbox" class="oos-check" title="Mark out of stock" ${isOos?'checked':''} onchange="toggleOos('${p.sku}','${escHtml(p.name)}',this)"/></td>
+        <td>${p.vp!=null?fmtVP(p.vp):'—'}</td>
+        <td>${p.par}</td>
+        <td><input class="inv-input" type="number" min="0" value="${haveEntered?have:''}" oninput="setHave('${p.sku}',this.value)" onfocus="this.closest('tr').classList.add('inv-row-active')" onblur="this.closest('tr').classList.remove('inv-row-active')" ondblclick="this.select()" onclick="this.focus()" ${isOos?'disabled style="opacity:0.4"':''}/></td>
+        <td><span class="need-badge ${bc}">${bt}</span></td>
+        <td id="vptot-${p.sku}" style="font-size:16px;font-weight:600;color:var(--b6);">${dvHaveStr}</td>
+        <td id="dvneed-${p.sku}" style="font-size:16px;font-weight:600;color:var(--r5);opacity:0.8;">${dvNeedStr}</td>
+      </tr>`;
     });
+    html+=`<tr class="inv-cat-subtotal">
+      <td style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">${cat} Total</td>
+      <td></td><td></td><td></td><td></td><td></td>
+      <td id="cat-dvhave-${catSlug}" style="font-size:13px;font-weight:700;color:var(--b6);">${catDvHave>0?fmtVP(catDvHave):'—'}</td>
+      <td id="cat-dvneed-${catSlug}" style="font-size:13px;font-weight:700;color:var(--r5);opacity:0.85;">${catDvNeed>0?fmtVP(catDvNeed):'—'}</td>
+    </tr>`;
     html+='</tbody></table>';
   });
   document.getElementById('inv-body').innerHTML=html||'<div class="empty-state">No items.</div>';
   recalcInvCatTop();
+  // Populate snapshot picker
+  const picker=document.getElementById('inv-snapshot-picker');
+  if(picker&&INV_SNAPSHOTS.length){
+    const cur=picker.value;
+    picker.innerHTML='<option value="">— Current —</option>'+INV_SNAPSHOTS.map(s=>{
+      const dt=new Date(s.saved_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
+      return`<option value="${s.id}">${dt}</option>`;
+    }).join('');
+    picker.value=cur||'';
+  }
 }
 function setHave(s,v){
   const parsed=parseInt(v);
   invHave[s]=(v===''||v===null||v===undefined||isNaN(parsed))?null:parsed;
   const have=invHave[s]||0;
-  let vp=0,u=0,totalDvNeed=0;
-  PRODUCTS.forEach(p=>{const q=invHave[p[2]]||0;vp+=(p[3]||0)*q;u+=q;const haveEntered=invHave[p[2]]!=null;const need=Math.max(0,(p[4]||0)-q);if(haveEntered)totalDvNeed+=(p[3]||0)*need;});
+  let vp=0,totalDvNeed=0;
+  PRODUCTS.forEach(p=>{const q=invHave[p[2]]||0;vp+=(p[3]||0)*q;const he=invHave[p[2]]!=null;const need=Math.max(0,(p[4]||0)-q);if(he)totalDvNeed+=(p[3]||0)*need;});
   setText('inv-total-vp',fmtVP(vp));
   setText('inv-total-dvneed',fmtVP(totalDvNeed));
   const prod=PRODUCTS.find(p=>p[2]===s);
   if(prod){
+    const haveEntered=invHave[s]!=null;
     const need=Math.max(0,(prod[4]||0)-have);
     const dvHave=(prod[3]||0)*have;
     const dvNeed=(prod[3]||0)*need;
-    const haveEntered=invHave[s]!=null;
     const haveCell=document.getElementById('vptot-'+s);
     const needCell=document.getElementById('dvneed-'+s);
-    if(haveCell)haveCell.textContent=dvHave>0?fmtVP(dvHave):'—';
+    if(haveCell)haveCell.textContent=haveEntered?fmtVP(dvHave):'—';
     if(needCell)needCell.textContent=(haveEntered&&dvNeed>0)?fmtVP(dvNeed):'—';
+    // Update row need highlight
+    const row=document.getElementById('inv-row-'+s);
+    if(row&&!invOos[s]){
+      row.classList.toggle('inv-row-need',need>0&&haveEntered);
+    }
+    // Update category subtotal
+    const catSlug=prod[0].replace(/[^a-z0-9]/gi,'_');
+    const catItems=PRODUCTS.filter(p=>p[0]===prod[0]);
+    const catDvHave=catItems.reduce((sum,p)=>{const q=invHave[p[2]]||0;return sum+(p[3]||0)*q;},0);
+    const catDvNeed=catItems.reduce((sum,p)=>{const q=invHave[p[2]]||0;const he=invHave[p[2]]!=null;const n=Math.max(0,(p[4]||0)-q);return sum+(he?(p[3]||0)*n:0);},0);
+    const catHaveEl=document.getElementById('cat-dvhave-'+catSlug);
+    const catNeedEl=document.getElementById('cat-dvneed-'+catSlug);
+    if(catHaveEl)catHaveEl.textContent=catDvHave>0?fmtVP(catDvHave):'—';
+    if(catNeedEl)catNeedEl.textContent=catDvNeed>0?fmtVP(catDvNeed):'—';
   }
+}
+// OOS functions
+let _oosPendingSku=null,_oosPendingName=null,_oosPendingChecked=false;
+function toggleOos(sku,name,checkbox){
+  if(checkbox.checked){
+    _oosPendingSku=sku;_oosPendingName=name;_oosPendingChecked=true;
+    document.getElementById('oos-product-name').textContent=name;
+    const existing=invOos[sku]||{};
+    document.getElementById('oos-note').value=existing.note||'';
+    document.getElementById('oos-date').value=existing.expectedDate||'';
+    document.getElementById('oos-modal').style.display='flex';
+  } else {
+    delete invOos[sku];
+    saveOosToSettings();
+    renderInventory();
+  }
+}
+function closeOosModal(){
+  document.getElementById('oos-modal').style.display='none';
+  if(_oosPendingChecked&&_oosPendingSku){
+    // Revert checkbox if user cancelled
+    const cb=document.querySelector(`input.oos-check[onchange*="${_oosPendingSku}"]`);
+    if(cb&&!invOos[_oosPendingSku])cb.checked=false;
+  }
+  _oosPendingSku=null;_oosPendingName=null;_oosPendingChecked=false;
+}
+function closeOosOnBg(e){if(e.target===document.getElementById('oos-modal'))closeOosModal();}
+async function saveOos(){
+  if(!_oosPendingSku)return;
+  invOos[_oosPendingSku]={note:document.getElementById('oos-note').value.trim(),expectedDate:document.getElementById('oos-date').value};
+  document.getElementById('oos-modal').style.display='none';
+  _oosPendingSku=null;_oosPendingName=null;_oosPendingChecked=false;
+  await saveOosToSettings();
+  renderInventory();
+}
+async function saveOosToSettings(){
+  SETTINGS.invOos=invOos;
+  await sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID);
+}
+function loadInvSnapshot(id){
+  if(!id){
+    // Reload current live values
+    renderInventory();return;
+  }
+  const snap=INV_SNAPSHOTS.find(s=>s.id===id);
+  if(!snap)return;
+  const entries=snap.data?.entries||[];
+  entries.forEach(e=>{if(e.sku!=null)invHave[e.sku]=e.have||0;});
+  renderInventory();
+  showToast('Snapshot loaded — save to overwrite','');
 }
 async function saveInvSnapshot(){
   if(IS_ADMIN_VIEW){showToast('Admin view — cannot save','error');return;}
