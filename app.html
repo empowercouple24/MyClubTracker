@@ -221,10 +221,6 @@ if('serviceWorker' in navigator){
     .dw-inv .dw-value{color:var(--text);font-size:13px;}
     .dw-inv{transition:border-color 0.15s,background 0.15s;}
     .dw-inv:hover{border-color:var(--b5);background:var(--b0);}
-    /* Operator earnings preview */
-    .dw-ops-preview{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;box-shadow:var(--shadow-sm);}
-    .dw-ops-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:8px;}
-    .dw-ops-rows{display:flex;flex-direction:column;gap:5px;}
     .dw-op-row{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--b0);border-radius:var(--radius-sm);}
     .dw-op-name{font-size:13px;font-weight:600;color:var(--text);}
     .dw-op-amt{font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--g6,#16a34a);}
@@ -445,12 +441,6 @@ if('serviceWorker' in navigator){
     </div>
   </div>
 
-  <!-- OPERATOR EARNINGS PREVIEW -->
-  <div class="dw-ops-preview" id="dw-ops-preview" style="display:none;">
-    <div class="dw-ops-label">Today's Operator Earnings Preview</div>
-    <div class="dw-ops-rows" id="dw-ops-rows"></div>
-  </div>
-
   <!-- DATE PICKER -->
   <div class="date-nav">
     <div class="date-display" onclick="document.getElementById('entry-date').showPicker&&document.getElementById('entry-date').showPicker()">
@@ -541,8 +531,8 @@ if('serviceWorker' in navigator){
     <div class="card">
       <div class="collapsible-toggle" onclick="toggleCollapse(this)" data-target="ops-body">Operators <span class="arrow">▼</span></div>
       <div class="collapsible-body" id="ops-body">
-        <div class="field-row"><div class="field-label">Operator 1</div><select class="field-input" id="f-op1" onchange="recalc()"></select></div>
-        <div class="field-row"><div class="field-label">Operator 2</div><select class="field-input" id="f-op2" onchange="recalc()"></select></div>
+        <div class="field-row"><div class="field-label">Operator 1</div><select class="field-input" id="f-op1" onchange="recalc()"></select><span id="op1-earnings" style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--b7);white-space:nowrap;padding-left:10px;display:none;"></span></div>
+        <div class="field-row"><div class="field-label">Operator 2</div><select class="field-input" id="f-op2" onchange="recalc()"></select><span id="op2-earnings" style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--b7);white-space:nowrap;padding-left:10px;display:none;"></span></div>
       </div>
     </div>
     <!-- Fundraiser — expanded by default -->
@@ -1283,7 +1273,7 @@ async function saveProfileAndSettings(){
     SETTINGS.otherRate=parseFloat(document.getElementById('s-otherrate')?.value||SETTINGS.otherRate);
     SETTINGS.merchRate=parseFloat(document.getElementById('s-merchrate')?.value||SETTINGS.merchRate);
     SETTINGS.dvDelta=parseFloat(document.getElementById('s-dvdelta')?.value||SETTINGS.dvDelta);
-    SETTINGS.operators=[0,1,2,3].map(i=>({name:document.getElementById('s-op-'+i)?.value.trim()||'',visible:true,aliases:document.getElementById('s-alias-'+i)?.value.trim()||''}));
+    SETTINGS.operators=[0,1,2,3].map(i=>({name:document.getElementById('s-op-'+i)?.value.trim()||'',visible:SETTINGS.operators[i]?.visible!==false,aliases:document.getElementById('s-alias-'+i)?.value.trim()||''}));
     // opDays are toggled live into SETTINGS.opDays directly — no read needed here
     const empCode=document.getElementById('s-emp-code')?.value.trim();
     if(empCode)SETTINGS.employeeInviteCode=empCode;
@@ -2006,38 +1996,15 @@ function renderDashboardWidgets(){
 }
 
 function renderOpsEarningsPreview(){
-  // Called by recalc() — shows live operator earnings based on current form values
-  const preview = document.getElementById('dw-ops-preview');
-  const rows = document.getElementById('dw-ops-rows');
-  if(!preview || !rows) return;
-
   const c = calcAll();
-  if(!c.group2 || c.payouts === null){
-    preview.style.display = 'none';
-    return;
-  }
-
+  const op1El = document.getElementById('op1-earnings');
+  const op2El = document.getElementById('op2-earnings');
   const op1 = document.getElementById('f-op1')?.value || '';
   const op2 = document.getElementById('f-op2')?.value || '';
   const ops = [op1, op2].filter(Boolean);
-
-  if(ops.length === 0){
-    preview.style.display = 'none';
-    return;
-  }
-
-  preview.style.display = 'block';
-  const share = ops.length > 0 ? c.payouts / ops.length : 0;
-  rows.innerHTML = ops.map(name =>
-    `<div class="dw-op-row">
-      <div class="dw-op-name">${name}</div>
-      <div class="dw-op-amt">${fmt$(share)}</div>
-    </div>`
-  ).join('') + (ops.length > 1 ?
-    `<div class="dw-op-row" style="border-top:1px solid var(--border-light);margin-top:2px;padding-top:8px;">
-      <div class="dw-op-name" style="color:var(--text-faint);font-size:11px;">Total Payouts</div>
-      <div class="dw-op-amt">${fmt$(c.payouts)}</div>
-    </div>` : '');
+  const share = (c.group2 && c.payouts !== null && ops.length > 0) ? c.payouts / ops.length : null;
+  if(op1El){ if(op1 && share !== null){ op1El.textContent = fmt$(share); op1El.style.display='inline'; } else op1El.style.display='none'; }
+  if(op2El){ if(op2 && share !== null){ op2El.textContent = fmt$(share); op2El.style.display='inline'; } else op2El.style.display='none'; }
 }
 
 function renderHistory(){
@@ -2725,7 +2692,15 @@ function buildSettingsUI(){
   const _cnEl=document.getElementById('s-clubname');
   if(_cnEl) _cnEl.value=SETTINGS.clubName||'';
 
-  document.getElementById('s-operators').innerHTML=SETTINGS.operators.map((op,i)=>`<div class="settings-row" style="gap:8px;"><label style="min-width:80px;">Operator ${i+1}</label><input type="text" id="s-op-${i}" value="${op.name||''}" placeholder="Name" style="flex:1;"/><input type="text" id="s-alias-${i}" value="${op.aliases||''}" placeholder="Aliases e.g. MN" style="flex:1;"/></div>`).join('');
+  document.getElementById('s-operators').innerHTML=SETTINGS.operators.map((op,i)=>{
+    const isActive=op.visible!==false;
+    return`<div class="settings-row" style="gap:8px;align-items:center;">
+      <label style="min-width:80px;color:${isActive?'var(--text)':'var(--text-faint)'};">Operator ${i+1}</label>
+      <input type="text" id="s-op-${i}" value="${op.name||''}" placeholder="Name" style="flex:1;opacity:${isActive?1:0.45};"/>
+      <input type="text" id="s-alias-${i}" value="${op.aliases||''}" placeholder="Aliases e.g. MN" style="flex:1;opacity:${isActive?1:0.45};"/>
+      <button type="button" id="s-op-active-${i}" onclick="toggleOperatorActive(${i})" style="flex-shrink:0;font-size:11px;font-weight:700;padding:4px 9px;border-radius:var(--radius-sm);border:1px solid ${isActive?'var(--g5)':'var(--border)'};background:${isActive?'var(--g0)':'var(--b0)'};color:${isActive?'var(--g6)':'var(--text-faint)'};cursor:pointer;white-space:nowrap;">${isActive?'Active':'Inactive'}</button>
+    </div>`;
+  }).join('');
   // Employee invite code
   const empEl=document.getElementById('s-emp-code');
   if(empEl)empEl.value=SETTINGS.employeeInviteCode||'';
@@ -2742,6 +2717,20 @@ function buildSettingsUI(){
   if(empSection&&USER_ROLE==='employee')empSection.style.display='none';
 }
 
+function toggleOperatorActive(i){
+  SETTINGS.operators[i].visible=!SETTINGS.operators[i].visible;
+  const isActive=SETTINGS.operators[i].visible;
+  const btn=document.getElementById('s-op-active-'+i);
+  const nameEl=document.getElementById('s-op-'+i);
+  const aliasEl=document.getElementById('s-alias-'+i);
+  const label=btn?.closest('.settings-row')?.querySelector('label');
+  if(btn){btn.textContent=isActive?'Active':'Inactive';btn.style.borderColor=isActive?'var(--g5)':'var(--border)';btn.style.background=isActive?'var(--g0)':'var(--b0)';btn.style.color=isActive?'var(--g6)':'var(--text-faint)';}
+  if(nameEl)nameEl.style.opacity=isActive?1:0.45;
+  if(aliasEl)aliasEl.style.opacity=isActive?1:0.45;
+  if(label)label.style.color=isActive?'var(--text)':'var(--text-faint)';
+  populateOperatorDropdowns();
+}
+
 function toggleOpDay(i){
   SETTINGS.opDays[i]=!SETTINGS.opDays[i];
   const btns=document.querySelectorAll('#s-opdays .opday-btn');
@@ -2753,7 +2742,7 @@ function range(f,t,s){const r=[];for(let v=f;v<=t+0.001;v=Math.round((v+s)*1000)
 function buildSelect(id,vals,cur,fn){const el=document.getElementById(id);if(!el)return;el.innerHTML=vals.map(v=>`<option value="${v}" ${Math.abs(v-cur)<0.001?'selected':''}>${fn(v)}</option>`).join('');}
 function openProductsEditor(){closeProfileModal();window.location.href=IS_ADMIN_VIEW?`products.html?location_id=${LOCATION_ID}&admin=1`:`products.html?location_id=${LOCATION_ID}`;}
 
-function populateOperatorDropdowns(){const ops=SETTINGS.operators.filter(o=>o.name),blank='<option value="">—</option>';['f-op1','f-op2'].forEach(id=>{const el=document.getElementById(id);if(!el)return;const cur=el.value;el.innerHTML=blank+ops.map(o=>`<option value="${o.name}">${o.name}</option>`).join('');el.value=cur;});}
+function populateOperatorDropdowns(){const ops=SETTINGS.operators.filter(o=>o.name&&o.visible!==false),blank='<option value="">—</option>';['f-op1','f-op2'].forEach(id=>{const el=document.getElementById(id);if(!el)return;const cur=el.value;el.innerHTML=blank+ops.map(o=>`<option value="${o.name}">${o.name}</option>`).join('');el.value=cur;});}
 async function handleSignOut(){if(IS_ADMIN_VIEW){window.location.href='admin.html';return;}await sb.auth.signOut();window.location.href='index.html';}
 let toastTimer;
 function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(type?' '+type:'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2400);}
