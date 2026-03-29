@@ -125,7 +125,7 @@ if('serviceWorker' in navigator){
 </svg></a>
   <div class="nav-page-title" style="margin-left:10px;">Admin Settings</div>
   <div class="nav-menu-wrap">
-    <button class="nav-menu-btn" onclick="toggleNavMenu()"><div class="nav-avatar" id="nav-avatar"><span></span><img alt=""/></div><span id="nav-display-name" style="font-size:13px;font-weight:600;color:var(--text-muted);margin-right:4px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>ADMIN <span style="font-size:10px;">▾</span></button>
+    <button class="nav-menu-btn" onclick="toggleNavMenu()"><span id="nav-display-name" style="font-size:13px;font-weight:600;color:var(--text-muted);margin-right:4px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>ADMIN <span style="font-size:10px;">▾</span></button>
     <div class="nav-drop" id="nav-dropdown">
       <button class="nav-drop-item" onclick="window.location.href='admin.html';closeNavMenu()">🏠 Dashboard</button>
       <button class="nav-drop-item" onclick="window.location.href='locations.html';closeNavMenu()">🏪 Locations</button>
@@ -142,24 +142,6 @@ if('serviceWorker' in navigator){
   <div class="section">
     <div class="section-label">My Profile</div>
     <div class="card">
-      <!-- Avatar -->
-      <div style="display:flex;align-items:center;gap:14px;padding:12px 0 12px 4px;border-bottom:1px solid var(--border-light);margin-bottom:4px;">
-        <div id="prof-avatar-wrap" style="position:relative;width:64px;height:64px;flex-shrink:0;cursor:pointer;" onclick="document.getElementById('prof-avatar-input').click()" title="Click to change photo">
-          <div id="prof-avatar-circle" style="width:64px;height:64px;border-radius:50%;background:var(--b1);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:var(--b7);overflow:hidden;">
-            <span id="prof-avatar-initials"></span>
-            <img id="prof-avatar-img" src="" style="display:none;width:64px;height:64px;object-fit:cover;border-radius:50%;"/>
-          </div>
-          <div style="position:absolute;bottom:0;right:0;width:20px;height:20px;border-radius:50%;background:var(--b7);display:flex;align-items:center;justify-content:center;border:2px solid white;">
-            <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 1v8M1 5h8" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
-          </div>
-        </div>
-        <div>
-          <div style="font-size:14px;font-weight:600;color:var(--text);" id="prof-avatar-name">—</div>
-          <div style="font-size:12px;color:var(--text-faint);margin-top:2px;">Click photo to update</div>
-          <div id="prof-avatar-status" style="font-size:12px;margin-top:3px;"></div>
-        </div>
-        <input type="file" id="prof-avatar-input" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="uploadAvatar(this)"/>
-      </div>
       <div class="divider-label">Name</div>
       <div class="settings-row" style="gap:8px;flex-wrap:wrap;">
         <div class="row-label">First Name</div>
@@ -666,7 +648,6 @@ function buildAddress(street,city,state,zip){
   return parts.join(', ');
 }
 let allAdmins    = [];
-let currentUserId = null;
 let editingLocId = null;
 
 // Tax rate removed from defaults entirely
@@ -862,9 +843,8 @@ async function executePush() {
 async function init() {
   const { data:{ session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'index.html'; return; }
-  currentUserId = session.user.id;
   // Populate profile fields
-  const { data:u } = await sb.from('users').select('role,display_name,first_name,last_name,phone,avatar_url').eq('id', session.user.id).single();
+  const { data:u } = await sb.from('users').select('role,display_name,first_name,last_name,phone').eq('id', session.user.id).single();
   if (!u || u.role !== 'admin') { window.location.href = 'index.html'; return; }
 
   document.getElementById('prof-firstname').value = u.first_name || '';
@@ -875,8 +855,6 @@ async function init() {
   profPhoneEl.value = u.phone || '';
   if (u.phone) fmtPhone(profPhoneEl);
   document.getElementById('prof-email-display').value = session.user.email || '';
-  loadAvatar(u?.avatar_url, u?.first_name, u?.last_name, u?.display_name);
-  setNavAvatar(u?.avatar_url, u?.first_name, u?.last_name, u?.display_name);
 
   // Load defaults from user metadata — strip taxRate if present from old saves
   const meta = session.user.user_metadata || {};
@@ -885,8 +863,7 @@ async function init() {
     DEFAULTS = { ...DEFAULTS, ...saved };
   }
 
-  await loadLocations();
-  await Promise.all([loadAdmins(), loadOrgKey()]);
+  await Promise.all([loadLocations(), loadAdmins(), loadOrgKey()]);
   buildDefaultsUI();
   loadGlobalProductsFromMeta(meta);
   document.getElementById('loading-overlay').style.display='none';
@@ -900,73 +877,6 @@ function toggleChangePassword(){
   panel.style.display = open ? 'block' : 'none';
   btn.textContent = open ? 'Cancel' : 'Change →';
   if(!open){ document.getElementById('cp-new').value=''; document.getElementById('cp-confirm').value=''; document.getElementById('cp-msg').style.display='none'; }
-}
-
-// ── AVATAR ──
-function loadAvatar(avatarUrl, firstName, lastName, displayName) {
-  const initials = ((firstName||'').charAt(0) + (lastName||'').charAt(0)).toUpperCase()
-    || (displayName||'').charAt(0).toUpperCase() || '?';
-  const initialsEl = document.getElementById('prof-avatar-initials');
-  const imgEl = document.getElementById('prof-avatar-img');
-  const nameEl = document.getElementById('prof-avatar-name');
-  if(nameEl) nameEl.textContent = [firstName,lastName].filter(Boolean).join(' ') || displayName || '—';
-  if(avatarUrl && imgEl) {
-    imgEl.src = avatarUrl;
-    imgEl.style.display = 'block';
-    if(initialsEl) initialsEl.style.display = 'none';
-  } else {
-    if(initialsEl) { initialsEl.textContent = initials; initialsEl.style.display = ''; }
-    if(imgEl) imgEl.style.display = 'none';
-  }
-}
-
-async function uploadAvatar(input) {
-  const file = input.files[0];
-  if(!file) return;
-  const statusEl = document.getElementById('prof-avatar-status');
-  if(statusEl) { statusEl.textContent = 'Uploading…'; statusEl.style.color = 'var(--text-faint)'; }
-  // Resize client-side before upload
-  const resized = await resizeImage(file, 256);
-  const { data:{ session } } = await sb.auth.getSession();
-  if(!session) return;
-  const userId = session.user.id;
-  const { error } = await sb.storage.from('avatars').upload(userId, resized, {
-    upsert: true, contentType: 'image/jpeg'
-  });
-  if(error) {
-    if(statusEl) { statusEl.textContent = 'Upload failed: ' + error.message; statusEl.style.color = 'var(--r5)'; }
-    return;
-  }
-  const { data: { publicUrl } } = sb.storage.from('avatars').getPublicUrl(userId);
-  const cacheBusted = publicUrl + '?t=' + Date.now();
-  await sb.from('users').update({ avatar_url: cacheBusted }).eq('id', userId);
-  const imgEl = document.getElementById('prof-avatar-img');
-  const initialsEl = document.getElementById('prof-avatar-initials');
-  if(imgEl) { imgEl.src = cacheBusted; imgEl.style.display = 'block'; }
-  if(initialsEl) initialsEl.style.display = 'none';
-  if(statusEl) { statusEl.textContent = 'Photo updated ✓'; statusEl.style.color = 'var(--g5)'; }
-  // Update nav avatar immediately
-  var navCircle = document.getElementById('nav-avatar');
-  if(navCircle) { var ni=navCircle.querySelector('img'); var ns=navCircle.querySelector('span'); if(ni){ni.src=cacheBusted;ni.style.display='block';} if(ns)ns.style.display='none'; }
-  input.value = '';
-}
-
-function resizeImage(file, maxPx) {
-  return new Promise(resolve => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      const scale = Math.min(1, maxPx / Math.max(img.width, img.height));
-      const w = Math.round(img.width * scale);
-      const h = Math.round(img.height * scale);
-      const canvas = document.createElement('canvas');
-      canvas.width = w; canvas.height = h;
-      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      URL.revokeObjectURL(url);
-      canvas.toBlob(blob => resolve(blob), 'image/jpeg', 0.88);
-    };
-    img.src = url;
-  });
 }
 
 // ── ADMIN PROFILE ──
@@ -1054,7 +964,7 @@ async function saveOrgKey(){
 
 async function loadAdmins() {
   const { data:users } = await sb.from('users')
-    .select('id,email,role,location_id,display_name,first_name,last_name,phone,avatar_url')
+    .select('id,email,role,location_id,display_name,first_name,last_name,phone')
     .order('role').order('display_name');
   allAdmins = users || [];
   renderAdmins();
@@ -1141,32 +1051,24 @@ function renderAdmins() {
       ? `<div style="font-size:12px;color:var(--b6);margin-top:2px;font-weight:500;">📍 ${escHtml(loc.name)}</div>`
       : u.role==='admin' ? `<div style="font-size:11px;color:var(--text-faint);margin-top:2px;">All locations</div>`
       : `<div style="font-size:11px;color:var(--text-faint);margin-top:2px;">No location assigned</div>`;
-    const isSelf = u.id === currentUserId;
-    const avatarInner = u.avatar_url
-      ? `<img src="${u.avatar_url}" alt="" style="width:34px;height:34px;object-fit:cover;border-radius:50%;display:block;"/>`
-      : letter;
-    const roleControl = isSelf
-        ? `<span style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--b1);color:var(--b7);flex-shrink:0;">Admin (You)</span>`
-        : `<select onchange="changeUserRole('${u.id}',this.value,this)" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:${roleColors[u.role]||'var(--text-muted)'};cursor:pointer;outline:none;flex-shrink:0;">
-        <option value="owner"    ${u.role==='owner'   ?'selected':''}>Owner</option>
-        <option value="employee" ${u.role==='employee'?'selected':''}>Operator</option>
-      </select>`;
-      return `
+    return `
     <div class="user-row">
-      <div class="user-avatar" style="background:${u.avatar_url?'transparent':roleBg[u.role]||'var(--b0)'};color:${roleColors[u.role]||'var(--text-muted)'};overflow:hidden;">${avatarInner}</div>
+      <div class="user-avatar" style="background:${roleBg[u.role]||'var(--b0)'};color:${roleColors[u.role]||'var(--text-muted)'};">${letter}</div>
       <div style="flex:1;min-width:0;">
         <div style="font-size:14px;font-weight:600;color:var(--text);">${escHtml(fullName)}${dispTag}</div>
         <div style="font-size:12px;color:var(--text-faint);margin-top:1px;">${escHtml(u.email)}</div>
         ${locTag}
       </div>
-      ${roleControl}
+      <select onchange="changeUserRole('${u.id}',this.value,this)" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:${roleColors[u.role]||'var(--text-muted)'};cursor:pointer;outline:none;flex-shrink:0;">
+        <option value="admin"    ${u.role==='admin'   ?'selected':''}>Admin</option>
+        <option value="owner"    ${u.role==='owner'   ?'selected':''}>Owner</option>
+        <option value="employee" ${u.role==='employee'?'selected':''}>Employee</option>
+      </select>
     </div>`;
   }).join('');
 }
 
 async function changeUserRole(userId, newRole, selectEl) {
-  if (newRole === 'admin') { showToast('Cannot assign global admin role.', 'error'); await loadAdmins(); return; }
-  if (userId === currentUserId) { showToast('Cannot change your own role.', 'error'); await loadAdmins(); return; }
   const { error } = await sb.from('users').update({ role: newRole }).eq('id', userId);
   if (error) {
     showToast('Role change failed: '+error.message, 'error');
@@ -1176,8 +1078,7 @@ async function changeUserRole(userId, newRole, selectEl) {
   const u = allAdmins.find(x=>x.id===userId);
   if (u) u.role = newRole;
   renderAdmins();
-  const roleLabel={owner:'owner',employee:'operator'};
-  showToast(`Role updated to ${roleLabel[newRole]||newRole} ✓`, 'success');
+  showToast(`Role updated to ${newRole} ✓`, 'success');
 }
 
 // ── ADD LOCATION ──

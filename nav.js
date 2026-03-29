@@ -175,21 +175,3 @@ async function handleSignOut() {
   await sb.auth.signOut();
   window.location.href = 'index.html';
 }
-
-/* ── NAV AVATAR ── */
-function setNavAvatar(avatarUrl, firstName, lastName, displayName) {
-  var circle = document.getElementById('nav-avatar');
-  if (!circle) return;
-  var initials = ((firstName||'').charAt(0) + (lastName||'').charAt(0)).toUpperCase()
-    || (displayName||'').charAt(0).toUpperCase() || '?';
-  var img = circle.querySelector('img');
-  var span = circle.querySelector('span');
-  if (avatarUrl && img) {
-    img.src = avatarUrl;
-    img.style.display = 'block';
-    if (span) span.style.display = 'none';
-  } else {
-    if (span) { span.textContent = initials; span.style.display = ''; }
-    if (img) img.style.display = 'none';
-  }
-}
