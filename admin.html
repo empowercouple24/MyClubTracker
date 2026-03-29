@@ -1322,7 +1322,7 @@ function renderLocations(){
             Waiting for the club owner to register at <strong>nemecekorgclubs.com</strong> using the invite code above.
           </div>
           <div class="expanded-footer">
-            <a class="btn-view-app" href="app.html?location_id=${loc.id}&admin=1">Manage Club</a>
+            <a class="btn-view-app" href="locations.html#locg-${loc.id}">Manage Club</a>
           </div>
         </div>
       </div>`;
@@ -1389,7 +1389,7 @@ function renderLocations(){
         </div>
         <div class="expanded-footer">
           ${lastFmt?`<div class="last-entry-note">Last entry: ${lastFmt}</div>`:'<div></div>'}
-          <a class="btn-view-app" href="app.html?location_id=${loc.id}&admin=1">Manage Club</a>
+          <a class="btn-view-app" href="locations.html#locg-${loc.id}">Manage Club</a>
         </div>
         ${renderAdminUserSection(loc.id)}
       </div>
