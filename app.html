@@ -235,6 +235,10 @@ if('serviceWorker' in navigator){
     .prof-avatar-circle{width:64px;height:64px;border-radius:50%;background:var(--b1);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;color:var(--b7);}
     .prof-avatar-circle img{width:64px;height:64px;object-fit:cover;border-radius:50%;}
     .prof-avatar-overlay{position:absolute;bottom:0;right:0;width:22px;height:22px;border-radius:50%;background:var(--b7);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;border:2px solid var(--surface);}
+    /* Crop modal */
+    #crop-canvas-wrap{width:320px;height:320px;}
+    #crop-canvas{width:320px;height:320px;}
+    #crop-circle-overlay{background:radial-gradient(circle 140px at center,transparent 140px,rgba(0,0,0,0.55) 141px);}
     @media(max-width:680px){.dashboard-widgets{grid-template-columns:1fr 1fr;}}
     #panel-inv{max-width:none;margin:0;padding:0;}
     #inv-sticky-wrap{position:sticky;top:0;z-index:20;background:var(--bg);padding-bottom:4px;}
@@ -245,6 +249,13 @@ if('serviceWorker' in navigator){
     .inv-input::-webkit-inner-spin-button,.inv-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
     #panel-invhist{max-width:none;margin:0;padding:0;}
     #panel-invhist .inv-cat-header{top:var(--invhist-cat-top,160px);z-index:10;}
+    #panel-invhist .inv-table th:nth-child(1){width:auto}
+    #panel-invhist .inv-table th:nth-child(2){width:66px}
+    #panel-invhist .inv-table th:nth-child(3){width:50px}
+    #panel-invhist .inv-table th:nth-child(4){width:66px}
+    #panel-invhist .inv-table th:nth-child(5){width:66px}
+    #panel-invhist .inv-table th:nth-child(6){width:96px}
+    #panel-invhist .inv-table th:nth-child(7){width:96px}
     .inv-input:focus{border-color:var(--a4);box-shadow:0 0 0 2px rgba(224,152,32,0.15);background:#fff}
     .need-badge{display:inline-block;font-size:16px;font-weight:700;padding:3px 12px;border-radius:20px;min-width:36px;text-align:center;}
     .need-badge.need{background:#bfdbfe;color:#1d4ed8;}
@@ -618,6 +629,25 @@ if('serviceWorker' in navigator){
   <div style="max-width:900px;margin:0 auto;padding:0 12px 10px;" id="inv-body"></div>
 </div>
 
+<!-- AVATAR CROP MODAL -->
+<div class="modal-overlay" id="crop-modal" style="display:none;align-items:center;justify-content:center;">
+  <div class="modal-sheet" style="max-width:360px;width:100%;border-radius:var(--radius);padding:0;overflow:hidden;">
+    <div style="background:var(--b8);padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-family:'Outfit',sans-serif;font-size:15px;font-weight:700;color:#fff;">Crop Photo</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.6);">Drag to pan · Scroll to zoom</div>
+    </div>
+    <div style="position:relative;background:#111;display:flex;align-items:center;justify-content:center;overflow:hidden;" id="crop-canvas-wrap">
+      <canvas id="crop-canvas" style="display:block;touch-action:none;cursor:grab;"></canvas>
+      <!-- circular overlay cutout -->
+      <div id="crop-circle-overlay" style="position:absolute;inset:0;pointer-events:none;"></div>
+    </div>
+    <div style="padding:12px 16px;display:flex;gap:8px;background:var(--surface);">
+      <button class="btn btn-ghost" onclick="closeCropModal()" style="flex:1;">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmCrop()" style="flex:2;">Use Photo</button>
+    </div>
+  </div>
+</div>
+
 <!-- OOS MODAL -->
 <div class="modal-overlay" id="oos-modal" onclick="closeOosOnBg(event)" style="display:none;">
   <div class="modal-sheet" style="max-width:420px;">
@@ -655,9 +685,10 @@ if('serviceWorker' in navigator){
     <div style="max-width:900px;margin:0 auto;padding:6px 12px 0;">
       <div style="display:flex;align-items:center;gap:8px;">
         <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);white-space:nowrap;">Snapshot</label>
-        <select id="invhist-picker" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 10px;background:var(--surface);color:var(--text);outline:none;flex:1;" onchange="renderInvHistSnapshot(this.value)">
+        <select id="invhist-picker" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 10px;background:var(--surface);color:var(--text);outline:none;flex:1;" onchange="renderInvHistSnapshot(this.value);document.getElementById('invhist-rename-btn').style.display=this.value?'inline-flex':'none';">
           <option value="">— Choose a snapshot —</option>
         </select>
+        <button class="btn btn-ghost" id="invhist-rename-btn" onclick="openSnapRename()" style="padding:5px 10px;font-size:12px;flex-shrink:0;display:none;">✎ Rename</button>
       </div>
     </div>
   </div>
@@ -748,6 +779,23 @@ if('serviceWorker' in navigator){
 </div>
 
 <!-- SETTINGS MODAL -->
+<!-- SNAPSHOT RENAME MODAL -->
+<div class="modal-overlay" id="snap-rename-modal" onclick="closeSnapRenameOnBg(event)" style="display:none;">
+  <div class="modal-sheet" style="max-width:380px;">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Rename Snapshot</div>
+    <div style="padding:0 16px 16px;">
+      <div style="font-size:11px;color:var(--text-faint);margin-bottom:8px;" id="snap-rename-current"></div>
+      <input type="text" id="snap-rename-input" placeholder="e.g. Pre-order count, March week 2…"
+        style="width:100%;font-family:'DM Sans',sans-serif;font-size:14px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;outline:none;box-sizing:border-box;margin-bottom:14px;"
+        onkeydown="if(event.key==='Enter')saveSnapRename()"/>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-primary" onclick="saveSnapRename()" style="flex:1;">Save</button>
+        <button class="btn btn-ghost" onclick="closeSnapRenameModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
 <!-- UNIFIED PROFILE & SETTINGS MODAL -->
 <div class="modal-overlay" id="profile-modal" onclick="closeProfileOnBg(event)">
   <div class="modal-sheet">
@@ -1234,30 +1282,156 @@ function populateProfAvatar(avatarUrl, firstName, lastName, displayName) {
   }
 }
 
+// ── AVATAR CROP TOOL ──
+let _cropBitmap=null,_cropScale=1,_cropMinScale=1,_cropOffX=0,_cropOffY=0;
+let _cropDragging=false,_cropLastX=0,_cropLastY=0;
+let _cropPinchDist=0;
+const CROP_SIZE=320,CROP_RADIUS=140;
+
 async function handleAvatarUpload(input) {
   const file = input.files[0];
   if (!file) return;
+  input.value = '';
+  try {
+    _cropBitmap = await createImageBitmap(file);
+    openCropModal();
+  } catch(e) {
+    showToast('Could not read image', 'error');
+  }
+}
+
+function openCropModal() {
+  const modal = document.getElementById('crop-modal');
+  modal.style.display = 'flex';
+  const canvas = document.getElementById('crop-canvas');
+  canvas.width = CROP_SIZE; canvas.height = CROP_SIZE;
+  // Fit image to fill circle initially
+  const bw = _cropBitmap.width, bh = _cropBitmap.height;
+  _cropMinScale = Math.max(CROP_SIZE / bw, CROP_SIZE / bh);
+  _cropScale = _cropMinScale;
+  _cropOffX = (CROP_SIZE - bw * _cropScale) / 2;
+  _cropOffY = (CROP_SIZE - bh * _cropScale) / 2;
+  drawCrop();
+  attachCropEvents(canvas);
+}
+
+function closeCropModal() {
+  document.getElementById('crop-modal').style.display = 'none';
+  detachCropEvents();
+  _cropBitmap = null;
+}
+
+function drawCrop() {
+  const canvas = document.getElementById('crop-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, CROP_SIZE, CROP_SIZE);
+  ctx.drawImage(_cropBitmap, _cropOffX, _cropOffY, _cropBitmap.width * _cropScale, _cropBitmap.height * _cropScale);
+}
+
+function clampCrop() {
+  const iw = _cropBitmap.width * _cropScale, ih = _cropBitmap.height * _cropScale;
+  // Clamp so image always covers the circular crop area
+  const minX = CROP_SIZE - iw; const minY = CROP_SIZE - ih;
+  _cropOffX = Math.min(0, Math.max(minX, _cropOffX));
+  _cropOffY = Math.min(0, Math.max(minY, _cropOffY));
+}
+
+function _onCropMouseDown(e) { _cropDragging=true; _cropLastX=e.clientX; _cropLastY=e.clientY; e.currentTarget.style.cursor='grabbing'; }
+function _onCropMouseMove(e) {
+  if(!_cropDragging)return;
+  _cropOffX += e.clientX - _cropLastX; _cropOffY += e.clientY - _cropLastY;
+  _cropLastX=e.clientX; _cropLastY=e.clientY;
+  clampCrop(); drawCrop();
+}
+function _onCropMouseUp(e) { _cropDragging=false; e.currentTarget.style.cursor='grab'; }
+function _onCropWheel(e) {
+  e.preventDefault();
+  const delta = e.deltaY < 0 ? 1.08 : 0.93;
+  const cx=CROP_SIZE/2, cy=CROP_SIZE/2;
+  const newScale = Math.max(_cropMinScale, _cropScale * delta);
+  _cropOffX = cx - (cx - _cropOffX) * (newScale / _cropScale);
+  _cropOffY = cy - (cy - _cropOffY) * (newScale / _cropScale);
+  _cropScale = newScale;
+  clampCrop(); drawCrop();
+}
+function _onCropTouchStart(e) {
+  if(e.touches.length===1){ _cropDragging=true; _cropLastX=e.touches[0].clientX; _cropLastY=e.touches[0].clientY; }
+  else if(e.touches.length===2){ _cropPinchDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY); }
+}
+function _onCropTouchMove(e) {
+  e.preventDefault();
+  if(e.touches.length===1&&_cropDragging){
+    _cropOffX+=e.touches[0].clientX-_cropLastX; _cropOffY+=e.touches[0].clientY-_cropLastY;
+    _cropLastX=e.touches[0].clientX; _cropLastY=e.touches[0].clientY;
+    clampCrop(); drawCrop();
+  } else if(e.touches.length===2){
+    const dist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+    if(_cropPinchDist){
+      const delta=dist/_cropPinchDist;
+      const cx=CROP_SIZE/2,cy=CROP_SIZE/2;
+      const newScale=Math.max(_cropMinScale,_cropScale*delta);
+      _cropOffX=cx-(cx-_cropOffX)*(newScale/_cropScale);
+      _cropOffY=cy-(cy-_cropOffY)*(newScale/_cropScale);
+      _cropScale=newScale; clampCrop(); drawCrop();
+    }
+    _cropPinchDist=dist;
+  }
+}
+function _onCropTouchEnd(e) { if(e.touches.length===0)_cropDragging=false; }
+
+let _cropEvtCanvas=null;
+function attachCropEvents(canvas) {
+  _cropEvtCanvas=canvas;
+  canvas.addEventListener('mousedown',_onCropMouseDown);
+  canvas.addEventListener('mousemove',_onCropMouseMove);
+  canvas.addEventListener('mouseup',_onCropMouseUp);
+  canvas.addEventListener('mouseleave',_onCropMouseUp);
+  canvas.addEventListener('wheel',_onCropWheel,{passive:false});
+  canvas.addEventListener('touchstart',_onCropTouchStart,{passive:true});
+  canvas.addEventListener('touchmove',_onCropTouchMove,{passive:false});
+  canvas.addEventListener('touchend',_onCropTouchEnd,{passive:true});
+}
+function detachCropEvents() {
+  const canvas=_cropEvtCanvas; if(!canvas)return;
+  canvas.removeEventListener('mousedown',_onCropMouseDown);
+  canvas.removeEventListener('mousemove',_onCropMouseMove);
+  canvas.removeEventListener('mouseup',_onCropMouseUp);
+  canvas.removeEventListener('mouseleave',_onCropMouseUp);
+  canvas.removeEventListener('wheel',_onCropWheel);
+  canvas.removeEventListener('touchstart',_onCropTouchStart);
+  canvas.removeEventListener('touchmove',_onCropTouchMove);
+  canvas.removeEventListener('touchend',_onCropTouchEnd);
+  _cropEvtCanvas=null;
+}
+
+async function confirmCrop() {
+  if(!_cropBitmap)return;
   showToast('Uploading photo…');
   try {
-    // Resize to 256×256 on canvas
-    const bitmap = await createImageBitmap(file);
-    const canvas = document.createElement('canvas');
-    canvas.width = 256; canvas.height = 256;
-    const ctx = canvas.getContext('2d');
-    // Cover crop
-    const ratio = Math.max(256 / bitmap.width, 256 / bitmap.height);
-    const w = bitmap.width * ratio, h = bitmap.height * ratio;
-    ctx.drawImage(bitmap, (256 - w) / 2, (256 - h) / 2, w, h);
-    const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.85));
-    // Upload to Supabase Storage
+    // Render the circular crop to a 256×256 canvas
+    const out = document.createElement('canvas');
+    out.width = 256; out.height = 256;
+    const ctx = out.getContext('2d');
+    // Scale factor from crop canvas (320px) to output (256px)
+    const sf = 256 / CROP_SIZE;
+    ctx.beginPath();
+    ctx.arc(128, 128, 128, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.drawImage(_cropBitmap,
+      _cropOffX * sf, _cropOffY * sf,
+      _cropBitmap.width * _cropScale * sf,
+      _cropBitmap.height * _cropScale * sf
+    );
+    const blob = await new Promise(res => out.toBlob(res, 'image/jpeg', 0.88));
+    closeCropModal();
+    // Upload
     const path = `${CURRENT_SESSION.user.id}/avatar.jpg`;
     const { error: upErr } = await sb.storage.from('avatars').upload(path, blob, { upsert: true, contentType: 'image/jpeg' });
     if (upErr) throw upErr;
     const { data: urlData } = sb.storage.from('avatars').getPublicUrl(path);
     const avatarUrl = urlData.publicUrl + '?t=' + Date.now();
-    // Save to public.users
     await sb.from('users').update({ avatar_url: avatarUrl }).eq('id', CURRENT_SESSION.user.id);
-    // Update UI
     const fn = document.getElementById('prof-firstname')?.value || '';
     const ln = document.getElementById('prof-lastname')?.value || '';
     const dn = document.getElementById('prof-name')?.value || '';
@@ -1267,7 +1441,6 @@ async function handleAvatarUpload(input) {
   } catch(e) {
     showToast('Upload failed: ' + (e.message || e), 'error');
   }
-  input.value = '';
 }
 
 async function removeAvatar() {
@@ -1927,7 +2100,8 @@ function renderInventory(){
     const cur=picker.value;
     picker.innerHTML='<option value="">— Current —</option>'+INV_SNAPSHOTS.map(s=>{
       const dt=new Date(s.saved_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
-      return`<option value="${s.id}">${dt}</option>`;
+      const label=s.data?.label?`${s.data.label} — ${dt}`:dt;
+      return`<option value="${s.id}">${label}</option>`;
     }).join('');
     picker.value=cur||'';
   }
@@ -2051,12 +2225,60 @@ function renderInventoryHistory(){
   }
   INV_SNAPSHOTS.forEach((snap,i)=>{
     const dt=new Date(snap.saved_at).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
-    picker.innerHTML+=`<option value="${snap.id}">${dt}</option>`;
+    const label=snap.data?.label?`${snap.data.label} — ${dt}`:dt;
+    picker.innerHTML+=`<option value="${snap.id}">${label}</option>`;
   });
   // Auto-select the most recent
   picker.value=INV_SNAPSHOTS[0].id;
+  const renameBtn=document.getElementById('invhist-rename-btn');
+  if(renameBtn)renameBtn.style.display='inline-flex';
   renderInvHistSnapshot(INV_SNAPSHOTS[0].id);
 }
+function openSnapRename(){
+  const picker=document.getElementById('invhist-picker');
+  const snapId=picker?.value;
+  if(!snapId)return;
+  const snap=INV_SNAPSHOTS.find(s=>s.id===snapId);
+  if(!snap)return;
+  const dt=new Date(snap.saved_at).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
+  document.getElementById('snap-rename-current').textContent='Taken: '+dt;
+  const input=document.getElementById('snap-rename-input');
+  input.value=snap.data?.label||'';
+  document.getElementById('snap-rename-modal').style.display='flex';
+  setTimeout(()=>input.focus(),80);
+}
+function closeSnapRenameModal(){document.getElementById('snap-rename-modal').style.display='none';}
+function closeSnapRenameOnBg(e){if(e.target===document.getElementById('snap-rename-modal'))closeSnapRenameModal();}
+async function saveSnapRename(){
+  const picker=document.getElementById('invhist-picker');
+  const snapId=picker?.value;
+  if(!snapId)return;
+  const snap=INV_SNAPSHOTS.find(s=>s.id===snapId);
+  if(!snap)return;
+  const label=document.getElementById('snap-rename-input').value.trim();
+  const newData={...snap.data,label:label||null};
+  const{error}=await sb.from('inventory').update({data:newData}).eq('id',snapId);
+  if(error){showToast('Rename failed: '+error.message,'error');return;}
+  snap.data=newData;
+  closeSnapRenameModal();
+  // Refresh picker label in place
+  const opt=picker.querySelector(`option[value="${snapId}"]`);
+  if(opt){
+    const dt=new Date(snap.saved_at).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
+    opt.textContent=label?`${label} — ${dt}`:dt;
+  }
+  // Also refresh the inv-snapshot-picker on Inventory tab if present
+  const invPicker=document.getElementById('inv-snapshot-picker');
+  if(invPicker){
+    const invOpt=invPicker.querySelector(`option[value="${snapId}"]`);
+    if(invOpt){
+      const dt=new Date(snap.saved_at).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
+      invOpt.textContent=label?`${label} — ${dt}`:dt;
+    }
+  }
+  showToast(label?`Renamed to "${label}" ✓`:'Label cleared ✓','success');
+}
+
 function renderInvHistSnapshot(snapId){
   const body=document.getElementById('invhist-body');
   const dvHaveEl=document.getElementById('invhist-total-dvhave');
