@@ -188,8 +188,8 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
       <input type="text" id="s3-addr" placeholder="123 Main St"/>
     </div>
     <div class="field-row">
-      <div class="field"><label>City</label><input type="text" id="s3-city" placeholder="City"/></div>
-      <div class="field"><label>State</label><input type="text" id="s3-state" placeholder="OH" maxlength="2"/></div>
+      <div class="field"><label>City <span>— auto-filled from ZIP</span></label><input type="text" id="s3-city" placeholder="Enter ZIP first" readonly style="background:var(--bpl);color:var(--gt);cursor:default;"/></div>
+      <div class="field"><label>State</label><input type="text" id="s3-state" placeholder="—" maxlength="2" readonly style="background:var(--bpl);color:var(--gt);cursor:default;"/></div>
     </div>
     <div class="field">
       <label>ZIP code</label>
@@ -278,7 +278,9 @@ async function submitOnboard(){
   clearAlert('s3-alert');
   const clubName=document.getElementById('s3-name').value.trim(),addr=document.getElementById('s3-addr').value.trim(),city=document.getElementById('s3-city').value.trim(),state=document.getElementById('s3-state').value.trim().toUpperCase(),zip=document.getElementById('s3-zip').value.trim();
   if(!clubName){showAlert('s3-alert','Please enter your club name.');return;}
-  if(!addr||!city||!state){showAlert('s3-alert','Please fill in the address, city, and state.');return;}
+  if(!addr){showAlert('s3-alert','Please enter the street address.');return;}
+  if(!zip||zip.length<5){showAlert('s3-alert','Please enter a valid ZIP code — city and state will fill automatically.');return;}
+  if(!city||!state){showAlert('s3-alert','City and state could not be found for that ZIP. Please check the ZIP code.');return;}
   const btn=document.getElementById('s3-btn');btn.disabled=true;btn.textContent='Setting up your account…';
   try{
     const email=document.getElementById('s1-email').value,pw=document.getElementById('s1-password').value;
@@ -302,7 +304,6 @@ async function submitOnboard(){
 }
 function goToDashboard(){window.location.href='org-admin.html';}
 document.addEventListener('DOMContentLoaded',()=>{
-  const st=document.getElementById('s3-state');if(st)st.addEventListener('input',()=>st.value=st.value.toUpperCase());
 
   // ZIP code auto-populate city and state
   const zipEl=document.getElementById('s3-zip');
@@ -318,8 +319,8 @@ document.addEventListener('DOMContentLoaded',()=>{
         const data=await res.json();
         const place=data.places?.[0];
         if(!place)return;
-        if(cityEl&&!cityEl.value)cityEl.value=place['place name']||'';
-        if(stateEl&&!stateEl.value)stateEl.value=place['state abbreviation']||'';
+        if(cityEl)cityEl.value=place['place name']||'';
+        if(stateEl)stateEl.value=place['state abbreviation']||'';
       }catch(e){/* silently fail */}
     });
   }
