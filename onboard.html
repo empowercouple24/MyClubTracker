@@ -309,6 +309,7 @@ async function submitOnboard(){
     const userId=authData.user?.id;if(!userId)throw new Error('Account creation failed — please try again.');
     const first=document.getElementById('s2-first').value.trim(),last=document.getElementById('s2-last').value.trim(),display=document.getElementById('s2-display').value.trim()||first,phone=document.getElementById('s2-phone').value.trim(),orgName=document.getElementById('s2-org').value.trim(),fullAddr=`${addr}, ${city}, ${state} ${zip}`.trim();
     // All DB writes go through Edge Function with service role — bypasses RLS
+    console.log('Invoking complete-onboarding with orgId:',_orgId,'userId:',userId);
     const{data:fnData,error:fnErr}=await sb.functions.invoke('complete-onboarding',{
       body:{
         userId,email,
@@ -317,7 +318,8 @@ async function submitOnboard(){
         clubName,address:fullAddr,
       }
     });
-    if(fnErr||!fnData?.ok)throw new Error(fnData?.error||fnErr?.message||'Setup failed — please try again.');
+    console.log('Edge function response:',fnData,'error:',fnErr);
+    if(fnErr||!fnData?.ok)throw new Error(fnData?.error||fnErr?.message||fnErr?.context?.error||'Setup failed — please try again. Check console for details.');
     document.getElementById('success-org').textContent=fnData.orgName||orgName;
     document.getElementById('success-loc').textContent=fnData.clubName||clubName;
     document.getElementById('ob-steps').style.display='none';
