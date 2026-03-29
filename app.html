@@ -213,6 +213,9 @@ if('serviceWorker' in navigator){
     .dw-op-name{font-size:13px;font-weight:600;color:var(--text);}
     .dw-op-amt{font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--g6,#16a34a);}
     .dw-op-amt.dim{color:var(--text-faint);font-size:12px;font-weight:500;}
+    /* Operating day toggles */
+    .opday-btn{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;padding:5px 8px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);color:var(--text-faint);cursor:pointer;transition:all 0.15s;}
+    .opday-btn.active{background:var(--b7);color:#fff;border-color:var(--b7);}
     @media(max-width:520px){.dashboard-widgets{grid-template-columns:1fr 1fr;}.dw-card:last-child{grid-column:span 2;}}
     #panel-inv{max-width:none;margin:0;padding:0;}
     #inv-sticky-wrap{position:sticky;top:0;z-index:20;background:var(--bg);padding-bottom:4px;}
@@ -367,19 +370,11 @@ if('serviceWorker' in navigator){
 
 <div class="content-area">
 <div class="tab-panel active" id="panel-enter">
-  <div class="date-nav">
-    <div class="date-display" onclick="document.getElementById('entry-date').showPicker&&document.getElementById('entry-date').showPicker()">
-      <span class="date-display-text" id="entry-date-display">Today</span>
-      <span class="date-display-icon">📅</span>
-      <input type="date" id="entry-date" onchange="updateDateDisplay();loadDay();" style="outline:none;"/>
-    </div>
-    <button class="btn btn-ghost" onclick="loadDay()">Load</button>
-    <button class="btn btn-primary" onclick="saveDay()" style="min-width:90px;flex-shrink:0;">Save</button>
-  </div>
 
   <!-- DASHBOARD WIDGETS -->
   <div class="dashboard-widgets" id="dashboard-widgets">
     <!-- Streak Widget -->
+
     <div class="dw-card dw-streak">
       <div class="dw-icon">🔥</div>
       <div class="dw-body">
@@ -412,6 +407,17 @@ if('serviceWorker' in navigator){
   <div class="dw-ops-preview" id="dw-ops-preview" style="display:none;">
     <div class="dw-ops-label">Today's Operator Earnings Preview</div>
     <div class="dw-ops-rows" id="dw-ops-rows"></div>
+  </div>
+
+  <!-- DATE PICKER -->
+  <div class="date-nav">
+    <div class="date-display" onclick="document.getElementById('entry-date').showPicker&&document.getElementById('entry-date').showPicker()">
+      <span class="date-display-text" id="entry-date-display">Today</span>
+      <span class="date-display-icon">📅</span>
+      <input type="date" id="entry-date" onchange="updateDateDisplay();loadDay();" style="outline:none;"/>
+    </div>
+    <button class="btn btn-ghost" onclick="loadDay()">Load</button>
+    <button class="btn btn-primary" onclick="saveDay()" style="min-width:90px;flex-shrink:0;">Save</button>
   </div>
 
   <!-- DAILY SUMMARY -->
@@ -690,6 +696,14 @@ if('serviceWorker' in navigator){
       <div class="settings-group">
         <div class="settings-group-title">Club</div>
         <div class="settings-row"><label>Club Name</label><input type="text" id="s-clubname" placeholder="Club name" style="flex:1;min-width:0;"/></div>
+      </div>
+      <!-- Operating Days -->
+      <div class="settings-group">
+        <div class="settings-group-title">Operating Days</div>
+        <div class="settings-row" style="flex-wrap:wrap;gap:6px;">
+          <label style="flex:none;width:100%;font-size:12px;color:var(--text-faint);">Select the days your club is open. Closed days won't break your entry streak.</label>
+          <div id="s-opdays" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:2px;"></div>
+        </div>
       </div>
       <!-- Rates -->
       <div class="settings-group">
@@ -1022,6 +1036,7 @@ async function saveProfileAndSettings(){
     SETTINGS.merchRate=parseFloat(document.getElementById('s-merchrate')?.value||SETTINGS.merchRate);
     SETTINGS.dvDelta=parseFloat(document.getElementById('s-dvdelta')?.value||SETTINGS.dvDelta);
     SETTINGS.operators=[0,1,2,3].map(i=>({name:document.getElementById('s-op-'+i)?.value.trim()||'',visible:true,aliases:document.getElementById('s-alias-'+i)?.value.trim()||''}));
+    // opDays are toggled live into SETTINGS.opDays directly — no read needed here
     const empCode=document.getElementById('s-emp-code')?.value.trim();
     if(empCode)SETTINGS.employeeInviteCode=empCode;
     const{error:se}=await sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID);
@@ -1428,13 +1443,20 @@ function renderDashboardWidgets(){
   // ── STREAK ──
   let streak = 0, streakStart = null;
   let cursor = new Date(today);
-  // If today not entered yet, still count from yesterday
+  const opDays = SETTINGS.opDays || [false,true,true,true,true,true,true];
+  // If today is a closed day or not yet entered, start checking from yesterday
   let checkStr = cursor.toISOString().slice(0,10);
   if(!dateSet.has(checkStr)){
     cursor.setDate(cursor.getDate()-1);
   }
   while(true){
     const s = cursor.toISOString().slice(0,10);
+    const dow = cursor.getDay();
+    if(!opDays[dow]){
+      // Closed day — skip without breaking streak
+      cursor.setDate(cursor.getDate()-1);
+      continue;
+    }
     if(dateSet.has(s)){
       streak++;
       streakStart = s;
@@ -1451,7 +1473,14 @@ function renderDashboardWidgets(){
     } else if(streak === 1){
       streakSubEl.textContent = 'Started today';
     } else {
-      streakSubEl.textContent = 'No active streak';
+      // No streak — show last entry date
+      const lastDay = sorted[sorted.length - 1];
+      if(lastDay){
+        const ld = new Date(lastDay.date+'T00:00:00');
+        streakSubEl.textContent = 'Last entry: ' + ld.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      } else {
+        streakSubEl.textContent = 'No entries yet';
+      }
     }
   }
 
@@ -1712,9 +1741,24 @@ function buildSettingsUI(){
   // Employee invite code
   const empEl=document.getElementById('s-emp-code');
   if(empEl)empEl.value=SETTINGS.employeeInviteCode||'';
+  // Operating days toggles
+  const opdEl=document.getElementById('s-opdays');
+  if(opdEl){
+    const dayLabels=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    opdEl.innerHTML=dayLabels.map((d,i)=>
+      `<button type="button" class="opday-btn${SETTINGS.opDays[i]?' active':''}" onclick="toggleOpDay(${i})">${d}</button>`
+    ).join('');
+  }
   // Hide employee section for employees (they can't generate their own codes)
   const empSection=document.getElementById('s-employee-section');
   if(empSection&&USER_ROLE==='employee')empSection.style.display='none';
+}
+
+function toggleOpDay(i){
+  SETTINGS.opDays[i]=!SETTINGS.opDays[i];
+  const btns=document.querySelectorAll('#s-opdays .opday-btn');
+  if(btns[i])btns[i].classList.toggle('active',SETTINGS.opDays[i]);
+  renderDashboardWidgets();
 }
 
 function range(f,t,s){const r=[];for(let v=f;v<=t+0.001;v=Math.round((v+s)*1000)/1000)r.push(v);return r;}
