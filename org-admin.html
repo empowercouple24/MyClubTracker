@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+if(location.protocol==='http:'&&location.hostname!=='localhost'){
+  location.replace('https://'+location.host+location.pathname+location.search+location.hash);
+}
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.getRegistrations().then(regs=>{regs.forEach(r=>r.unregister());});
+}
+</script>
+<meta charset="UTF-8"/>
+<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+<title>Dashboard — MyClubTracker</title>
+<meta name="theme-color" content="#e8edf4"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Outfit:wght@400;600;700;800&display=block" rel="stylesheet"/>
+<link rel="stylesheet" href="shared.css?v=10"/>
+<link rel="stylesheet" href="nav.css?v=10"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+.page{max-width:900px;margin:0 auto;padding:24px max(20px,env(safe-area-inset-left,20px)) calc(64px + env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-right,20px))}
+.section-label{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.9px;color:var(--text-faint);margin-bottom:12px;margin-top:28px}
+.section-label:first-child{margin-top:0}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;margin-top:28px}
+.section-header:first-child{margin-top:0}
+.section-header .section-label{margin:0}
+
+/* KPI strip */
+.kpi-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:4px}
+@media(max-width:520px){.kpi-strip{grid-template-columns:1fr 1fr}}
+.kpi-card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--radius) var(--radius) 0 0}
+.kpi-card.blue::before{background:var(--b6)}.kpi-card.green::before{background:var(--g5)}.kpi-card.amber::before{background:var(--a5)}
+.kpi-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px}
+.kpi-card.blue .kpi-label{color:var(--b6)}.kpi-card.green .kpi-label{color:var(--g5)}.kpi-card.amber .kpi-label{color:var(--a5)}
+.kpi-val{font-family:'Outfit',sans-serif;font-size:26px;font-weight:800;color:var(--text);letter-spacing:-0.5px}
+.kpi-sub{font-size:12px;color:var(--text-faint);margin-top:4px}
+
+/* Suspended banner */
+.suspended-banner{background:linear-gradient(135deg,var(--r5),var(--r6,#b91c1c));border-radius:var(--radius);padding:20px 24px;margin-bottom:20px;color:white;text-align:center}
+.suspended-banner h2{font-family:'Outfit',sans-serif;font-size:20px;font-weight:800;margin-bottom:6px}
+.suspended-banner p{font-size:13px;opacity:0.9;line-height:1.5}
+.suspended-banner a{color:white;font-weight:700}
+
+/* Org header card */
+.org-header-card{background:linear-gradient(135deg,var(--b7),var(--b5));border-radius:var(--radius);padding:18px 20px;margin-bottom:20px;color:white;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.org-header-name{font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;letter-spacing:-0.3px}
+.org-header-sub{font-size:12px;opacity:0.75;margin-top:3px}
+.org-header-badge{background:rgba(255,255,255,0.18);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+
+/* Location cards */
+.locations-list{display:flex;flex-direction:column;gap:10px}
+.loc-card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden;transition:box-shadow 0.18s,border-color 0.18s}
+.loc-card:hover{box-shadow:var(--shadow-md)}
+.loc-card.expanded{border-color:var(--b3);box-shadow:var(--shadow-md)}
+.loc-card-header{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;user-select:none}
+.loc-avatar{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--b7),var(--b4));display:flex;align-items:center;justify-content:center;font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:white;flex-shrink:0;box-shadow:0 2px 8px rgba(58,84,112,0.18)}
+.loc-meta{flex:1;min-width:0}
+.loc-name{font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.loc-addr{font-size:12px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.loc-badges{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.badge{font-size:11px;font-weight:700;letter-spacing:0.3px;padding:3px 8px;border-radius:20px;white-space:nowrap}
+.badge-active{background:var(--g0);color:var(--g5);border:1px solid rgba(46,122,53,0.2)}
+.badge-nodata{background:var(--b0);color:var(--text-faint);border:1px solid var(--border)}
+.loc-chevron{font-size:11px;color:var(--text-faint);transition:transform 0.2s;flex-shrink:0}
+.loc-card.expanded .loc-chevron{transform:rotate(180deg)}
+
+/* Loc stat strip */
+.loc-stat-strip{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--border-light)}
+.loc-stat-cell{padding:10px 14px;border-right:1px solid var(--border-light);text-align:center}
+.loc-stat-cell:last-child{border-right:none}
+.loc-stat-period{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:3px}
+.loc-stat-val{font-family:'Outfit',sans-serif;font-size:17px;font-weight:700;color:var(--text)}
+.loc-stat-val.dim{color:var(--text-faint);font-weight:400;font-size:14px}
+
+/* Expanded section */
+.loc-expanded{display:none;padding:16px;border-top:1px solid var(--border-light);background:var(--b0);animation:expandIn 0.2s ease}
+@keyframes expandIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.loc-card.expanded .loc-expanded{display:block}
+.expanded-footer{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:12px}
+
+/* Team members */
+.team-section{margin-top:12px;border-top:1px solid var(--border-light);padding-top:12px}
+.team-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);margin-bottom:8px}
+.team-row{background:var(--surface);border:1px solid var(--border-light);border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.team-row:last-child{margin-bottom:0}
+.team-name{font-size:13px;font-weight:700;color:var(--text)}
+.team-email{font-size:11px;color:var(--text-faint);margin-top:1px}
+.team-role-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:var(--b0);color:var(--b6);border:1px solid var(--b2)}
+
+/* Co-leaders section */
+.coleader-row{background:var(--surface);border:1px solid var(--border-light);border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.coleader-name{font-size:13px;font-weight:700;color:var(--text)}
+.coleader-email{font-size:11px;color:var(--text-faint)}
+.primary-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:var(--g0);color:var(--g5);border:1px solid rgba(46,122,53,0.2)}
+
+/* Buttons */
+.btn-primary{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;background:linear-gradient(135deg,var(--b7),var(--b5));color:white;border:none;border-radius:6px;padding:8px 16px;cursor:pointer;transition:box-shadow 0.15s;box-shadow:0 2px 8px rgba(58,84,112,0.2)}
+.btn-primary:hover{box-shadow:0 4px 14px rgba(58,84,112,0.3)}
+.btn-sm{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--text-muted);background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer;transition:background 0.15s;text-decoration:none;display:inline-block}
+.btn-sm:hover{background:var(--b0);color:var(--text)}
+.btn-danger{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;background:none;border:1px solid var(--r3,#fca5a5);color:var(--red,#c03030);border-radius:6px;padding:4px 10px;cursor:pointer}
+.btn-danger:hover{background:var(--rpale,#fff0f0)}
+.btn-danger.confirm{background:var(--r5,#dc2626);color:white;border-color:var(--r5,#dc2626)}
+
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.show{display:flex}
+.modal{background:var(--surface);border-radius:var(--radius);padding:24px;width:100%;max-width:440px;box-shadow:0 16px 48px rgba(0,0,0,0.25);max-height:90vh;overflow-y:auto}
+.modal-title{font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;color:var(--text);margin-bottom:4px}
+.modal-sub{font-size:13px;color:var(--text-muted);margin-bottom:20px}
+.modal-field{margin-bottom:14px}
+.modal-label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-faint);margin-bottom:4px}
+.modal-label span{font-weight:400;text-transform:none;letter-spacing:0}
+.modal-input{width:100%;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);background:var(--b0);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:9px 11px;outline:none;transition:border-color 0.15s}
+.modal-input:focus{border-color:var(--b5)}
+.modal-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.modal-alert{font-size:12px;padding:8px 12px;border-radius:var(--radius-sm);margin-bottom:12px;display:none}
+.modal-alert.error{background:var(--rpale,#fff0f0);color:var(--red,#c03030);border:1px solid #fca5a5}
+.modal-alert.show{display:block}
+.modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+
+/* Empty state */
+.empty-state{text-align:center;padding:48px 24px;color:var(--text-faint)}
+.empty-icon{font-size:40px;margin-bottom:12px}
+.empty-title{font-family:'Outfit',sans-serif;font-size:17px;font-weight:700;color:var(--text-muted);margin-bottom:6px}
+.empty-msg{font-size:13px;line-height:1.5}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav" id="main-nav">
+  <div class="nav-left">
+    <div class="nav-logo-mark">
+      <svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg" width="28" height="28">
+        <rect width="56" height="56" rx="10" fill="#2d4a6b"/>
+        <path d="M14 38 L28 16 L42 38" stroke="white" stroke-width="4" fill="none" stroke-linejoin="round"/>
+        <circle cx="28" cy="38" r="4" fill="#5b9bd5"/>
+      </svg>
+    </div>
+    <span class="nav-title" id="nav-org-name">MyClubTracker</span>
+  </div>
+  <div class="nav-right">
+    <button class="nav-profile-btn" id="nav-profile-btn" onclick="toggleNavMenu()" title="">
+      <span class="nav-avatar-initials" id="nav-avatar-initials"></span>
+    </button>
+    <div class="nav-drop" id="nav-drop">
+      <div class="nav-drop-name" id="nav-display-name"></div>
+      <div class="nav-drop-role">ORG LEADER</div>
+      <div class="nav-drop-divider"></div>
+      <button class="nav-drop-item danger" onclick="handleSignOut()">↪ Sign out</button>
+    </div>
+  </div>
+</nav>
+
+<div class="page" id="main-page" style="display:none;">
+
+  <!-- SUSPENDED BANNER (shown if org suspended) -->
+  <div id="suspended-banner" style="display:none;" class="suspended-banner">
+    <h2>⛔ Account Suspended</h2>
+    <p>Your organization's access has been suspended.<br/>Please contact <a href="mailto:support@myclubtracker.com">support@myclubtracker.com</a> for assistance.</p>
+  </div>
+
+  <!-- ORG HEADER -->
+  <div class="org-header-card" id="org-header-card">
+    <div>
+      <div class="org-header-name" id="org-header-name">—</div>
+      <div class="org-header-sub" id="org-header-sub">Loading…</div>
+    </div>
+    <div class="org-header-badge" id="org-plan-badge">Free Plan</div>
+  </div>
+
+  <!-- KPI STRIP -->
+  <div class="kpi-strip">
+    <div class="kpi-card blue">
+      <div class="kpi-label">Yesterday</div>
+      <div class="kpi-val" id="kpi-yday">—</div>
+      <div class="kpi-sub" id="kpi-yday-sub">across all locations</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">This Week</div>
+      <div class="kpi-val" id="kpi-week">—</div>
+      <div class="kpi-sub" id="kpi-week-sub">across all locations</div>
+    </div>
+    <div class="kpi-card amber">
+      <div class="kpi-label">This Month</div>
+      <div class="kpi-val" id="kpi-month">—</div>
+      <div class="kpi-sub" id="kpi-month-sub">across all locations</div>
+    </div>
+  </div>
+
+  <!-- LOCATIONS -->
+  <div class="section-header" style="margin-top:24px;">
+    <div class="section-label" style="margin:0;">Locations</div>
+    <button class="btn-primary" onclick="openAddLocModal()">+ Add Location</button>
+  </div>
+  <div class="locations-list" id="locations-list">
+    <div class="empty-state"><div class="ob-spinner" style="width:24px;height:24px;border-width:2px;margin:0 auto 10px;"></div><div>Loading locations…</div></div>
+  </div>
+
+  <!-- CO-LEADERS -->
+  <div class="section-header" style="margin-top:28px;">
+    <div class="section-label" style="margin:0;">Co-Leaders</div>
+    <button class="btn-primary" onclick="openInviteLeaderModal()">+ Invite Co-Leader</button>
+  </div>
+  <div id="coleaders-list">
+    <div style="font-size:13px;color:var(--text-faint);padding:8px 0;">Loading…</div>
+  </div>
+
+</div><!-- /page -->
+
+<!-- LOADING STATE -->
+<div id="loading-state" style="display:flex;align-items:center;justify-content:center;min-height:60vh;">
+  <div style="text-align:center;">
+    <div style="width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--b6);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 14px;"></div>
+    <div style="font-size:14px;color:var(--text-muted);">Loading your dashboard…</div>
+  </div>
+</div>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+<!-- ── ADD LOCATION MODAL ── -->
+<div class="modal-overlay" id="add-loc-modal">
+  <div class="modal">
+    <div class="modal-title">Add New Location</div>
+    <div class="modal-sub">This location will be added to your organization.</div>
+    <div class="modal-alert error" id="al-error"></div>
+    <div class="modal-field">
+      <label class="modal-label">Club name</label>
+      <input class="modal-input" type="text" id="al-name" placeholder="e.g. Johnson Nutrition North"/>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Street address</label>
+      <input class="modal-input" type="text" id="al-addr" placeholder="123 Main St"/>
+    </div>
+    <div class="modal-row">
+      <div class="modal-field">
+        <label class="modal-label">City</label>
+        <input class="modal-input" type="text" id="al-city" placeholder="City"/>
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">State</label>
+        <input class="modal-input" type="text" id="al-state" placeholder="OH" maxlength="2"/>
+      </div>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">ZIP code</label>
+      <input class="modal-input" type="text" id="al-zip" placeholder="44060" maxlength="10" style="max-width:140px;"/>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="closeModal('add-loc-modal')">Cancel</button>
+      <button class="btn-primary" id="al-btn" onclick="submitAddLocation()">Add Location</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── INVITE CO-LEADER MODAL ── -->
+<div class="modal-overlay" id="invite-leader-modal">
+  <div class="modal">
+    <div class="modal-title">Invite a Co-Leader</div>
+    <div class="modal-sub">They'll receive an email with a link to join your organization as a co-leader.</div>
+    <div class="modal-alert error" id="il-error"></div>
+    <div class="modal-field">
+      <label class="modal-label">Email address</label>
+      <input class="modal-input" type="email" id="il-email" placeholder="their@email.com"/>
+    </div>
+    <div class="modal-row">
+      <div class="modal-field">
+        <label class="modal-label">First name <span>— optional</span></label>
+        <input class="modal-input" type="text" id="il-first" placeholder="First"/>
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Last name <span>— optional</span></label>
+        <input class="modal-input" type="text" id="il-last" placeholder="Last"/>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="closeModal('invite-leader-modal')">Cancel</button>
+      <button class="btn-primary" id="il-btn" onclick="submitInviteLeader()">Send Invite</button>
+    </div>
+  </div>
+</div>
+
+<script src="nav.js?v=10"></script>
+<script>
+const SURL='https://ndaqlamzlaucigvnhgfu.supabase.co';
+const SKEY='sb_publishable_wO6XM4pC2CcaISQ8OlbkfQ_liqKJbi_';
+const sb=supabase.createClient(SURL,SKEY);
+
+let ME=null,MY_ORG=null,MY_LOCATIONS=[],ALL_DAYS=[],ALL_USERS=[],CO_LEADERS=[];
+
+// ── INIT ──
+(async()=>{
+  const{data:{session}}=await sb.auth.getSession();
+  if(!session){window.location.href='index.html';return;}
+
+  // Load user record
+  const{data:user}=await sb.from('users').select('*').eq('id',session.user.id).single();
+  if(!user){await sb.auth.signOut();window.location.href='index.html';return;}
+
+  // Must be org_leader (or admin)
+  if(user.role!=='org_leader'&&user.role!=='admin'){
+    window.location.href='app.html';return;
+  }
+
+  ME=user;
+
+  // Load org
+  const{data:org}=await sb.from('organizations').select('*').eq('id',user.org_id).single();
+  if(!org){showError('Organization not found.');return;}
+  MY_ORG=org;
+
+  // Set nav
+  const initials=((user.first_name||'')[0]||(user.display_name||'')[0]||'?').toUpperCase();
+  const dn=document.getElementById('nav-display-name');
+  const ai=document.getElementById('nav-avatar-initials');
+  const nn=document.getElementById('nav-org-name');
+  if(dn)dn.textContent=user.display_name||[user.first_name,user.last_name].filter(Boolean).join(' ')||session.user.email;
+  if(ai)ai.textContent=initials;
+  if(nn)nn.textContent=org.name||'MyClubTracker';
+
+  // Check suspended
+  if(org.status==='suspended'||!org.billing_active){
+    document.getElementById('suspended-banner').style.display='block';
+  }
+
+  // Render org header
+  document.getElementById('org-header-name').textContent=org.name||'—';
+  document.getElementById('org-header-sub').textContent=
+    `Leader: ${org.leader_name||ME.display_name||'—'} · Activated ${org.activated_at?new Date(org.activated_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—'}`;
+  document.getElementById('org-plan-badge').textContent=
+    org.billing_plan==='paid'?`$${Number(org.monthly_rate||0).toFixed(2)}/mo`:'Free Plan';
+
+  // Load data
+  await Promise.all([loadLocations(),loadCoLeaders()]);
+
+  document.getElementById('loading-state').style.display='none';
+  document.getElementById('main-page').style.display='block';
+})();
+
+// ── LOAD LOCATIONS ──
+async function loadLocations(){
+  const{data:locs}=await sb.from('locations').select('*').eq('org_id',MY_ORG.id).order('name');
+  MY_LOCATIONS=locs||[];
+
+  if(!MY_LOCATIONS.length){return;}
+
+  // Load days for all locations (last 35 days)
+  const since=new Date();since.setDate(since.getDate()-35);
+  const sinceStr=since.toISOString().slice(0,10);
+  const locIds=MY_LOCATIONS.map(l=>l.id);
+
+  const{data:days}=await sb.from('days').select('location_id,date,data').in('location_id',locIds).gte('date',sinceStr);
+  ALL_DAYS=days||[];
+
+  // Load users for all locations
+  const{data:users}=await sb.from('users').select('id,first_name,last_name,display_name,email,role,location_id').in('location_id',locIds);
+  ALL_USERS=users||[];
+
+  renderLocations();
+  renderKPIs();
+}
+
+// ── RENDER LOCATIONS ──
+function renderLocations(){
+  const el=document.getElementById('locations-list');
+  if(!MY_LOCATIONS.length){
+    el.innerHTML=`<div class="empty-state"><div class="empty-icon">📍</div><div class="empty-title">No locations yet</div><div class="empty-msg">Add your first club location to get started.</div></div>`;
+    return;
+  }
+
+  const today=new Date().toISOString().slice(0,10);
+  const yday=new Date(Date.now()-864e5).toISOString().slice(0,10);
+  const weekAgo=new Date(Date.now()-7*864e5).toISOString().slice(0,10);
+  const monthStart=new Date();monthStart.setDate(1);const monthStartStr=monthStart.toISOString().slice(0,10);
+
+  el.innerHTML=MY_LOCATIONS.map(loc=>{
+    const locDays=ALL_DAYS.filter(d=>d.location_id===loc.id);
+    const locUsers=ALL_USERS.filter(u=>u.location_id===loc.id);
+    const initials=(loc.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+
+    const ydayDay=locDays.find(d=>d.date===yday);
+    const weekDays=locDays.filter(d=>d.date>=weekAgo&&d.date<=today);
+    const monthDays=locDays.filter(d=>d.date>=monthStartStr&&d.date<=today);
+
+    const sum=arr=>arr.reduce((s,d)=>s+(d.data?.totalSales||0),0);
+    const ydaySales=ydayDay?ydayDay.data?.totalSales||0:null;
+    const weekSales=sum(weekDays);
+    const monthSales=sum(monthDays);
+
+    const hasData=locDays.length>0;
+    const badgeHtml=hasData
+      ?`<span class="badge badge-active">Active</span>`
+      :`<span class="badge badge-nodata">No data</span>`;
+
+    const teamHtml=locUsers.length
+      ?locUsers.map(u=>`
+        <div class="team-row">
+          <div>
+            <div class="team-name">${escHtml(u.display_name||[u.first_name,u.last_name].filter(Boolean).join(' ')||'—')}</div>
+            <div class="team-email">${escHtml(u.email||'')}</div>
+          </div>
+          <span class="team-role-badge">${u.role==='owner'?'Owner':'Operator'}</span>
+        </div>`).join('')
+      :`<div style="font-size:12px;color:var(--text-faint);">No team members yet.</div>`;
+
+    return`<div class="loc-card" id="loc-${loc.id}">
+      <div class="loc-card-header" onclick="toggleLoc('${loc.id}')">
+        <div class="loc-avatar">${initials}</div>
+        <div class="loc-meta">
+          <div class="loc-name">${escHtml(loc.name)}</div>
+          <div class="loc-addr">${escHtml(loc.address||'')}</div>
+        </div>
+        <div class="loc-badges">${badgeHtml}</div>
+        <div class="loc-chevron">▼</div>
+      </div>
+      <div class="loc-stat-strip">
+        <div class="loc-stat-cell">
+          <div class="loc-stat-period">Yesterday</div>
+          <div class="loc-stat-val ${ydaySales===null?'dim':''}">${ydaySales!==null?fmt$(ydaySales):'—'}</div>
+        </div>
+        <div class="loc-stat-cell">
+          <div class="loc-stat-period">This Week</div>
+          <div class="loc-stat-val ${!weekDays.length?'dim':''}">${weekDays.length?fmt$(weekSales):'—'}</div>
+        </div>
+        <div class="loc-stat-cell">
+          <div class="loc-stat-period">This Month</div>
+          <div class="loc-stat-val ${!monthDays.length?'dim':''}">${monthDays.length?fmt$(monthSales):'—'}</div>
+        </div>
+      </div>
+      <div class="loc-expanded" id="loc-exp-${loc.id}">
+        <div class="team-section">
+          <div class="team-title">Team Members (${locUsers.length})</div>
+          ${teamHtml}
+        </div>
+        <div class="expanded-footer">
+          <a href="app.html?loc=${loc.id}" class="btn-sm">Open Club App →</a>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── RENDER KPIs ──
+function renderKPIs(){
+  const today=new Date().toISOString().slice(0,10);
+  const yday=new Date(Date.now()-864e5).toISOString().slice(0,10);
+  const weekAgo=new Date(Date.now()-7*864e5).toISOString().slice(0,10);
+  const monthStart=new Date();monthStart.setDate(1);const monthStartStr=monthStart.toISOString().slice(0,10);
+
+  const sum=(arr,filter)=>arr.filter(filter).reduce((s,d)=>s+(d.data?.totalSales||0),0);
+  const ydayTotal=sum(ALL_DAYS,d=>d.date===yday);
+  const weekTotal=sum(ALL_DAYS,d=>d.date>=weekAgo&&d.date<=today);
+  const monthTotal=sum(ALL_DAYS,d=>d.date>=monthStartStr&&d.date<=today);
+
+  const ydayCount=ALL_DAYS.filter(d=>d.date===yday).length;
+  const weekCount=[...new Set(ALL_DAYS.filter(d=>d.date>=weekAgo&&d.date<=today).map(d=>d.date))].length;
+  const monthCount=[...new Set(ALL_DAYS.filter(d=>d.date>=monthStartStr&&d.date<=today).map(d=>d.date))].length;
+
+  setText('kpi-yday',ydayCount?fmt$(ydayTotal):'—');
+  setText('kpi-week',weekCount?fmt$(weekTotal):'—');
+  setText('kpi-month',monthCount?fmt$(monthTotal):'—');
+  setText('kpi-yday-sub',ydayCount?`${ydayCount} location${ydayCount!==1?'s':''} reported`:'no entries yet');
+  setText('kpi-week-sub',weekCount?`${weekCount} day${weekCount!==1?'s':''} entered`:'no entries yet');
+  setText('kpi-month-sub',monthCount?`${monthCount} day${monthCount!==1?'s':''} entered`:'no entries yet');
+}
+
+// ── LOAD CO-LEADERS ──
+async function loadCoLeaders(){
+  const{data:leaders}=await sb.from('org_leaders')
+    .select('id,user_id,is_primary,users(first_name,last_name,display_name,email)')
+    .eq('org_id',MY_ORG.id);
+  CO_LEADERS=leaders||[];
+  renderCoLeaders();
+}
+
+function renderCoLeaders(){
+  const el=document.getElementById('coleaders-list');
+  if(!CO_LEADERS.length){
+    el.innerHTML=`<div style="font-size:13px;color:var(--text-faint);padding:8px 0;">No co-leaders yet. Invite one above.</div>`;
+    return;
+  }
+  el.innerHTML=CO_LEADERS.map(l=>{
+    const u=l.users||{};
+    const name=u.display_name||[u.first_name,u.last_name].filter(Boolean).join(' ')||'—';
+    const isPrimary=l.is_primary;
+    return`<div class="coleader-row">
+      <div>
+        <div class="coleader-name">${escHtml(name)} ${isPrimary?'<span class="primary-badge">Primary</span>':''}</div>
+        <div class="coleader-email">${escHtml(u.email||'')}</div>
+      </div>
+      ${!isPrimary?`<button class="btn-danger" id="rm-${l.id}" onclick="removeCoLeader('${l.id}','${escHtml(name)}',this)">Remove</button>`:''}
+    </div>`;
+  }).join('');
+}
+
+// ── ADD LOCATION ──
+function openAddLocModal(){openModal('add-loc-modal');}
+async function submitAddLocation(){
+  const name=document.getElementById('al-name').value.trim();
+  const addr=document.getElementById('al-addr').value.trim();
+  const city=document.getElementById('al-city').value.trim();
+  const state=document.getElementById('al-state').value.trim().toUpperCase();
+  const zip=document.getElementById('al-zip').value.trim();
+  if(!name){showModalAlert('al-error','Please enter a club name.');return;}
+  if(!addr||!city||!state){showModalAlert('al-error','Please fill in the address, city, and state.');return;}
+  const btn=document.getElementById('al-btn');
+  btn.disabled=true;btn.textContent='Adding…';
+  const fullAddr=`${addr}, ${city}, ${state} ${zip}`.trim();
+  const{error}=await sb.from('locations').insert({
+    name,address:fullAddr,org_id:MY_ORG.id,
+    settings:{clubName:name,taxRate:1.25,ohRate:32,otherRate:50,merchRate:100,dvDelta:3,
+      opDays:[false,true,true,true,true,true,true],
+      operators:[{name:'',visible:true,aliases:''},{name:'',visible:true,aliases:''},{name:'',visible:false,aliases:''},{name:'',visible:false,aliases:''}]},
+  });
+  btn.disabled=false;btn.textContent='Add Location';
+  if(error){showModalAlert('al-error',error.message);return;}
+  closeModal('add-loc-modal');
+  ['al-name','al-addr','al-city','al-state','al-zip'].forEach(id=>document.getElementById(id).value='');
+  await loadLocations();
+}
+
+// ── INVITE CO-LEADER ──
+function openInviteLeaderModal(){openModal('invite-leader-modal');}
+async function submitInviteLeader(){
+  const email=document.getElementById('il-email').value.trim().toLowerCase();
+  const first=document.getElementById('il-first').value.trim();
+  const last=document.getElementById('il-last').value.trim();
+  if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showModalAlert('il-error','Please enter a valid email address.');return;}
+  const btn=document.getElementById('il-btn');
+  btn.disabled=true;btn.textContent='Sending…';
+  // Generate invite token and store on org record as co-leader invite
+  // For now, insert a placeholder user record flagged as pending co-leader
+  // Full email automation will fire through the send-invite edge function
+  const{error}=await sb.functions.invoke('send-org-invite',{
+    body:{email,firstName:first,lastName:last,orgId:MY_ORG.id,orgName:MY_ORG.name,role:'co_leader',invitedBy:ME.id}
+  });
+  btn.disabled=false;btn.textContent='Send Invite';
+  if(error){showModalAlert('il-error','Invite could not be sent. Please try again.');return;}
+  closeModal('invite-leader-modal');
+  ['il-email','il-first','il-last'].forEach(id=>document.getElementById(id).value='');
+  showToast('Invite sent!');
+}
+
+// ── REMOVE CO-LEADER ──
+async function removeCoLeader(leaderId,name,btn){
+  if(!btn.classList.contains('confirm')){
+    btn.textContent='Confirm remove';btn.classList.add('confirm');
+    setTimeout(()=>{btn.textContent='Remove';btn.classList.remove('confirm');},3000);
+    return;
+  }
+  btn.disabled=true;btn.textContent='Removing…';
+  const{error}=await sb.from('org_leaders').delete().eq('id',leaderId);
+  if(error){btn.disabled=false;btn.textContent='Remove';showToast('Could not remove — try again.');return;}
+  await loadCoLeaders();
+  showToast(`${name} removed.`);
+}
+
+// ── TOGGLE LOCATION EXPAND ──
+function toggleLoc(id){
+  const card=document.getElementById('loc-'+id);
+  if(card)card.classList.toggle('expanded');
+}
+
+// ── SIGN OUT ──
+async function handleSignOut(){
+  await sb.auth.signOut();
+  window.location.href='index.html';
+}
+
+// ── NAV MENU ──
+function toggleNavMenu(){
+  const d=document.getElementById('nav-drop');
+  if(d)d.classList.toggle('open');
+}
+document.addEventListener('click',e=>{
+  const d=document.getElementById('nav-drop');
+  if(d&&d.classList.contains('open')&&!e.target.closest('#nav-profile-btn')&&!e.target.closest('#nav-drop'))
+    d.classList.remove('open');
+});
+
+// ── MODAL HELPERS ──
+function openModal(id){document.getElementById(id).classList.add('show');}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+document.addEventListener('click',e=>{
+  if(e.target.classList.contains('modal-overlay'))e.target.classList.remove('show');
+});
+function showModalAlert(id,msg){const el=document.getElementById(id);el.textContent=msg;el.classList.add('show');}
+
+// ── TOAST ──
+function showToast(msg,dur=2400){
+  let t=document.getElementById('global-toast');
+  if(!t){t=document.createElement('div');t.id='global-toast';
+    t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1e2d3d;color:#fff;font-size:13px;font-weight:600;padding:10px 20px;border-radius:20px;z-index:999;opacity:0;transition:opacity 0.2s;pointer-events:none;';
+    document.body.appendChild(t);}
+  t.textContent=msg;t.style.opacity='1';
+  clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity='0',dur);
+}
+
+// ── UTILS ──
+function fmt$(n){if(n===null||isNaN(n))return'$0.00';return'$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function setText(id,val){const el=document.getElementById(id);if(el)el.textContent=val;}
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+</script>
+</body>
+</html>
