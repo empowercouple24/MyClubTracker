@@ -1677,10 +1677,18 @@ async function init(){
   }
   if(IS_ADMIN_VIEW){
     const _nab=document.getElementById('nav-admin-badge');if(_nab)_nab.style.display='block';
-    const _nbb=document.getElementById('nav-back-btn');if(_nbb)_nbb.style.display='block';
+    const _nbb=document.getElementById('nav-back-btn');if(_nbb){
+      _nbb.style.display='block';
+      const _fromParam=new URLSearchParams(window.location.search).get('from');
+      _nbb.textContent=_fromParam==='org'?'← Dashboard':'← Locations';
+    }
     const _so=document.getElementById('nav-signout-btn');if(_so)_so.style.display='none';
     const bn=document.getElementById('admin-banner');if(bn){bn.style.display='block';bn.textContent='Admin View: '+(loc?.name||LOCATION_ID);}
-    const _aeb=document.getElementById('admin-edit-banner');if(_aeb)_aeb.classList.add('show');
+    const _aeb=document.getElementById('admin-edit-banner');if(_aeb){
+      _aeb.classList.add('show');
+      const _fromParam2=new URLSearchParams(window.location.search).get('from');
+      _aeb.textContent=(_fromParam2==='org'?'⚠ Admin View — click to return to Dashboard':'⚠ Admin Edit Mode — click to return to Locations');
+    }
     recalcContentTop();
     // settings merged into profile modal
     const _smt=document.getElementById('profile-modal-title');if(_smt)_smt.textContent='Profile & Settings — '+(loc?.name||'Location');
@@ -1726,7 +1734,11 @@ function setNavLocation(name, address, owner){
     else{nca.style.display='none';}
   }
 }
-function goBackToAdmin(){window.location.href='locations.html';}
+function goBackToAdmin(){
+  const from=new URLSearchParams(window.location.search).get('from');
+  if(from==='org') window.location.href='org-admin.html';
+  else window.location.href='locations.html';
+}
 function switchTab(name){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
