@@ -194,6 +194,26 @@ if('serviceWorker' in navigator){
     .inv-table tbody tr:hover td{background:var(--b0)}
     /* Constrain inventory panel width so it doesn't stretch across full screen */
     #panel-enter{max-width:860px;margin:0 auto;}
+    /* ── Dashboard Widgets ── */
+    .dashboard-widgets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;}
+    .dw-card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:12px 14px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow-sm);min-width:0;}
+    .dw-icon{font-size:22px;flex-shrink:0;line-height:1;}
+    .dw-body{min-width:0;flex:1;}
+    .dw-value{font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;color:var(--b7);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .dw-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-top:2px;}
+    .dw-sub{font-size:10px;color:var(--text-faint);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .dw-streak .dw-value{color:var(--b7);}
+    .dw-week .dw-value{color:var(--g6,#16a34a);}
+    .dw-month .dw-value{color:var(--a6,#d97706);}
+    /* Operator earnings preview */
+    .dw-ops-preview{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;box-shadow:var(--shadow-sm);}
+    .dw-ops-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:8px;}
+    .dw-ops-rows{display:flex;flex-direction:column;gap:5px;}
+    .dw-op-row{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--b0);border-radius:var(--radius-sm);}
+    .dw-op-name{font-size:13px;font-weight:600;color:var(--text);}
+    .dw-op-amt{font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--g6,#16a34a);}
+    .dw-op-amt.dim{color:var(--text-faint);font-size:12px;font-weight:500;}
+    @media(max-width:520px){.dashboard-widgets{grid-template-columns:1fr 1fr;}.dw-card:last-child{grid-column:span 2;}}
     #panel-inv{max-width:none;margin:0;padding:0;}
     #inv-sticky-wrap{position:sticky;top:0;z-index:20;background:var(--bg);padding-bottom:4px;}
     .inv-name-cell{display:flex;align-items:baseline;gap:6px;overflow:hidden;}
@@ -357,6 +377,43 @@ if('serviceWorker' in navigator){
     <button class="btn btn-primary" onclick="saveDay()" style="min-width:90px;flex-shrink:0;">Save</button>
   </div>
 
+  <!-- DASHBOARD WIDGETS -->
+  <div class="dashboard-widgets" id="dashboard-widgets">
+    <!-- Streak Widget -->
+    <div class="dw-card dw-streak">
+      <div class="dw-icon">🔥</div>
+      <div class="dw-body">
+        <div class="dw-value" id="dw-streak-val">—</div>
+        <div class="dw-label">Day Streak</div>
+        <div class="dw-sub" id="dw-streak-sub"></div>
+      </div>
+    </div>
+    <!-- Weekly Widget -->
+    <div class="dw-card dw-week">
+      <div class="dw-icon">📅</div>
+      <div class="dw-body">
+        <div class="dw-value" id="dw-week-val">—</div>
+        <div class="dw-label">This Week</div>
+        <div class="dw-sub" id="dw-week-sub"></div>
+      </div>
+    </div>
+    <!-- Monthly Widget -->
+    <div class="dw-card dw-month">
+      <div class="dw-icon">📊</div>
+      <div class="dw-body">
+        <div class="dw-value" id="dw-month-val">—</div>
+        <div class="dw-label">This Month</div>
+        <div class="dw-sub" id="dw-month-sub"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OPERATOR EARNINGS PREVIEW -->
+  <div class="dw-ops-preview" id="dw-ops-preview" style="display:none;">
+    <div class="dw-ops-label">Today's Operator Earnings Preview</div>
+    <div class="dw-ops-rows" id="dw-ops-rows"></div>
+  </div>
+
   <!-- DAILY SUMMARY -->
   <div class="summary-box">
     <div class="summary-title">Daily Summary</div>
@@ -436,8 +493,8 @@ if('serviceWorker' in navigator){
     <div class="card">
       <div class="collapsible-toggle" onclick="toggleCollapse(this)" data-target="ops-body">Operators <span class="arrow">▼</span></div>
       <div class="collapsible-body" id="ops-body">
-        <div class="field-row"><div class="field-label">Operator 1</div><select class="field-input" id="f-op1"></select></div>
-        <div class="field-row"><div class="field-label">Operator 2</div><select class="field-input" id="f-op2"></select></div>
+        <div class="field-row"><div class="field-label">Operator 1</div><select class="field-input" id="f-op1" onchange="recalc()"></select></div>
+        <div class="field-row"><div class="field-label">Operator 2</div><select class="field-input" id="f-op2" onchange="recalc()"></select></div>
       </div>
     </div>
     <!-- Fundraiser — expanded by default -->
@@ -1317,6 +1374,7 @@ function recalc(){
   if(c.balanced===null){balEl.textContent='Enter Cash Sales, Card Sales & Card Fees';balEl.className='balance-pending';}
   else if(c.balanced){balEl.textContent='✓ Balanced';balEl.className='balance-ok';}
   else{balEl.textContent='✗ Off by '+fmt$(Math.abs(c.balDiff));balEl.className='balance-fail';}
+  renderOpsEarningsPreview();
 }
 
 const ENTRY_FIELDS=['cashSales','cardSales','cardFees','giftCardRedeemed','cashAppPay','venmo','otherSales','merchSales','giftCardSales','giftCardLoadFees','fundraiserCash','fundraiserCard','dv','notes'];
@@ -1355,7 +1413,107 @@ async function saveDay(){
   else{const{data:nr,error:e}=await sb.from('days').insert({location_id:LOCATION_ID,date,data}).select().single();error=e;if(!e&&nr)ALL_DAYS.unshift(nr);}
   if(error){showToast('Save failed: '+error.message,'error');return;}
   showToast(IS_ADMIN_VIEW?'Saved (Admin Edit) ✓':'Day saved ✓','success');
-  renderHistory();renderProjections();renderPayouts();
+  renderHistory();renderProjections();renderPayouts();renderDashboardWidgets();
+}
+
+function renderDashboardWidgets(){
+  if(!ALL_DAYS.length) return;
+  const today = new Date();
+  const todayStr = today.toISOString().slice(0,10);
+
+  // Sort ascending for streak calculation
+  const sorted = [...ALL_DAYS].sort((a,b)=>a.date.localeCompare(b.date));
+  const dateSet = new Set(sorted.map(d=>d.date));
+
+  // ── STREAK ──
+  let streak = 0, streakStart = null;
+  let cursor = new Date(today);
+  // If today not entered yet, still count from yesterday
+  let checkStr = cursor.toISOString().slice(0,10);
+  if(!dateSet.has(checkStr)){
+    cursor.setDate(cursor.getDate()-1);
+  }
+  while(true){
+    const s = cursor.toISOString().slice(0,10);
+    if(dateSet.has(s)){
+      streak++;
+      streakStart = s;
+      cursor.setDate(cursor.getDate()-1);
+    } else { break; }
+  }
+  const streakEl = document.getElementById('dw-streak-val');
+  const streakSubEl = document.getElementById('dw-streak-sub');
+  if(streakEl) streakEl.textContent = streak > 0 ? streak : '0';
+  if(streakSubEl){
+    if(streak > 1 && streakStart){
+      const d = new Date(streakStart+'T00:00:00');
+      streakSubEl.textContent = 'Since ' + d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    } else if(streak === 1){
+      streakSubEl.textContent = 'Started today';
+    } else {
+      streakSubEl.textContent = 'No active streak';
+    }
+  }
+
+  // ── WEEKLY ──
+  const dayOfWeek = today.getDay(); // 0=Sun
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() - dayOfWeek);
+  const weekStartStr = weekStart.toISOString().slice(0,10);
+  const weekDays = ALL_DAYS.filter(d => d.date >= weekStartStr && d.date <= todayStr);
+  const weekSales = weekDays.reduce((s,d)=>s+(d.data?.totalSales||0),0);
+  const weekEl = document.getElementById('dw-week-val');
+  const weekSubEl = document.getElementById('dw-week-sub');
+  if(weekEl) weekEl.textContent = fmt$(weekSales);
+  if(weekSubEl) weekSubEl.textContent = weekDays.length + ' day' + (weekDays.length!==1?'s':'') + ' entered';
+
+  // ── MONTHLY ──
+  const monthStartStr = new Date(today.getFullYear(),today.getMonth(),1).toISOString().slice(0,10);
+  const monthEndStr = new Date(today.getFullYear(),today.getMonth()+1,0).toISOString().slice(0,10);
+  const monthDays = ALL_DAYS.filter(d => d.date >= monthStartStr && d.date <= monthEndStr);
+  const monthSales = monthDays.reduce((s,d)=>s+(d.data?.totalSales||0),0);
+  const monthEl = document.getElementById('dw-month-val');
+  const monthSubEl = document.getElementById('dw-month-sub');
+  if(monthEl) monthEl.textContent = fmt$(monthSales);
+  if(monthSubEl){
+    const mn = today.toLocaleDateString('en-US',{month:'long'});
+    monthSubEl.textContent = mn + ' · ' + monthDays.length + ' day' + (monthDays.length!==1?'s':'') + ' entered';
+  }
+}
+
+function renderOpsEarningsPreview(){
+  // Called by recalc() — shows live operator earnings based on current form values
+  const preview = document.getElementById('dw-ops-preview');
+  const rows = document.getElementById('dw-ops-rows');
+  if(!preview || !rows) return;
+
+  const c = calcAll();
+  if(!c.group2 || c.payouts === null){
+    preview.style.display = 'none';
+    return;
+  }
+
+  const op1 = document.getElementById('f-op1')?.value || '';
+  const op2 = document.getElementById('f-op2')?.value || '';
+  const ops = [op1, op2].filter(Boolean);
+
+  if(ops.length === 0){
+    preview.style.display = 'none';
+    return;
+  }
+
+  preview.style.display = 'block';
+  const share = ops.length > 0 ? c.payouts / ops.length : 0;
+  rows.innerHTML = ops.map(name =>
+    `<div class="dw-op-row">
+      <div class="dw-op-name">${name}</div>
+      <div class="dw-op-amt">${fmt$(share)}</div>
+    </div>`
+  ).join('') + (ops.length > 1 ?
+    `<div class="dw-op-row" style="border-top:1px solid var(--border-light);margin-top:2px;padding-top:8px;">
+      <div class="dw-op-name" style="color:var(--text-faint);font-size:11px;">Total Payouts</div>
+      <div class="dw-op-amt">${fmt$(c.payouts)}</div>
+    </div>` : '');
 }
 
 function renderHistory(){
