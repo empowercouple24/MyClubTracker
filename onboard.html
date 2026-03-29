@@ -319,8 +319,22 @@ document.addEventListener('DOMContentLoaded',()=>{
       }catch(e){/* silently fail */}
     });
   }
-  const fn=document.getElementById('s2-first'),dn=document.getElementById('s2-display');
-  if(fn&&dn)fn.addEventListener('input',()=>{if(!dn.value)dn.value=fn.value;});
+  // Display name — mirror first name until user manually edits it
+  const fn=document.getElementById('s2-first');
+  const dn=document.getElementById('s2-display');
+  let _dnUserEdited=false;
+  if(dn)dn.addEventListener('input',()=>{_dnUserEdited=true;});
+  if(fn&&dn)fn.addEventListener('input',()=>{if(!_dnUserEdited)dn.value=fn.value;});
+
+  // Phone formatter — (xxx) xxx-xxxx
+  const ph=document.getElementById('s2-phone');
+  if(ph)ph.addEventListener('input',()=>{
+    const digits=ph.value.replace(/\D/g,'').slice(0,10);
+    if(digits.length>=7)ph.value='('+digits.slice(0,3)+') '+digits.slice(3,6)+'-'+digits.slice(6);
+    else if(digits.length>=4)ph.value='('+digits.slice(0,3)+') '+digits.slice(3);
+    else if(digits.length>0)ph.value='('+digits;
+    else ph.value='';
+  });
 });
 </script>
 </body>
