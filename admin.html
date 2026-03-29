@@ -1418,9 +1418,10 @@ function renderAdminUserSection(locId){
         <div class="admin-user-actions">
           <select class="admin-role-select" style="${roleColor}" onchange="adminChangeRole('${u.id}',this.value,this)">
             <option value="owner"    ${u.role==='owner'   ?'selected':''}>Owner</option>
-            <option value="employee" ${u.role==='employee'?'selected':''}>Employee</option>
+            <option value="employee" ${u.role==='employee'?'selected':''}>Operator</option>
           </select>
           <button class="admin-reset-btn" onclick="adminResetPassword('${escHtml(u.email)}','${escHtml(name)}')">🔑 Reset PW</button>
+          <button onclick="adminConfirmRemoveUser('${u.id}','${escHtml(name)}')" title="Remove from location" style="background:none;border:1px solid var(--border-light);border-radius:6px;padding:6px 8px;cursor:pointer;color:var(--text-faint);font-size:14px;line-height:1;" onmouseover="this.style.background='var(--r0)';this.style.color='var(--r5)'" onmouseout="this.style.background='none';this.style.color='var(--text-faint)'">🗑</button>
         </div>
       </div>
       <div class="admin-user-fields">
@@ -1448,6 +1449,18 @@ async function adminResetPassword(email,name){
   const{error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+'/index.html'});
   if(error){showToast('Reset failed: '+error.message,'error');return;}
   showToast('Password reset sent to '+email+' ✓','success');
+}
+
+function adminConfirmRemoveUser(userId, name) {
+  if(!confirm('Remove ' + name + ' from their location?\n\nThey will lose access immediately but can rejoin with an invite code.')) return;
+  adminRemoveUser(userId, name);
+}
+
+async function adminRemoveUser(userId, name) {
+  const { error } = await sb.from('users').update({location_id: null, role: 'pending'}).eq('id', userId);
+  if(error){ showToast('Remove failed: '+error.message, 'error'); return; }
+  showToast(name + ' removed ✓', 'success');
+  renderLocations(); renderKPIs(); renderAlertBanner(); renderCompChart();
 }
 
 async function adminSaveUser(userId){
