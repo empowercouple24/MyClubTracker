@@ -307,10 +307,19 @@ async function submitOnboard(){
     const{data:authData,error:authErr}=await sb.auth.signUp({email,password:pw});
     if(authErr)throw authErr;
     const userId=authData.user?.id;if(!userId)throw new Error('Account creation failed — please try again.');
+    // Get a valid JWT to authenticate the Edge Function call
+    // signUp may not return a session if email confirmation is required
+    // so we sign in immediately after to get the token
+    let accessToken=authData.session?.access_token;
+    if(!accessToken){
+      const{data:signInData,error:signInErr}=await sb.auth.signInWithPassword({email,password:pw});
+      if(signInErr||!signInData?.session)throw new Error('Account created but could not authenticate. Please contact support@myclubtracker.com.');
+      accessToken=signInData.session.access_token;
+    }
     const first=document.getElementById('s2-first').value.trim(),last=document.getElementById('s2-last').value.trim(),display=document.getElementById('s2-display').value.trim()||first,phone=document.getElementById('s2-phone').value.trim(),orgName=document.getElementById('s2-org').value.trim(),fullAddr=`${addr}, ${city}, ${state} ${zip}`.trim();
     // All DB writes go through Edge Function with service role — bypasses RLS
-    console.log('Invoking complete-onboarding with orgId:',_orgId,'userId:',userId);
     const{data:fnData,error:fnErr}=await sb.functions.invoke('complete-onboarding',{
+      headers:{'Authorization':`Bearer ${accessToken}`},
       body:{
         userId,email,
         firstName:first,lastName:last,displayName:display,phone,
@@ -318,8 +327,7 @@ async function submitOnboard(){
         clubName,address:fullAddr,
       }
     });
-    console.log('Edge function response:',fnData,'error:',fnErr);
-    if(fnErr||!fnData?.ok)throw new Error(fnData?.error||fnErr?.message||fnErr?.context?.error||'Setup failed — please try again. Check console for details.');
+    if(fnErr||!fnData?.ok)throw new Error(fnData?.error||fnErr?.message||'Setup failed — please try again.');
     document.getElementById('success-org').textContent=fnData.orgName||orgName;
     document.getElementById('success-loc').textContent=fnData.clubName||clubName;
     document.getElementById('ob-steps').style.display='none';
