@@ -615,5 +615,15 @@ function fmt$(n){if(n===null||isNaN(n))return'$0.00';return'$'+Number(n).toLocal
 function setText(id,val){const el=document.getElementById(id);if(el)el.textContent=val;}
 function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 </script>
+<div style="text-align:center;padding:12px;font-size:11px;color:var(--text-faint);letter-spacing:0.4px;">
+  <span id="version-tag">MyClubTracker · v1.4.1</span>
+</div>
+<script>
+fetch(window.location.href,{method:'HEAD'}).then(function(r){
+  var lm=r.headers.get('last-modified');
+  if(lm){var d=new Date(lm);var t=document.getElementById('version-tag');
+  if(t)t.textContent='MyClubTracker · v1.4.1 · Updated '+d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+' at '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZoneName:'short'});}
+});
+</script>
 </body>
 </html>

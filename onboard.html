@@ -222,6 +222,17 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
   </div>
 
 </div>
+
+<div style="text-align:center;margin-top:12px;">
+  <span id="version-tag" style="font-size:11px;color:rgba(255,255,255,0.25);letter-spacing:0.4px;">MyClubTracker · v1.4.1</span>
+</div>
+<script>
+fetch(window.location.href,{method:'HEAD'}).then(function(r){
+  var lm=r.headers.get('last-modified');
+  if(lm){var d=new Date(lm);var t=document.getElementById('version-tag');
+  if(t)t.textContent='MyClubTracker · v1.4.1 · Updated '+d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+' at '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZoneName:'short'});}
+});
+</script>
 <div class="page-footer">MyClubTracker · <a href="mailto:support@myclubtracker.com">support@myclubtracker.com</a></div>
 </div>
 
