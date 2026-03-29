@@ -196,8 +196,8 @@ if('serviceWorker' in navigator){
     .inv-table tr.inv-row-active .inv-input{border-color:var(--a4);box-shadow:0 0 0 2px rgba(224,152,32,0.15);background:#fff;}
     .inv-cat-subtotal td{background:#f1f5f9;border-top:2px solid var(--border-light);padding:7px 14px;}
     .inv-table tbody tr:hover td{background:var(--b0)}
-    .inv-row-need td{background:rgba(239,68,68,0.04);}
-    .inv-row-need:hover td{background:rgba(239,68,68,0.07);}
+    .inv-row-need td{background:rgba(59,130,246,0.05);}
+    .inv-row-need:hover td{background:rgba(59,130,246,0.09);}
     /* OOS checkbox */
     .oos-check{width:16px;height:16px;cursor:pointer;accent-color:var(--r5,#ef4444);flex-shrink:0;}
     .oos-badge{display:inline-block;font-size:10px;font-weight:700;background:#fee2e2;color:#dc2626;border-radius:4px;padding:1px 5px;margin-left:4px;vertical-align:middle;white-space:nowrap;}
@@ -1858,7 +1858,7 @@ function renderInventory(){
     const catSlug=cat.replace(/[^a-z0-9]/gi,'_');
     const catDvHave=items.reduce((s,p)=>{const q=invHave[p.sku]||0;return s+(p.vp||0)*q;},0);
     const catDvNeed=items.reduce((s,p)=>{const q=invHave[p.sku]||0;const he=invHave[p.sku]!=null;const need=Math.max(0,(p.par||0)-q);return s+(he?(p.vp||0)*need:0);},0);
-    html+=`<div class="inv-cat-header">${cat}</div><table class="inv-table"><thead><tr><th style="text-align:left">Product</th><th></th><th>VP</th><th>PAR</th><th>HAVE</th><th>NEED</th><th>DV Have</th><th>DV Need</th></tr></thead><tbody>`;
+    html+=`<div class="inv-cat-header">${cat}</div><table class="inv-table"><thead><tr><th style="text-align:left">Product</th><th style="text-align:center;font-size:10px;">OOS</th><th>VP</th><th>PAR</th><th>HAVE</th><th>NEED</th><th>DV Have</th><th>DV Need</th></tr></thead><tbody>`;
     vis.forEach(p=>{
       const haveRaw=invHave[p.sku],have=haveRaw||0,haveEntered=haveRaw!=null&&haveRaw!==undefined;
       const need=Math.max(0,p.par-have),bc=need>0?'need':(haveEntered?'ok':'zero'),bt=need>0?need:(haveEntered?'✓':'—');
@@ -1874,7 +1874,7 @@ function renderInventory(){
         <td style="text-align:center;padding:6px 4px;"><input type="checkbox" class="oos-check" title="Mark out of stock" ${isOos?'checked':''} onchange="toggleOos('${p.sku}','${escHtml(p.name)}',this)"/></td>
         <td>${p.vp!=null?fmtVP(p.vp):'—'}</td>
         <td>${p.par}</td>
-        <td><input class="inv-input" type="number" min="0" value="${haveEntered?have:''}" oninput="setHave('${p.sku}',this.value)" onfocus="this.closest('tr').classList.add('inv-row-active')" onblur="this.closest('tr').classList.remove('inv-row-active')" ondblclick="this.select()" onclick="this.focus()" ${isOos?'disabled style="opacity:0.4"':''}/></td>
+        <td><input class="inv-input" type="number" min="0" value="${haveEntered?have:''}" oninput="setHave('${p.sku}',this.value)" onfocus="this.closest('tr').classList.add('inv-row-active')" onblur="this.closest('tr').classList.remove('inv-row-active')" ondblclick="this.select()" onclick="this.focus()" onwheel="this.blur()" ${isOos?'disabled style="opacity:0.4"':''}/></td>
         <td><span class="need-badge ${bc}">${bt}</span></td>
         <td id="vptot-${p.sku}" style="font-size:16px;font-weight:600;color:var(--b6);">${dvHaveStr}</td>
         <td id="dvneed-${p.sku}" style="font-size:16px;font-weight:600;color:var(--r5);opacity:0.8;">${dvNeedStr}</td>
@@ -1975,13 +1975,20 @@ async function saveOosToSettings(){
 }
 function loadInvSnapshot(id){
   if(!id){
-    // Reload current live values
+    // Reset to blank slate then re-render
+    invHave={};
     renderInventory();return;
   }
   const snap=INV_SNAPSHOTS.find(s=>s.id===id);
   if(!snap)return;
   const entries=snap.data?.entries||[];
-  entries.forEach(e=>{if(e.sku!=null)invHave[e.sku]=e.have||0;});
+  // Clear first, then only set rows that had a value entered (have > 0 or explicitly saved as 0 with a non-null marker)
+  invHave={};
+  entries.forEach(e=>{
+    if(e.sku!=null && e.have!=null && e.have > 0){
+      invHave[e.sku]=e.have;
+    }
+  });
   renderInventory();
   showToast('Snapshot loaded — save to overwrite','');
 }
@@ -1994,9 +2001,69 @@ function renderInventoryHistory(){
   const el=document.getElementById('invhist-list');
   if(!INV_SNAPSHOTS.length){el.innerHTML='<div class="empty-state">No snapshots yet.</div>';return;}
   el.innerHTML=INV_SNAPSHOTS.map((snap,i)=>{
-    const dt=new Date(snap.saved_at).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'}),entries=snap.data?.entries||[],wq=entries.filter(e=>e.have>0);
-    const rows=wq.map(e=>`<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border-light);font-size:12px;"><span>${e.name}</span><span style="font-weight:600;color:var(--b7)">${e.have}</span></div>`).join('');
-    return`<div class="history-card" style="background:var(--a0);border-color:#f0d8a0;"><div class="hcard-top" onclick="toggleInvSnap('is-${i}')"><div class="hcard-date" style="color:var(--a6);">📸 ${dt}</div><div style="font-size:11px;color:var(--text-muted)">${wq.length} items ▾</div></div><div id="is-${i}" style="display:none;margin-top:6px;">${rows||'<div style="font-size:12px;color:var(--text-faint)">No items.</div>'}</div></div>`;
+    const dt=new Date(snap.saved_at).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
+    const entries=snap.data?.entries||[];
+    const entryMap={};entries.forEach(e=>{if(e.sku)entryMap[e.sku]=e.have;});
+    // Build category tables matching the Inventory tab layout
+    const cats={};PRODUCTS.forEach(p=>{if(!cats[p[0]])cats[p[0]]=[];cats[p[0]].push({cat:p[0],name:p[1],sku:p[2],vp:p[3],par:p[4]});});
+    // Compute grand totals for this snapshot
+    let snapDvHave=0,snapDvNeed=0,snapItems=0;
+    PRODUCTS.forEach(p=>{
+      const have=entryMap[p[2]]||0;
+      const haveEntered=entryMap[p[2]]!=null&&entryMap[p[2]]>0;
+      if(haveEntered){snapItems++;snapDvHave+=(p[3]||0)*have;const need=Math.max(0,(p[4]||0)-have);snapDvNeed+=(p[3]||0)*need;}
+    });
+    let tablesHtml='';
+    Object.entries(cats).forEach(([cat,items])=>{
+      const catSlug='sh'+i+'_'+cat.replace(/[^a-z0-9]/gi,'_');
+      let catDvHave=0,catDvNeed=0,hasAny=false;
+      const rows=items.map(p=>{
+        const have=entryMap[p.sku]||0;
+        const haveEntered=entryMap[p.sku]!=null&&entryMap[p.sku]>0;
+        if(!haveEntered)return null;
+        hasAny=true;
+        const need=Math.max(0,(p.par||0)-have);
+        const dvHave=(p.vp||0)*have,dvNeed=(p.vp||0)*need;
+        catDvHave+=dvHave;catDvNeed+=dvNeed;
+        const bc=need>0?'need':'ok',bt=need>0?need:'✓';
+        return`<tr>
+          <td><div class="inv-name-cell"><span class="inv-name">${p.name}</span>${p.sku?`<span class="inv-sku">${p.sku}</span>`:''}</div></td>
+          <td>${p.vp!=null?fmtVP(p.vp):'—'}</td>
+          <td>${p.par}</td>
+          <td style="text-align:center;font-weight:700;">${have}</td>
+          <td><span class="need-badge ${bc}">${bt}</span></td>
+          <td style="font-weight:600;color:var(--b6);">${fmtVP(dvHave)}</td>
+          <td style="font-weight:600;color:var(--r5);opacity:0.85;">${dvNeed>0?fmtVP(dvNeed):'—'}</td>
+        </tr>`;
+      }).filter(Boolean);
+      if(!hasAny)return;
+      tablesHtml+=`
+        <div class="inv-cat-header" style="font-size:15px;margin-top:8px;">${cat}</div>
+        <table class="inv-table">
+          <thead><tr>
+            <th style="text-align:left">Product</th><th>VP</th><th>PAR</th><th>HAVE</th><th>NEED</th><th>DV Have</th><th>DV Need</th>
+          </tr></thead>
+          <tbody>
+            ${rows.join('')}
+            <tr class="inv-cat-subtotal">
+              <td style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">${cat} Total</td>
+              <td></td><td></td><td></td><td></td>
+              <td style="font-size:13px;font-weight:700;color:var(--b6);">${catDvHave>0?fmtVP(catDvHave):'—'}</td>
+              <td style="font-size:13px;font-weight:700;color:var(--r5);opacity:0.85;">${catDvNeed>0?fmtVP(catDvNeed):'—'}</td>
+            </tr>
+          </tbody>
+        </table>`;
+    });
+    return`<div class="history-card" style="background:var(--a0);border-color:#f0d8a0;margin-bottom:12px;">
+      <div class="hcard-top" onclick="toggleInvSnap('is-${i}')">
+        <div class="hcard-date" style="color:var(--a6);">📸 ${dt}</div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <span style="font-size:11px;color:var(--text-muted);">${snapItems} items · DV Have ${fmtVP(snapDvHave)} · DV Need ${fmtVP(snapDvNeed)}</span>
+          <span style="font-size:11px;color:var(--text-faint);">▾</span>
+        </div>
+      </div>
+      <div id="is-${i}" style="display:none;margin-top:8px;">${tablesHtml||'<div style="font-size:12px;color:var(--text-faint);padding:4px 0;">No items recorded.</div>'}</div>
+    </div>`;
   }).join('');
 }
 function toggleInvSnap(id){const el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
