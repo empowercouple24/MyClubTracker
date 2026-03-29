@@ -110,6 +110,9 @@ if('serviceWorker' in navigator){
     .btn-decline{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;background:none;border:1px solid var(--border);color:var(--text-muted);border-radius:6px;padding:6px 12px;cursor:pointer;white-space:nowrap;}
     .btn-decline:hover{border-color:var(--r5);color:var(--r5);}
     .btn-decline.confirm{background:var(--r5);color:white;border-color:var(--r5);}
+    .btn-delete-org{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;background:none;border:1px solid var(--border);color:var(--text-faint);border-radius:6px;padding:5px 10px;cursor:pointer;transition:all 0.15s;}
+    .btn-delete-org:hover{border-color:var(--r5);color:var(--r5);}
+    .btn-delete-org.confirm{background:var(--r5);color:white;border-color:var(--r5);}
     .page{max-width:1080px;margin:0 auto;padding:24px max(20px,env(safe-area-inset-left,20px)) calc(64px + env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-right,20px))}
     .section-label{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.9px;color:var(--text-faint);margin-bottom:12px;margin-top:28px}
     .section-label:first-child{margin-top:0}
@@ -2050,6 +2053,7 @@ function renderOrgs() {
             ${resendBtn}
             <button class="btn-sm" onclick="openEditRate('${org.id}','${escHtml(org.name||'')}',${Number(org.monthly_rate||0)},event)">$ Edit Rate</button>
             ${suspendBtn}
+            <button class="btn-delete-org" id="delbtn-${org.id}" onclick="deleteOrg('${org.id}','${escHtml(org.name||'this org')}',this,event)">🗑 Delete</button>
           </div>
         </div>
       </div>
@@ -2064,6 +2068,28 @@ function toggleOrgCard(id) {
 }
 
 // ── BILLING TOGGLE ──
+async function deleteOrg(orgId, orgName, btn, e) {
+  e && e.stopPropagation();
+  if (!btn.classList.contains('confirm')) {
+    btn.textContent = 'Confirm delete';
+    btn.classList.add('confirm');
+    setTimeout(() => { if(btn.classList.contains('confirm')){ btn.textContent = '🗑 Delete'; btn.classList.remove('confirm'); }}, 3500);
+    return;
+  }
+  btn.disabled = true; btn.textContent = 'Deleting…';
+  const { error } = await sb.from('organizations').update({
+    status: 'deleted',
+    billing_active: false,
+    deleted_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }).eq('id', orgId);
+  if (error) { btn.disabled = false; btn.textContent = '🗑 Delete'; btn.classList.remove('confirm'); showSaToast('Failed to delete org.'); return; }
+  allOrgs = allOrgs.filter(o => o.id !== orgId);
+  renderOrgSummary();
+  renderOrgs();
+  showSaToast(`"${orgName}" deleted. Data retained.`);
+}
+
 async function toggleBilling(orgId, active) {
   const { error } = await sb.from('organizations')
     .update({ billing_active: active, updated_at: new Date().toISOString() })
