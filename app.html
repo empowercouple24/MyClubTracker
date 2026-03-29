@@ -897,6 +897,8 @@ async function loadTeamMembers(){
     .select('id,display_name,first_name,last_name,email,role')
     .eq('location_id',LOCATION_ID)
     .neq('id',CURRENT_SESSION.user.id);
+  const roleOrder={owner:0,employee:1};
+  if(members)members.sort((a,b)=>(roleOrder[a.role]??9)-(roleOrder[b.role]??9));
   const list=document.getElementById('prof-team-list');
   if(!members||!members.length){
     list.innerHTML='<div style="font-size:13px;color:var(--text-faint);">No other team members yet.</div>';
