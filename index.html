@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nemecek Org Clubs</title>
+<title>MyClubTracker</title>
 <script>
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.getRegistrations().then(function(regs) {
@@ -128,7 +128,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 </svg>
     </div>
     <div>
-      <div class="logo-name">Nemecek Org Clubs</div>
+      <div class="logo-name">MyClubTracker</div>
       <div class="logo-sub">Nutrition Club Management</div>
     </div>
   </div>
@@ -217,7 +217,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
   <!-- REQUEST TO JOIN -->
   <div class="panel" id="panel-request">
     <div id="req-s1">
-      <div class="msg info show" style="margin-bottom:14px;">🔐 Enter the <strong>organization key</strong> shared by your Herbalife upline or Nemecek Org admin.</div>
+      <div class="msg info show" style="margin-bottom:14px;">🔐 Enter the <strong>organization key</strong> shared by your Herbalife upline or MyClubTracker admin.</div>
       <div class="field"><label>Organization Key</label><input type="text" id="req-org-key" placeholder="Enter org key" autocomplete="off" data-lpignore="true" data-form-type="other" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')doVerifyOrgKey()"></div>
       <div class="msg" id="req-msg-key"></div>
       <button class="btn-p" id="req-key-btn" onclick="doVerifyOrgKey()">Unlock Request Form →</button>
@@ -259,7 +259,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 
 </div>
 
-<div class="version" id="version-tag">Nemecek Org Clubs · v1.4.1</div>
+<div class="version" id="version-tag">MyClubTracker · v1.4.1</div>
 <script>
 // Auto-set timestamp from when this file was last served by the server
 fetch(window.location.href, {method:'HEAD'}).then(function(r){
@@ -267,7 +267,7 @@ fetch(window.location.href, {method:'HEAD'}).then(function(r){
   if(lastMod){
     var d = new Date(lastMod);
     var tag = document.getElementById('version-tag');
-    if(tag) tag.textContent = 'Nemecek Org Clubs · v1.4.1 · Updated ' +
+    if(tag) tag.textContent = 'MyClubTracker · v1.4.1 · Updated ' +
       d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) + ' at ' +
       d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZoneName:'short'});
   }

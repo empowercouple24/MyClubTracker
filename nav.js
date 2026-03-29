@@ -1,6 +1,6 @@
 /* ============================================================
    nav.js — Shared navigation behavior
-   Nemecek Org Clubs
+   MyClubTracker
    Used by: admin.html, locations.html, settings.html
 
    Provides:
