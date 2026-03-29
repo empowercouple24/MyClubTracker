@@ -1405,32 +1405,27 @@ function toggleCard(id){document.getElementById('lc-'+id).classList.toggle('expa
 
 function renderAdminUserSection(locId){
   const users=allLocationUsers.filter(u=>u.location_id===locId);
+  const roleOrder={owner:0,employee:1};
+  users.sort((a,b)=>(roleOrder[a.role]??9)-(roleOrder[b.role]??9));
   if(!users.length)return`<div class="admin-team-section"><div class="admin-team-title">Team</div><div class="admin-no-users">No registered users yet.</div></div>`;
   const rows=users.map(u=>{
     const name=[u.first_name,u.last_name].filter(Boolean).join(' ')||u.display_name||u.email;
-    const roleColor=u.role==='owner'?'color:var(--g5)':'color:var(--text-muted)';
-    return`<div class="admin-user-row" id="adm-user-${u.id}">
-      <div class="admin-user-top">
-        <div>
-          <div class="admin-user-name">${escHtml(name)}</div>
-          <div class="admin-user-email">${escHtml(u.email)}</div>
+    const roleLabel=u.role==='owner'?'Owner':'Operator';
+    const roleColor=u.role==='owner'?'var(--g5)':'var(--text-muted)';
+    const avatarInner=u.avatar_url
+      ?`<img src="${u.avatar_url}" style="width:34px;height:34px;object-fit:cover;border-radius:50%;display:block;"/>`
+      :name[0].toUpperCase();
+    const avatarBg=u.avatar_url?'transparent':u.role==='owner'?'var(--g0)':'var(--b0)';
+    return`<div class="admin-user-row">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:34px;height:34px;border-radius:50%;background:${avatarBg};color:${roleColor};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;overflow:hidden;">${avatarInner}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:700;color:var(--text);">${escHtml(name)} <span style="font-size:12px;font-weight:700;color:var(--b7);">${roleLabel}</span></div>
+          ${u.display_name?`<div style="font-size:12px;color:var(--text-faint);">${escHtml(u.display_name)}</div>`:''}
+          <div style="font-size:12px;color:var(--text-faint);">${escHtml(u.email)}</div>
         </div>
-        <div class="admin-user-actions">
-          <select class="admin-role-select" style="${roleColor}" onchange="adminChangeRole('${u.id}',this.value,this)">
-            <option value="owner"    ${u.role==='owner'   ?'selected':''}>Owner</option>
-            <option value="employee" ${u.role==='employee'?'selected':''}>Operator</option>
-          </select>
-          <button class="admin-reset-btn" onclick="adminResetPassword('${escHtml(u.email)}','${escHtml(name)}')">🔑 Reset PW</button>
-          <button onclick="adminConfirmRemoveUser('${u.id}','${escHtml(name)}')" title="Remove from location" style="background:none;border:1px solid var(--border-light);border-radius:6px;padding:6px 8px;cursor:pointer;color:var(--text-faint);font-size:14px;line-height:1;" onmouseover="this.style.background='var(--r0)';this.style.color='var(--r5)'" onmouseout="this.style.background='none';this.style.color='var(--text-faint)'">🗑</button>
-        </div>
+        <button onclick="window.location.href='locations.html'" style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;background:linear-gradient(135deg,var(--b7),var(--b5));color:white;border:none;border-radius:8px;padding:7px 14px;cursor:pointer;white-space:nowrap;flex-shrink:0;">Manage Team</button>
       </div>
-      <div class="admin-user-fields">
-        <div class="admin-user-field"><label>First Name</label><input type="text" id="adm-fn-${u.id}" value="${escHtml(u.first_name||'')}" placeholder="First name"/></div>
-        <div class="admin-user-field"><label>Last Name</label><input type="text" id="adm-ln-${u.id}" value="${escHtml(u.last_name||'')}" placeholder="Last name"/></div>
-        <div class="admin-user-field"><label>Display Name</label><input type="text" id="adm-dn-${u.id}" value="${escHtml(u.display_name||'')}" placeholder="Display name"/></div>
-        <div class="admin-user-field"><label>Phone</label><input type="tel" id="adm-ph-${u.id}" value="${escHtml(u.phone||'')}" placeholder="(555) 000-0000"/></div>
-      </div>
-      <button class="admin-user-save" onclick="adminSaveUser('${u.id}')">Save Changes</button>
     </div>`;
   }).join('');
   return`<div class="admin-team-section"><div class="admin-team-title">Team (${users.length})</div>${rows}</div>`;
