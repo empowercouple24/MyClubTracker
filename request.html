@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Request Access — MyClubTracker</title>
+<script>
+if(location.protocol==='http:'&&location.hostname!=='localhost'){
+  location.replace('https://'+location.host+location.pathname+location.search+location.hash);
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Outfit:wght@700;800&display=block" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bdk:#1e2d3d;--bmd:#3a5470;--blt:#5b80a0;--bpl:#f0f4f8;--bsf:#dde7f0;
+  --grn:#2e7a35;--gpale:#eaf6eb;
+  --red:#c03030;--rpale:#fff0f0;
+  --bg:#0f1923;--white:#fff;
+  --gt:#5b7087;--gf:#8fa3b3;--bdr:#e2e9f0;
+  --r:12px;--rs:8px;
+}
+html,body{min-height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--bdk);}
+.page-bg{position:fixed;inset:0;background:radial-gradient(ellipse at 25% 20%,rgba(58,84,112,0.4) 0%,transparent 55%),radial-gradient(ellipse at 80% 85%,rgba(46,122,53,0.15) 0%,transparent 50%),linear-gradient(155deg,#0d1821 0%,#1a2d3e 55%,#0f1923 100%);z-index:0;}
+.page-wrap{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:40px 16px 60px;}
+
+/* HEADER */
+.site-header{width:100%;max-width:560px;display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;}
+.logo-row{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:36px;height:36px;background:#1e2d3d;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.logo-name{font-family:'Outfit',sans-serif;font-size:15px;font-weight:800;color:#fff;line-height:1.2;}
+.logo-sub{font-size:10px;color:rgba(255,255,255,0.45);margin-top:1px;}
+.signin-link{font-size:13px;color:rgba(255,255,255,0.5);text-decoration:none;transition:color 0.15s;}
+.signin-link:hover{color:rgba(255,255,255,0.85);}
+
+/* HERO */
+.hero{width:100%;max-width:560px;text-align:center;margin-bottom:28px;}
+.hero-title{font-family:'Outfit',sans-serif;font-size:28px;font-weight:800;color:#fff;margin-bottom:8px;line-height:1.2;}
+.hero-sub{font-size:14px;color:rgba(255,255,255,0.55);line-height:1.6;max-width:420px;margin:0 auto;}
+
+/* CARD */
+.card{background:#fff;border-radius:var(--r);width:100%;max-width:560px;padding:32px;box-shadow:0 12px 40px rgba(0,0,0,0.25);}
+
+/* FORM */
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;}
+@media(max-width:480px){.field-row{grid-template-columns:1fr;}}
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--gf);margin-bottom:5px;}
+.field label span{font-weight:400;text-transform:none;letter-spacing:0;}
+.field input,.field textarea{width:100%;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--bdk);background:var(--bpl);border:1.5px solid var(--bdr);border-radius:var(--rs);padding:10px 12px;outline:none;transition:border-color 0.15s;resize:vertical;}
+.field input:focus,.field textarea:focus{border-color:var(--bmd);background:#fff;}
+.field input::placeholder,.field textarea::placeholder{color:var(--gf);}
+.field textarea{min-height:90px;line-height:1.5;}
+
+/* ALERT */
+.alert{font-size:13px;padding:10px 14px;border-radius:var(--rs);margin-bottom:16px;display:none;}
+.alert.error{background:var(--rpale);color:var(--red);border:1px solid #fca5a5;}
+.alert.show{display:block;}
+
+/* BUTTON */
+.btn-submit{width:100%;padding:13px;background:linear-gradient(135deg,var(--bdk),var(--bmd));color:#fff;border:none;border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:opacity 0.15s;}
+.btn-submit:hover{opacity:0.88;}
+.btn-submit:disabled{opacity:0.5;cursor:not-allowed;}
+
+/* SUCCESS */
+.success-state{text-align:center;padding:16px 0 8px;}
+.success-icon{font-size:52px;margin-bottom:16px;}
+.success-title{font-family:'Outfit',sans-serif;font-size:24px;font-weight:800;color:var(--grn);margin-bottom:8px;}
+.success-msg{font-size:14px;color:var(--gt);line-height:1.6;margin-bottom:24px;}
+.success-back{display:inline-block;font-size:13px;color:var(--bmd);text-decoration:none;font-weight:600;}
+.success-back:hover{text-decoration:underline;}
+
+/* DIVIDER */
+.divider{border:none;border-top:1px solid var(--bdr);margin:20px 0;}
+
+/* FOOTER */
+.page-footer{position:relative;z-index:1;text-align:center;margin-top:20px;font-size:11px;color:rgba(255,255,255,0.25);}
+.page-footer a{color:rgba(255,255,255,0.4);text-decoration:none;}
+
+/* WHAT TO EXPECT */
+.expect-section{width:100%;max-width:560px;margin-top:20px;}
+.expect-card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:var(--r);padding:20px 24px;}
+.expect-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:rgba(255,255,255,0.35);margin-bottom:14px;}
+.expect-row{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;}
+.expect-row:last-child{margin-bottom:0;}
+.expect-num{width:22px;height:22px;border-radius:50%;background:rgba(58,84,112,0.5);color:rgba(255,255,255,0.6);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.expect-text{font-size:13px;color:rgba(255,255,255,0.5);line-height:1.5;}
+.expect-text strong{color:rgba(255,255,255,0.7);font-weight:600;}
+</style>
+</head>
+<body>
+<div class="page-bg"></div>
+<div class="page-wrap">
+
+  <!-- HEADER -->
+  <div class="site-header">
+    <div class="logo-row">
+      <div class="logo-icon">
+        <svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg" width="24" height="24">
+          <path d="M14 38 L28 16 L42 38" stroke="white" stroke-width="4" fill="none" stroke-linejoin="round"/>
+          <circle cx="28" cy="38" r="4" fill="#5b9bd5"/>
+        </svg>
+      </div>
+      <div>
+        <div class="logo-name">MyClubTracker</div>
+        <div class="logo-sub">Nutrition Club Management</div>
+      </div>
+    </div>
+    <a href="index.html" class="signin-link">Sign in →</a>
+  </div>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-title">Request access</div>
+    <div class="hero-sub">Tell us about your nutrition club organization and we'll reach out to get you set up.</div>
+  </div>
+
+  <!-- CARD -->
+  <div class="card">
+
+    <!-- FORM STATE -->
+    <div id="form-state">
+      <div class="alert error" id="form-alert"></div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>First name</label>
+          <input type="text" id="r-first" placeholder="Sarah" autocomplete="given-name"/>
+        </div>
+        <div class="field">
+          <label>Last name</label>
+          <input type="text" id="r-last" placeholder="Johnson" autocomplete="family-name"/>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Email address</label>
+        <input type="email" id="r-email" placeholder="sarah@email.com" autocomplete="email"/>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Phone <span>— optional</span></label>
+          <input type="tel" id="r-phone" placeholder="(555) 000-0000" autocomplete="tel"/>
+        </div>
+        <div class="field">
+          <label>Organization name</label>
+          <input type="text" id="r-org" placeholder="Johnson Nutrition Team"/>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Brief note <span>— tell us about your clubs</span></label>
+        <textarea id="r-note" placeholder="e.g. We run 2 clubs in NE Ohio and are looking for a better way to track daily sales and inventory…"></textarea>
+      </div>
+
+      <button class="btn-submit" id="r-btn" onclick="submitRequest()">Send request →</button>
+
+      <hr class="divider"/>
+      <div style="text-align:center;font-size:13px;color:var(--gt);">
+        Already have access? <a href="index.html" style="color:var(--bmd);font-weight:600;text-decoration:none;">Sign in here</a>
+      </div>
+    </div>
+
+    <!-- SUCCESS STATE -->
+    <div id="success-state" style="display:none;">
+      <div class="success-state">
+        <div class="success-icon">✅</div>
+        <div class="success-title">Request sent!</div>
+        <div class="success-msg">Thanks <span id="success-name"></span> — we've received your request and will be in touch at <span id="success-email" style="font-weight:600;color:var(--bdk);"></span> within 1–2 business days.</div>
+        <a href="index.html" class="success-back">← Back to sign in</a>
+      </div>
+    </div>
+
+  </div><!-- /card -->
+
+  <!-- WHAT TO EXPECT -->
+  <div class="expect-section">
+    <div class="expect-card">
+      <div class="expect-title">What happens next</div>
+      <div class="expect-row">
+        <div class="expect-num">1</div>
+        <div class="expect-text"><strong>We review your request</strong> — usually within 1–2 business days.</div>
+      </div>
+      <div class="expect-row">
+        <div class="expect-num">2</div>
+        <div class="expect-text"><strong>You'll get an invite email</strong> with a link to set up your organization.</div>
+      </div>
+      <div class="expect-row">
+        <div class="expect-num">3</div>
+        <div class="expect-text"><strong>Set up takes about 5 minutes</strong> — org name, first location, and your login.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    MyClubTracker · <a href="mailto:support@myclubtracker.com">support@myclubtracker.com</a>
+  </div>
+
+</div><!-- /page-wrap -->
+
+<script>
+const SURL='https://ndaqlamzlaucigvnhgfu.supabase.co';
+const SKEY='sb_publishable_wO6XM4pC2CcaISQ8OlbkfQ_liqKJbi_';
+const sb=supabase.createClient(SURL,SKEY);
+
+async function submitRequest(){
+  const first=document.getElementById('r-first').value.trim();
+  const last=document.getElementById('r-last').value.trim();
+  const email=document.getElementById('r-email').value.trim().toLowerCase();
+  const phone=document.getElementById('r-phone').value.trim();
+  const org=document.getElementById('r-org').value.trim();
+  const note=document.getElementById('r-note').value.trim();
+
+  const alertEl=document.getElementById('form-alert');
+  alertEl.classList.remove('show');
+
+  if(!first||!last){showAlert('Please enter your first and last name.');return;}
+  if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showAlert('Please enter a valid email address.');return;}
+  if(!org){showAlert('Please enter your organization name.');return;}
+
+  const btn=document.getElementById('r-btn');
+  btn.disabled=true;btn.textContent='Sending…';
+
+  // Insert request record
+  const{error}=await sb.from('org_requests').insert({
+    name:`${first} ${last}`.trim(),
+    email,phone,
+    org_name:org,
+    note,
+    status:'pending',
+  });
+
+  if(error){
+    btn.disabled=false;btn.textContent='Send request →';
+    showAlert('Something went wrong. Please try again or email support@myclubtracker.com.');
+    return;
+  }
+
+  // Fire notification email to admin
+  try{
+    await sb.functions.invoke('send-org-invite',{
+      body:{
+        role:'request_notify',
+        name:`${first} ${last}`.trim(),
+        email,phone,orgName:org,note,
+      }
+    });
+  }catch(e){
+    // Notification failing shouldn't block the user
+    console.warn('Notification email failed:',e);
+  }
+
+  // Show success
+  document.getElementById('success-name').textContent=first;
+  document.getElementById('success-email').textContent=email;
+  document.getElementById('form-state').style.display='none';
+  document.getElementById('success-state').style.display='block';
+}
+
+function showAlert(msg){
+  const el=document.getElementById('form-alert');
+  el.textContent=msg;el.classList.add('show');
+}
+
+// Phone formatting
+document.addEventListener('DOMContentLoaded',()=>{
+  const ph=document.getElementById('r-phone');
+  if(ph)ph.addEventListener('input',()=>{
+    let v=ph.value.replace(/\D/g,'');
+    if(v.length>=6)v=`(${v.slice(0,3)}) ${v.slice(3,6)}-${v.slice(6,10)}`;
+    else if(v.length>=3)v=`(${v.slice(0,3)}) ${v.slice(3)}`;
+    ph.value=v;
+  });
+});
+</script>
+</body>
+</html>

@@ -98,6 +98,18 @@ if('serviceWorker' in navigator){
     .modal-alert-sm.success{background:var(--g0);color:var(--g5);border:1px solid rgba(46,122,53,0.2);}
     .modal-alert-sm.show{display:block;}
     .modal-footer-sm{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;}
+    .req-card{background:var(--surface);border:1px solid var(--border-light);border-left:3px solid var(--b5);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;}
+    .req-card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+    .req-card-name{font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;color:var(--text);}
+    .req-card-org{font-size:13px;color:var(--b6);font-weight:600;margin-top:1px;}
+    .req-card-meta{font-size:12px;color:var(--text-faint);margin-top:4px;}
+    .req-card-note{font-size:12px;color:var(--text-muted);font-style:italic;margin-top:8px;padding-top:8px;border-top:1px solid var(--border-light);}
+    .req-card-actions{display:flex;gap:8px;flex-shrink:0;margin-top:4px;}
+    .btn-approve{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;background:linear-gradient(135deg,var(--g5),var(--g4,#3a8a42));color:white;border:none;border-radius:6px;padding:7px 14px;cursor:pointer;white-space:nowrap;}
+    .btn-approve:hover{opacity:0.88;}
+    .btn-decline{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;background:none;border:1px solid var(--border);color:var(--text-muted);border-radius:6px;padding:6px 12px;cursor:pointer;white-space:nowrap;}
+    .btn-decline:hover{border-color:var(--r5);color:var(--r5);}
+    .btn-decline.confirm{background:var(--r5);color:white;border-color:var(--r5);}
     .page{max-width:1080px;margin:0 auto;padding:24px max(20px,env(safe-area-inset-left,20px)) calc(64px + env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-right,20px))}
     .section-label{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.9px;color:var(--text-faint);margin-bottom:12px;margin-top:28px}
     .section-label:first-child{margin-top:0}
@@ -317,6 +329,17 @@ if('serviceWorker' in navigator){
   <div id="sa-orgs-panel" style="display:none;">
 
     <!-- Summary strip -->
+    <!-- ORG REQUESTS SECTION -->
+    <div id="org-requests-section" style="display:none;margin-bottom:24px;">
+      <div class="section-header" style="margin-top:0;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="section-label" style="margin:0;">Access Requests</div>
+          <span id="req-count-badge" style="background:var(--r5);color:white;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;"></span>
+        </div>
+      </div>
+      <div id="org-requests-list"></div>
+    </div>
+
     <div class="orgs-summary" id="orgs-summary">
       <div class="orgs-summary-cell"><div class="orgs-summary-val" id="os-total">—</div><div class="orgs-summary-label">Total Orgs</div></div>
       <div class="orgs-summary-cell"><div class="orgs-summary-val" id="os-active" style="color:var(--g5);">—</div><div class="orgs-summary-label">Active</div></div>
@@ -1876,6 +1899,7 @@ function switchSaTab(tab) {
     tabLocs.classList.remove('active');
     tabOrgs.classList.add('active');
     if (!allOrgs.length) loadOrgs();
+    loadOrgRequests();
   }
 }
 
@@ -2232,6 +2256,130 @@ function closeOrgModal(id) { document.getElementById(id).classList.remove('show'
 function closeOrgModalOnBg(e, id) { if (e.target.id === id) closeOrgModal(id); }
 function showOrgModalAlert(id, msg) {
   const el = document.getElementById(id); el.textContent = msg; el.classList.add('show');
+}
+
+// ── ORG REQUESTS ──
+let allOrgRequests = [];
+
+async function loadOrgRequests() {
+  const { data } = await sb.from('org_requests')
+    .select('*')
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false });
+  allOrgRequests = data || [];
+  renderOrgRequests();
+
+  // Update tab badge
+  const badge = document.getElementById('sa-orgs-badge');
+  const total = allOrgRequests.length + allOrgs.filter(o => o.status === 'invited').length;
+  if (badge) { badge.textContent = total; badge.style.display = total ? 'inline-flex' : 'none'; }
+}
+
+function renderOrgRequests() {
+  const section = document.getElementById('org-requests-section');
+  const list    = document.getElementById('org-requests-list');
+  const badge   = document.getElementById('req-count-badge');
+  if (!allOrgRequests.length) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  badge.textContent = `${allOrgRequests.length} pending`;
+
+  list.innerHTML = allOrgRequests.map(r => {
+    const submitted = new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return `<div class="req-card" id="reqcard-${r.id}">
+      <div class="req-card-header">
+        <div>
+          <div class="req-card-name">${escHtml(r.name)}</div>
+          <div class="req-card-org">🏪 ${escHtml(r.org_name)}</div>
+          <div class="req-card-meta">
+            ✉️ ${escHtml(r.email)}
+            ${r.phone ? ` &nbsp;·&nbsp; 📞 ${escHtml(r.phone)}` : ''}
+            &nbsp;·&nbsp; Submitted ${submitted}
+          </div>
+          ${r.note ? `<div class="req-card-note">"${escHtml(r.note)}"</div>` : ''}
+        </div>
+        <div class="req-card-actions">
+          <button class="btn-approve" onclick="approveOrgRequest('${r.id}','${escHtml(r.email)}','${escHtml(r.name)}','${escHtml(r.org_name)}',this)">✓ Approve</button>
+          <button class="btn-decline" id="decbtn-${r.id}" onclick="declineOrgRequest('${r.id}','${escHtml(r.email)}','${escHtml(r.name)}',this)">Decline</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function approveOrgRequest(reqId, email, name, orgName, btn) {
+  btn.disabled = true; btn.textContent = 'Approving…';
+
+  // Generate token + expiry
+  const token     = crypto.randomUUID();
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+  // Create org record
+  const { data: org, error: orgErr } = await sb.from('organizations').insert({
+    name: orgName,
+    leader_email: email,
+    leader_name: name,
+    status: 'invited',
+    billing_active: true,
+    billing_plan: 'free',
+    monthly_rate: 0,
+    invite_token: token,
+    invite_expires_at: expiresAt,
+    invited_at: new Date().toISOString(),
+  }).select().single();
+
+  if (orgErr) { btn.disabled = false; btn.textContent = '✓ Approve'; showSaToast('Failed to create org.'); return; }
+
+  // Mark request approved
+  await sb.from('org_requests').update({
+    status: 'approved',
+    reviewed_at: new Date().toISOString(),
+    reviewed_by: (await sb.auth.getUser()).data.user?.id,
+  }).eq('id', reqId);
+
+  // Send invite email
+  const inviteLink = `${window.location.origin}/onboard.html?token=${token}`;
+  try {
+    await sb.functions.invoke('send-org-invite', {
+      body: { to: email, orgName, inviteLink, expiresAt }
+    });
+  } catch(e) { console.warn('Invite email failed:', e); }
+
+  // Remove card from list
+  allOrgRequests = allOrgRequests.filter(r => r.id !== reqId);
+  allOrgs.unshift(org);
+  renderOrgRequests();
+  renderOrgSummary();
+  renderOrgs();
+  showSaToast(`Approved — invite sent to ${email}`);
+}
+
+async function declineOrgRequest(reqId, email, name, btn) {
+  if (!btn.classList.contains('confirm')) {
+    btn.textContent = 'Confirm decline';
+    btn.classList.add('confirm');
+    setTimeout(() => { btn.textContent = 'Decline'; btn.classList.remove('confirm'); }, 3000);
+    return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Declining…';
+
+  // Mark declined
+  await sb.from('org_requests').update({
+    status: 'declined',
+    reviewed_at: new Date().toISOString(),
+    reviewed_by: (await sb.auth.getUser()).data.user?.id,
+  }).eq('id', reqId);
+
+  // Send polite decline email
+  try {
+    await sb.functions.invoke('send-org-invite', {
+      body: { role: 'decline', to: email, name }
+    });
+  } catch(e) { console.warn('Decline email failed:', e); }
+
+  allOrgRequests = allOrgRequests.filter(r => r.id !== reqId);
+  renderOrgRequests();
+  showSaToast(`Request from ${name} declined.`);
 }
 
 // ── TOAST ──
