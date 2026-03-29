@@ -1954,7 +1954,7 @@ function renderOrgs() {
               <div class="org-loc-name">${escHtml(l.name)}</div>
               <div class="org-loc-addr">${escHtml(l.address || '')}</div>
             </div>
-            <a href="app.html?location_id=${l.id}&admin=1" class="btn-sm" style="font-size:12px;">Open →</a>
+            <a href="app.html?location_id=${l.id}&admin=1&from=org" class="btn-sm" style="font-size:12px;">Open →</a>
           </div>`).join('')
       : '<div style="font-size:12px;color:var(--text-faint);">No locations yet.</div>';
 
@@ -2119,12 +2119,17 @@ async function submitInviteOrg() {
 
   // Fire edge function for email
   try {
-    await sb.functions.invoke('send-org-invite', {
+    const { data: fnData, error: fnErr } = await sb.functions.invoke('send-org-invite', {
       body: { to: email, orgName: orgName || 'your organization', inviteLink, expiresAt }
     });
-    showOrgModalAlert('io-success', `Invite sent to ${email}. Link also shown below if needed.`);
+    const sent = fnData?.sent === true;
+    if (fnErr || !sent) {
+      showOrgModalAlert('io-success', `Org created but email failed — copy the link below to send manually.`);
+    } else {
+      showOrgModalAlert('io-success', `Invite sent to ${email}. Link also shown below if needed.`);
+    }
   } catch(e) {
-    showOrgModalAlert('io-success', `Org created. Email sending pending — copy the link below to send manually.`);
+    showOrgModalAlert('io-success', `Org created. Copy the link below to send manually.`);
   }
 
   btn.textContent = 'Sent ✓';
@@ -2162,14 +2167,19 @@ async function resendInvite(orgId, e) {
 
   // Try email
   try {
-    await sb.functions.invoke('send-org-invite', {
+    const { data: fnData, error: fnErr } = await sb.functions.invoke('send-org-invite', {
       body: { to: org.leader_email, orgName: org.name, inviteLink, expiresAt }
     });
-    showSaToast('Invite resent via email.');
+    const sent = fnData?.sent === true;
+    if (fnErr || !sent) {
+      navigator.clipboard?.writeText(inviteLink);
+      showSaToast('Email failed — link copied to clipboard.', 3500);
+    } else {
+      showSaToast('Invite resent via email.');
+    }
   } catch(e) {
-    // Fallback: copy to clipboard
     navigator.clipboard?.writeText(inviteLink);
-    showSaToast('Email pending — link copied to clipboard.', 3500);
+    showSaToast('Email failed — link copied to clipboard.', 3500);
   }
   renderOrgs();
 }
