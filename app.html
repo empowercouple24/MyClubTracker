@@ -448,8 +448,8 @@ if('serviceWorker' in navigator){
       <span class="date-display-icon">📅</span>
       <input type="date" id="entry-date" onchange="updateDateDisplay();loadDay();" style="outline:none;"/>
     </div>
-    <button class="btn btn-ghost" onclick="loadDay()">Load</button>
-    <button class="btn btn-primary" onclick="saveDay()" style="min-width:90px;flex-shrink:0;">Save</button>
+    <button class="btn btn-ghost" id="btn-go-today" onclick="goToToday()" style="display:none;white-space:nowrap;">↩ Today</button>
+    <button class="btn btn-primary" id="btn-save-day" onclick="saveDay()" style="min-width:90px;flex-shrink:0;display:none;">Save</button>
   </div>
 
   <!-- DAILY SUMMARY -->
@@ -531,8 +531,8 @@ if('serviceWorker' in navigator){
     <div class="card">
       <div class="collapsible-toggle" onclick="toggleCollapse(this)" data-target="ops-body">Operators <span class="arrow">▼</span></div>
       <div class="collapsible-body" id="ops-body">
-        <div class="field-row"><div class="field-label">Operator 1</div><select class="field-input" id="f-op1" onchange="recalc()"></select><span id="op1-earnings" style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--b7);white-space:nowrap;padding-left:10px;display:none;"></span></div>
-        <div class="field-row"><div class="field-label">Operator 2</div><select class="field-input" id="f-op2" onchange="recalc()"></select><span id="op2-earnings" style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--b7);white-space:nowrap;padding-left:10px;display:none;"></span></div>
+        <div class="field-row"><div class="field-label">Operator 1</div><select class="field-input" id="f-op1" onchange="markDirty();recalc()"></select><span id="op1-earnings" style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--b7);white-space:nowrap;padding-left:10px;display:none;"></span></div>
+        <div class="field-row"><div class="field-label">Operator 2</div><select class="field-input" id="f-op2" onchange="markDirty();recalc()"></select><span id="op2-earnings" style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--b7);white-space:nowrap;padding-left:10px;display:none;"></span></div>
       </div>
     </div>
     <!-- Fundraiser — expanded by default -->
@@ -543,7 +543,7 @@ if('serviceWorker' in navigator){
         <div class="field-row"><div class="field-label">Card Donations</div><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" type="text" inputmode="decimal" id="f-fundraiserCard" placeholder="0.00" oninput="recalc()"/></div></div>
         <div class="field-row" style="flex-wrap:wrap;gap:4px;">
           <div class="field-label">Net Sales Donation %</div>
-          <select class="field-input" id="f-fundraiserPct" onchange="recalc()">
+          <select class="field-input" id="f-fundraiserPct" onchange="markDirty();recalc()">
             <option value="0">—</option>
             <option value="1">1%</option><option value="2">2%</option><option value="3">3%</option><option value="4">4%</option><option value="5">5%</option>
             <option value="6">6%</option><option value="7">7%</option><option value="8">8%</option><option value="9">9%</option><option value="10">10%</option>
@@ -567,7 +567,7 @@ if('serviceWorker' in navigator){
   <div class="section-label">Notes</div>
   <div class="card" style="margin-bottom:20px;">
     <div class="field-row" style="flex-direction:column;align-items:stretch;gap:5px;padding:8px 10px;">
-      <textarea class="field-input" id="f-notes" placeholder="Optional notes for this day…"></textarea>
+      <textarea class="field-input" id="f-notes" placeholder="Optional notes for this day…" oninput="markDirty()"></textarea>
     </div>
   </div>
 </div><!-- /panel-enter -->
@@ -1015,6 +1015,8 @@ const {createClient}=supabase;
 const sb=createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 
 let LOCATION_ID=null,IS_ADMIN_VIEW=false,OPEN_SETTINGS=false,ALL_DAYS=[],INV_SNAPSHOTS=[],USER_ROLE='owner',CURRENT_SESSION=null;
+let _entryDirty=false; // tracks unsaved edits on the Enter tab
+let _loadingDay=false; // suppresses markDirty during programmatic field loads
 let invOos={}; // {sku: {note:'', expectedDate:''}} — out of stock map
 const DAY_NAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 let SETTINGS={clubName:'',taxRate:1.25,ohRate:32,otherRate:50,merchRate:100,dvDelta:3,
@@ -1676,8 +1678,8 @@ async function init(){
     recalcContentTop();
     // settings merged into profile modal
     const _smt=document.getElementById('profile-modal-title');if(_smt)_smt.textContent='Profile & Settings — '+(loc?.name||'Location');
-    const saveBtn=document.querySelector('button[onclick="saveDay()"]');
-    if(saveBtn){saveBtn.style.background='linear-gradient(135deg,var(--a6),var(--a4))';saveBtn.textContent='Save (Admin)';}
+    const saveBtn=document.getElementById('btn-save-day');
+    if(saveBtn){saveBtn.style.background='linear-gradient(135deg,var(--a6),var(--a4))';saveBtn.textContent='Save (Admin)';saveBtn.style.display='inline-flex';}
     // Set nav button to show admin name + ADMIN label
     const _adNavDN=document.getElementById('nav-display-name');
     if(_adNavDN){ const _adName=session.user.user_metadata?.display_name||session.user.email||''; _adNavDN.textContent=_adName||''; }
@@ -1817,7 +1819,33 @@ function fmt$(n){if(n===null||isNaN(n))return'$0.00';return'$'+n.toLocaleString(
 function fmtN(n){if(n===null||isNaN(n))return'—';return n.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:1});}
 function fmtVP(n){if(n===null||n===undefined||isNaN(n))return'—';return Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
 
+function markDirty(){
+  if(_entryDirty)return;
+  _entryDirty=true;
+  const saveBtn=document.getElementById('btn-save-day');
+  if(saveBtn)saveBtn.style.display='inline-flex';
+}
+function clearDirty(){
+  _entryDirty=false;
+  const saveBtn=document.getElementById('btn-save-day');
+  if(saveBtn)saveBtn.style.display='none';
+}
+function goToToday(){
+  const todayStr=new Date().toISOString().slice(0,10);
+  const dateEl=document.getElementById('entry-date');
+  if(!dateEl)return;
+  if(_entryDirty){
+    dateEl.value=todayStr;
+    updateDateDisplay();
+  } else {
+    dateEl.value=todayStr;
+    updateDateDisplay();
+    loadDay();
+  }
+}
+
 function recalc(){
+  if(!_loadingDay)markDirty();
   const c=calcAll();
   setText('sum-sales',   c.group1?fmt$(c.totalSales):'—');
   setText('sum-tax',     c.group1?fmt$(c.tax):'—');
@@ -1856,6 +1884,7 @@ function recalc(){
 const ENTRY_FIELDS=['cashSales','cardSales','cardFees','giftCardRedeemed','cashAppPay','venmo','otherSales','merchSales','giftCardSales','giftCardLoadFees','fundraiserCash','fundraiserCard','dv','notes'];
 
 function loadDay(){
+  _loadingDay=true;
   const date=document.getElementById('entry-date').value;
   const ex=ALL_DAYS.find(d=>d.date===date);
   if(ex){
@@ -1869,13 +1898,14 @@ function loadDay(){
     const fp=document.getElementById('f-fundraiserPct');if(fp)fp.value='0';
   }
   formatAllCurrencyFields();
-  // Format DV field
   var dvEl=document.getElementById('f-dv');
   if(dvEl&&dvEl.value&&dvEl.value!=='0'){
     var dvN=parseFloat(String(dvEl.value).replace(/,/g,''));
     if(!isNaN(dvN)&&dvN>0)dvEl.value=dvN.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
   }
+  clearDirty();
   recalc();
+  _loadingDay=false;
 }
 
 async function saveDay(){
@@ -1889,6 +1919,7 @@ async function saveDay(){
   else{const{data:nr,error:e}=await sb.from('days').insert({location_id:LOCATION_ID,date,data}).select().single();error=e;if(!e&&nr)ALL_DAYS.unshift(nr);}
   if(error){showToast('Save failed: '+error.message,'error');return;}
   showToast(IS_ADMIN_VIEW?'Saved (Admin Edit) ✓':'Day saved ✓','success');
+  clearDirty();
   renderHistory();renderProjections();renderPayoutSnapshots();renderDashboardWidgets();
 }
 
@@ -2795,10 +2826,13 @@ function updateDateDisplay(){
   var el=document.getElementById('entry-date-display');
   if(!el)return;
   if(!val){el.textContent='Select date';return;}
-  // Parse YYYY-MM-DD avoiding timezone shift
   var parts=val.split('-');
   var d=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));
   el.textContent=d.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  // Show "↩ Today" button only when not on today's date
+  const todayStr=new Date().toISOString().slice(0,10);
+  const todayBtn=document.getElementById('btn-go-today');
+  if(todayBtn)todayBtn.style.display=(val!==todayStr)?'inline-flex':'none';
 }
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function fmtPhone(input){let d=input.value.replace(/\D/g,'').slice(0,10);let f='';if(d.length>0)f='('+d.slice(0,3);if(d.length>=4)f+=') '+d.slice(3,6);if(d.length>=7)f+='-'+d.slice(6,10);input.value=f;}
