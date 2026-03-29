@@ -421,6 +421,7 @@ function renderLocations(){
       var dn=u.display_name?'<span style="font-size:12px;color:var(--text-faint);margin-left:4px;">('+escHtml(u.display_name)+')</span>':'';
       var avatarInner=u.avatar_url?'<img src="'+u.avatar_url+'" style="width:32px;height:32px;object-fit:cover;border-radius:50%;display:block;"/>':letter;
       var roleColor=u.role==='owner'?'color:var(--g5)':'color:var(--text-muted)';
+      var roleLabel=u.role==='owner'?'Owner':'Operator';
       return '<div class="loc-user-card" id="luc-'+u.id+'">'+
         '<div class="loc-user-top" onclick="toggleLocUser(\''+u.id+'\')">'+
           '<div class="loc-user-avatar" style="background:'+(u.avatar_url?'transparent':roleBg[u.role]||'var(--b0)')+';color:'+(roleColors[u.role]||'var(--text-muted)')+';">'+avatarInner+'</div>'+
@@ -428,17 +429,18 @@ function renderLocations(){
             '<div class="loc-user-name">'+escHtml(fn)+dn+'</div>'+
             '<div class="loc-user-email">'+escHtml(u.email)+'</div>'+
           '</div>'+
-          '<div class="loc-user-actions" onclick="event.stopPropagation()">'+
+          '<span style="font-size:13px;font-weight:700;color:var(--b7);flex-shrink:0;margin-right:6px;">'+roleLabel+'</span>'+
+          '<span class="loc-user-chevron">▼</span>'+
+        '</div>'+
+        '<div class="loc-user-fields">'+
+          '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border-light);">'+
             '<select class="loc-role-select" style="'+roleColor+'" onchange="changeUserRole(\''+u.id+'\',this.value,this)">'+
               '<option value="owner" '+(u.role==='owner'?'selected':'')+'>Owner</option>'+
               '<option value="employee" '+(u.role==='employee'?'selected':'')+'>Operator</option>'+
             '</select>'+
-            '<button class="loc-reset-btn" onclick="locResetPassword(\''+escAttr(u.email)+'\',\''+escAttr(fn)+'\')">🔑</button>'+
-            '<button onclick="confirmRemoveUser(\''+u.id+'\',\''+escAttr(fn)+'\')" title="Remove user" style="background:none;border:1px solid var(--border-light);border-radius:6px;padding:6px 8px;cursor:pointer;color:var(--text-faint);font-size:14px;line-height:1;" onmouseover="this.style.background=\'var(--r0)\';this.style.color=\'var(--r5)\'" onmouseout="this.style.background=\'none\';this.style.color=\'var(--text-faint)\'">🗑</button>'+
+            '<button class="loc-reset-btn" onclick="locResetPassword(\''+escAttr(u.email)+'\',\''+escAttr(fn)+'\')">🔑 Reset Password</button>'+
+            '<button onclick="confirmRemoveUser(\''+u.id+'\',\''+escAttr(fn)+'\')" title="Remove user" style="margin-left:auto;background:none;border:1px solid var(--border-light);border-radius:6px;padding:5px 9px;cursor:pointer;color:var(--text-faint);font-size:14px;line-height:1;" onmouseover="this.style.background=\'var(--r0)\';this.style.color=\'var(--r5)\';this.style.borderColor=\'var(--r3)\'" onmouseout="this.style.background=\'none\';this.style.color=\'var(--text-faint)\';this.style.borderColor=\'var(--border-light)\'">🗑 Remove</button>'+
           '</div>'+
-          '<span class="loc-user-chevron">▼</span>'+
-        '</div>'+
-        '<div class="loc-user-fields">'+
           '<div class="loc-user-grid">'+
             '<div class="loc-user-field"><label>First Name</label><input type="text" id="luf-fn-'+u.id+'" value="'+escHtml(u.first_name||'')+'" placeholder="First name"/></div>'+
             '<div class="loc-user-field"><label>Last Name</label><input type="text" id="luf-ln-'+u.id+'" value="'+escHtml(u.last_name||'')+'" placeholder="Last name"/></div>'+
