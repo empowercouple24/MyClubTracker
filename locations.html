@@ -505,7 +505,7 @@ function renderLocations(){
         '</div>'+
         '<div class="loc-header-actions">'+
           '<button class="btn btn-ghost btn-sm" onclick="openEditLocation(\''+loc.id+'\')">✏️ Edit</button>'+
-          (!isPending?'<button class="btn btn-sm" onclick="goToApp(\''+loc.id+'\')" style="background:linear-gradient(135deg,var(--b7),var(--b5));color:white;font-size:12px;padding:5px 12px;">View App →</button>':'')+
+          (!isPending?'<button class="btn btn-sm" onclick="goToApp(\''+loc.id+'\')" style="background:linear-gradient(135deg,var(--b7),var(--b5));color:white;font-size:12px;padding:5px 12px;">Enter Club View →</button>':'')+
           '<button class="btn btn-danger btn-sm" onclick="confirmRemoveLocation(this)" data-id="'+loc.id+'" data-name="'+escHtml(loc.name)+'" title="Remove location">🗑</button>'+
         '</div>'+
       '</div>'+
