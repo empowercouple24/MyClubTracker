@@ -28,6 +28,76 @@ if('serviceWorker' in navigator){
   <style>
     .btn-sm{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text-muted);background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer;transition:background 0.15s;text-decoration:none;display:inline-block}
     .btn-sm:hover{background:var(--b0);color:var(--text)}
+    /* ── SUPER-ADMIN ORGANIZATIONS UI ── */
+    .sa-tabs{display:flex;gap:0;border-bottom:2px solid var(--border-light);margin-bottom:20px;}
+    .sa-tab{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;padding:10px 18px;border:none;background:none;color:var(--text-faint);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.15s;}
+    .sa-tab.active{color:var(--b6);border-bottom-color:var(--b6);}
+    .sa-tab:hover:not(.active){color:var(--text-muted);}
+    .sa-tab-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;background:var(--r5);color:white;font-size:10px;font-weight:800;border-radius:20px;padding:0 5px;margin-left:6px;vertical-align:middle;}
+    .org-card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:10px;transition:box-shadow 0.18s;}
+    .org-card:hover{box-shadow:var(--shadow-md);}
+    .org-card.expanded{border-color:var(--b3);}
+    .org-card-header{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;user-select:none;}
+    .org-avatar{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--b7),var(--b4));display:flex;align-items:center;justify-content:center;font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:white;flex-shrink:0;}
+    .org-meta{flex:1;min-width:0;}
+    .org-name{font-family:'Outfit',sans-serif;font-size:17px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .org-leader-label{font-size:12px;color:var(--text-muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .org-badges{display:flex;align-items:center;gap:6px;flex-shrink:0;flex-wrap:wrap;}
+    .org-chevron{font-size:11px;color:var(--text-faint);transition:transform 0.2s;flex-shrink:0;}
+    .org-card.expanded .org-chevron{transform:rotate(180deg);}
+    .org-expanded{display:none;border-top:1px solid var(--border-light);background:var(--b0);padding:16px;animation:expandIn 0.18s ease;}
+    .org-card.expanded .org-expanded{display:block;}
+    .org-stat-strip{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--border-light);}
+    .org-stat-cell{padding:8px 14px;border-right:1px solid var(--border-light);text-align:center;}
+    .org-stat-cell:last-child{border-right:none;}
+    .org-stat-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:2px;}
+    .org-stat-val{font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;color:var(--text);}
+    .org-stat-val.dim{color:var(--text-faint);font-weight:400;font-size:13px;}
+    .org-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+    @media(max-width:520px){.org-detail-grid{grid-template-columns:1fr;}}
+    .org-detail-cell{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:10px 12px;}
+    .org-detail-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:3px;}
+    .org-detail-val{font-size:13px;font-weight:600;color:var(--text);}
+    .org-detail-val.muted{font-weight:400;color:var(--text-muted);}
+    .org-locs-list{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;}
+    .org-loc-row{background:var(--surface);border:1px solid var(--border-light);border-radius:8px;padding:9px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+    .org-loc-name{font-size:13px;font-weight:600;color:var(--text);}
+    .org-loc-addr{font-size:11px;color:var(--text-faint);margin-top:1px;}
+    .org-expanded-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding-top:10px;border-top:1px solid var(--border-light);margin-top:12px;}
+    .org-expanded-footer-actions{display:flex;gap:8px;flex-wrap:wrap;}
+    .billing-toggle{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--text-muted);}
+    .toggle-switch{position:relative;width:36px;height:20px;flex-shrink:0;}
+    .toggle-switch input{opacity:0;width:0;height:0;position:absolute;}
+    .toggle-slider{position:absolute;inset:0;background:var(--border);border-radius:20px;cursor:pointer;transition:background 0.2s;}
+    .toggle-slider::before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:white;border-radius:50%;transition:transform 0.2s;}
+    .toggle-switch input:checked+.toggle-slider{background:var(--g5);}
+    .toggle-switch input:checked+.toggle-slider::before{transform:translateX(16px);}
+    .badge-invited{background:#fef3c7;color:#92400e;border:1px solid #fde68a;}
+    .badge-suspended{background:#fff0f0;color:var(--r5);border:1px solid #fca5a5;}
+    .badge-deleted{background:var(--b0);color:var(--text-faint);border:1px solid var(--border);}
+    .badge-billing-off{background:#fff0f0;color:var(--r5);border:1px solid #fca5a5;font-size:10px;}
+    .badge-free{background:var(--b0);color:var(--b6);border:1px solid var(--b2);}
+    .badge-paid{background:var(--g0);color:var(--g5);border:1px solid rgba(46,122,53,0.2);}
+    .orgs-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;}
+    @media(max-width:600px){.orgs-summary{grid-template-columns:1fr 1fr;}}
+    .orgs-summary-cell{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:12px 14px;box-shadow:var(--shadow-sm);text-align:center;}
+    .orgs-summary-val{font-family:'Outfit',sans-serif;font-size:24px;font-weight:800;color:var(--text);}
+    .orgs-summary-label{font-size:11px;color:var(--text-faint);margin-top:3px;}
+    .modal-overlay-sa{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:300;align-items:center;justify-content:center;padding:16px;}
+    .modal-overlay-sa.show{display:flex;}
+    .modal-box-sm{background:var(--surface);border-radius:var(--radius);padding:24px;width:100%;max-width:440px;box-shadow:0 16px 48px rgba(0,0,0,0.2);max-height:90vh;overflow-y:auto;}
+    .modal-title-sm{font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;color:var(--text);margin-bottom:4px;}
+    .modal-sub-sm{font-size:13px;color:var(--text-muted);margin-bottom:18px;line-height:1.5;}
+    .modal-field-sm{margin-bottom:13px;}
+    .modal-label-sm{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-faint);margin-bottom:4px;}
+    .modal-label-sm span{font-weight:400;text-transform:none;letter-spacing:0;}
+    .modal-input-sm{width:100%;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);background:var(--b0);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:9px 11px;outline:none;transition:border-color 0.15s;}
+    .modal-input-sm:focus{border-color:var(--b5);}
+    .modal-alert-sm{font-size:12px;padding:8px 12px;border-radius:var(--radius-sm);margin-bottom:12px;display:none;}
+    .modal-alert-sm.error{background:#fff0f0;color:var(--r5);border:1px solid #fca5a5;}
+    .modal-alert-sm.success{background:var(--g0);color:var(--g5);border:1px solid rgba(46,122,53,0.2);}
+    .modal-alert-sm.show{display:block;}
+    .modal-footer-sm{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;}
     .page{max-width:1080px;margin:0 auto;padding:24px max(20px,env(safe-area-inset-left,20px)) calc(64px + env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-right,20px))}
     .section-label{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.9px;color:var(--text-faint);margin-bottom:12px;margin-top:28px}
     .section-label:first-child{margin-top:0}
@@ -237,7 +307,39 @@ if('serviceWorker' in navigator){
 
 <div class="page">
   <!-- MISSING DAY ALERT BANNER — rendered by renderAlertBanner() -->
-  <div id="new-requests-banner" style="display:none;background:linear-gradient(135deg,var(--b7),var(--b5));border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;cursor:pointer;color:white;" onclick="document.getElementById('requests-section').scrollIntoView({behavior:'smooth'})">
+  <!-- SUPER-ADMIN TAB SWITCHER -->
+  <div class="sa-tabs" id="sa-tabs">
+    <button class="sa-tab active" id="sa-tab-locs" onclick="switchSaTab('locs')">My Organization</button>
+    <button class="sa-tab" id="sa-tab-orgs" onclick="switchSaTab('orgs')">Organizations <span class="sa-tab-badge" id="sa-orgs-badge" style="display:none;"></span></button>
+  </div>
+
+  <!-- ORGANIZATIONS PANEL -->
+  <div id="sa-orgs-panel" style="display:none;">
+
+    <!-- Summary strip -->
+    <div class="orgs-summary" id="orgs-summary">
+      <div class="orgs-summary-cell"><div class="orgs-summary-val" id="os-total">—</div><div class="orgs-summary-label">Total Orgs</div></div>
+      <div class="orgs-summary-cell"><div class="orgs-summary-val" id="os-active" style="color:var(--g5);">—</div><div class="orgs-summary-label">Active</div></div>
+      <div class="orgs-summary-cell"><div class="orgs-summary-val" id="os-invited" style="color:#92400e;">—</div><div class="orgs-summary-label">Pending</div></div>
+      <div class="orgs-summary-cell"><div class="orgs-summary-val" id="os-suspended" style="color:var(--r5);">—</div><div class="orgs-summary-label">Suspended</div></div>
+    </div>
+
+    <!-- Header -->
+    <div class="section-header" style="margin-top:0;">
+      <div class="section-label" style="margin:0;">All Organizations</div>
+      <button class="btn-add-loc" onclick="openInviteOrgModal()">+ Invite New Org</button>
+    </div>
+
+    <!-- Org list -->
+    <div id="orgs-list">
+      <div style="text-align:center;padding:32px;color:var(--text-faint);font-size:13px;">Loading organizations…</div>
+    </div>
+  </div>
+
+  <!-- EXISTING CONTENT WRAPPER -->
+  <div id="sa-locs-panel">
+  <div id="new-requests-banner"
+ style="display:none;background:linear-gradient(135deg,var(--b7),var(--b5));border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;cursor:pointer;color:white;" onclick="document.getElementById('requests-section').scrollIntoView({behavior:'smooth'})">
     <div style="display:flex;align-items:center;gap:12px;">
       <div style="font-size:22px;">📋</div>
       <div>
@@ -325,7 +427,63 @@ if('serviceWorker' in navigator){
     </div><!-- /metrics-col -->
 
   </div><!-- /layout-body -->
+  </div><!-- /sa-locs-panel -->
 </div><!-- /page -->
+
+<!-- ── INVITE ORG MODAL ── -->
+<div class="modal-overlay-sa" id="invite-org-modal" onclick="closeOrgModalOnBg(event,'invite-org-modal')">
+  <div class="modal-box-sm">
+    <div class="modal-title-sm">Invite New Organization</div>
+    <div class="modal-sub-sm">Enter the org leader's email. They'll receive a setup link valid for 30 days.</div>
+    <div class="modal-alert-sm error" id="io-error"></div>
+    <div class="modal-alert-sm success" id="io-success"></div>
+    <div class="modal-field-sm">
+      <label class="modal-label-sm">Leader's email address</label>
+      <input class="modal-input-sm" type="email" id="io-email" placeholder="leader@email.com"/>
+    </div>
+    <div class="modal-field-sm">
+      <label class="modal-label-sm">Organization name <span>— optional hint</span></label>
+      <input class="modal-input-sm" type="text" id="io-orgname" placeholder="e.g. Johnson Nutrition Team"/>
+    </div>
+    <div class="modal-field-sm">
+      <label class="modal-label-sm">Monthly rate <span>— $0.00 = free</span></label>
+      <input class="modal-input-sm" type="number" id="io-rate" value="0" min="0" step="0.01" style="max-width:120px;"/>
+    </div>
+    <div id="io-link-wrap" style="display:none;margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:6px;">Invite Link (copy &amp; send manually if email fails)</div>
+      <div style="background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;font-family:monospace;color:var(--b7);word-break:break-all;cursor:pointer;" id="io-link-text" onclick="copyInviteLink()"></div>
+      <div style="font-size:11px;color:var(--text-faint);margin-top:4px;">Click to copy · Expires in 30 days</div>
+    </div>
+    <div class="modal-footer-sm">
+      <button class="btn-sm" onclick="closeOrgModal('invite-org-modal')">Close</button>
+      <button class="btn-add-loc" id="io-btn" onclick="submitInviteOrg()">Send Invite →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── RATE EDIT MODAL ── -->
+<div class="modal-overlay-sa" id="edit-rate-modal" onclick="closeOrgModalOnBg(event,'edit-rate-modal')">
+  <div class="modal-box-sm">
+    <div class="modal-title-sm">Edit Billing Rate</div>
+    <div class="modal-sub-sm" id="er-sub">Update the monthly rate for this organization.</div>
+    <div class="modal-alert-sm error" id="er-error"></div>
+    <div class="modal-field-sm">
+      <label class="modal-label-sm">Monthly rate (USD)</label>
+      <input class="modal-input-sm" type="number" id="er-rate" value="0" min="0" step="0.01" style="max-width:140px;"/>
+    </div>
+    <div class="modal-field-sm">
+      <label class="modal-label-sm">Plan</label>
+      <select class="modal-input-sm" id="er-plan" style="max-width:160px;">
+        <option value="free">Free</option>
+        <option value="paid">Paid</option>
+      </select>
+    </div>
+    <div class="modal-footer-sm">
+      <button class="btn-sm" onclick="closeOrgModal('edit-rate-modal')">Cancel</button>
+      <button class="btn-add-loc" id="er-btn" onclick="submitEditRate()">Save</button>
+    </div>
+  </div>
+</div>
 
 <!-- ADD LOCATION MODAL -->
 <div class="modal-overlay" id="add-loc-modal" onclick="closeModalOnBg(event,'add-loc-modal')">
@@ -1692,6 +1850,391 @@ async function lookupZip(zip, cityId, stateId) {
 }
 
 init();
+
+// ════════════════════════════════════════════════════════
+// SUPER-ADMIN ORGANIZATIONS UI
+// ════════════════════════════════════════════════════════
+
+let allOrgs = [];
+let allOrgLocations = [];
+let editingRateOrgId = null;
+
+// ── TAB SWITCHER ──
+function switchSaTab(tab) {
+  const locsPanel = document.getElementById('sa-locs-panel');
+  const orgsPanel = document.getElementById('sa-orgs-panel');
+  const tabLocs   = document.getElementById('sa-tab-locs');
+  const tabOrgs   = document.getElementById('sa-tab-orgs');
+  if (tab === 'locs') {
+    locsPanel.style.display = '';
+    orgsPanel.style.display = 'none';
+    tabLocs.classList.add('active');
+    tabOrgs.classList.remove('active');
+  } else {
+    locsPanel.style.display = 'none';
+    orgsPanel.style.display = 'block';
+    tabLocs.classList.remove('active');
+    tabOrgs.classList.add('active');
+    if (!allOrgs.length) loadOrgs();
+  }
+}
+
+// ── LOAD ORGS ──
+async function loadOrgs() {
+  const { data: orgs } = await sb.from('organizations')
+    .select('*')
+    .order('created_at', { ascending: false });
+  allOrgs = orgs || [];
+
+  // Load all locations for all orgs
+  if (allOrgs.length) {
+    const { data: locs } = await sb.from('locations')
+      .select('id,name,address,org_id')
+      .in('org_id', allOrgs.map(o => o.id));
+    allOrgLocations = locs || [];
+  }
+
+  renderOrgSummary();
+  renderOrgs();
+
+  // Update badge on tab
+  const pending = allOrgs.filter(o => o.status === 'invited').length;
+  const badge = document.getElementById('sa-orgs-badge');
+  if (badge) {
+    badge.textContent = pending;
+    badge.style.display = pending ? 'inline-flex' : 'none';
+  }
+}
+
+// ── RENDER SUMMARY ──
+function renderOrgSummary() {
+  const total     = allOrgs.filter(o => o.status !== 'deleted').length;
+  const active    = allOrgs.filter(o => o.status === 'active').length;
+  const invited   = allOrgs.filter(o => o.status === 'invited').length;
+  const suspended = allOrgs.filter(o => o.status === 'suspended').length;
+  const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  setText('os-total', total);
+  setText('os-active', active);
+  setText('os-invited', invited);
+  setText('os-suspended', suspended);
+}
+
+// ── RENDER ORG LIST ──
+function renderOrgs() {
+  const el = document.getElementById('orgs-list');
+  const visible = allOrgs.filter(o => o.status !== 'deleted');
+  if (!visible.length) {
+    el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text-faint);font-size:13px;">No organizations yet. Invite one above.</div>';
+    return;
+  }
+
+  el.innerHTML = visible.map(org => {
+    const locs = allOrgLocations.filter(l => l.org_id === org.id);
+    const initials = (org.name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+
+    // Status badge
+    const statusBadge = {
+      invited:   '<span class="badge badge-invited">Pending Setup</span>',
+      active:    '<span class="badge badge-active">Active</span>',
+      suspended: '<span class="badge badge-suspended">Suspended</span>',
+    }[org.status] || '<span class="badge badge-deleted">Deleted</span>';
+
+    const planBadge = org.billing_plan === 'paid'
+      ? `<span class="badge badge-paid">$${Number(org.monthly_rate||0).toFixed(2)}/mo</span>`
+      : '<span class="badge badge-free">Free</span>';
+
+    const billingBadge = !org.billing_active
+      ? '<span class="badge badge-billing-off">Billing Off</span>' : '';
+
+    // Locations sub-list
+    const locsHtml = locs.length
+      ? locs.map(l => `
+          <div class="org-loc-row">
+            <div>
+              <div class="org-loc-name">${escHtml(l.name)}</div>
+              <div class="org-loc-addr">${escHtml(l.address || '')}</div>
+            </div>
+            <a href="app.html?location_id=${l.id}&admin=1" class="btn-sm" style="font-size:12px;">Open →</a>
+          </div>`).join('')
+      : '<div style="font-size:12px;color:var(--text-faint);">No locations yet.</div>';
+
+    // Dates
+    const fmtDate = d => d ? new Date(d).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'}) : '—';
+
+    // Billing toggle — checked = active
+    const billingChecked = org.billing_active ? 'checked' : '';
+
+    // Action buttons
+    const isSuspended = org.status === 'suspended';
+    const isInvited   = org.status === 'invited';
+    const suspendBtn  = isSuspended
+      ? `<button class="btn-sm" onclick="setOrgStatus('${org.id}','active',event)">✓ Restore Access</button>`
+      : `<button class="btn-sm" onclick="setOrgStatus('${org.id}','suspended',event)" style="color:var(--r5);border-color:var(--r5);">Suspend</button>`;
+    const resendBtn = isInvited
+      ? `<button class="btn-sm" onclick="resendInvite('${org.id}',event)">↺ Resend Invite</button>` : '';
+
+    return `<div class="org-card" id="ocard-${org.id}">
+      <div class="org-card-header" onclick="toggleOrgCard('${org.id}')">
+        <div class="org-avatar">${initials}</div>
+        <div class="org-meta">
+          <div class="org-name">${escHtml(org.name || 'Unnamed Org')}</div>
+          <div class="org-leader-label">${escHtml(org.leader_name || org.leader_email || '—')}</div>
+        </div>
+        <div class="org-badges">${statusBadge}${planBadge}${billingBadge}</div>
+        <div class="org-chevron">▼</div>
+      </div>
+
+      <div class="org-stat-strip">
+        <div class="org-stat-cell">
+          <div class="org-stat-label">Locations</div>
+          <div class="org-stat-val ${!locs.length?'dim':''}">${locs.length || '—'}</div>
+        </div>
+        <div class="org-stat-cell">
+          <div class="org-stat-label">Invited</div>
+          <div class="org-stat-val dim">${fmtDate(org.invited_at)}</div>
+        </div>
+        <div class="org-stat-cell">
+          <div class="org-stat-label">Activated</div>
+          <div class="org-stat-val dim">${fmtDate(org.activated_at)}</div>
+        </div>
+      </div>
+
+      <div class="org-expanded" id="oexp-${org.id}">
+        <div class="org-detail-grid">
+          <div class="org-detail-cell">
+            <div class="org-detail-label">Leader email</div>
+            <div class="org-detail-val muted">${escHtml(org.leader_email || '—')}</div>
+          </div>
+          <div class="org-detail-cell">
+            <div class="org-detail-label">Invite expires</div>
+            <div class="org-detail-val muted">${org.invite_expires_at ? fmtDate(org.invite_expires_at) : (org.status === 'active' ? 'Used' : '—')}</div>
+          </div>
+        </div>
+
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:8px;">Locations (${locs.length})</div>
+        <div class="org-locs-list">${locsHtml}</div>
+
+        <div class="org-expanded-footer">
+          <div class="billing-toggle">
+            <label class="toggle-switch" title="Toggle billing access">
+              <input type="checkbox" ${billingChecked} onchange="toggleBilling('${org.id}',this.checked)"/>
+              <span class="toggle-slider"></span>
+            </label>
+            <span>Billing active</span>
+          </div>
+          <div class="org-expanded-footer-actions">
+            ${resendBtn}
+            <button class="btn-sm" onclick="openEditRate('${org.id}','${escHtml(org.name||'')}',${Number(org.monthly_rate||0)},event)">$ Edit Rate</button>
+            ${suspendBtn}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── TOGGLE CARD ──
+function toggleOrgCard(id) {
+  const card = document.getElementById('ocard-' + id);
+  if (card) card.classList.toggle('expanded');
+}
+
+// ── BILLING TOGGLE ──
+async function toggleBilling(orgId, active) {
+  const { error } = await sb.from('organizations')
+    .update({ billing_active: active, updated_at: new Date().toISOString() })
+    .eq('id', orgId);
+  if (error) { showSaToast('Failed to update billing.'); return; }
+  const org = allOrgs.find(o => o.id === orgId);
+  if (org) org.billing_active = active;
+  showSaToast(active ? 'Billing activated.' : 'Billing deactivated.');
+  renderOrgSummary();
+  renderOrgs();
+}
+
+// ── SET ORG STATUS ──
+async function setOrgStatus(orgId, status, e) {
+  e && e.stopPropagation();
+  const { error } = await sb.from('organizations')
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq('id', orgId);
+  if (error) { showSaToast('Failed to update status.'); return; }
+  const org = allOrgs.find(o => o.id === orgId);
+  if (org) org.status = status;
+  showSaToast(status === 'active' ? 'Org restored.' : 'Org suspended.');
+  renderOrgSummary();
+  renderOrgs();
+}
+
+// ── INVITE ORG ──
+function openInviteOrgModal() {
+  ['io-email','io-orgname'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('io-rate').value = '0';
+  document.getElementById('io-error').classList.remove('show');
+  document.getElementById('io-success').classList.remove('show');
+  document.getElementById('io-link-wrap').style.display = 'none';
+  document.getElementById('io-btn').disabled = false;
+  document.getElementById('io-btn').textContent = 'Send Invite →';
+  document.getElementById('invite-org-modal').classList.add('show');
+}
+
+async function submitInviteOrg() {
+  const email   = document.getElementById('io-email').value.trim().toLowerCase();
+  const orgName = document.getElementById('io-orgname').value.trim();
+  const rate    = parseFloat(document.getElementById('io-rate').value) || 0;
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showOrgModalAlert('io-error', 'Please enter a valid email address.'); return;
+  }
+
+  const btn = document.getElementById('io-btn');
+  btn.disabled = true; btn.textContent = 'Creating invite…';
+
+  // Generate token + expiry
+  const token     = crypto.randomUUID();
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+  // Create org record
+  const { data: org, error: orgErr } = await sb.from('organizations').insert({
+    name: orgName || 'Pending Setup',
+    leader_email: email,
+    status: 'invited',
+    billing_active: true,
+    billing_plan: rate > 0 ? 'paid' : 'free',
+    monthly_rate: rate,
+    invite_token: token,
+    invite_expires_at: expiresAt,
+    invited_at: new Date().toISOString(),
+  }).select().single();
+
+  if (orgErr) {
+    btn.disabled = false; btn.textContent = 'Send Invite →';
+    showOrgModalAlert('io-error', orgErr.message); return;
+  }
+
+  // Build invite link
+  const inviteLink = `${window.location.origin}/onboard.html?token=${token}`;
+  document.getElementById('io-link-text').textContent = inviteLink;
+  document.getElementById('io-link-wrap').style.display = 'block';
+
+  // Fire edge function for email
+  try {
+    await sb.functions.invoke('send-org-invite', {
+      body: { to: email, orgName: orgName || 'your organization', inviteLink, expiresAt }
+    });
+    showOrgModalAlert('io-success', `Invite sent to ${email}. Link also shown below if needed.`);
+  } catch(e) {
+    showOrgModalAlert('io-success', `Org created. Email sending pending — copy the link below to send manually.`);
+  }
+
+  btn.textContent = 'Sent ✓';
+  allOrgs.unshift(org);
+  renderOrgSummary();
+  renderOrgs();
+
+  // Update badge
+  const pending = allOrgs.filter(o => o.status === 'invited').length;
+  const badge = document.getElementById('sa-orgs-badge');
+  if (badge) { badge.textContent = pending; badge.style.display = pending ? 'inline-flex' : 'none'; }
+}
+
+// ── RESEND INVITE ──
+async function resendInvite(orgId, e) {
+  e && e.stopPropagation();
+  const org = allOrgs.find(o => o.id === orgId);
+  if (!org) return;
+
+  const token     = crypto.randomUUID();
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+  const { error } = await sb.from('organizations').update({
+    invite_token: token,
+    invite_expires_at: expiresAt,
+    invited_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }).eq('id', orgId);
+
+  if (error) { showSaToast('Failed to regenerate invite.'); return; }
+
+  const inviteLink = `${window.location.origin}/onboard.html?token=${token}`;
+  org.invite_token = token;
+  org.invite_expires_at = expiresAt;
+
+  // Try email
+  try {
+    await sb.functions.invoke('send-org-invite', {
+      body: { to: org.leader_email, orgName: org.name, inviteLink, expiresAt }
+    });
+    showSaToast('Invite resent via email.');
+  } catch(e) {
+    // Fallback: copy to clipboard
+    navigator.clipboard?.writeText(inviteLink);
+    showSaToast('Email pending — link copied to clipboard.', 3500);
+  }
+  renderOrgs();
+}
+
+// ── COPY INVITE LINK ──
+function copyInviteLink() {
+  const txt = document.getElementById('io-link-text').textContent;
+  navigator.clipboard?.writeText(txt);
+  showSaToast('Link copied to clipboard.');
+}
+
+// ── EDIT RATE ──
+function openEditRate(orgId, orgName, currentRate, e) {
+  e && e.stopPropagation();
+  editingRateOrgId = orgId;
+  document.getElementById('er-sub').textContent = `Update billing rate for ${orgName}.`;
+  document.getElementById('er-rate').value = currentRate;
+  const org = allOrgs.find(o => o.id === orgId);
+  document.getElementById('er-plan').value = org?.billing_plan || 'free';
+  document.getElementById('er-error').classList.remove('show');
+  document.getElementById('er-btn').disabled = false;
+  document.getElementById('er-btn').textContent = 'Save';
+  document.getElementById('edit-rate-modal').classList.add('show');
+}
+
+async function submitEditRate() {
+  const rate = parseFloat(document.getElementById('er-rate').value) || 0;
+  const plan = document.getElementById('er-plan').value;
+  const btn  = document.getElementById('er-btn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  const { error } = await sb.from('organizations').update({
+    monthly_rate: rate,
+    billing_plan: plan,
+    updated_at: new Date().toISOString(),
+  }).eq('id', editingRateOrgId);
+
+  btn.disabled = false; btn.textContent = 'Save';
+  if (error) { showOrgModalAlert('er-error', error.message); return; }
+
+  const org = allOrgs.find(o => o.id === editingRateOrgId);
+  if (org) { org.monthly_rate = rate; org.billing_plan = plan; }
+  closeOrgModal('edit-rate-modal');
+  showSaToast('Rate updated.');
+  renderOrgs();
+}
+
+// ── MODAL HELPERS ──
+function closeOrgModal(id) { document.getElementById(id).classList.remove('show'); }
+function closeOrgModalOnBg(e, id) { if (e.target.id === id) closeOrgModal(id); }
+function showOrgModalAlert(id, msg) {
+  const el = document.getElementById(id); el.textContent = msg; el.classList.add('show');
+}
+
+// ── TOAST ──
+function showSaToast(msg, dur = 2400) {
+  let t = document.getElementById('sa-toast');
+  if (!t) {
+    t = document.createElement('div'); t.id = 'sa-toast';
+    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1e2d3d;color:#fff;font-size:13px;font-weight:600;padding:10px 20px;border-radius:20px;z-index:999;opacity:0;transition:opacity 0.2s;pointer-events:none;white-space:nowrap;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg; t.style.opacity = '1';
+  clearTimeout(t._t); t._t = setTimeout(() => t.style.opacity = '0', dur);
+}
 </script>
 </body>
 </html>
