@@ -2014,9 +2014,16 @@ function loadInvSnapshot(id){
   if(!snap)return;
   const entries=snap.data?.entries||[];
   invHave={};
+  // Detect whether this is a new-format snapshot (has filled flag) or old format
+  const hasFilledFlag=entries.some(e=>e.filled!==undefined);
   entries.forEach(e=>{
-    if(e.sku!=null && e.have!==null && e.have!==undefined){
-      invHave[e.sku]=e.have; // restores 0 as filled, null rows stay absent from invHave
+    if(e.sku==null)return;
+    if(hasFilledFlag){
+      // New format: only load rows explicitly marked filled
+      if(e.filled&&e.have!=null)invHave[e.sku]=e.have;
+    } else {
+      // Old format: use have>0 as proxy for "was filled"
+      if(e.have!=null&&e.have>0)invHave[e.sku]=e.have;
     }
   });
   renderInventory();
@@ -2024,8 +2031,12 @@ function loadInvSnapshot(id){
 }
 async function saveInvSnapshot(){
   if(IS_ADMIN_VIEW){showToast('Admin view — cannot save','error');return;}
-  // Preserve null (unfilled) vs 0 (explicitly entered as zero)
-  const entries=PRODUCTS.map(p=>({sku:p[2],name:p[1],have:invHave[p[2]]!==undefined?invHave[p[2]]:null}));
+  // Mark rows that were explicitly filled (including 0) with filled:true
+  // Rows absent from invHave are saved as have:null, filled:false
+  const entries=PRODUCTS.map(p=>{
+    const filled=invHave[p[2]]!==undefined&&invHave[p[2]]!==null;
+    return{sku:p[2],name:p[1],have:filled?invHave[p[2]]:null,filled};
+  });
   const{data:ns,error}=await sb.from('inventory').insert({location_id:LOCATION_ID,data:{entries}}).select().single();
   if(error){showToast('Snapshot failed','error');return;}INV_SNAPSHOTS.unshift(ns);showToast('Snapshot saved ✓','success');renderInventoryHistory();renderDashboardWidgets();
 }
@@ -2061,7 +2072,15 @@ function renderInvHistSnapshot(snapId){
   const entries=snap.data?.entries||[];
   // Build entryMap preserving null (unfilled) vs number (filled, including 0)
   const entryMap={};
-  entries.forEach(e=>{if(e.sku!=null)entryMap[e.sku]=e.have!==undefined?e.have:null;});
+  const hasFilledFlag=entries.some(e=>e.filled!==undefined);
+  entries.forEach(e=>{
+    if(e.sku==null)return;
+    if(hasFilledFlag){
+      entryMap[e.sku]=e.filled?e.have:null;
+    } else {
+      entryMap[e.sku]=(e.have!=null&&e.have>0)?e.have:null;
+    }
+  });
   const cats={};PRODUCTS.forEach(p=>{if(!cats[p[0]])cats[p[0]]=[];cats[p[0]].push({name:p[1],sku:p[2],vp:p[3],par:p[4]});});
   // Grand totals — only count filled rows
   let snapDvHave=0,snapDvNeed=0;
