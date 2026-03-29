@@ -463,26 +463,6 @@ if('serviceWorker' in navigator){
 </div><!-- /page -->
 
 <!-- ══ ADD LOCATION MODAL ══ -->
-<!-- EDIT USER MODAL -->
-<div class="modal-overlay" id="modal-edituser" onclick="closeMOnBg(event,'modal-edituser')">
-  <div class="modal-sheet">
-    <div class="modal-handle"></div>
-    <div class="modal-title">Edit User</div>
-    <div class="modal-body">
-      <input type="hidden" id="eu-id"/>
-      <div class="modal-field"><label>First Name</label><input type="text" id="eu-firstname"/></div>
-      <div class="modal-field"><label>Last Name</label><input type="text" id="eu-lastname"/></div>
-      <div class="modal-field"><label>Display Name</label><input type="text" id="eu-displayname" placeholder="How their name appears in the app"/></div>
-      <div class="modal-field"><label>Phone</label><input type="tel" id="eu-phone" placeholder="(555) 000-0000" oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"/></div>
-    </div>
-    <div class="modal-msg" id="eu-msg"></div>
-    <div class="modal-actions">
-      <button class="btn btn-primary btn-full" onclick="saveEditUser()" style="font-size:14px;padding:11px;">Save Changes</button>
-      <button class="btn btn-ghost" onclick="closeModal('modal-edituser')">Cancel</button>
-    </div>
-  </div>
-</div>
-
 <div class="modal-overlay" id="modal-addloc" onclick="closeMOnBg(event,'modal-addloc')">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
@@ -984,7 +964,7 @@ async function saveOrgKey(){
 
 async function loadAdmins() {
   const { data:users } = await sb.from('users')
-    .select('id,email,role,location_id,display_name,first_name,last_name,phone,avatar_url')
+    .select('id,email,role,location_id,display_name,first_name,last_name,phone')
     .order('role').order('display_name');
   allAdmins = users || [];
   renderAdmins();
@@ -1071,75 +1051,21 @@ function renderAdmins() {
       ? `<div style="font-size:12px;color:var(--b6);margin-top:2px;font-weight:500;">📍 ${escHtml(loc.name)}</div>`
       : u.role==='admin' ? `<div style="font-size:11px;color:var(--text-faint);margin-top:2px;">All locations</div>`
       : `<div style="font-size:11px;color:var(--text-faint);margin-top:2px;">No location assigned</div>`;
-    const avatarInner = u.avatar_url
-      ? `<img src="${u.avatar_url}" alt="" style="width:34px;height:34px;object-fit:cover;border-radius:50%;display:block;"/>`
-      : letter;
-    const isSelf = u.id === currentUserId;
-    const roleControl = isSelf
-      ? `<span style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--b1);color:var(--b7);flex-shrink:0;">Admin (You)</span>`
-      : `<select onchange="changeUserRole('${u.id}',this.value,this)" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:${roleColors[u.role]||'var(--text-muted)'};cursor:pointer;outline:none;flex-shrink:0;">
-        <option value="owner"    ${u.role==='owner'   ?'selected':''}>Owner</option>
-        <option value="employee" ${u.role==='employee'?'selected':''}>Operator</option>
-      </select>`;
     return `
     <div class="user-row">
-      <div class="user-avatar" style="background:${u.avatar_url?'transparent':roleBg[u.role]||'var(--b0)'};color:${roleColors[u.role]||'var(--text-muted)'};overflow:hidden;">${avatarInner}</div>
+      <div class="user-avatar" style="background:${roleBg[u.role]||'var(--b0)'};color:${roleColors[u.role]||'var(--text-muted)'};">${letter}</div>
       <div style="flex:1;min-width:0;">
         <div style="font-size:14px;font-weight:600;color:var(--text);">${escHtml(fullName)}${dispTag}</div>
         <div style="font-size:12px;color:var(--text-faint);margin-top:1px;">${escHtml(u.email)}</div>
         ${locTag}
       </div>
-      ${roleControl}
-      <button onclick="openEditUser('${u.id}','${escAttr(u.first_name)}','${escAttr(u.last_name)}','${escAttr(u.display_name)}','${escAttr(u.phone)}')" title="Edit profile" style="background:none;border:1px solid var(--border);border-radius:5px;padding:3px 8px;cursor:pointer;font-size:13px;color:var(--text-muted);line-height:1;flex-shrink:0;" onmouseover="this.style.background='var(--b0)'" onmouseout="this.style.background='none'">✎</button>
-      ${!isSelf ? `<button onclick="confirmRemoveUser('${u.id}','${escAttr(fullName)}')" title="Remove from location" style="background:none;border:1px solid var(--border);border-radius:5px;padding:3px 8px;cursor:pointer;font-size:13px;color:var(--r5);line-height:1;flex-shrink:0;" onmouseover="this.style.background='var(--r0)'" onmouseout="this.style.background='none'">✕</button>` : ''}
+      <select onchange="changeUserRole('${u.id}',this.value,this)" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:${roleColors[u.role]||'var(--text-muted)'};cursor:pointer;outline:none;flex-shrink:0;">
+        <option value="admin"    ${u.role==='admin'   ?'selected':''}>Admin</option>
+        <option value="owner"    ${u.role==='owner'   ?'selected':''}>Owner</option>
+        <option value="employee" ${u.role==='employee'?'selected':''}>Employee</option>
+      </select>
     </div>`;
   }).join('');
-}
-
-function escAttr(s){return String(s||'').replace(/'/g,'&#39;').replace(/"/g,'&quot;');}
-
-// ── EDIT USER ──
-function openEditUser(id, firstName, lastName, displayName, phone) {
-  document.getElementById('eu-id').value = id;
-  document.getElementById('eu-firstname').value = firstName || '';
-  document.getElementById('eu-lastname').value = lastName || '';
-  document.getElementById('eu-displayname').value = displayName || '';
-  document.getElementById('eu-phone').value = phone || '';
-  const msgEl = document.getElementById('eu-msg');
-  msgEl.className = 'modal-msg'; msgEl.textContent = '';
-  openModal('modal-edituser');
-}
-
-async function saveEditUser() {
-  const id = document.getElementById('eu-id').value;
-  const firstName = document.getElementById('eu-firstname').value.trim();
-  const lastName = document.getElementById('eu-lastname').value.trim();
-  const displayName = document.getElementById('eu-displayname').value.trim();
-  const phone = document.getElementById('eu-phone').value.trim();
-  const msgEl = document.getElementById('eu-msg');
-  const { error } = await sb.from('users').update({
-    first_name: firstName, last_name: lastName,
-    display_name: displayName, phone: phone || null
-  }).eq('id', id);
-  if(error) { msgEl.textContent = 'Save failed: ' + error.message; msgEl.className = 'modal-msg error'; return; }
-  const u = allAdmins.find(x => x.id === id);
-  if(u){ u.first_name=firstName; u.last_name=lastName; u.display_name=displayName; u.phone=phone; }
-  closeModal('modal-edituser');
-  showToast('Profile updated ✓', 'success');
-  renderAdmins();
-}
-
-// ── REMOVE USER FROM LOCATION ──
-function confirmRemoveUser(userId, name) {
-  if(!confirm('Remove ' + name + ' from their location?\n\nThey will lose access immediately but can rejoin with an invite code.')) return;
-  removeUser(userId, name);
-}
-
-async function removeUser(userId, name) {
-  const { error } = await sb.from('users').update({location_id: null, role: 'pending'}).eq('id', userId);
-  if(error){ showToast('Remove failed: '+error.message, 'error'); return; }
-  showToast(name + ' removed ✓', 'success');
-  await loadAdmins();
 }
 
 async function changeUserRole(userId, newRole, selectEl) {
