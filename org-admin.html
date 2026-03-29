@@ -545,7 +545,10 @@ async function submitInviteLeader(){
   // Generate invite token and store on org record as co-leader invite
   // For now, insert a placeholder user record flagged as pending co-leader
   // Full email automation will fire through the send-invite edge function
+  const{data:{session:_ses}}=await sb.auth.getSession();
+  const _authHdr=_ses?.access_token?{'Authorization':`Bearer ${_ses.access_token}`}:{};
   const{error}=await sb.functions.invoke('send-org-invite',{
+    headers:_authHdr,
     body:{email,firstName:first,lastName:last,orgId:MY_ORG.id,orgName:MY_ORG.name,role:'co_leader',invitedBy:ME.id}
   });
   btn.disabled=false;btn.textContent='Send Invite';

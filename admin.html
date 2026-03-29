@@ -2170,6 +2170,7 @@ async function submitInviteOrg() {
   // Fire edge function for email
   try {
     const { data: fnData, error: fnErr } = await sb.functions.invoke('send-org-invite', {
+      headers: await getAuthHeader(),
       body: { to: email, orgName: orgName || 'your organization', inviteLink, expiresAt }
     });
     console.log('send-org-invite response:', JSON.stringify(fnData), 'error:', fnErr);
@@ -2219,6 +2220,7 @@ async function resendInvite(orgId, e) {
   // Try email
   try {
     const { data: fnData, error: fnErr } = await sb.functions.invoke('send-org-invite', {
+      headers: await getAuthHeader(),
       body: { to: org.leader_email, orgName: org.name, inviteLink, expiresAt }
     });
     const sent = fnData?.sent === true;
@@ -2283,6 +2285,13 @@ function closeOrgModal(id) { document.getElementById(id).classList.remove('show'
 function closeOrgModalOnBg(e, id) { if (e.target.id === id) closeOrgModal(id); }
 function showOrgModalAlert(id, msg) {
   const el = document.getElementById(id); el.textContent = msg; el.classList.add('show');
+}
+
+// ── AUTH HEADER HELPER ──
+async function getAuthHeader() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session?.access_token) return { 'Authorization': `Bearer ${session.access_token}` };
+  return {};
 }
 
 // ── ORG REQUESTS ──
@@ -2367,6 +2376,7 @@ async function approveOrgRequest(reqId, email, name, orgName, btn) {
   const inviteLink = `${window.location.origin}/onboard.html?token=${token}`;
   try {
     await sb.functions.invoke('send-org-invite', {
+      headers: await getAuthHeader(),
       body: { to: email, orgName, inviteLink, expiresAt }
     });
   } catch(e) { console.warn('Invite email failed:', e); }
@@ -2400,6 +2410,7 @@ async function declineOrgRequest(reqId, email, name, btn) {
   // Send polite decline email
   try {
     await sb.functions.invoke('send-org-invite', {
+      headers: await getAuthHeader(),
       body: { role: 'decline', to: email, name }
     });
   } catch(e) { console.warn('Decline email failed:', e); }
