@@ -885,7 +885,8 @@ async function init() {
     DEFAULTS = { ...DEFAULTS, ...saved };
   }
 
-  await Promise.all([loadLocations(), loadAdmins(), loadOrgKey()]);
+  await loadLocations();
+  await Promise.all([loadAdmins(), loadOrgKey()]);
   buildDefaultsUI();
   loadGlobalProductsFromMeta(meta);
   document.getElementById('loading-overlay').style.display='none';
@@ -1148,7 +1149,7 @@ function renderAdmins() {
         ? `<span style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--b1);color:var(--b7);flex-shrink:0;">Admin (You)</span>`
         : `<select onchange="changeUserRole('${u.id}',this.value,this)" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:${roleColors[u.role]||'var(--text-muted)'};cursor:pointer;outline:none;flex-shrink:0;">
         <option value="owner"    ${u.role==='owner'   ?'selected':''}>Owner</option>
-        <option value="employee" ${u.role==='employee'?'selected':''}>Employee</option>
+        <option value="employee" ${u.role==='employee'?'selected':''}>Operator</option>
       </select>`;
       return `
     <div class="user-row">
