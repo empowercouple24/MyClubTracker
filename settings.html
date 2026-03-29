@@ -125,7 +125,7 @@ if('serviceWorker' in navigator){
 </svg></a>
   <div class="nav-page-title" style="margin-left:10px;">Admin Settings</div>
   <div class="nav-menu-wrap">
-    <button class="nav-menu-btn" onclick="toggleNavMenu()"><span id="nav-display-name" style="font-size:13px;font-weight:600;color:var(--text-muted);margin-right:4px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>ADMIN <span style="font-size:10px;">▾</span></button>
+    <button class="nav-menu-btn" onclick="toggleNavMenu()"><div class="nav-avatar" id="nav-avatar"><span></span><img alt=""/></div><span id="nav-display-name" style="font-size:13px;font-weight:600;color:var(--text-muted);margin-right:4px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>ADMIN <span style="font-size:10px;">▾</span></button>
     <div class="nav-drop" id="nav-dropdown">
       <button class="nav-drop-item" onclick="window.location.href='admin.html';closeNavMenu()">🏠 Dashboard</button>
       <button class="nav-drop-item" onclick="window.location.href='locations.html';closeNavMenu()">🏪 Locations</button>
@@ -143,7 +143,7 @@ if('serviceWorker' in navigator){
     <div class="section-label">My Profile</div>
     <div class="card">
       <!-- Avatar -->
-      <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--border-light);margin-bottom:4px;">
+      <div style="display:flex;align-items:center;gap:14px;padding:12px 0 12px 4px;border-bottom:1px solid var(--border-light);margin-bottom:4px;">
         <div id="prof-avatar-wrap" style="position:relative;width:64px;height:64px;flex-shrink:0;cursor:pointer;" onclick="document.getElementById('prof-avatar-input').click()" title="Click to change photo">
           <div id="prof-avatar-circle" style="width:64px;height:64px;border-radius:50%;background:var(--b1);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:var(--b7);overflow:hidden;">
             <span id="prof-avatar-initials"></span>
@@ -876,6 +876,7 @@ async function init() {
   if (u.phone) fmtPhone(profPhoneEl);
   document.getElementById('prof-email-display').value = session.user.email || '';
   loadAvatar(u?.avatar_url, u?.first_name, u?.last_name, u?.display_name);
+  setNavAvatar(u?.avatar_url, u?.first_name, u?.last_name, u?.display_name);
 
   // Load defaults from user metadata — strip taxRate if present from old saves
   const meta = session.user.user_metadata || {};
@@ -943,6 +944,9 @@ async function uploadAvatar(input) {
   if(imgEl) { imgEl.src = cacheBusted; imgEl.style.display = 'block'; }
   if(initialsEl) initialsEl.style.display = 'none';
   if(statusEl) { statusEl.textContent = 'Photo updated ✓'; statusEl.style.color = 'var(--g5)'; }
+  // Update nav avatar immediately
+  var navCircle = document.getElementById('nav-avatar');
+  if(navCircle) { var ni=navCircle.querySelector('img'); var ns=navCircle.querySelector('span'); if(ni){ni.src=cacheBusted;ni.style.display='block';} if(ns)ns.style.display='none'; }
   input.value = '';
 }
 
