@@ -1053,7 +1053,7 @@ async function saveOrgKey(){
 
 async function loadAdmins() {
   const { data:users } = await sb.from('users')
-    .select('id,email,role,location_id,display_name,first_name,last_name,phone')
+    .select('id,email,role,location_id,display_name,first_name,last_name,phone,avatar_url')
     .order('role').order('display_name');
   allAdmins = users || [];
   renderAdmins();
@@ -1140,8 +1140,11 @@ function renderAdmins() {
       ? `<div style="font-size:12px;color:var(--b6);margin-top:2px;font-weight:500;">📍 ${escHtml(loc.name)}</div>`
       : u.role==='admin' ? `<div style="font-size:11px;color:var(--text-faint);margin-top:2px;">All locations</div>`
       : `<div style="font-size:11px;color:var(--text-faint);margin-top:2px;">No location assigned</div>`;
-      const isSelf = u.id === currentUserId;
-      const roleControl = isSelf
+    const isSelf = u.id === currentUserId;
+    const avatarInner = u.avatar_url
+      ? `<img src="${u.avatar_url}" alt="" style="width:34px;height:34px;object-fit:cover;border-radius:50%;display:block;"/>`
+      : letter;
+    const roleControl = isSelf
         ? `<span style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--b1);color:var(--b7);flex-shrink:0;">Admin (You)</span>`
         : `<select onchange="changeUserRole('${u.id}',this.value,this)" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:${roleColors[u.role]||'var(--text-muted)'};cursor:pointer;outline:none;flex-shrink:0;">
         <option value="owner"    ${u.role==='owner'   ?'selected':''}>Owner</option>
@@ -1149,7 +1152,7 @@ function renderAdmins() {
       </select>`;
       return `
     <div class="user-row">
-      <div class="user-avatar" style="background:${roleBg[u.role]||'var(--b0)'};color:${roleColors[u.role]||'var(--text-muted)'};">${letter}</div>
+      <div class="user-avatar" style="background:${u.avatar_url?'transparent':roleBg[u.role]||'var(--b0)'};color:${roleColors[u.role]||'var(--text-muted)'};overflow:hidden;">${avatarInner}</div>
       <div style="flex:1;min-width:0;">
         <div style="font-size:14px;font-weight:600;color:var(--text);">${escHtml(fullName)}${dispTag}</div>
         <div style="font-size:12px;color:var(--text-faint);margin-top:1px;">${escHtml(u.email)}</div>
