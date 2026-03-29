@@ -243,7 +243,8 @@ if('serviceWorker' in navigator){
     .inv-sku{font-size:16px;color:var(--text-faint);flex-shrink:0;}
     .inv-input{font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;width:56px;text-align:center;background:var(--b0);border:1px solid var(--border);border-radius:4px;padding:3px 4px;outline:none;-moz-appearance:textfield;transition:border-color 0.15s;display:block;margin-left:auto;}
     .inv-input::-webkit-inner-spin-button,.inv-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
-    #panel-invhist{max-width:740px;margin:0 auto;}
+    #panel-invhist{max-width:none;margin:0;padding:0;}
+    #panel-invhist .inv-cat-header{top:var(--invhist-cat-top,160px);z-index:10;}
     .inv-input:focus{border-color:var(--a4);box-shadow:0 0 0 2px rgba(224,152,32,0.15);background:#fff}
     .need-badge{display:inline-block;font-size:16px;font-weight:700;padding:3px 12px;border-radius:20px;min-width:36px;text-align:center;}
     .need-badge.need{background:#bfdbfe;color:#1d4ed8;}
@@ -640,7 +641,30 @@ if('serviceWorker' in navigator){
   </div>
 </div>
 
-<div class="tab-panel" id="panel-invhist"><div id="invhist-list"><div class="empty-state">No snapshots yet.</div></div></div>
+<div class="tab-panel" id="panel-invhist" style="padding:0;">
+  <div id="invhist-sticky-wrap" style="position:sticky;top:0;z-index:20;background:var(--bg);padding-bottom:4px;">
+    <div style="max-width:900px;margin:0 auto;padding:10px 12px 0;">
+      <div class="inv-header">
+        <div class="inv-header-title">Inventory History</div>
+        <div class="inv-dv-row">
+          <div class="inv-dv-card"><div class="inv-dv-item-label">DV Have</div><div class="inv-dv-item-val" id="invhist-total-dvhave">—</div></div>
+          <div class="inv-dv-card"><div class="inv-dv-item-label">DV Need</div><div class="inv-dv-item-val" id="invhist-total-dvneed">—</div></div>
+        </div>
+      </div>
+    </div>
+    <div style="max-width:900px;margin:0 auto;padding:6px 12px 0;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);white-space:nowrap;">Snapshot</label>
+        <select id="invhist-picker" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 10px;background:var(--surface);color:var(--text);outline:none;flex:1;" onchange="renderInvHistSnapshot(this.value)">
+          <option value="">— Choose a snapshot —</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div style="max-width:900px;margin:0 auto;padding:0 12px 20px;" id="invhist-body">
+    <div class="empty-state">Choose a snapshot above to view it.</div>
+  </div>
+</div>
 
 <div class="tab-panel" id="panel-payouts">
   <div class="filter-row" style="margin-bottom:10px;">
@@ -1439,6 +1463,12 @@ function switchTab(name){
   document.getElementById('panel-'+name).classList.add('active');
   if(name==='proj')renderProjections();if(name==='payouts')renderPayouts();
   if(name==='inv')recalcInvCatTop();
+  if(name==='invhist'){
+    setTimeout(()=>{
+      const w=document.getElementById('invhist-sticky-wrap');
+      if(w)document.documentElement.style.setProperty('--invhist-cat-top',w.offsetHeight+'px');
+    },50);
+  }
 }
 function toggleCollapse(t){const b=document.getElementById(t.dataset.target);t.classList.toggle('collapsed');b.classList.toggle('collapsed');}
 function pv(id){const el=document.getElementById(id);if(!el)return 0;return parseFloat(el.value.replace(/,/g,''))||0;}
@@ -1998,75 +2028,95 @@ async function saveInvSnapshot(){
   if(error){showToast('Snapshot failed','error');return;}INV_SNAPSHOTS.unshift(ns);showToast('Snapshot saved ✓','success');renderInventoryHistory();renderDashboardWidgets();
 }
 function renderInventoryHistory(){
-  const el=document.getElementById('invhist-list');
-  if(!INV_SNAPSHOTS.length){el.innerHTML='<div class="empty-state">No snapshots yet.</div>';return;}
-  el.innerHTML=INV_SNAPSHOTS.map((snap,i)=>{
+  const picker=document.getElementById('invhist-picker');
+  if(!picker)return;
+  picker.innerHTML='<option value="">— Choose a snapshot —</option>';
+  if(!INV_SNAPSHOTS.length){
+    picker.innerHTML='<option value="">No snapshots yet</option>';
+    document.getElementById('invhist-body').innerHTML='<div class="empty-state">No snapshots yet.</div>';
+    return;
+  }
+  INV_SNAPSHOTS.forEach((snap,i)=>{
     const dt=new Date(snap.saved_at).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
-    const entries=snap.data?.entries||[];
-    const entryMap={};entries.forEach(e=>{if(e.sku)entryMap[e.sku]=e.have;});
-    // Build category tables matching the Inventory tab layout
-    const cats={};PRODUCTS.forEach(p=>{if(!cats[p[0]])cats[p[0]]=[];cats[p[0]].push({cat:p[0],name:p[1],sku:p[2],vp:p[3],par:p[4]});});
-    // Compute grand totals for this snapshot
-    let snapDvHave=0,snapDvNeed=0,snapItems=0;
-    PRODUCTS.forEach(p=>{
-      const have=entryMap[p[2]]||0;
-      const haveEntered=entryMap[p[2]]!=null&&entryMap[p[2]]>0;
-      if(haveEntered){snapItems++;snapDvHave+=(p[3]||0)*have;const need=Math.max(0,(p[4]||0)-have);snapDvNeed+=(p[3]||0)*need;}
-    });
-    let tablesHtml='';
-    Object.entries(cats).forEach(([cat,items])=>{
-      const catSlug='sh'+i+'_'+cat.replace(/[^a-z0-9]/gi,'_');
-      let catDvHave=0,catDvNeed=0,hasAny=false;
-      const rows=items.map(p=>{
-        const have=entryMap[p.sku]||0;
-        const haveEntered=entryMap[p.sku]!=null&&entryMap[p.sku]>0;
-        if(!haveEntered)return null;
-        hasAny=true;
-        const need=Math.max(0,(p.par||0)-have);
-        const dvHave=(p.vp||0)*have,dvNeed=(p.vp||0)*need;
-        catDvHave+=dvHave;catDvNeed+=dvNeed;
-        const bc=need>0?'need':'ok',bt=need>0?need:'✓';
-        return`<tr>
-          <td><div class="inv-name-cell"><span class="inv-name">${p.name}</span>${p.sku?`<span class="inv-sku">${p.sku}</span>`:''}</div></td>
-          <td>${p.vp!=null?fmtVP(p.vp):'—'}</td>
-          <td>${p.par}</td>
-          <td style="text-align:center;font-weight:700;">${have}</td>
-          <td><span class="need-badge ${bc}">${bt}</span></td>
-          <td style="font-weight:600;color:var(--b6);">${fmtVP(dvHave)}</td>
-          <td style="font-weight:600;color:var(--r5);opacity:0.85;">${dvNeed>0?fmtVP(dvNeed):'—'}</td>
-        </tr>`;
-      }).filter(Boolean);
-      if(!hasAny)return;
-      tablesHtml+=`
-        <div class="inv-cat-header" style="font-size:15px;margin-top:8px;">${cat}</div>
-        <table class="inv-table">
-          <thead><tr>
-            <th style="text-align:left">Product</th><th>VP</th><th>PAR</th><th>HAVE</th><th>NEED</th><th>DV Have</th><th>DV Need</th>
-          </tr></thead>
-          <tbody>
-            ${rows.join('')}
-            <tr class="inv-cat-subtotal">
-              <td style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">${cat} Total</td>
-              <td></td><td></td><td></td><td></td>
-              <td style="font-size:13px;font-weight:700;color:var(--b6);">${catDvHave>0?fmtVP(catDvHave):'—'}</td>
-              <td style="font-size:13px;font-weight:700;color:var(--r5);opacity:0.85;">${catDvNeed>0?fmtVP(catDvNeed):'—'}</td>
-            </tr>
-          </tbody>
-        </table>`;
-    });
-    return`<div class="history-card" style="background:var(--a0);border-color:#f0d8a0;margin-bottom:12px;">
-      <div class="hcard-top" onclick="toggleInvSnap('is-${i}')">
-        <div class="hcard-date" style="color:var(--a6);">📸 ${dt}</div>
-        <div style="display:flex;gap:10px;align-items:center;">
-          <span style="font-size:11px;color:var(--text-muted);">${snapItems} items · DV Have ${fmtVP(snapDvHave)} · DV Need ${fmtVP(snapDvNeed)}</span>
-          <span style="font-size:11px;color:var(--text-faint);">▾</span>
-        </div>
-      </div>
-      <div id="is-${i}" style="display:none;margin-top:8px;">${tablesHtml||'<div style="font-size:12px;color:var(--text-faint);padding:4px 0;">No items recorded.</div>'}</div>
-    </div>`;
-  }).join('');
+    picker.innerHTML+=`<option value="${snap.id}">${dt}</option>`;
+  });
+  // Auto-select the most recent
+  picker.value=INV_SNAPSHOTS[0].id;
+  renderInvHistSnapshot(INV_SNAPSHOTS[0].id);
 }
-function toggleInvSnap(id){const el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
+function renderInvHistSnapshot(snapId){
+  const body=document.getElementById('invhist-body');
+  const dvHaveEl=document.getElementById('invhist-total-dvhave');
+  const dvNeedEl=document.getElementById('invhist-total-dvneed');
+  if(!snapId){
+    body.innerHTML='<div class="empty-state">Choose a snapshot above to view it.</div>';
+    if(dvHaveEl)dvHaveEl.textContent='—';
+    if(dvNeedEl)dvNeedEl.textContent='—';
+    return;
+  }
+  const snap=INV_SNAPSHOTS.find(s=>s.id===snapId);
+  if(!snap){body.innerHTML='<div class="empty-state">Snapshot not found.</div>';return;}
+  const entries=snap.data?.entries||[];
+  const entryMap={};entries.forEach(e=>{if(e.sku!=null)entryMap[e.sku]=e.have;});
+  const cats={};PRODUCTS.forEach(p=>{if(!cats[p[0]])cats[p[0]]=[];cats[p[0]].push({name:p[1],sku:p[2],vp:p[3],par:p[4]});});
+  let snapDvHave=0,snapDvNeed=0;
+  PRODUCTS.forEach(p=>{
+    const have=entryMap[p[2]]||0;
+    const haveEntered=entryMap[p[2]]!=null&&entryMap[p[2]]>0;
+    if(haveEntered){snapDvHave+=(p[3]||0)*have;const need=Math.max(0,(p[4]||0)-have);snapDvNeed+=(p[3]||0)*need;}
+  });
+  if(dvHaveEl)dvHaveEl.textContent=fmtVP(snapDvHave);
+  if(dvNeedEl)dvNeedEl.textContent=fmtVP(snapDvNeed);
+  let html='';
+  Object.entries(cats).forEach(([cat,items])=>{
+    const catSlug='ih_'+cat.replace(/[^a-z0-9]/gi,'_');
+    let catDvHave=0,catDvNeed=0,hasAny=false;
+    const rows=items.map(p=>{
+      const haveRaw=entryMap[p.sku];
+      const haveEntered=haveRaw!=null&&haveRaw>0;
+      if(!haveEntered)return null;
+      hasAny=true;
+      const have=haveRaw;
+      const need=Math.max(0,(p.par||0)-have);
+      const dvHave=(p.vp||0)*have,dvNeed=(p.vp||0)*need;
+      catDvHave+=dvHave;catDvNeed+=dvNeed;
+      const bc=need>0?'need':'ok',bt=need>0?need:'✓';
+      const needClass=need>0?'inv-row-need':'';
+      return`<tr class="${needClass}">
+        <td><div class="inv-name-cell"><span class="inv-name">${p.name}</span>${p.sku?`<span class="inv-sku">${p.sku}</span>`:''}</div></td>
+        <td>${p.vp!=null?fmtVP(p.vp):'—'}</td>
+        <td>${p.par}</td>
+        <td style="text-align:right;font-size:16px;font-weight:700;">${have}</td>
+        <td><span class="need-badge ${bc}">${bt}</span></td>
+        <td style="font-size:16px;font-weight:600;color:var(--b6);">${fmtVP(dvHave)}</td>
+        <td style="font-size:16px;font-weight:600;color:var(--r5);opacity:0.85;">${dvNeed>0?fmtVP(dvNeed):'—'}</td>
+      </tr>`;
+    }).filter(Boolean);
+    if(!hasAny)return;
+    html+=`<div class="inv-cat-header">${cat}</div>
+      <table class="inv-table">
+        <thead><tr>
+          <th style="text-align:left">Product</th><th>VP</th><th>PAR</th><th>HAVE</th><th>NEED</th><th>DV Have</th><th>DV Need</th>
+        </tr></thead>
+        <tbody>
+          ${rows.join('')}
+          <tr class="inv-cat-subtotal">
+            <td style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">${cat} Total</td>
+            <td></td><td></td><td></td><td></td>
+            <td style="font-size:13px;font-weight:700;color:var(--b6);">${catDvHave>0?fmtVP(catDvHave):'—'}</td>
+            <td style="font-size:13px;font-weight:700;color:var(--r5);opacity:0.85;">${catDvNeed>0?fmtVP(catDvNeed):'—'}</td>
+          </tr>
+        </tbody>
+      </table>`;
+  });
+  body.innerHTML=html||'<div class="empty-state">No items recorded in this snapshot.</div>';
+  // Recalc sticky cat top offset
+  const stickyWrap=document.getElementById('invhist-sticky-wrap');
+  if(stickyWrap){
+    const h=stickyWrap.offsetHeight;
+    document.documentElement.style.setProperty('--invhist-cat-top',h+'px');
+  }
+}
 
 function renderPayouts(){
   const from=document.getElementById('payout-from')?.value,to=document.getElementById('payout-to')?.value,el=document.getElementById('payouts-body');if(!el)return;
