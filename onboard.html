@@ -197,8 +197,8 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
       <input type="text" id="s3-addr" placeholder="123 Main St"/>
     </div>
     <div class="field-row">
-      <div class="field"><label>City <span>— auto-filled from ZIP</span></label><input type="text" id="s3-city" placeholder="Enter ZIP first" readonly style="background:var(--bpl);color:var(--gt);cursor:default;"/></div>
-      <div class="field"><label>State</label><input type="text" id="s3-state" placeholder="—" maxlength="2" readonly style="background:var(--bpl);color:var(--gt);cursor:default;"/></div>
+      <div class="field"><label>City <span>— auto-filled from ZIP</span></label><input type="text" id="s3-city" placeholder="Enter ZIP first" readonly tabindex="-1" style="background:var(--bpl);color:var(--gt);cursor:not-allowed;pointer-events:none;user-select:none;"/></div>
+      <div class="field"><label>State</label><input type="text" id="s3-state" placeholder="—" maxlength="2" readonly tabindex="-1" style="background:var(--bpl);color:var(--gt);cursor:not-allowed;pointer-events:none;user-select:none;"/></div>
     </div>
     <div class="field">
       <label>ZIP code</label>
