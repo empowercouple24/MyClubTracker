@@ -533,6 +533,12 @@ if('serviceWorker' in navigator){
       <div class="collapsible-body" id="ops-body" style="display:flex;flex-direction:column;gap:6px;padding:8px 0;">
         <div class="field-row" style="border-bottom:none;"><div class="field-label">Operator 1</div><select class="field-input" id="f-op1" onchange="markDirty();recalc()"></select></div>
         <div class="field-row" style="border-bottom:none;"><div class="field-label">Operator 2</div><select class="field-input" id="f-op2" onchange="markDirty();recalc()"></select></div>
+        <div id="reinvest-row" style="display:none;padding:4px 10px 2px;border-top:1px solid var(--border-light);margin-top:2px;">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--b7);font-weight:600;">
+            <input type="checkbox" id="f-owner-reinvest" onchange="markDirty();recalc()" style="width:15px;height:15px;accent-color:var(--b7);cursor:pointer;"/>
+            ↩ Reinvest my share into overhead
+          </label>
+        </div>
       </div>
     </div>
     <!-- Fundraiser — expanded by default -->
@@ -1275,7 +1281,7 @@ async function saveProfileAndSettings(){
     SETTINGS.otherRate=parseFloat(document.getElementById('s-otherrate')?.value||SETTINGS.otherRate);
     SETTINGS.merchRate=parseFloat(document.getElementById('s-merchrate')?.value||SETTINGS.merchRate);
     SETTINGS.dvDelta=parseFloat(document.getElementById('s-dvdelta')?.value||SETTINGS.dvDelta);
-    SETTINGS.operators=[0,1,2,3].map(i=>({name:document.getElementById('s-op-'+i)?.value.trim()||'',visible:SETTINGS.operators[i]?.visible!==false,aliases:document.getElementById('s-alias-'+i)?.value.trim()||''}));
+    SETTINGS.operators=[0,1,2,3].map(i=>({name:document.getElementById('s-op-'+i)?.value.trim()||'',visible:SETTINGS.operators[i]?.visible!==false,isOwner:SETTINGS.operators[i]?.isOwner===true,aliases:document.getElementById('s-alias-'+i)?.value.trim()||''}));
     // opDays are toggled live into SETTINGS.opDays directly — no read needed here
     const empCode=document.getElementById('s-emp-code')?.value.trim();
     if(empCode)SETTINGS.employeeInviteCode=empCode;
@@ -1777,6 +1783,11 @@ document.addEventListener('DOMContentLoaded',function(){
 });
 
 // ── FORMULAS with conditional display
+function getOwnerOpName(){
+  const ownerOp=SETTINGS.operators.find(o=>o.isOwner===true&&o.name);
+  return ownerOp?ownerOp.name:null;
+}
+
 function calcAll(){
   const cashSales=pv('f-cashSales'),cardSales=pv('f-cardSales'),cardFees=pv('f-cardFees');
   const cashAppPay=pv('f-cashAppPay'),venmo=pv('f-venmo');
@@ -1800,19 +1811,28 @@ function calcAll(){
   // Row 19: products = dv * (dvDelta+1)
   const products=group2?dv*(dvDelta+1):null;
   // Row 20: payouts = totalSales - tax - overhead - products - fundraiserCard
-  const payouts=group2&&tax!==null&&overhead!==null?totalSales-tax-overhead-products-fundraiserCard:null;
+  const payoutsRaw=group2&&tax!==null&&overhead!==null?totalSales-tax-overhead-products-fundraiserCard:null;
+  // Owner reinvestment: if checked, owner's share goes back to overhead
+  const ownerReinvest=document.getElementById('f-owner-reinvest')?.checked||false;
+  const op1Val=document.getElementById('f-op1')?.value||'';
+  const op2Val=document.getElementById('f-op2')?.value||'';
+  const ownerName=getOwnerOpName();
+  const ownerIsSelected=ownerName&&(op1Val===ownerName||op2Val===ownerName);
+  const opsCount=[op1Val,op2Val].filter(Boolean).length;
+  const ownerShare=(ownerReinvest&&ownerIsSelected&&payoutsRaw!==null&&opsCount>0)?payoutsRaw/opsCount:0;
+  const overhead2=overhead!==null?(overhead+ownerShare):null;
+  const payouts=payoutsRaw!==null?(payoutsRaw-ownerShare):null;
   // Row 21: fundraiserTotal = fundraiserCard + fundraiserCash + pctDonation
   const fundraiserTotal=fundraiserCard+fundraiserCash+donation;
-  // Row 32: $/DV = (tax+overhead+products+payouts+fundraiserTotal - fundraiserCash) / dv
-  const perDV=group2&&tax!==null&&overhead!==null?(tax+overhead+products+payouts+fundraiserTotal-fundraiserCash)/dv:null;
-  // Balance: sheet formula = ROUND(tax+overhead+products+payouts+IF(hasFundraiser,fundraiserTotal,0),2) == ROUND(totalSales,2)
-  // fundraiserCash (tips) are physical cash not in Square deposits so they show as expected offset
+  // Row 32: $/DV — use overhead2 (which includes reinvested share)
+  const perDV=group2&&overhead2!==null?(tax+overhead2+products+payouts+fundraiserTotal-fundraiserCash)/dv:null;
+  // Balance — use overhead2 so balance check still passes with reinvestment
   const hasFundraiser=fundraiserCard>0||fundraiserCash>0||fundraiserPct>0;
-  const balLHS=tax!==null&&overhead!==null&&products!==null&&payouts!==null?Math.round((tax+overhead+products+payouts+(hasFundraiser?fundraiserTotal:0))*100)/100:null;
+  const balLHS=tax!==null&&overhead2!==null&&products!==null&&payouts!==null?Math.round((tax+overhead2+products+payouts+(hasFundraiser?fundraiserTotal:0))*100)/100:null;
   const balRHS=group1?Math.round(totalSales*100)/100:null;
   const balanced=balLHS!==null&&balRHS!==null?balLHS===balRHS:null;
   const balDiff=balLHS!==null&&balRHS!==null?balLHS-balRHS:null;
-  return{cashSales,cardSales,cardFees,dv,venmo,fundraiserCard,fundraiserCash,donation,fundraiserTotal,hasFundraiser,cardDeposits,totalSales,tax,overhead,products,payouts,perDV,group1,group2,balanced,balDiff};
+  return{cashSales,cardSales,cardFees,dv,venmo,fundraiserCard,fundraiserCash,donation,fundraiserTotal,hasFundraiser,cardDeposits,totalSales,tax,overhead:overhead2,products,payouts,perDV,group1,group2,balanced,balDiff,ownerReinvest,ownerShare};
 }
 
 function fmt$(n){if(n===null||isNaN(n))return'$0.00';return'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
@@ -1893,9 +1913,12 @@ function loadDay(){
     const fp=document.getElementById('f-fundraiserPct');if(fp)fp.value=d.fundraiserPct||'0';
     const o1=document.getElementById('f-op1'),o2=document.getElementById('f-op2');
     if(o1&&d.op1!==undefined)o1.value=d.op1;if(o2&&d.op2!==undefined)o2.value=d.op2;
+    // Restore reinvest checkbox
+    const rc=document.getElementById('f-owner-reinvest');if(rc)rc.checked=d.ownerReinvest===true;
   }else{
     ENTRY_FIELDS.forEach(k=>{const el=document.getElementById('f-'+k);if(el)el.value='';});
     const fp=document.getElementById('f-fundraiserPct');if(fp)fp.value='0';
+    const rc=document.getElementById('f-owner-reinvest');if(rc)rc.checked=false;
   }
   formatAllCurrencyFields();
   var dvEl=document.getElementById('f-dv');
@@ -1912,7 +1935,7 @@ async function saveDay(){
   const date=document.getElementById('entry-date').value;
   if(!date){showToast('Please set a date','error');return;}
   const c=calcAll();
-  const data={cashSales:pv('f-cashSales'),cardSales:pv('f-cardSales'),cardFees:pv('f-cardFees'),giftCardRedeemed:pv('f-giftCardRedeemed'),cashAppPay:pv('f-cashAppPay'),venmo:pv('f-venmo'),otherSales:pv('f-otherSales'),merchSales:pv('f-merchSales'),giftCardSales:pv('f-giftCardSales'),giftCardLoadFees:pv('f-giftCardLoadFees'),fundraiserCash:pv('f-fundraiserCash'),fundraiserCard:pv('f-fundraiserCard'),fundraiserPct:pv('f-fundraiserPct'),dv:pv('f-dv'),notes:document.getElementById('f-notes')?.value||'',op1:document.getElementById('f-op1')?.value||'',op2:document.getElementById('f-op2')?.value||'',totalSales:c.totalSales||0,overhead:c.overhead||0,taxes:c.tax||0,products:c.products||0,payouts:c.payouts||0,donation:c.donation||0,perDV:c.perDV||0};
+  const data={cashSales:pv('f-cashSales'),cardSales:pv('f-cardSales'),cardFees:pv('f-cardFees'),giftCardRedeemed:pv('f-giftCardRedeemed'),cashAppPay:pv('f-cashAppPay'),venmo:pv('f-venmo'),otherSales:pv('f-otherSales'),merchSales:pv('f-merchSales'),giftCardSales:pv('f-giftCardSales'),giftCardLoadFees:pv('f-giftCardLoadFees'),fundraiserCash:pv('f-fundraiserCash'),fundraiserCard:pv('f-fundraiserCard'),fundraiserPct:pv('f-fundraiserPct'),dv:pv('f-dv'),notes:document.getElementById('f-notes')?.value||'',op1:document.getElementById('f-op1')?.value||'',op2:document.getElementById('f-op2')?.value||'',totalSales:c.totalSales||0,overhead:c.overhead||0,taxes:c.tax||0,products:c.products||0,payouts:c.payouts||0,donation:c.donation||0,perDV:c.perDV||0,ownerReinvest:c.ownerReinvest||false,ownerShare:c.ownerShare||0};
   if(IS_ADMIN_VIEW) data._adminEdit=new Date().toISOString(); // stamp when admin last edited
   const ex=ALL_DAYS.find(d=>d.date===date);let error;
   if(ex){const{error:e}=await sb.from('days').update({data}).eq('id',ex.id);error=e;if(!e)ex.data=data;}
@@ -2029,21 +2052,38 @@ function renderDashboardWidgets(){
 function renderOpsEarningsPreview(){
   const c = calcAll();
   const previewEl = document.getElementById('ops-earnings-preview');
-  if(!previewEl) return;
+  const reinvestRow = document.getElementById('reinvest-row');
   const op1 = document.getElementById('f-op1')?.value || '';
   const op2 = document.getElementById('f-op2')?.value || '';
   const ops = [op1, op2].filter(Boolean);
-  const share = (c.group2 && c.payouts !== null && ops.length > 0) ? c.payouts / ops.length : null;
-  if(share !== null && ops.length > 0){
-    const label = ops.map(o => o.split(' ')[0] + ' ' + fmt$(share)).join(' · ');
-    previewEl.textContent = label;
-    previewEl.style.display = 'inline';
-  } else if(ops.length > 0 && (op1 || op2)){
-    // Operator selected but payouts not yet calculable — show name only
-    previewEl.textContent = ops.map(o => o.split(' ')[0]).join(' · ');
-    previewEl.style.display = 'inline';
-  } else {
-    previewEl.style.display = 'none';
+  const ownerName = getOwnerOpName();
+  const ownerIsSelected = ownerName && ops.includes(ownerName);
+  const isReinvesting = c.ownerReinvest && ownerIsSelected;
+
+  // Show/hide reinvest row
+  if(reinvestRow) reinvestRow.style.display = ownerIsSelected ? 'block' : 'none';
+
+  // Header preview label
+  if(previewEl){
+    const share = (c.group2 && c.payouts !== null && ops.length > 0 && !isReinvesting)
+      ? c.payouts / ops.filter(o=>o!==ownerName||!isReinvesting).length
+      : null;
+    const fullShare = (c.group2 && c.payoutsRaw !== null && ops.length > 0)
+      ? (c.payouts + c.ownerShare) / ops.length : null;
+
+    if(ops.length > 0){
+      const parts = ops.map(o => {
+        if(o === ownerName && isReinvesting) return `${o.split(' ')[0]} ↩`;
+        const amt = c.group2 && c.payouts !== null
+          ? (ops.length === 1 ? c.payouts : c.payouts / ops.filter(op=>!(op===ownerName&&isReinvesting)).length)
+          : null;
+        return amt !== null ? `${o.split(' ')[0]} ${fmt$(amt)}` : o.split(' ')[0];
+      });
+      previewEl.textContent = parts.join(' · ');
+      previewEl.style.display = 'inline';
+    } else {
+      previewEl.style.display = 'none';
+    }
   }
 }
 
@@ -2109,19 +2149,37 @@ function openDetail(date){
   const don=fPct>0?netS*(fPct/100):0;
   const oh=ohRaw-don;
   const prod=dv*(dvDelta+1);
-  const pay=totalS-fCard-fCash-tax-oh-prod;
+  const payRaw=totalS-fCard-fCash-tax-oh-prod;
+  const ownerName=getOwnerOpName();
+  const ops=[d.op1,d.op2].filter(Boolean);
+  const opsCount=ops.length;
+  const ownerInOps=ownerName&&ops.includes(ownerName);
+  const ownerShareAmt=(d.ownerReinvest&&ownerInOps&&opsCount>0)?payRaw/opsCount:0;
+  const pay=payRaw-ownerShareAmt;
+  const ohFinal=oh+ownerShareAmt;
 
   document.getElementById('df-cardDeposits').textContent = fmt$(cardDep);
   document.getElementById('df-totalSales').textContent   = fmt$(totalS);
   document.getElementById('df-tax').textContent          = fmt$(tax);
-  document.getElementById('df-overhead').textContent     = fmt$(oh);
+  document.getElementById('df-overhead').textContent     = fmt$(ohFinal);
   document.getElementById('df-donation').textContent     = don>0?fmt$(don):'—';
   document.getElementById('df-products').textContent     = fmt$(prod);
   document.getElementById('df-payouts').textContent      = fmt$(pay);
 
-  // Operators
-  document.getElementById('df-op1').innerHTML = d.op1||`<span class="detail-row-val dim">—</span>`;
-  document.getElementById('df-op2').innerHTML = d.op2||`<span class="detail-row-val dim">—</span>`;
+  // Operators — mark reinvested owner with indicator
+  const reinvestTag = d.ownerReinvest ? ' <span style="font-size:10px;font-weight:700;background:#dbeafe;color:#1d4ed8;border-radius:4px;padding:1px 5px;vertical-align:middle;">↩ Reinvested</span>' : '';
+  if(d.op1){
+    const isOwner1 = ownerName && d.op1===ownerName;
+    document.getElementById('df-op1').innerHTML = d.op1 + (isOwner1&&d.ownerReinvest?reinvestTag:'');
+  } else {
+    document.getElementById('df-op1').innerHTML = `<span class="detail-row-val dim">—</span>`;
+  }
+  if(d.op2){
+    const isOwner2 = ownerName && d.op2===ownerName;
+    document.getElementById('df-op2').innerHTML = d.op2 + (isOwner2&&d.ownerReinvest?reinvestTag:'');
+  } else {
+    document.getElementById('df-op2').innerHTML = `<span class="detail-row-val dim">—</span>`;
+  }
 
   // Notes
   const notesSec=document.getElementById('df-notes-section');
@@ -2620,11 +2678,24 @@ function renderPayouts(){
     const dt=new Date(d.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
     const py=data.payouts||0;
     const ops=[data.op1,data.op2].filter(Boolean);
+    const ownerName=getOwnerOpName();
     const sh=ops.length>0?py/ops.length:0;
-    ops.forEach(o=>{const k=resolveAlias(o);ot[k]=(ot[k]||0)+sh;});
+    // Payouts are already stored post-reinvestment, so just accumulate as-is
+    ops.forEach(o=>{
+      const k=resolveAlias(o);
+      const isOwnerOp=ownerName&&o===ownerName&&data.ownerReinvest;
+      if(!isOwnerOp) ot[k]=(ot[k]||0)+sh;
+    });
+    const opRows=ops.map(o=>{
+      const isOwnerOp=ownerName&&o===ownerName&&data.ownerReinvest;
+      if(isOwnerOp){
+        return`<div class="payout-op-row"><div class="payout-op-name">${o}</div><div class="payout-op-amt" style="font-size:12px;color:var(--b6);font-weight:600;">↩ Reinvested</div></div>`;
+      }
+      return`<div class="payout-op-row"><div class="payout-op-name">${o}</div><div class="payout-op-amt">${fmt$(sh)}</div></div>`;
+    }).join('');
     return`<div class="payout-day-card">
       <div class="payout-day-header"><div class="payout-day-date">${dt}</div><div style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:var(--g5)">${fmt$(py)}</div></div>
-      <div class="payout-ops">${ops.map(o=>`<div class="payout-op-row"><div class="payout-op-name">${o}</div><div class="payout-op-amt">${fmt$(sh)}</div></div>`).join('')||'<div style="font-size:11px;color:var(--text-faint)">No operators</div>'}</div>
+      <div class="payout-ops">${opRows||'<div style="font-size:11px;color:var(--text-faint)">No operators</div>'}</div>
     </div>`;
   }).join('');
 
@@ -2658,11 +2729,16 @@ async function savePayoutSnapshot(){
   // Gather operator totals from current range
   const fl=ALL_DAYS.filter(d=>d.date>=from&&d.date<=to);
   const ot={};let grand=0;
+  const ownerName=getOwnerOpName();
   fl.forEach(d=>{
     const data=d.data||{};
     const ops=[data.op1,data.op2].filter(Boolean);
     const sh=ops.length>0?(data.payouts||0)/ops.length:0;
-    ops.forEach(o=>{const k=resolveAlias(o);ot[k]=(ot[k]||0)+sh;});
+    ops.forEach(o=>{
+      const k=resolveAlias(o);
+      const isOwnerOp=ownerName&&o===ownerName&&data.ownerReinvest;
+      if(!isOwnerOp) ot[k]=(ot[k]||0)+sh;
+    });
   });
   grand=Object.values(ot).reduce((s,v)=>s+v,0);
 
@@ -2734,10 +2810,12 @@ function buildSettingsUI(){
 
   document.getElementById('s-operators').innerHTML=SETTINGS.operators.map((op,i)=>{
     const isActive=op.visible!==false;
+    const isOwner=op.isOwner===true;
     return`<div class="settings-row" style="gap:8px;align-items:center;">
       <label style="min-width:80px;color:${isActive?'var(--text)':'var(--text-faint)'};">Operator ${i+1}</label>
       <input type="text" id="s-op-${i}" value="${op.name||''}" placeholder="Name" style="flex:1;opacity:${isActive?1:0.45};"/>
       <input type="text" id="s-alias-${i}" value="${op.aliases||''}" placeholder="Aliases e.g. MN" style="flex:1;opacity:${isActive?1:0.45};"/>
+      <button type="button" id="s-op-owner-${i}" onclick="toggleOperatorOwner(${i})" title="Mark as club owner" style="flex-shrink:0;font-size:11px;font-weight:700;padding:4px 9px;border-radius:var(--radius-sm);border:1px solid ${isOwner?'var(--b6)':'var(--border)'};background:${isOwner?'var(--b1)':'var(--b0)'};color:${isOwner?'var(--b7)':'var(--text-faint)'};cursor:pointer;white-space:nowrap;">${isOwner?'Owner':'Owner?'}</button>
       <button type="button" id="s-op-active-${i}" onclick="toggleOperatorActive(${i})" style="flex-shrink:0;font-size:11px;font-weight:700;padding:4px 9px;border-radius:var(--radius-sm);border:1px solid ${isActive?'var(--g5)':'var(--border)'};background:${isActive?'var(--g0)':'var(--b0)'};color:${isActive?'var(--g6)':'var(--text-faint)'};cursor:pointer;white-space:nowrap;">${isActive?'Active':'Inactive'}</button>
     </div>`;
   }).join('');
@@ -2757,7 +2835,22 @@ function buildSettingsUI(){
   if(empSection&&USER_ROLE==='employee')empSection.style.display='none';
 }
 
-function toggleOperatorActive(i){
+function toggleOperatorOwner(i){
+  // Only one operator can be owner at a time
+  SETTINGS.operators.forEach((op,j)=>{ op.isOwner = (j===i) ? !op.isOwner : false; });
+  // Rebuild just the owner buttons
+  SETTINGS.operators.forEach((op,j)=>{
+    const btn=document.getElementById('s-op-owner-'+j);
+    if(!btn)return;
+    const isOwner=op.isOwner===true;
+    btn.textContent=isOwner?'Owner':'Owner?';
+    btn.style.borderColor=isOwner?'var(--b6)':'var(--border)';
+    btn.style.background=isOwner?'var(--b1)':'var(--b0)';
+    btn.style.color=isOwner?'var(--b7)':'var(--text-faint)';
+  });
+  // Refresh enter tab so reinvest checkbox appears/disappears
+  recalc();
+}
   SETTINGS.operators[i].visible=!SETTINGS.operators[i].visible;
   const isActive=SETTINGS.operators[i].visible;
   const btn=document.getElementById('s-op-active-'+i);
