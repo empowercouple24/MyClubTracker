@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-30 05:00:00 -->
+<!-- CACHE BUST: 2026-03-30 11:47:30 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -13,7 +13,7 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Outfit:wght@400;600;700;800&display=block" rel="stylesheet"/>
 <link rel="stylesheet" href="shared.css?v=10"/>
 <link rel="stylesheet" href="nav.css?v=10"/>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <style>
     .btn-sm{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text-muted);background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer;transition:background 0.15s;text-decoration:none;display:inline-block}
     .btn-sm:hover{background:var(--b0);color:var(--text)}
@@ -296,9 +296,10 @@
   <div class="nav-menu-wrap">
     <button class="nav-menu-btn" onclick="toggleNavMenu()"><div class="nav-avatar" id="nav-avatar"><span></span><img alt=""/></div><span id="nav-display-name" style="font-size:13px;font-weight:600;color:var(--text-muted);margin-right:4px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>ADMIN <span style="font-size:10px;">▾</span></button>
     <div class="nav-drop" id="nav-dropdown">
-      <button class="nav-drop-item" onclick="window.location.href='admin.html';closeNavMenu()">🏠 My Organization</button>
+      <button class="nav-drop-item" onclick="window.location.href='admin.html';closeNavMenu()">🏠 Dashboard</button>
       <button class="nav-drop-item" onclick="window.location.href='locations.html';closeNavMenu()">🏪 Locations</button>
       <button class="nav-drop-item" onclick="window.location.href='settings.html';closeNavMenu()">⚙ Settings</button>
+      <button class="nav-drop-item" onclick="window.location.href='organizations.html';closeNavMenu()">🏢 Organizations</button>
       <div class="nav-drop-divider"></div>
       <button class="nav-drop-item danger" onclick="handleSignOut();closeNavMenu()">↪ Sign out</button>
     </div>
