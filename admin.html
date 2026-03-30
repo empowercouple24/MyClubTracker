@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-30 16:19:32 -->
+<!-- CACHE BUST: 2026-03-30 16:32:34 -->
 <html lang="en">
 <head>
 <script>
@@ -258,22 +258,15 @@ if('serviceWorker' in navigator){
 
     /* ── LAYOUT TOGGLE ── */
     #layout-body{display:block}
-    #layout-body.split{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start;margin-top:28px;}
     #layout-body.split #locations-col{min-width:0}
-    #layout-body.split #metrics-col{position:sticky;top:68px;display:flex;flex-direction:column;gap:20px;}
     #layout-body:not(.split) #metrics-col{display:block}
     #layout-body:not(.split) #metrics-col .section-label{margin-top:0;}
     #layout-body:not(.split) #locations-col{margin-top:28px;}
-    #layout-body.split .locs-header{margin-top:0}
     #layout-body.split #metrics-col .kpi-strip{grid-template-columns:1fr;}
-    #layout-body.split .loc-name{white-space:normal;overflow:visible;text-overflow:unset;}
     #layout-body.split .loc-owner{white-space:normal;overflow:visible;text-overflow:unset;line-height:1.4;}
-    #layout-body.split .loc-addr{white-space:normal;overflow:visible;text-overflow:unset;line-height:1.4;}
     #layout-body.split .loc-card-header{align-items:flex-start;}
-    #layout-body.split .loc-meta{display:flex;flex-direction:column;gap:3px;}
     /* Active view indicator in nav dropdown */
     .nav-drop-item-active{background:var(--b0);color:var(--b7);font-weight:700;}
-    @media(max-width:1100px){#layout-body.split{grid-template-columns:1fr;}#layout-body.split #metrics-col{position:static;}}
 
 
 
@@ -317,13 +310,9 @@ if('serviceWorker' in navigator){
   <div class="nav-menu-wrap">
     <button class="nav-menu-btn" onclick="toggleNavMenu()"><div class="nav-avatar" id="nav-avatar"><span></span><img alt=""/></div><span id="nav-display-name" style="font-size:13px;font-weight:600;color:var(--text-muted);margin-right:4px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>ADMIN <span style="font-size:10px;">▾</span></button>
     <div class="nav-drop" id="nav-dropdown">
-      <button class="nav-drop-item" onclick="window.location.href='admin.html';closeNavMenu()">🏠 Dashboard</button>
       <button class="nav-drop-item" onclick="window.location.href='locations.html';closeNavMenu()">🏪 Locations</button>
       <button class="nav-drop-item" onclick="window.location.href='settings.html';closeNavMenu()">⚙ Settings</button>
       <button class="nav-drop-item" onclick="window.location.href='organizations.html';closeNavMenu()">🏢 Organizations</button>
-      <div class="nav-drop-divider"></div>
-      <button class="nav-drop-item" id="nav-layout-list" onclick="setLayout('list');closeNavMenu()">☰ List View</button>
-      <button class="nav-drop-item" id="nav-layout-split" onclick="setLayout('split');closeNavMenu()">⊞ Split View</button>
       <div class="nav-drop-divider"></div>
       <button class="nav-drop-item danger" onclick="handleSignOut();closeNavMenu()">↪ Sign out</button>
     </div>
@@ -1188,38 +1177,6 @@ function renderCompChart(){
 }
 
 // ── LAYOUT TOGGLE ──
-function setLayout(mode){
-  var body=document.getElementById('layout-body');
-  var btnList=document.getElementById('nav-layout-list');
-  var btnSplit=document.getElementById('nav-layout-split');
-  if(!body)return;
-  var metricsCol=document.getElementById('metrics-col');
-  var locsCol=document.getElementById('locations-col');
-  if(mode==='split'){
-    body.classList.add('split');
-    // Split: locations left, metrics right — metrics goes second in DOM
-    if(metricsCol&&locsCol&&body.lastElementChild!==metricsCol){
-      body.appendChild(metricsCol);
-    }
-    if(btnSplit)btnSplit.classList.add('nav-drop-item-active');
-    if(btnList)btnList.classList.remove('nav-drop-item-active');
-    setTimeout(function(){renderCompChart();},50);
-  }else{
-    body.classList.remove('split');
-    // List: metrics on top, locations below — metrics goes first in DOM
-    if(metricsCol&&locsCol&&body.firstElementChild!==metricsCol){
-      body.insertBefore(metricsCol,locsCol);
-    }
-    if(btnList)btnList.classList.add('nav-drop-item-active');
-    if(btnSplit)btnSplit.classList.remove('nav-drop-item-active');
-    setTimeout(function(){renderCompChart();},50);
-  }
-  localStorage.setItem('admin_layout_view',mode);
-}
-function initLayout(){
-  var saved=localStorage.getItem('admin_layout_view')||'list';
-  setLayout(saved);
-}
 
 async function init(){
   const{data:{session}}=await sb.auth.getSession();
@@ -1250,7 +1207,6 @@ async function init(){
   renderKPIs();renderLocations();renderAlertBanner();renderCompChart();
   await loadRequests();
   document.getElementById('loading-overlay').style.display='none';
-  initLayout();
 }
 
 // ── DUPLICATE DETECTION (Levenshtein distance) ──
