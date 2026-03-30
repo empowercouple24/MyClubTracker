@@ -1646,6 +1646,7 @@ async function init(){
       const primary=USER_LOCATIONS.find(l=>l.is_primary)||USER_LOCATIONS[0];
       LOCATION_ID=stored||primary?.location_id||u.location_id;
     }
+    console.log('LOCATION_ID resolved:',LOCATION_ID,'USER_LOCATIONS:',USER_LOCATIONS.length,'u.location_id:',u.location_id);
 
     // Store multi-location data for switcher
     window._USER_LOCATIONS=USER_LOCATIONS;
@@ -2898,6 +2899,8 @@ function toggleOperatorOwner(i){
   // Refresh enter tab so reinvest checkbox appears/disappears
   recalc();
 }
+
+function toggleOperatorActive(i){
   SETTINGS.operators[i].visible=!SETTINGS.operators[i].visible;
   const isActive=SETTINGS.operators[i].visible;
   const btn=document.getElementById('s-op-active-'+i);
