@@ -728,7 +728,7 @@ function openProfileModal(){
     const img=document.getElementById('pm-avatar-img');
     const initials=document.getElementById('pm-avatar-initials');
     const initial=((ME.first_name||'')[0]||(ME.display_name||'')[0]||'?').toUpperCase();
-    if(ME.avatar_url&&img){img.src=ME.avatar_url;img.style.display='block';if(initials)initials.style.display='none';}
+    if(ME.avatar_url&&img){img.src=ME.avatar_url+(ME.avatar_url.includes('?')?'&':'?')+'r='+Date.now();img.style.display='block';if(initials)initials.style.display='none';}
     else{if(img)img.style.display='none';if(initials){initials.textContent=initial;initials.style.display='';}}
   }
   _croppedDataUrl=null;
@@ -865,7 +865,7 @@ async function saveProfile(){
     let avatarUrl=ME?.avatar_url||null;
     if(_croppedDataUrl){
       const blob=await(await fetch(_croppedDataUrl)).blob();
-      const path='avatars/'+ME.id+'.jpg';
+      const path=ME.id+'.jpg';
       const{error:upErr}=await sb.storage.from('avatars').upload(path,blob,{upsert:true,contentType:'image/jpeg'});
       if(!upErr){const{data:urlData}=sb.storage.from('avatars').getPublicUrl(path);avatarUrl=(urlData?.publicUrl||avatarUrl)+'?t='+Date.now();}
     }
@@ -877,9 +877,12 @@ async function saveProfile(){
     const navAv=document.getElementById('nav-avatar');
     if(navAv){
       const sp=navAv.querySelector('span');const im=navAv.querySelector('img');
-      if(avatarUrl&&im){im.src=avatarUrl;im.style.display='block';if(sp)sp.style.display='none';}
+      if(avatarUrl&&im){im.src=avatarUrl+'&r='+Date.now();im.style.display='block';if(sp)sp.style.display='none';}
       else if(sp){sp.textContent=(first[0]||'?').toUpperCase();sp.style.display='';}
     }
+    // Also update profile preview
+    const pmImg=document.getElementById('pm-avatar-img');
+    if(pmImg&&avatarUrl){pmImg.src=avatarUrl+'&r='+Date.now();pmImg.style.display='block';}
     showProfileMsg('success','Profile updated!');
     btn.disabled=false;btn.textContent='Save changes';
     setTimeout(function(){closeModal('profile-modal');},800);
