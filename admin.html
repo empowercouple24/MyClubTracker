@@ -311,6 +311,7 @@ if('serviceWorker' in navigator){
       <button class="nav-drop-item" onclick="window.location.href='admin.html';closeNavMenu()">🏠 Dashboard</button>
       <button class="nav-drop-item" onclick="window.location.href='locations.html';closeNavMenu()">🏪 Locations</button>
       <button class="nav-drop-item" onclick="window.location.href='settings.html';closeNavMenu()">⚙ Settings</button>
+      <button class="nav-drop-item" onclick="window.location.href='organizations.html';closeNavMenu()">🏢 Organizations</button>
       <div class="nav-drop-divider"></div>
       <button class="nav-drop-item" id="nav-layout-list" onclick="setLayout('list');closeNavMenu()">☰ List View</button>
       <button class="nav-drop-item" id="nav-layout-split" onclick="setLayout('split');closeNavMenu()">⊞ Split View</button>
@@ -325,42 +326,10 @@ if('serviceWorker' in navigator){
   <!-- SUPER-ADMIN TAB SWITCHER -->
   <div class="sa-tabs" id="sa-tabs">
     <button class="sa-tab active" id="sa-tab-locs" onclick="switchSaTab('locs')">My Organization</button>
-    <button class="sa-tab" id="sa-tab-orgs" onclick="switchSaTab('orgs')">Organizations <span class="sa-tab-badge" id="sa-orgs-badge" style="display:none;"></span></button>
+
   </div>
 
-  <!-- ORGANIZATIONS PANEL -->
-  <div id="sa-orgs-panel" style="display:none;">
 
-    <!-- Summary strip -->
-    <!-- ORG REQUESTS SECTION -->
-    <div id="org-requests-section" style="display:none;margin-bottom:24px;">
-      <div class="section-header" style="margin-top:0;">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div class="section-label" style="margin:0;">Access Requests</div>
-          <span id="req-count-badge" style="background:var(--r5);color:white;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;"></span>
-        </div>
-      </div>
-      <div id="org-requests-list"></div>
-    </div>
-
-    <div class="orgs-summary" id="orgs-summary">
-      <div class="orgs-summary-cell"><div class="orgs-summary-val" id="os-total">—</div><div class="orgs-summary-label">Total Orgs</div></div>
-      <div class="orgs-summary-cell"><div class="orgs-summary-val" id="os-active" style="color:var(--g5);">—</div><div class="orgs-summary-label">Active</div></div>
-      <div class="orgs-summary-cell"><div class="orgs-summary-val" id="os-invited" style="color:#92400e;">—</div><div class="orgs-summary-label">Pending</div></div>
-      <div class="orgs-summary-cell"><div class="orgs-summary-val" id="os-suspended" style="color:var(--r5);">—</div><div class="orgs-summary-label">Suspended</div></div>
-    </div>
-
-    <!-- Header -->
-    <div class="section-header" style="margin-top:0;">
-      <div class="section-label" style="margin:0;">All Organizations</div>
-      <button class="btn-add-loc" onclick="openInviteOrgModal()">+ Invite New Org</button>
-    </div>
-
-    <!-- Org list -->
-    <div id="orgs-list">
-      <div style="text-align:center;padding:32px;color:var(--text-faint);font-size:13px;">Loading organizations…</div>
-    </div>
-  </div>
 
   <!-- EXISTING CONTENT WRAPPER -->
   <div id="sa-locs-panel">
@@ -455,67 +424,6 @@ if('serviceWorker' in navigator){
   </div><!-- /layout-body -->
   </div><!-- /sa-locs-panel -->
 </div><!-- /page -->
-
-<!-- ── INVITE ORG MODAL ── -->
-<div class="modal-overlay-sa" id="invite-org-modal" onclick="closeOrgModalOnBg(event,'invite-org-modal')">
-  <div class="modal-box-sm">
-    <div class="modal-title-sm">Invite New Organization</div>
-    <div class="modal-sub-sm">Enter the org leader's email. They'll receive a setup link valid for 30 days.</div>
-    <div class="modal-alert-sm error" id="io-error"></div>
-    <div class="modal-alert-sm success" id="io-success"></div>
-    <div class="modal-field-sm">
-      <label class="modal-label-sm">Leader's email address</label>
-      <input class="modal-input-sm" type="email" id="io-email" placeholder="leader@email.com"/>
-    </div>
-    <div class="modal-field-sm">
-      <label class="modal-label-sm">Organization name <span>— optional hint</span></label>
-      <input class="modal-input-sm" type="text" id="io-orgname" placeholder="e.g. Johnson Nutrition Team"/>
-    </div>
-    <div class="modal-field-sm">
-      <label class="modal-label-sm">Monthly rate <span>— $0 = free</span></label>
-      <div style="display:flex;align-items:center;gap:4px;max-width:120px;">
-        <span style="font-size:14px;font-weight:600;color:var(--text-muted);">$</span>
-        <input class="modal-input-sm" type="number" id="io-rate" value="0" min="0" step="1" style="width:100%;" oninput="this.value=Math.round(Math.abs(this.value))||0"/>
-      </div>
-    </div>
-    <div id="io-link-wrap" style="display:none;margin-bottom:12px;">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:6px;">Invite Link (copy &amp; send manually if email fails)</div>
-      <div style="background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;font-family:monospace;color:var(--b7);word-break:break-all;cursor:pointer;" id="io-link-text" onclick="copyInviteLink()"></div>
-      <div style="font-size:11px;color:var(--text-faint);margin-top:4px;">Click to copy · Expires in 30 days</div>
-    </div>
-    <div class="modal-footer-sm">
-      <button class="btn-sm" onclick="closeOrgModal('invite-org-modal')">Close</button>
-      <button class="btn-add-loc" id="io-btn" onclick="submitInviteOrg()">Send Invite →</button>
-    </div>
-  </div>
-</div>
-
-<!-- ── RATE EDIT MODAL ── -->
-<div class="modal-overlay-sa" id="edit-rate-modal" onclick="closeOrgModalOnBg(event,'edit-rate-modal')">
-  <div class="modal-box-sm">
-    <div class="modal-title-sm">Edit Billing Rate</div>
-    <div class="modal-sub-sm" id="er-sub">Update the monthly rate for this organization.</div>
-    <div class="modal-alert-sm error" id="er-error"></div>
-    <div class="modal-field-sm">
-      <label class="modal-label-sm">Monthly rate (USD)</label>
-      <div style="display:flex;align-items:center;gap:4px;max-width:140px;">
-        <span style="font-size:14px;font-weight:600;color:var(--text-muted);">$</span>
-        <input class="modal-input-sm" type="number" id="er-rate" value="0" min="0" step="1" style="width:100%;" oninput="this.value=Math.round(Math.abs(this.value))||0"/>
-      </div>
-    </div>
-    <div class="modal-field-sm">
-      <label class="modal-label-sm">Plan</label>
-      <select class="modal-input-sm" id="er-plan" style="max-width:160px;">
-        <option value="free">Free</option>
-        <option value="paid">Paid</option>
-      </select>
-    </div>
-    <div class="modal-footer-sm">
-      <button class="btn-sm" onclick="closeOrgModal('edit-rate-modal')">Cancel</button>
-      <button class="btn-add-loc" id="er-btn" onclick="submitEditRate()">Save</button>
-    </div>
-  </div>
-</div>
 
 <!-- ADD LOCATION MODAL -->
 <div class="modal-overlay" id="add-loc-modal" onclick="closeModalOnBg(event,'add-loc-modal')">
@@ -1894,22 +1802,7 @@ let editingRateOrgId = null;
 // ── TAB SWITCHER ──
 function switchSaTab(tab) {
   const locsPanel = document.getElementById('sa-locs-panel');
-  const orgsPanel = document.getElementById('sa-orgs-panel');
-  const tabLocs   = document.getElementById('sa-tab-locs');
-  const tabOrgs   = document.getElementById('sa-tab-orgs');
-  if (tab === 'locs') {
-    locsPanel.style.display = '';
-    orgsPanel.style.display = 'none';
-    tabLocs.classList.add('active');
-    tabOrgs.classList.remove('active');
-  } else {
-    locsPanel.style.display = 'none';
-    orgsPanel.style.display = 'block';
-    tabLocs.classList.remove('active');
-    tabOrgs.classList.add('active');
-    if (!allOrgs.length) loadOrgs();
-    loadOrgRequests();
-  }
+  if (locsPanel) locsPanel.style.display = '';
 }
 
 // ── LOAD ORGS ──
@@ -2294,139 +2187,6 @@ function showOrgModalAlert(id, msg) {
 }
 
 // ── AUTH HEADER HELPER ──
-async function getAuthHeader() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (session?.access_token) return { 'Authorization': `Bearer ${session.access_token}` };
-  return {};
-}
-
-// ── ORG REQUESTS ──
-let allOrgRequests = [];
-
-async function loadOrgRequests() {
-  const { data } = await sb.from('org_requests')
-    .select('*')
-    .eq('status', 'pending')
-    .order('created_at', { ascending: false });
-  allOrgRequests = data || [];
-  renderOrgRequests();
-
-  // Update tab badge
-  const badge = document.getElementById('sa-orgs-badge');
-  const total = allOrgRequests.length + allOrgs.filter(o => o.status === 'invited').length;
-  if (badge) { badge.textContent = total; badge.style.display = total ? 'inline-flex' : 'none'; }
-}
-
-function renderOrgRequests() {
-  const section = document.getElementById('org-requests-section');
-  const list    = document.getElementById('org-requests-list');
-  const badge   = document.getElementById('req-count-badge');
-  if (!allOrgRequests.length) { section.style.display = 'none'; return; }
-  section.style.display = 'block';
-  badge.textContent = `${allOrgRequests.length} pending`;
-
-  list.innerHTML = allOrgRequests.map(r => {
-    const submitted = new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    return `<div class="req-card" id="reqcard-${r.id}">
-      <div class="req-card-header">
-        <div>
-          <div class="req-card-name">${escHtml(r.name)}</div>
-          <div class="req-card-org">🏪 ${escHtml(r.org_name)}</div>
-          <div class="req-card-meta">
-            ✉️ ${escHtml(r.email)}
-            ${r.phone ? ` &nbsp;·&nbsp; 📞 ${escHtml(r.phone)}` : ''}
-            &nbsp;·&nbsp; Submitted ${submitted}
-          </div>
-          ${r.note ? `<div class="req-card-note">"${escHtml(r.note)}"</div>` : ''}
-        </div>
-        <div class="req-card-actions">
-          <button class="btn-approve" onclick="approveOrgRequest('${r.id}','${escHtml(r.email)}','${escHtml(r.name)}','${escHtml(r.org_name)}',this)">✓ Approve</button>
-          <button class="btn-decline" id="decbtn-${r.id}" onclick="declineOrgRequest('${r.id}','${escHtml(r.email)}','${escHtml(r.name)}',this)">Decline</button>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-async function approveOrgRequest(reqId, email, name, orgName, btn) {
-  btn.disabled = true; btn.textContent = 'Approving…';
-
-  // Generate token + expiry
-  const token     = crypto.randomUUID();
-  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-
-  // Create org record
-  const { data: org, error: orgErr } = await sb.from('organizations').insert({
-    name: orgName,
-    leader_email: email,
-    leader_name: name,
-    status: 'invited',
-    billing_active: true,
-    billing_plan: 'free',
-    monthly_rate: 0,
-    invite_token: token,
-    invite_expires_at: expiresAt,
-    invited_at: new Date().toISOString(),
-  }).select().single();
-
-  if (orgErr) { btn.disabled = false; btn.textContent = '✓ Approve'; showSaToast('Failed to create org.'); return; }
-
-  // Mark request approved
-  await sb.from('org_requests').update({
-    status: 'approved',
-    reviewed_at: new Date().toISOString(),
-    reviewed_by: (await sb.auth.getUser()).data.user?.id,
-  }).eq('id', reqId);
-
-  // Send invite email
-  const inviteLink = `${window.location.origin}/onboard.html?token=${token}`;
-  try {
-    await sb.functions.invoke('send-org-invite', {
-      headers: await getAuthHeader(),
-      body: { to: email, orgName, inviteLink, expiresAt }
-    });
-  } catch(e) { console.warn('Invite email failed:', e); }
-
-  // Remove card from list
-  allOrgRequests = allOrgRequests.filter(r => r.id !== reqId);
-  allOrgs.unshift(org);
-  renderOrgRequests();
-  renderOrgSummary();
-  renderOrgs();
-  showSaToast(`Approved — invite sent to ${email}`);
-}
-
-async function declineOrgRequest(reqId, email, name, btn) {
-  if (!btn.classList.contains('confirm')) {
-    btn.textContent = 'Confirm decline';
-    btn.classList.add('confirm');
-    setTimeout(() => { btn.textContent = 'Decline'; btn.classList.remove('confirm'); }, 3000);
-    return;
-  }
-
-  btn.disabled = true; btn.textContent = 'Declining…';
-
-  // Mark declined
-  await sb.from('org_requests').update({
-    status: 'declined',
-    reviewed_at: new Date().toISOString(),
-    reviewed_by: (await sb.auth.getUser()).data.user?.id,
-  }).eq('id', reqId);
-
-  // Send polite decline email
-  try {
-    await sb.functions.invoke('send-org-invite', {
-      headers: await getAuthHeader(),
-      body: { role: 'decline', to: email, name }
-    });
-  } catch(e) { console.warn('Decline email failed:', e); }
-
-  allOrgRequests = allOrgRequests.filter(r => r.id !== reqId);
-  renderOrgRequests();
-  showSaToast(`Request from ${name} declined.`);
-}
-
-// ── TOAST ──
 function showSaToast(msg, dur = 2400) {
   let t = document.getElementById('sa-toast');
   if (!t) {
