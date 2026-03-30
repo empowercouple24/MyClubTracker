@@ -258,6 +258,10 @@ let _orgId=null,_inviteEmail=null;
   if(org.invite_expires_at&&new Date(org.invite_expires_at)<new Date()){showError('Invite Expired','This invite link expired after 30 days. Please contact your administrator to request a new one.');return;}
   _orgId=org.id;_inviteEmail=org.leader_email||'';
   document.getElementById('s1-email').value=_inviteEmail;
+  if(org.name&&org.name!=='Pending Setup'){
+    const orgField=document.getElementById('s2-org');
+    if(orgField){orgField.value=org.name;orgField.readOnly=true;orgField.style.background='var(--bpl)';orgField.style.color='var(--gt)';}
+  }
   document.getElementById('ob-loading').style.display='none';
   document.getElementById('ob-steps').style.display='flex';
   showPanel(1);
