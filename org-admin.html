@@ -158,6 +158,10 @@ if('serviceWorker' in navigator){
       <span style="font-size:10px;">&#9662;</span>
     </button>
     <div class="nav-drop" id="nav-drop">
+      <button class="nav-drop-item" onclick="showToast('Profile settings coming soon.');toggleNavMenu()">&#9881; Profile &amp; Settings</button>
+      <div class="nav-drop-divider"></div>
+      <button class="nav-drop-item" onclick="window.location.href='org-admin.html';toggleNavMenu()">&#127968; Dashboard</button>
+      <div class="nav-drop-divider"></div>
       <button class="nav-drop-item danger" onclick="handleSignOut()">&#8618; Sign out</button>
     </div>
   </div>
