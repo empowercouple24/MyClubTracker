@@ -2981,7 +2981,7 @@ async function checkForUpdate() {
 }
 // Check after 30 seconds (in case deploy just happened), then every 5 minutes
 setTimeout(checkForUpdate, 15000);
-setInterval(checkForUpdate, 15000);
+setInterval(checkForUpdate, 30000);
 
 // ── DEACTIVATION POLL ──
 (function() {
