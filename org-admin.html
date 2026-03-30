@@ -109,6 +109,11 @@ if('serviceWorker' in navigator){
 
 /* Modal */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;align-items:center;justify-content:center;padding:16px}
+.avatar-upload-wrap{display:flex;align-items:center;gap:16px;margin-bottom:20px;}
+.avatar-preview{width:64px;height:64px;border-radius:50%;background:var(--b1);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:var(--b6);overflow:hidden;flex-shrink:0;}
+.avatar-preview img{width:100%;height:100%;object-fit:cover;}
+.pw-req-sm{font-size:11px;color:var(--text-faint);margin-top:4px;line-height:1.8;}
+.pw-req-sm span.met{color:var(--g6);}
 .modal-overlay.show{display:flex}
 .modal{background:var(--surface);border-radius:var(--radius);padding:24px;width:100%;max-width:440px;box-shadow:0 16px 48px rgba(0,0,0,0.25);max-height:90vh;overflow-y:auto}
 .modal-title{font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;color:var(--text);margin-bottom:4px}
@@ -158,7 +163,7 @@ if('serviceWorker' in navigator){
       <span style="font-size:10px;">&#9662;</span>
     </button>
     <div class="nav-drop" id="nav-drop">
-      <button class="nav-drop-item" onclick="showToast('Profile settings coming soon.');toggleNavMenu()">&#9881; Profile &amp; Settings</button>
+      <button class="nav-drop-item" onclick="openProfileModal();toggleNavMenu()">&#9881; Profile &amp; Settings</button>
       <div class="nav-drop-divider"></div>
       <button class="nav-drop-item" onclick="window.location.href='org-admin.html';toggleNavMenu()">&#127968; Dashboard</button>
       <div class="nav-drop-divider"></div>
@@ -658,6 +663,130 @@ async function orgAdminLookupZip(zip){
   }catch(e){}
 }
 
+// -- PROFILE MODAL --
+function openProfileModal(){
+  const modal=document.getElementById('profile-modal');
+  if(!modal)return;
+  // Pre-fill from current user
+  if(ME){
+    document.getElementById('pm-first').value=ME.first_name||'';
+    document.getElementById('pm-last').value=ME.last_name||'';
+    document.getElementById('pm-display').value=ME.display_name||'';
+    document.getElementById('pm-phone').value=ME.phone||'';
+    // Avatar
+    const img=document.getElementById('pm-avatar-img');
+    const initials=document.getElementById('pm-avatar-initials');
+    const initial=((ME.first_name||'')[0]||(ME.display_name||'')[0]||'?').toUpperCase();
+    if(ME.avatar_url){img.src=ME.avatar_url;img.style.display='block';if(initials)initials.style.display='none';}
+    else{if(img)img.style.display='none';if(initials){initials.textContent=initial;initials.style.display='';}}
+  }
+  document.getElementById('pm-pw').value='';
+  document.getElementById('pm-pw-confirm').value='';
+  document.getElementById('pm-pw-reqs').style.display='none';
+  document.getElementById('profile-error').style.display='none';
+  document.getElementById('profile-success').style.display='none';
+  modal.classList.add('show');
+}
+
+function checkPmPw(){
+  const pw=document.getElementById('pm-pw').value;
+  const reqs=document.getElementById('pm-pw-reqs');
+  if(!pw){reqs.style.display='none';return;}
+  reqs.style.display='block';
+  document.getElementById('pm-req-len').className=pw.length>=8?'met':'';
+  document.getElementById('pm-req-num').className=/[0-9]/.test(pw)?'met':'';
+  document.getElementById('pm-req-sp').className=/[!@#$%^&*()_+\-=\[\]{};':"\|,.<>\/?]/.test(pw)?'met':'';
+}
+
+async function handleProfileAvatarChange(input){
+  const file=input.files[0];
+  if(!file)return;
+  if(file.size>2*1024*1024){showProfileMsg('error','Image must be under 2MB.');return;}
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=document.getElementById('pm-avatar-img');
+    const initials=document.getElementById('pm-avatar-initials');
+    if(img){img.src=e.target.result;img.style.display='block';}
+    if(initials)initials.style.display='none';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function saveProfile(){
+  const btn=document.getElementById('pm-save-btn');
+  btn.disabled=true;btn.textContent='Saving...';
+  document.getElementById('profile-error').style.display='none';
+  document.getElementById('profile-success').style.display='none';
+
+  const first=document.getElementById('pm-first').value.trim();
+  const last=document.getElementById('pm-last').value.trim();
+  const display=document.getElementById('pm-display').value.trim()||first;
+  const phone=document.getElementById('pm-phone').value.trim();
+  const pw=document.getElementById('pm-pw').value;
+  const pwConfirm=document.getElementById('pm-pw-confirm').value;
+
+  if(!first||!last){showProfileMsg('error','Please enter your first and last name.');btn.disabled=false;btn.textContent='Save changes';return;}
+
+  // Validate password if provided
+  if(pw){
+    if(pw.length<8||!/[0-9]/.test(pw)||!/[!@#$%^&*()_+\-=\[\]{};':"\|,.<>\/?]/.test(pw)){
+      showProfileMsg('error','Password must be 8+ characters with a number and special character.');btn.disabled=false;btn.textContent='Save changes';return;
+    }
+    if(pw!==pwConfirm){showProfileMsg('error','Passwords do not match.');btn.disabled=false;btn.textContent='Save changes';return;}
+  }
+
+  try{
+    // Upload avatar if new file selected
+    let avatarUrl=ME?.avatar_url||null;
+    const fileInput=document.getElementById('pm-avatar-file');
+    if(fileInput.files[0]){
+      const file=fileInput.files[0];
+      const ext=file.name.split('.').pop();
+      const path=`avatars/${ME.id}.${ext}`;
+      const{error:upErr}=await sb.storage.from('avatars').upload(path,file,{upsert:true});
+      if(!upErr){
+        const{data:urlData}=sb.storage.from('avatars').getPublicUrl(path);
+        avatarUrl=urlData?.publicUrl||avatarUrl;
+      }
+    }
+
+    // Update public.users
+    const{error:userErr}=await sb.from('users').update({
+      first_name:first,last_name:last,display_name:display,phone,avatar_url:avatarUrl
+    }).eq('id',ME.id);
+    if(userErr)throw userErr;
+
+    // Update password if provided
+    if(pw){
+      const{error:pwErr}=await sb.auth.updateUser({password:pw});
+      if(pwErr)throw pwErr;
+    }
+
+    // Update local ME and nav
+    ME={...ME,first_name:first,last_name:last,display_name:display,phone,avatar_url:avatarUrl};
+    const dn=document.getElementById('nav-display-name');
+    if(dn)dn.textContent=display||first;
+    const navAv=document.getElementById('nav-avatar');
+    if(navAv){
+      const sp=navAv.querySelector('span');
+      const im=navAv.querySelector('img');
+      if(avatarUrl&&im){im.src=avatarUrl;im.style.display='block';if(sp)sp.style.display='none';}
+      else if(sp){sp.textContent=(first[0]||'?').toUpperCase();sp.style.display='';}
+    }
+
+    showProfileMsg('success','Profile updated!');
+    btn.disabled=false;btn.textContent='Save changes';
+  }catch(err){
+    showProfileMsg('error',err.message||'Failed to save. Please try again.');
+    btn.disabled=false;btn.textContent='Save changes';
+  }
+}
+
+function showProfileMsg(type,msg){
+  const el=document.getElementById('profile-'+type);
+  if(el){el.textContent=msg;el.style.display='block';}
+}
+
 function showToast(msg,dur=2400){
   let t=document.getElementById('global-toast');
   if(!t){t=document.createElement('div');t.id='global-toast';
@@ -728,6 +857,75 @@ fetch(window.location.href,{method:'HEAD'}).then(function(r){
     <div class="modal-footer">
       <button class="btn-sm" onclick="closeModal('assign-user-modal')">Cancel</button>
       <button class="btn-primary" id="assign-btn" onclick="submitAssignUser()">Assign →</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- PROFILE & SETTINGS MODAL -->
+<div class="modal-overlay" id="profile-modal">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-title">Profile &amp; Settings</div>
+    <div class="modal-sub" id="profile-modal-sub">Update your account details.</div>
+    <div class="modal-alert error" id="profile-error" style="display:none;"></div>
+    <div class="modal-alert success" id="profile-success" style="display:none;"></div>
+
+    <!-- AVATAR -->
+    <div class="avatar-upload-wrap">
+      <div class="avatar-preview" id="pm-avatar-preview">
+        <img id="pm-avatar-img" src="" alt="" style="display:none;"/>
+        <span id="pm-avatar-initials"></span>
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">Profile photo</div>
+        <label style="font-size:12px;color:var(--b6);font-weight:600;cursor:pointer;text-decoration:underline;">
+          Upload photo
+          <input type="file" id="pm-avatar-file" accept="image/*" style="display:none;" onchange="handleProfileAvatarChange(this)"/>
+        </label>
+      </div>
+    </div>
+
+    <!-- NAME -->
+    <div class="modal-row" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+      <div class="modal-field">
+        <label class="modal-label">First name</label>
+        <input class="modal-input" type="text" id="pm-first" placeholder="First"/>
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Last name</label>
+        <input class="modal-input" type="text" id="pm-last" placeholder="Last"/>
+      </div>
+    </div>
+    <div class="modal-field" style="margin-bottom:14px;">
+      <label class="modal-label">Display name <span style="font-weight:400;text-transform:none;">— shown in app</span></label>
+      <input class="modal-input" type="text" id="pm-display" placeholder="e.g. Mike"/>
+    </div>
+    <div class="modal-field" style="margin-bottom:20px;">
+      <label class="modal-label">Phone</label>
+      <input class="modal-input" type="tel" id="pm-phone" placeholder="(555) 000-0000"/>
+    </div>
+
+    <!-- CHANGE PASSWORD -->
+    <div style="border-top:1px solid var(--border-light);padding-top:16px;margin-bottom:16px;">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px;">Change password</div>
+      <div class="modal-field" style="margin-bottom:10px;">
+        <label class="modal-label">New password <span style="font-weight:400;text-transform:none;">— leave blank to keep current</span></label>
+        <input class="modal-input" type="password" id="pm-pw" placeholder="New password" oninput="checkPmPw()"/>
+        <div class="pw-req-sm" id="pm-pw-reqs" style="display:none;">
+          <span id="pm-req-len">&#x2717; At least 8 characters</span><br/>
+          <span id="pm-req-num">&#x2717; At least one number</span><br/>
+          <span id="pm-req-sp">&#x2717; At least one special character</span>
+        </div>
+      </div>
+      <div class="modal-field" style="margin-bottom:0;">
+        <label class="modal-label">Confirm new password</label>
+        <input class="modal-input" type="password" id="pm-pw-confirm" placeholder="Re-enter password"/>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="closeModal('profile-modal')">Cancel</button>
+      <button class="btn-primary" id="pm-save-btn" onclick="saveProfile()">Save changes</button>
     </div>
   </div>
 </div>
