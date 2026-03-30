@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-30 12:10:33 -->
+<!-- CACHE BUST: 2026-03-30 18:49:15 -->
 <html lang="en">
 <head>
 <script>
@@ -1737,7 +1737,7 @@ async function init(){
     const _nbb=document.getElementById('nav-back-btn');if(_nbb){
       _nbb.style.display='block';
       const _fromParam=new URLSearchParams(window.location.search).get('from');
-      _nbb.textContent=_fromParam==='org'?'&#8592; Dashboard':'&#8592; Locations';
+      _nbb.innerHTML=_fromParam==='org'?'&#8592; Dashboard':'&#8592; Locations';
     }
     const _so=document.getElementById('nav-signout-btn');if(_so)_so.style.display='none';
     const bn=document.getElementById('admin-banner');if(bn){bn.style.display='block';bn.textContent='Admin View: '+(loc?.name||LOCATION_ID);}
