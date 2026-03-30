@@ -1566,22 +1566,29 @@ async function removeAvatar() {
 
 function toggleNavMenu(){var dd=document.getElementById('nav-dropdown');if(dd)dd.classList.toggle('open');}
 function closeNavMenu(){var dd=document.getElementById('nav-dropdown');if(dd)dd.classList.remove('open');}
-// Hover-open with 300ms close delay (matches nav.js)
+// Hover-open with 300ms close delay
 (function(){
   var closeTimer;
-  var wrap=document.querySelector('.nav-menu-wrap');
-  if(!wrap)return;
-  wrap.addEventListener('mouseenter',function(){
-    clearTimeout(closeTimer);
-    var dd=document.getElementById('nav-dropdown');
-    if(dd)dd.classList.add('open');
-  });
-  wrap.addEventListener('mouseleave',function(){
-    closeTimer=setTimeout(function(){
+  function initNavHover(){
+    var wrap=document.querySelector('.nav-menu-wrap');
+    if(!wrap)return;
+    wrap.addEventListener('mouseenter',function(){
+      clearTimeout(closeTimer);
       var dd=document.getElementById('nav-dropdown');
-      if(dd)dd.classList.remove('open');
-    },300);
-  });
+      if(dd)dd.classList.add('open');
+    });
+    wrap.addEventListener('mouseleave',function(){
+      closeTimer=setTimeout(function(){
+        var dd=document.getElementById('nav-dropdown');
+        if(dd)dd.classList.remove('open');
+      },300);
+    });
+  }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',initNavHover);
+  } else {
+    initNavHover();
+  }
 })();
 document.addEventListener('click',function(e){var wrap=document.querySelector('.nav-menu-wrap');if(wrap&&!wrap.contains(e.target))closeNavMenu();});
 
@@ -1634,9 +1641,10 @@ async function init(){
     if(u.role==='org_leader'&&!IS_ADMIN_VIEW){window.location.href='org-admin.html';return;}
 
     // Load all locations this user has access to
-    const{data:userLocs}=await sb.from('user_locations')
-      .select('location_id,is_primary,locations(id,name,address)')
+    const{data:userLocs,error:ulErr}=await sb.from('user_locations')
+      .select('location_id,is_primary')
       .eq('user_id',session.user.id);
+    if(ulErr)console.warn('user_locations fetch error:',ulErr.message);
     const USER_LOCATIONS=userLocs||[];
 
     // Resolve which location to load:
