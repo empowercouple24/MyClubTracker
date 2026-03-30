@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-30 12:09:07 -->
+<!-- CACHE BUST: 2026-03-30 12:10:33 -->
 <html lang="en">
 <head>
 <script>
@@ -1662,9 +1662,6 @@ async function init(){
       LOCATION_ID=stored||primary?.location_id||u.location_id;
     }
     console.log('LOCATION_ID resolved:',LOCATION_ID,'USER_LOCATIONS:',USER_LOCATIONS.length,'u.location_id:',u.location_id);
-    // Show debug in nav temporarily
-    const _dbgNcn=document.getElementById('nav-club-name');
-    if(_dbgNcn)_dbgNcn.textContent='[loc:'+LOCATION_ID?.slice(0,8)+' role:'+USER_ROLE+']';
 
     // Store multi-location data for switcher
     window._USER_LOCATIONS=USER_LOCATIONS;
@@ -1711,15 +1708,10 @@ async function init(){
   setLoadText('Loading club data...');
   console.log('[app] fetching location:',LOCATION_ID);
   const{data:loc,error:locFetchErr}=await sb.from('locations').select('name,address,owner_name,owner_phone,settings').eq('id',LOCATION_ID).single();
-  if(locFetchErr){
-    console.error('[app] location fetch error:',locFetchErr.message,locFetchErr.code);
-    setLoadText('Location error: '+locFetchErr.message+' ('+locFetchErr.code+')');
-  }
+  if(locFetchErr){console.error('[app] location fetch error:',locFetchErr.message,locFetchErr.code);}
   console.log('[app] location data:',loc?.name);
   if(!loc){
-    // Show visible error on the nav instead of silent failure
-    const _errNcn=document.getElementById('nav-club-name');
-    if(_errNcn)_errNcn.textContent='[loc null - '+LOCATION_ID.slice(0,8)+']';
+    console.error('[app] location is null for LOCATION_ID:', LOCATION_ID);
   }
   if(loc){
     // Set nav immediately from database -- unconditional, no fallbacks needed
@@ -2965,7 +2957,10 @@ function openLocSwitcher(){
   list.innerHTML=locs.map(l=>{
     const loc=l.locations||{};
     const isCurrent=l.location_id===LOCATION_ID;
-    return`<div onclick="${isCurrent?'':'switchToLocation(''+l.location_id+'')'}" style="background:${isCurrent?'var(--b0)':'var(--surface)'};border:${isCurrent?'1.5px solid var(--b3)':'1px solid var(--border-light)'};border-radius:var(--radius-sm);padding:14px 16px;cursor:${isCurrent?'default':'pointer'};transition:box-shadow 0.15s;" ${isCurrent?'':' onmouseover="this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.boxShadow=''"'}>
+    const _divAttrs = isCurrent
+      ? 'style="background:var(--b0);border:1.5px solid var(--b3);border-radius:var(--radius-sm);padding:14px 16px;cursor:default;transition:box-shadow 0.15s;"'
+      : 'onclick="switchToLocation(\'' + l.location_id + '\')" style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:14px 16px;cursor:pointer;transition:box-shadow 0.15s;" onmouseover="this.style.boxShadow=\'var(--shadow-md)\'" onmouseout="this.style.boxShadow=\'\'"';
+    return `<div ${_divAttrs}>
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
         <div>
           <div style="font-family:'Outfit',sans-serif;font-size:15px;font-weight:700;color:var(--text);">${loc.name||'Location'}</div>
