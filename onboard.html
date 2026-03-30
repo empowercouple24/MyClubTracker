@@ -219,14 +219,10 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
         <strong style="color:var(--bdk);" id="confirm-email-addr"></strong>
       </div>
       <div style="background:var(--bpl);border-radius:var(--rs);padding:16px;margin-bottom:20px;text-align:left;">
-        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--gf);margin-bottom:10px;">After confirming your email:</div>
         <div style="font-size:13px;color:var(--gt);line-height:1.8;">
-          1. Click the confirmation link in your email<br/>
-          2. Come back to this page<br/>
-          3. Click the button below to complete your setup
+          Click the link in your email to confirm your account. Once confirmed, you'll be taken to the sign-in page where your account is ready to go.
         </div>
       </div>
-      <button class="btn-primary" id="resume-btn" onclick="resumeAfterConfirm()" style="margin-bottom:10px;">I confirmed my email — continue →</button>
       <div style="font-size:12px;color:var(--gf);margin-top:8px;">
         Didn't get the email? Check your spam folder or <a href="#" onclick="resendConfirmation()" style="color:var(--bmd);text-decoration:none;font-weight:600;">resend it</a>
       </div>
@@ -328,7 +324,10 @@ async function submitOnboard(){
   const btn=document.getElementById('s3-btn');btn.disabled=true;btn.textContent='Setting up your account…';
   try{
     const email=document.getElementById('s1-email').value,pw=document.getElementById('s1-password').value;
-    const{data:authData,error:authErr}=await sb.auth.signUp({email,password:pw});
+    const{data:authData,error:authErr}=await sb.auth.signUp({
+      email,password:pw,
+      options:{emailRedirectTo:`https://myclubtracker.com/index.html?email=${encodeURIComponent(email)}&confirmed=1`}
+    });
     if(authErr)throw authErr;
     const userId=authData.user?.id;if(!userId)throw new Error('Account creation failed — please try again.');
     // Get a valid JWT — if email confirmation is required, session won't exist yet
@@ -336,7 +335,7 @@ async function submitOnboard(){
     if(!accessToken){
       // Email confirmation required — store data and show confirmation message
       // Store everything in sessionStorage so user can resume after confirming
-      sessionStorage.setItem('ob_pending',JSON.stringify({
+      localStorage.setItem('ob_pending',JSON.stringify({
         orgId:_orgId,email,pw,
         firstName:document.getElementById('s2-first').value.trim(),
         lastName:document.getElementById('s2-last').value.trim(),
@@ -377,7 +376,7 @@ function goToDashboard(){window.location.href='org-admin.html';}
 async function resumeAfterConfirm(){
   const btn=document.getElementById('resume-btn');
   btn.disabled=true;btn.textContent='Checking…';
-  const pending=JSON.parse(sessionStorage.getItem('ob_pending')||'{}');
+  const pending=JSON.parse(localStorage.getItem('ob_pending')||'{}');
   if(!pending.email||!pending.pw){showAlert('s3-alert','Session expired. Please start over from your invite link.');return;}
   // Try signing in — will only work once email is confirmed
   const{data:signInData,error:signInErr}=await sb.auth.signInWithPassword({email:pending.email,password:pending.pw});
@@ -404,7 +403,7 @@ async function resumeAfterConfirm(){
     alert(fnData?.error||fnErr?.message||'Setup failed. Please try again.');
     return;
   }
-  sessionStorage.removeItem('ob_pending');
+  localStorage.removeItem('ob_pending');
   document.getElementById('success-org').textContent=fnData.orgName||pending.orgName;
   document.getElementById('success-loc').textContent=fnData.clubName||pending.clubName;
   document.querySelectorAll('.ob-panel').forEach(p=>p.classList.remove('active'));
@@ -412,7 +411,7 @@ async function resumeAfterConfirm(){
 }
 
 async function resendConfirmation(){
-  const pending=JSON.parse(sessionStorage.getItem('ob_pending')||'{}');
+  const pending=JSON.parse(localStorage.getItem('ob_pending')||'{}');
   if(!pending.email)return;
   await sb.auth.resend({type:'signup',email:pending.email});
   alert('Confirmation email resent to '+pending.email);

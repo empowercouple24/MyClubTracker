@@ -389,6 +389,32 @@ async function doSignIn(){
   var u=ur.data;
   if(!u){showMsg('si-msg','Account not set up. Contact your admin.','error');setBtn('si-btn',false,'Sign In');return;}
   if(u.role==='admin'){window.location.href='admin.html';return;}
+  if(u.role==='org_leader'){
+    // Check if onboarding is pending (stored before email confirmation)
+    var pending=null;
+    try{pending=JSON.parse(localStorage.getItem('ob_pending')||'null');}catch(e){}
+    if(pending&&!u.location_id){
+      // Complete onboarding automatically
+      setBtn('si-btn',true,'Completing your setup…');
+      var fullAddr=`${pending.addr}, ${pending.city}, ${pending.state} ${pending.zip}`.trim();
+      var fnRes=await sb.functions.invoke('complete-onboarding',{
+        headers:{'Authorization':`Bearer ${res.data.session.access_token}`},
+        body:{
+          userId:res.data.user.id,email:pending.email,
+          firstName:pending.firstName,lastName:pending.lastName,
+          displayName:pending.displayName||pending.firstName,phone:pending.phone,
+          orgId:pending.orgId,orgName:pending.orgName,
+          clubName:pending.clubName,address:fullAddr,
+        }
+      });
+      localStorage.removeItem('ob_pending');
+      if(fnRes.error||!fnRes.data?.ok){
+        showMsg('si-msg','Setup failed: '+(fnRes.data?.error||fnRes.error?.message||'unknown error')+'. Please contact support@myclubtracker.com.','error');
+        setBtn('si-btn',false,'Sign In');return;
+      }
+    }
+    window.location.href='org-admin.html';return;
+  }
   if(u.location_id){window.location.href='app.html';return;}
   if(u.role==='pending'||!u.location_id){
     await sb.auth.signOut();
@@ -486,6 +512,21 @@ function attachPlacesAutocomplete(streetInputId, cityId, stateId, zipId) {
 document.documentElement.classList.remove('dark');
 
 if(new URLSearchParams(window.location.search).get('tab')==='register')showTab('register');
+
+// Pre-fill email if redirected from email confirmation
+(function(){
+  var p=new URLSearchParams(window.location.search);
+  var em=p.get('email');
+  var confirmed=p.get('confirmed');
+  if(em&&confirmed){
+    var el=document.getElementById('si-email');
+    if(el)el.value=decodeURIComponent(em);
+    showTab('signin');
+    showMsg('si-msg','✓ Email confirmed! Sign in below to access your dashboard.','success');
+    // Clean URL
+    window.history.replaceState({},'',window.location.pathname);
+  }
+})();
 
 // ── ZIP CODE AUTO-FILL ──
 async function lookupZip(zip, cityId, stateId) {

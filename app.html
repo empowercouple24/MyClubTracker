@@ -1680,9 +1680,13 @@ async function init(){
     setNavAvatar(u.avatar_url, u.first_name, u.last_name, u.display_name);
   }
   if(!LOCATION_ID){
-    // Sign out and redirect — use ?from=app to prevent auto-redirect loop
+    // org_leader with no location means onboarding incomplete — send to org admin
+    if(USER_ROLE==='org_leader'){
+      window.location.href='org-admin.html';
+      return;
+    }
     await sb.auth.signOut();
-    window.location.href = 'index.html?from=app&msg=nolocation';
+    window.location.href='index.html?from=app&msg=nolocation';
     return;
   }
   setLoadText('Loading club data…');
@@ -3076,10 +3080,16 @@ setInterval(checkForUpdate, 30000);
     try {
       var res = await sb.from('users').select('role,location_id').eq('id', CURRENT_SESSION.user.id).single();
       var u = res.data;
-      if (!u || u.role === 'pending' || !u.location_id) {
+      // org_leader role is set during onboarding before location is assigned — don't deactivate
+      if (!u || u.role === 'pending' || (!u.location_id && u.role !== 'org_leader')) {
         deactivationShown = true;
         await sb.auth.signOut();
         injectDeactivationOverlay();
+      }
+      // org_leader with no location_id means onboarding incomplete — redirect to onboard
+      if (u && u.role === 'org_leader' && !u.location_id) {
+        window.location.href = 'index.html';
+        return;
       }
     } catch(e) {}
   }
