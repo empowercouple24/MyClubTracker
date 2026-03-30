@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-30 16:32:15 -->
+<!-- CACHE BUST: 2026-03-30 20:20:02 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -564,10 +564,7 @@ function renderOrgs() {
                 <div class="org-loc-name">${escHtml(l.name)}</div>
                 <div class="org-loc-addr">${escHtml(l.address || '')}</div>
               </div>
-              <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
-                <a href="app.html?location_id=${l.id}&admin=1&from=org" onclick="event.stopPropagation()" class="btn-sm" style="font-size:12px;">Open App</a>
-                <span class="loc-edit-chevron" id="locchev-${l.id}" style="font-size:11px;color:var(--text-faint);transition:transform 0.2s;">&#9660;</span>
-              </div>
+              <span style="font-size:11px;color:var(--text-faint);flex-shrink:0;transition:transform 0.2s;" id="locchev-${l.id}">&#9660;</span>
             </div>
             <div class="org-loc-edit" id="locedit-${l.id}" style="display:none;width:100%;margin-top:12px;border-top:1px solid var(--border-light);padding-top:12px;">
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
@@ -594,9 +591,10 @@ function renderOrgs() {
               </div>
               <div style="display:flex;align-items:center;justify-content:space-between;">
                 <div style="font-size:11px;color:var(--text-faint);">Invite code: <strong style="font-family:monospace;letter-spacing:1px;">${escHtml(l.invite_code||'—')}</strong></div>
-                <div style="display:flex;gap:8px;">
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <a href="app.html?location_id=${l.id}&admin=1&from=org" class="btn-sm" style="font-size:12px;">Manage Club</a>
                   <button onclick="toggleLocEdit('${l.id}')" class="btn-sm">Cancel</button>
-                  <button onclick="saveLocDetails('${l.id}')" class="btn-sm" style="background:var(--b7);color:white;border-color:var(--b7);font-weight:700;">Save Changes</button>
+                  <button id="lef-save-${l.id}" onclick="confirmSaveLocDetails('${l.id}',this)" class="btn-sm" style="background:var(--b7);color:white;border-color:var(--b7);font-weight:700;">Save Changes</button>
                 </div>
               </div>
               <div id="lef-msg-${l.id}" style="font-size:12px;margin-top:6px;display:none;"></div>
@@ -691,13 +689,39 @@ function toggleOrgCard(id) {
 function toggleLocEdit(locId) {
   const edit = document.getElementById('locedit-' + locId);
   const chev = document.getElementById('locchev-' + locId);
+  const saveBtn = document.getElementById('lef-save-' + locId);
   if (!edit) return;
   const isOpen = edit.style.display !== 'none';
   edit.style.display = isOpen ? 'none' : 'block';
   if (chev) chev.style.transform = isOpen ? '' : 'rotate(180deg)';
+  // Reset save button if closing
+  if (isOpen && saveBtn) { saveBtn.textContent = 'Save Changes'; saveBtn.style.background = 'var(--b7)'; saveBtn.dataset.confirmed = ''; }
 }
 
 // -- SAVE LOC DETAILS --
+function confirmSaveLocDetails(locId, btn) {
+  if (btn.dataset.confirmed === '1') {
+    // Second click - actually save
+    btn.dataset.confirmed = '';
+    btn.textContent = 'Save Changes';
+    btn.style.background = 'var(--b7)';
+    saveLocDetails(locId);
+  } else {
+    // First click - show confirm state
+    btn.dataset.confirmed = '1';
+    btn.textContent = 'Confirm Save?';
+    btn.style.background = 'var(--g6)';
+    // Auto-reset after 3s if not confirmed
+    setTimeout(() => {
+      if (btn.dataset.confirmed === '1') {
+        btn.dataset.confirmed = '';
+        btn.textContent = 'Save Changes';
+        btn.style.background = 'var(--b7)';
+      }
+    }, 3000);
+  }
+}
+
 async function saveLocDetails(locId) {
   const get = id => document.getElementById(id)?.value?.trim() || '';
   const name    = get('lef-name-'  + locId);
