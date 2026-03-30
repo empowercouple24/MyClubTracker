@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-30 04:30:58 -->
+<!-- CACHE BUST: 2026-03-30 11:40:24 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -407,27 +407,33 @@ async function doSignIn(){
   var pw=document.getElementById('si-password').value;
   if(!email||!pw){showMsg('si-msg','Please fill in all fields.','error');return;}
   setBtn('si-btn',true,'Signing in…');
-  var res=await sb.auth.signInWithPassword({email:email,password:pw});
-  if(res.error){showMsg('si-msg',res.error.message,'error');setBtn('si-btn',false,'Sign In');return;}
-  if(!res.data.user.email_confirmed_at){await sb.auth.signOut();showMsg('si-msg','Please confirm your email first. Check your inbox.','error');document.getElementById('resend-wrap').style.display='block';setBtn('si-btn',false,'Sign In');return;}
-  var ur=await sb.from('users').select('role,location_id').eq('id',res.data.user.id).single();
-  var u=ur.data;
-  if(!u){showMsg('si-msg','Account not set up. Contact your admin.','error');setBtn('si-btn',false,'Sign In');return;}
-  if(u.role==='admin'){window.location.href='admin.html';return;}
-  if(u.role==='org_leader'){
-    if(u.must_change_password){
-      window._pendingSession=res.data.session;
-      showChangePwPanel();return;
+  try{
+    var res=await sb.auth.signInWithPassword({email:email,password:pw});
+    if(res.error){showMsg('si-msg',res.error.message,'error');setBtn('si-btn',false,'Sign In');return;}
+    if(!res.data.user.email_confirmed_at){await sb.auth.signOut();showMsg('si-msg','Please confirm your email first. Check your inbox.','error');document.getElementById('resend-wrap').style.display='block';setBtn('si-btn',false,'Sign In');return;}
+    var ur=await sb.from('users').select('role,location_id,must_change_password').eq('id',res.data.user.id).single();
+    if(ur.error){showMsg('si-msg','Error loading account: '+ur.error.message,'error');setBtn('si-btn',false,'Sign In');return;}
+    var u=ur.data;
+    if(!u){showMsg('si-msg','Account not set up. Contact your admin.','error');setBtn('si-btn',false,'Sign In');return;}
+    if(u.role==='admin'){window.location.href='admin.html';return;}
+    if(u.role==='org_leader'){
+      if(u.must_change_password){
+        window._pendingSession=res.data.session;
+        showChangePwPanel();return;
+      }
+      window.location.href='org-admin.html';return;
     }
-    window.location.href='org-admin.html';return;
+    if(u.location_id){window.location.href='app.html';return;}
+    if(u.role==='pending'||!u.location_id){
+      await sb.auth.signOut();
+      showMsg('si-msg','Your account has been deactivated. Contact your admin to request reactivation.','error');
+      setBtn('si-btn',false,'Sign In');return;
+    }
+    showMsg('si-msg','No location assigned. Contact your admin.','error');setBtn('si-btn',false,'Sign In');
+  }catch(e){
+    showMsg('si-msg','Unexpected error: '+e.message,'error');
+    setBtn('si-btn',false,'Sign In');
   }
-  if(u.location_id){window.location.href='app.html';return;}
-  if(u.role==='pending'||!u.location_id){
-    await sb.auth.signOut();
-    showMsg('si-msg','Your account has been deactivated. Contact your admin to request reactivation.','error');
-    setBtn('si-btn',false,'Sign In');return;
-  }
-  showMsg('si-msg','No location assigned. Contact your admin.','error');setBtn('si-btn',false,'Sign In');
 }
 function showChangePwPanel(){
   ['signin','forgot','newpassword','register','request'].forEach(function(p){
