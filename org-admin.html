@@ -242,19 +242,19 @@ if('serviceWorker' in navigator){
       <label class="modal-label">Street address</label>
       <input class="modal-input" type="text" id="al-addr" placeholder="123 Main St"/>
     </div>
-    <div class="modal-row">
-      <div class="modal-field">
-        <label class="modal-label">City</label>
-        <input class="modal-input" type="text" id="al-city" placeholder="City"/>
-      </div>
-      <div class="modal-field">
-        <label class="modal-label">State</label>
-        <input class="modal-input" type="text" id="al-state" placeholder="OH" maxlength="2"/>
-      </div>
-    </div>
     <div class="modal-field">
       <label class="modal-label">ZIP code</label>
-      <input class="modal-input" type="text" id="al-zip" placeholder="44060" maxlength="10" style="max-width:140px;"/>
+      <input class="modal-input" type="text" id="al-zip" placeholder="44060" maxlength="5" inputmode="numeric" style="max-width:140px;" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,5);if(this.value.length===5)orgAdminLookupZip(this.value)"/>
+    </div>
+    <div class="modal-row">
+      <div class="modal-field">
+        <label class="modal-label">City <span style="font-size:10px;font-weight:400;color:var(--text-faint);">auto-fills</span></label>
+        <input class="modal-input" type="text" id="al-city" placeholder="Enter ZIP first" readonly style="background:var(--surface-muted,#f5f7fa);color:var(--text-muted);cursor:not-allowed;pointer-events:none;"/>
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">State <span style="font-size:10px;font-weight:400;color:var(--text-faint);">auto-fills</span></label>
+        <input class="modal-input" type="text" id="al-state" placeholder="--" readonly style="background:var(--surface-muted,#f5f7fa);color:var(--text-muted);cursor:not-allowed;pointer-events:none;"/>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn-sm" onclick="closeModal('add-loc-modal')">Cancel</button>
@@ -526,7 +526,8 @@ async function submitAddLocation(){
   btn.disabled=false;btn.textContent='Add Location';
   if(error){showModalAlert('al-error',error.message);return;}
   closeModal('add-loc-modal');
-  ['al-name','al-addr','al-city','al-state','al-zip'].forEach(id=>document.getElementById(id).value='');
+  ['al-name','al-addr','al-zip'].forEach(id=>document.getElementById(id).value='');
+  ['al-city','al-state'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   await loadLocations();
 }
 
@@ -637,6 +638,20 @@ async function submitAssignUser(){
 function showModalAssignAlert(msg){
   const el=document.getElementById('assign-error');
   el.textContent=msg;el.classList.add('show');
+}
+
+async function orgAdminLookupZip(zip){
+  try{
+    const res=await fetch('https://api.zippopotam.us/us/'+zip);
+    if(!res.ok)return;
+    const data=await res.json();
+    const place=data.places?.[0];
+    if(!place)return;
+    const city=document.getElementById('al-city');
+    const state=document.getElementById('al-state');
+    if(city)city.value=place['place name']||'';
+    if(state)state.value=place['state abbreviation']||'';
+  }catch(e){}
 }
 
 function showToast(msg,dur=2400){
