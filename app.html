@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 09:38:45 UPLOAD-NOW -->
+<!-- CACHE BUST: 2026-03-30 04:29:38 -->
 <html lang="en">
 <head>
 <script>
@@ -3054,22 +3054,25 @@ function autoSizeInput(el){
 }
 // Global error handler - shows errors visually instead of blank page
 // Version checker — polls server every 5 minutes for a newer file
-const PAGE_LOAD_TIME = Date.now();
-async function checkForUpdate() {
-  try {
-    const res = await fetch(window.location.pathname + '?_=' + Date.now(), {method:'HEAD'});
-    const lastMod = res.headers.get('last-modified');
-    if(!lastMod) return;
-    const serverTime = new Date(lastMod).getTime();
-    if(serverTime > PAGE_LOAD_TIME) {
-      const banner = document.getElementById('update-banner');
-      if(banner) banner.style.display = 'block';
-    }
-  } catch(e) { /* silent fail */ }
-}
-// Check after 30 seconds (in case deploy just happened), then every 5 minutes
-setTimeout(checkForUpdate, 15000);
-setInterval(checkForUpdate, 10000);
+(function(){
+  var CHECK_INTERVAL = 10000;
+  var _initMod = null;
+  function getLastMod(){
+    return fetch(window.location.href, {method:'HEAD', cache:'no-store'})
+      .then(function(r){ return r.headers.get('last-modified'); })
+      .catch(function(){ return null; });
+  }
+  function showUpdateBanner(){
+    var b = document.getElementById('update-banner');
+    if(b) b.style.display = 'block';
+  }
+  getLastMod().then(function(mod){ _initMod = mod; });
+  setInterval(function(){
+    getLastMod().then(function(mod){
+      if(_initMod && mod && mod !== _initMod) showUpdateBanner();
+    });
+  }, CHECK_INTERVAL);
+})();
 
 // ── DEACTIVATION POLL ──
 (function() {

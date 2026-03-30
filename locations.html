@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-27 09:38:45 UPLOAD-NOW -->
+<!-- CACHE BUST: 2026-03-30 04:30:58 -->
 <html lang="en">
 <head>
 <script>
@@ -888,33 +888,30 @@ init();
 </script>
 
 <script>
+
+</script>
 (function(){
   var CHECK_INTERVAL = 10000;
   var _initMod = null;
-
   function getLastMod(){
     return fetch(window.location.href, {method:'HEAD', cache:'no-store'})
       .then(function(r){ return r.headers.get('last-modified'); })
       .catch(function(){ return null; });
   }
-
   function showUpdateBanner(){
     if(document.getElementById('update-banner'))return;
     var b=document.createElement('div');
     b.id='update-banner';
     b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#2d6a4f;color:#fff;font-family:DM Sans,system-ui,sans-serif;font-size:13px;font-weight:600;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 2px 8px rgba(0,0,0,0.2);';
-    b.innerHTML='<span>🔄 A new version is available</span><button onclick="window.location.reload()" style="background:#fff;color:#2d6a4f;border:none;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">Refresh now</button>';
+    b.innerHTML='<span>&#128260; A new version is available</span><button onclick="window.location.reload()" style="background:#fff;color:#2d6a4f;border:none;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">Refresh now</button>';
     document.body.insertBefore(b, document.body.firstChild);
   }
-
   getLastMod().then(function(mod){ _initMod = mod; });
-
   setInterval(function(){
     getLastMod().then(function(mod){
       if(_initMod && mod && mod !== _initMod) showUpdateBanner();
     });
   }, CHECK_INTERVAL);
 })();
-</script>
 </body>
 </html>
