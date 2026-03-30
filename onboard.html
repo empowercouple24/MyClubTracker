@@ -327,7 +327,7 @@ async function submitOnboard(){
       // Email confirmation required — store data and show confirmation message
       // Store everything in sessionStorage so user can resume after confirming
       localStorage.setItem('ob_pending',JSON.stringify({
-        orgId:_orgId,email,pw,
+        orgId:_orgId,email,
         firstName:document.getElementById('s2-first').value.trim(),
         lastName:document.getElementById('s2-last').value.trim(),
         displayName:document.getElementById('s2-display').value.trim(),
