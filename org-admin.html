@@ -135,9 +135,7 @@ if('serviceWorker' in navigator){
 
 <!-- NAV -->
 <nav class="nav" id="main-nav">
-  <div class="nav-left">
-    <div class="nav-logo-mark">
-      <svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
+  <a href="org-admin.html" class="nav-logo" title="Dashboard"><svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
   <g transform="rotate(-18, 16, 36)">
     <rect x="8" y="24" width="16" height="20" rx="2" fill="#1a5c2a"/>
     <rect x="10" y="28" width="12" height="8" rx="1" fill="rgba(255,255,255,0.25)"/>
@@ -150,19 +148,17 @@ if('serviceWorker' in navigator){
   </g>
   <circle cx="40" cy="16" r="11" fill="#4caf60"/>
   <path d="M34 22 L44 12 M38 12 L44 12 L44 18" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-</svg>
-    </div>
-    <span class="nav-title" id="nav-org-name">MyClubTracker</span>
-  </div>
-  <div class="nav-right">
-    <button class="nav-profile-btn" id="nav-profile-btn" onclick="toggleNavMenu()" title="">
-      <span class="nav-avatar-initials" id="nav-avatar-initials"></span>
+</svg></a>
+  <span class="nav-page-title" id="nav-org-name">MyClubTracker</span>
+  <div class="nav-menu-wrap">
+    <button class="nav-menu-btn" onclick="toggleNavMenu()">
+      <div class="nav-avatar" id="nav-avatar"><span></span><img alt=""/></div>
+      <span id="nav-display-name" style="font-size:13px;font-weight:600;color:var(--text-muted);margin-right:4px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+      <span style="font-size:11px;font-weight:700;color:var(--text-muted);">ORG LEADER</span>
+      <span style="font-size:10px;">&#9662;</span>
     </button>
     <div class="nav-drop" id="nav-drop">
-      <div class="nav-drop-name" id="nav-display-name"></div>
-      <div class="nav-drop-role">ORG LEADER</div>
-      <div class="nav-drop-divider"></div>
-      <button class="nav-drop-item danger" onclick="handleSignOut()">↪ Sign out</button>
+      <button class="nav-drop-item danger" onclick="handleSignOut()">&#8618; Sign out</button>
     </div>
   </div>
 </nav>
@@ -326,11 +322,11 @@ let ME=null,MY_ORG=null,MY_LOCATIONS=[],ALL_DAYS=[],ALL_USERS=[],CO_LEADERS=[];
   // Set nav
   const initials=((user.first_name||'')[0]||(user.display_name||'')[0]||'?').toUpperCase();
   const dn=document.getElementById('nav-display-name');
-  const ai=document.getElementById('nav-avatar-initials');
   const nn=document.getElementById('nav-org-name');
   if(dn)dn.textContent=user.display_name||[user.first_name,user.last_name].filter(Boolean).join(' ')||session.user.email;
-  if(ai)ai.textContent=initials;
   if(nn)nn.textContent=org.name||'MyClubTracker';
+  const navAv=document.getElementById('nav-avatar');
+  if(navAv){const sp=navAv.querySelector('span');if(sp)sp.textContent=initials;}
 
   // Check suspended
   if(org.status==='suspended'||!org.billing_active){
@@ -592,7 +588,7 @@ function toggleNavMenu(){
 }
 document.addEventListener('click',e=>{
   const d=document.getElementById('nav-drop');
-  if(d&&d.classList.contains('open')&&!e.target.closest('#nav-profile-btn')&&!e.target.closest('#nav-drop'))
+  if(d&&d.classList.contains('open')&&!e.target.closest('.nav-menu-btn')&&!e.target.closest('#nav-drop'))
     d.classList.remove('open');
 });
 
