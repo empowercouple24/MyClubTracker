@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-30 20:20:02 -->
+<!-- CACHE BUST: 2026-03-30 20:25:29 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -592,8 +592,7 @@ function renderOrgs() {
               <div style="display:flex;align-items:center;justify-content:space-between;">
                 <div style="font-size:11px;color:var(--text-faint);">Invite code: <strong style="font-family:monospace;letter-spacing:1px;">${escHtml(l.invite_code||'—')}</strong></div>
                 <div style="display:flex;gap:8px;align-items:center;">
-                  <a href="app.html?location_id=${l.id}&admin=1&from=org" class="btn-sm" style="font-size:12px;">Manage Club</a>
-                  <button onclick="toggleLocEdit('${l.id}')" class="btn-sm">Cancel</button>
+                  <a href="app.html?location_id=${l.id}&admin=1&from=org" class="btn-sm" style="font-size:12px;background:var(--b7);color:white;border-color:var(--b7);font-weight:700;">Manage Club</a>
                   <button id="lef-save-${l.id}" onclick="confirmSaveLocDetails('${l.id}',this)" class="btn-sm" style="background:var(--b7);color:white;border-color:var(--b7);font-weight:700;">Save Changes</button>
                 </div>
               </div>
