@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-30 11:54:07 -->
+<!-- CACHE BUST: 2026-03-30 15:46:47 -->
 <html lang="en">
 <head>
 <script>
@@ -52,7 +52,11 @@ if('serviceWorker' in navigator){
 .org-header-sub{font-size:12px;opacity:0.75;margin-top:3px}
 .org-header-badge{background:rgba(255,255,255,0.18);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap}
 
-/* Location cards */
+/* Enter Sales button */
+    .btn-enter-sales{display:inline-flex;align-items:center;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;color:white;background:linear-gradient(135deg,var(--b7),var(--b5));border:none;border-radius:8px;padding:7px 14px;cursor:pointer;text-decoration:none;white-space:nowrap;transition:opacity 0.15s;box-shadow:0 2px 6px rgba(58,84,112,0.25);}
+    .btn-enter-sales:hover{opacity:0.88;}
+
+    /* Location cards */
 .locations-list{display:flex;flex-direction:column;gap:10px}
 .loc-card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden;transition:box-shadow 0.18s,border-color 0.18s}
 .loc-card:hover{box-shadow:var(--shadow-md)}
@@ -450,7 +454,10 @@ function renderLocations(){
           <div class="loc-name">${escHtml(loc.name)}</div>
           <div class="loc-addr">${escHtml(loc.address||'')}</div>
         </div>
-        <div class="loc-badges">${badgeHtml}</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+          <div class="loc-badges">${badgeHtml}</div>
+          <a href="app.html?location_id=${loc.id}&admin=1&from=org" onclick="event.stopPropagation()" class="btn-enter-sales">Enter Sales &#8594;</a>
+        </div>
         <div class="loc-chevron">&#9660;</div>
       </div>
       <div class="loc-stat-strip">
@@ -473,8 +480,7 @@ function renderLocations(){
           ${teamHtml}
         </div>
         <div class="expanded-footer">
-          <button class="btn-sm" onclick="openAssignUserModal('${loc.id}','${escHtml(loc.name)}')">+ Assign User to This Location</button>
-          <a href="app.html?location_id=${loc.id}&admin=1&from=org" class="btn-sm">Open Club App -></a>
+          <button class="btn-sm" onclick="openAssignUserModal('${loc.id}','${escHtml(loc.name)}')">+ Assign User</button>
         </div>
       </div>
     </div>`;
