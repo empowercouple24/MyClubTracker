@@ -381,6 +381,8 @@ if('serviceWorker' in navigator){
         <button class="nav-drop-item" onclick="window.location.href='admin.html';closeNavMenu()">🏠 Admin Dashboard</button>
         <div class="nav-drop-divider"></div>
       </div>
+      <button class="nav-drop-item" id="nav-switch-loc-btn" onclick="openLocSwitcher();closeNavMenu()" style="display:none;">🏪 Switch Location</button>
+      <div class="nav-drop-divider" id="nav-switch-loc-divider" style="display:none;"></div>
       <button class="nav-drop-item danger" onclick="handleSignOut();closeNavMenu()">↪ Sign out</button>
     </div>
   </div>
@@ -1629,7 +1631,24 @@ async function init(){
     }
 
     if(u.role==='admin'&&!LOCATION_ID){window.location.href='admin.html';return;}
-    LOCATION_ID=u.location_id;
+    if(u.role==='org_leader'&&!IS_ADMIN_VIEW){window.location.href='org-admin.html';return;}
+
+    // Load all locations this user has access to
+    const{data:userLocs}=await sb.from('user_locations')
+      .select('location_id,is_primary,locations(id,name,address)')
+      .eq('user_id',session.user.id);
+    const USER_LOCATIONS=userLocs||[];
+
+    // Resolve which location to load:
+    // 1. URL param (admin drill-in), 2. localStorage last used, 3. primary, 4. user.location_id
+    if(!LOCATION_ID){
+      const stored=localStorage.getItem('mct_last_loc_'+session.user.id);
+      const primary=USER_LOCATIONS.find(l=>l.is_primary)||USER_LOCATIONS[0];
+      LOCATION_ID=stored||primary?.location_id||u.location_id;
+    }
+
+    // Store multi-location data for switcher
+    window._USER_LOCATIONS=USER_LOCATIONS;
     USER_ROLE=u.role||'owner';
     // Employee: restricted tabs, no settings
     if(USER_ROLE==='employee'){
@@ -1645,6 +1664,18 @@ async function init(){
     if(navDN){ navDN.textContent = (u.display_name || [u.first_name,u.last_name].filter(Boolean).join(' ') || ''); }
     const navRL = document.getElementById('nav-role-label');
     if(navRL){ navRL.textContent = (USER_ROLE==='employee'?'OPERATOR':'OWNER'); }
+    // Show Switch Location button if user has more than one location
+    const _ulocs=window._USER_LOCATIONS||[];
+    if(_ulocs.length>1&&!IS_ADMIN_VIEW){
+      const _slb=document.getElementById('nav-switch-loc-btn');
+      const _sld=document.getElementById('nav-switch-loc-divider');
+      if(_slb)_slb.style.display='';
+      if(_sld)_sld.style.display='';
+    }
+    // Save current location to localStorage for next visit
+    if(CURRENT_SESSION&&LOCATION_ID&&!IS_ADMIN_VIEW){
+      localStorage.setItem('mct_last_loc_'+CURRENT_SESSION.user.id, LOCATION_ID);
+    }
     const _pb2=document.getElementById('nav-profile-btn');if(_pb2)_pb2.title=u.display_name||session.user.email;
     setNavAvatar(u.avatar_url, u.first_name, u.last_name, u.display_name);
   }
@@ -2889,6 +2920,45 @@ function openProductsEditor(){closeProfileModal();window.location.href=IS_ADMIN_
 
 function populateOperatorDropdowns(){const ops=SETTINGS.operators.filter(o=>o.name&&o.visible!==false),blank='<option value="">—</option>';['f-op1','f-op2'].forEach(id=>{const el=document.getElementById(id);if(!el)return;const cur=el.value;el.innerHTML=blank+ops.map(o=>`<option value="${o.name}">${o.name}</option>`).join('');el.value=cur;});renderOpsEarningsPreview();}
 async function handleSignOut(){if(IS_ADMIN_VIEW){window.location.href='admin.html';return;}await sb.auth.signOut();window.location.href='index.html';}
+
+// ── LOCATION SWITCHER ──
+function openLocSwitcher(){
+  const locs=window._USER_LOCATIONS||[];
+  const list=document.getElementById('loc-switcher-list');
+  if(!list)return;
+  list.innerHTML=locs.map(l=>{
+    const loc=l.locations||{};
+    const isCurrent=l.location_id===LOCATION_ID;
+    return`<div onclick="${isCurrent?'':'switchToLocation(''+l.location_id+'')'}" style="background:${isCurrent?'var(--b0)':'var(--surface)'};border:${isCurrent?'1.5px solid var(--b3)':'1px solid var(--border-light)'};border-radius:var(--radius-sm);padding:14px 16px;cursor:${isCurrent?'default':'pointer'};transition:box-shadow 0.15s;" ${isCurrent?'':' onmouseover="this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.boxShadow=''"'}>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+        <div>
+          <div style="font-family:'Outfit',sans-serif;font-size:15px;font-weight:700;color:var(--text);">${loc.name||'Location'}</div>
+          <div style="font-size:12px;color:var(--text-faint);margin-top:2px;">${loc.address||''}</div>
+        </div>
+        ${isCurrent?'<span style="font-size:11px;font-weight:700;background:var(--b1);color:var(--b6);border:1px solid var(--b2);padding:2px 8px;border-radius:20px;">Current</span>':'<span style="font-size:12px;color:var(--b6);">Switch →</span>'}
+      </div>
+    </div>`;
+  }).join('');
+  const overlay=document.getElementById('loc-switcher-overlay');
+  if(overlay){overlay.style.display='flex';}
+}
+
+function closeLocSwitcher(){
+  const overlay=document.getElementById('loc-switcher-overlay');
+  if(overlay)overlay.style.display='none';
+}
+
+function switchToLocation(locId){
+  if(!CURRENT_SESSION)return;
+  localStorage.setItem('mct_last_loc_'+CURRENT_SESSION.user.id, locId);
+  window.location.reload();
+}
+
+// Close switcher on overlay click
+document.addEventListener('click',function(e){
+  const overlay=document.getElementById('loc-switcher-overlay');
+  if(overlay&&e.target===overlay)closeLocSwitcher();
+});
 let toastTimer;
 function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(type?' '+type:'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2400);}
 function recalcInvCatTop(){
@@ -3120,5 +3190,16 @@ async function safeInit() {
 }
 safeInit();
 </script>
+
+<!-- LOCATION SWITCHER MODAL -->
+<div id="loc-switcher-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:var(--surface);border-radius:var(--radius);width:100%;max-width:480px;box-shadow:0 16px 48px rgba(0,0,0,0.25);overflow:hidden;max-height:80vh;display:flex;flex-direction:column;">
+    <div style="padding:18px 20px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;color:var(--text);">Switch Location</div>
+      <button onclick="closeLocSwitcher()" style="background:none;border:none;font-size:18px;color:var(--text-faint);cursor:pointer;padding:2px 6px;">✕</button>
+    </div>
+    <div id="loc-switcher-list" style="padding:12px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:8px;"></div>
+  </div>
+</div>
 </body>
 </html>

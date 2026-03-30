@@ -447,6 +447,7 @@ function renderLocations(){
           ${teamHtml}
         </div>
         <div class="expanded-footer">
+          <button class="btn-sm" onclick="openAssignUserModal('${loc.id}','${escHtml(loc.name)}')">+ Assign User to This Location</button>
           <a href="app.html?location_id=${loc.id}&admin=1&from=org" class="btn-sm">Open Club App →</a>
         </div>
       </div>
@@ -604,6 +605,44 @@ document.addEventListener('click',e=>{
 function showModalAlert(id,msg){const el=document.getElementById(id);el.textContent=msg;el.classList.add('show');}
 
 // ── TOAST ──
+// ── ASSIGN USER TO LOCATION ──
+let _assignLocId=null;
+
+async function openAssignUserModal(locId,locName){
+  _assignLocId=locId;
+  document.getElementById('assign-modal-sub').textContent=`Add a user from your org to "${locName}".`;
+  document.getElementById('assign-error').classList.remove('show');
+  const{data:allUsers}=await sb.from('users').select('id,first_name,last_name,display_name,email').eq('org_id',MY_ORG.id);
+  const{data:locAssignments}=await sb.from('user_locations').select('user_id').eq('location_id',locId);
+  const alreadyAssigned=new Set((locAssignments||[]).map(a=>a.user_id));
+  const sel=document.getElementById('assign-user-select');
+  const available=(allUsers||[]).filter(u=>!alreadyAssigned.has(u.id));
+  sel.innerHTML='<option value="">— Choose a user —</option>'+
+    available.map(u=>`<option value="${u.id}">${escHtml(u.display_name||[u.first_name,u.last_name].filter(Boolean).join(' ')||u.email)}</option>`).join('');
+  openModal('assign-user-modal');
+}
+
+async function submitAssignUser(){
+  const userId=document.getElementById('assign-user-select').value;
+  if(!userId){showModalAssignAlert('Please select a user.');return;}
+  const btn=document.getElementById('assign-btn');
+  btn.disabled=true;btn.textContent='Assigning…';
+  const{data:existing}=await sb.from('user_locations').select('id').eq('user_id',userId).eq('is_primary',true).maybeSingle();
+  const{error}=await sb.from('user_locations').upsert({
+    user_id:userId,location_id:_assignLocId,is_primary:!existing,
+  },{onConflict:'user_id,location_id'});
+  btn.disabled=false;btn.textContent='Assign →';
+  if(error){showModalAssignAlert(error.message);return;}
+  closeModal('assign-user-modal');
+  showToast('User assigned to location.');
+  await loadLocations();
+}
+
+function showModalAssignAlert(msg){
+  const el=document.getElementById('assign-error');
+  el.textContent=msg;el.classList.add('show');
+}
+
 function showToast(msg,dur=2400){
   let t=document.getElementById('global-toast');
   if(!t){t=document.createElement('div');t.id='global-toast';
@@ -658,5 +697,25 @@ fetch(window.location.href,{method:'HEAD'}).then(function(r){
   }, CHECK_INTERVAL);
 })();
 </script>
+
+<!-- ASSIGN USER TO LOCATION MODAL -->
+<div class="modal-overlay" id="assign-user-modal">
+  <div class="modal">
+    <div class="modal-title">Assign User to Location</div>
+    <div class="modal-sub" id="assign-modal-sub">Select a user from your org to add to this location.</div>
+    <div class="modal-alert error" id="assign-error"></div>
+    <div class="modal-field">
+      <label class="modal-label">Select user</label>
+      <select class="modal-input" id="assign-user-select">
+        <option value="">— Choose a user —</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="closeModal('assign-user-modal')">Cancel</button>
+      <button class="btn-primary" id="assign-btn" onclick="submitAssignUser()">Assign →</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
