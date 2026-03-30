@@ -13,7 +13,7 @@ if('serviceWorker' in navigator){
 <meta charset="UTF-8"/>
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
-<title>Dashboard — MyClubTracker</title>
+<title>Dashboard -- MyClubTracker</title>
 <meta name="theme-color" content="#e8edf4"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -114,6 +114,20 @@ if('serviceWorker' in navigator){
 .avatar-preview img{width:100%;height:100%;object-fit:cover;}
 .pw-req-sm{font-size:11px;color:var(--text-faint);margin-top:4px;line-height:1.8;}
 .pw-req-sm span.met{color:var(--g6);}
+/* Crop modal */
+.crop-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:500;align-items:center;justify-content:center;flex-direction:column;gap:16px;}
+.crop-overlay.show{display:flex;}
+.crop-container{position:relative;width:280px;height:280px;border-radius:50%;overflow:hidden;border:3px solid white;cursor:move;}
+.crop-canvas{position:absolute;top:0;left:0;}
+.crop-controls{display:flex;align-items:center;gap:12px;}
+.crop-zoom-btn{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
+.crop-zoom-btn:hover{background:rgba(255,255,255,0.25);}
+.crop-zoom-track{width:120px;height:4px;background:rgba(255,255,255,0.2);border-radius:2px;position:relative;cursor:pointer;}
+.crop-zoom-thumb{position:absolute;top:-6px;width:16px;height:16px;border-radius:50%;background:white;transform:translateX(-50%);}
+.crop-actions{display:flex;gap:12px;}
+.crop-btn{padding:10px 24px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;border:none;font-family:inherit;}
+.crop-btn-cancel{background:rgba(255,255,255,0.1);color:white;}
+.crop-btn-apply{background:white;color:#1e2d3d;}
 .modal-overlay.show{display:flex}
 .modal{background:var(--surface);border-radius:var(--radius);padding:24px;width:100%;max-width:440px;box-shadow:0 16px 48px rgba(0,0,0,0.25);max-height:90vh;overflow-y:auto}
 .modal-title{font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;color:var(--text);margin-bottom:4px}
@@ -183,7 +197,7 @@ if('serviceWorker' in navigator){
   <!-- ORG HEADER -->
   <div class="org-header-card" id="org-header-card">
     <div>
-      <div class="org-header-name" id="org-header-name">—</div>
+      <div class="org-header-name" id="org-header-name">--</div>
       <div class="org-header-sub" id="org-header-sub">Loading…</div>
     </div>
     <div class="org-header-badge" id="org-plan-badge">Free Plan</div>
@@ -193,17 +207,17 @@ if('serviceWorker' in navigator){
   <div class="kpi-strip">
     <div class="kpi-card blue">
       <div class="kpi-label">Yesterday</div>
-      <div class="kpi-val" id="kpi-yday">—</div>
+      <div class="kpi-val" id="kpi-yday">--</div>
       <div class="kpi-sub" id="kpi-yday-sub">across all locations</div>
     </div>
     <div class="kpi-card green">
       <div class="kpi-label">This Week</div>
-      <div class="kpi-val" id="kpi-week">—</div>
+      <div class="kpi-val" id="kpi-week">--</div>
       <div class="kpi-sub" id="kpi-week-sub">across all locations</div>
     </div>
     <div class="kpi-card amber">
       <div class="kpi-label">This Month</div>
-      <div class="kpi-val" id="kpi-month">—</div>
+      <div class="kpi-val" id="kpi-month">--</div>
       <div class="kpi-sub" id="kpi-month-sub">across all locations</div>
     </div>
   </div>
@@ -237,7 +251,7 @@ if('serviceWorker' in navigator){
 </div>
 <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 
-<!-- ── ADD LOCATION MODAL ── -->
+<!-- -- ADD LOCATION MODAL -- -->
 <div class="modal-overlay" id="add-loc-modal">
   <div class="modal">
     <div class="modal-title">Add New Location</div>
@@ -272,7 +286,7 @@ if('serviceWorker' in navigator){
   </div>
 </div>
 
-<!-- ── INVITE CO-LEADER MODAL ── -->
+<!-- -- INVITE CO-LEADER MODAL -- -->
 <div class="modal-overlay" id="invite-leader-modal">
   <div class="modal">
     <div class="modal-title">Invite a Co-Leader</div>
@@ -284,11 +298,11 @@ if('serviceWorker' in navigator){
     </div>
     <div class="modal-row">
       <div class="modal-field">
-        <label class="modal-label">First name <span>— optional</span></label>
+        <label class="modal-label">First name <span>-- optional</span></label>
         <input class="modal-input" type="text" id="il-first" placeholder="First"/>
       </div>
       <div class="modal-field">
-        <label class="modal-label">Last name <span>— optional</span></label>
+        <label class="modal-label">Last name <span>-- optional</span></label>
         <input class="modal-input" type="text" id="il-last" placeholder="Last"/>
       </div>
     </div>
@@ -307,7 +321,7 @@ const sb=supabase.createClient(SURL,SKEY);
 
 let ME=null,MY_ORG=null,MY_LOCATIONS=[],ALL_DAYS=[],ALL_USERS=[],CO_LEADERS=[];
 
-// ── INIT ──
+// -- INIT --
 (async()=>{
   const{data:{session}}=await sb.auth.getSession();
   if(!session){window.location.href='index.html';return;}
@@ -343,9 +357,9 @@ let ME=null,MY_ORG=null,MY_LOCATIONS=[],ALL_DAYS=[],ALL_USERS=[],CO_LEADERS=[];
   }
 
   // Render org header
-  document.getElementById('org-header-name').textContent=org.name||'—';
+  document.getElementById('org-header-name').textContent=org.name||'--';
   document.getElementById('org-header-sub').textContent=
-    `Leader: ${org.leader_name||ME.display_name||'—'} · Activated ${org.activated_at?new Date(org.activated_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—'}`;
+    `Leader: ${org.leader_name||ME.display_name||'--'} - Activated ${org.activated_at?new Date(org.activated_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'--'}`;
   document.getElementById('org-plan-badge').textContent=
     org.billing_plan==='paid'?`$${Number(org.monthly_rate||0).toFixed(2)}/mo`:'Free Plan';
 
@@ -356,7 +370,7 @@ let ME=null,MY_ORG=null,MY_LOCATIONS=[],ALL_DAYS=[],ALL_USERS=[],CO_LEADERS=[];
   document.getElementById('main-page').style.display='block';
 })();
 
-// ── LOAD LOCATIONS ──
+// -- LOAD LOCATIONS --
 async function loadLocations(){
   const{data:locs}=await sb.from('locations').select('*').eq('org_id',MY_ORG.id).order('name');
   MY_LOCATIONS=locs||[];
@@ -379,11 +393,11 @@ async function loadLocations(){
   renderKPIs();
 }
 
-// ── RENDER LOCATIONS ──
+// -- RENDER LOCATIONS --
 function renderLocations(){
   const el=document.getElementById('locations-list');
   if(!MY_LOCATIONS.length){
-    el.innerHTML=`<div class="empty-state"><div class="empty-icon">📍</div><div class="empty-title">No locations yet</div><div class="empty-msg">Add your first club location to get started.</div></div>`;
+    el.innerHTML=`<div class="empty-state"><div class="empty-icon">&#128205;</div><div class="empty-title">No locations yet</div><div class="empty-msg">Add your first club location to get started.</div></div>`;
     return;
   }
 
@@ -415,7 +429,7 @@ function renderLocations(){
       ?locUsers.map(u=>`
         <div class="team-row">
           <div>
-            <div class="team-name">${escHtml(u.display_name||[u.first_name,u.last_name].filter(Boolean).join(' ')||'—')}</div>
+            <div class="team-name">${escHtml(u.display_name||[u.first_name,u.last_name].filter(Boolean).join(' ')||'--')}</div>
             <div class="team-email">${escHtml(u.email||'')}</div>
           </div>
           <span class="team-role-badge">${u.role==='owner'?'Owner':'Operator'}</span>
@@ -430,20 +444,20 @@ function renderLocations(){
           <div class="loc-addr">${escHtml(loc.address||'')}</div>
         </div>
         <div class="loc-badges">${badgeHtml}</div>
-        <div class="loc-chevron">▼</div>
+        <div class="loc-chevron">&#9660;</div>
       </div>
       <div class="loc-stat-strip">
         <div class="loc-stat-cell">
           <div class="loc-stat-period">Yesterday</div>
-          <div class="loc-stat-val ${ydaySales===null?'dim':''}">${ydaySales!==null?fmt$(ydaySales):'—'}</div>
+          <div class="loc-stat-val ${ydaySales===null?'dim':''}">${ydaySales!==null?fmt$(ydaySales):'--'}</div>
         </div>
         <div class="loc-stat-cell">
           <div class="loc-stat-period">This Week</div>
-          <div class="loc-stat-val ${!weekDays.length?'dim':''}">${weekDays.length?fmt$(weekSales):'—'}</div>
+          <div class="loc-stat-val ${!weekDays.length?'dim':''}">${weekDays.length?fmt$(weekSales):'--'}</div>
         </div>
         <div class="loc-stat-cell">
           <div class="loc-stat-period">This Month</div>
-          <div class="loc-stat-val ${!monthDays.length?'dim':''}">${monthDays.length?fmt$(monthSales):'—'}</div>
+          <div class="loc-stat-val ${!monthDays.length?'dim':''}">${monthDays.length?fmt$(monthSales):'--'}</div>
         </div>
       </div>
       <div class="loc-expanded" id="loc-exp-${loc.id}">
@@ -453,14 +467,14 @@ function renderLocations(){
         </div>
         <div class="expanded-footer">
           <button class="btn-sm" onclick="openAssignUserModal('${loc.id}','${escHtml(loc.name)}')">+ Assign User to This Location</button>
-          <a href="app.html?location_id=${loc.id}&admin=1&from=org" class="btn-sm">Open Club App →</a>
+          <a href="app.html?location_id=${loc.id}&admin=1&from=org" class="btn-sm">Open Club App -></a>
         </div>
       </div>
     </div>`;
   }).join('');
 }
 
-// ── RENDER KPIs ──
+// -- RENDER KPIs --
 function renderKPIs(){
   const today=new Date().toISOString().slice(0,10);
   const yday=new Date(Date.now()-864e5).toISOString().slice(0,10);
@@ -476,15 +490,15 @@ function renderKPIs(){
   const weekCount=[...new Set(ALL_DAYS.filter(d=>d.date>=weekAgo&&d.date<=today).map(d=>d.date))].length;
   const monthCount=[...new Set(ALL_DAYS.filter(d=>d.date>=monthStartStr&&d.date<=today).map(d=>d.date))].length;
 
-  setText('kpi-yday',ydayCount?fmt$(ydayTotal):'—');
-  setText('kpi-week',weekCount?fmt$(weekTotal):'—');
-  setText('kpi-month',monthCount?fmt$(monthTotal):'—');
+  setText('kpi-yday',ydayCount?fmt$(ydayTotal):'--');
+  setText('kpi-week',weekCount?fmt$(weekTotal):'--');
+  setText('kpi-month',monthCount?fmt$(monthTotal):'--');
   setText('kpi-yday-sub',ydayCount?`${ydayCount} location${ydayCount!==1?'s':''} reported`:'no entries yet');
   setText('kpi-week-sub',weekCount?`${weekCount} day${weekCount!==1?'s':''} entered`:'no entries yet');
   setText('kpi-month-sub',monthCount?`${monthCount} day${monthCount!==1?'s':''} entered`:'no entries yet');
 }
 
-// ── LOAD CO-LEADERS ──
+// -- LOAD CO-LEADERS --
 async function loadCoLeaders(){
   const{data:leaders}=await sb.from('org_leaders')
     .select('id,user_id,is_primary,users(first_name,last_name,display_name,email)')
@@ -501,7 +515,7 @@ function renderCoLeaders(){
   }
   el.innerHTML=CO_LEADERS.map(l=>{
     const u=l.users||{};
-    const name=u.display_name||[u.first_name,u.last_name].filter(Boolean).join(' ')||'—';
+    const name=u.display_name||[u.first_name,u.last_name].filter(Boolean).join(' ')||'--';
     const isPrimary=l.is_primary;
     return`<div class="coleader-row">
       <div>
@@ -513,7 +527,7 @@ function renderCoLeaders(){
   }).join('');
 }
 
-// ── ADD LOCATION ──
+// -- ADD LOCATION --
 function openAddLocModal(){openModal('add-loc-modal');}
 async function submitAddLocation(){
   const name=document.getElementById('al-name').value.trim();
@@ -524,7 +538,7 @@ async function submitAddLocation(){
   if(!name){showModalAlert('al-error','Please enter a club name.');return;}
   if(!addr||!city||!state){showModalAlert('al-error','Please fill in the address, city, and state.');return;}
   const btn=document.getElementById('al-btn');
-  btn.disabled=true;btn.textContent='Adding…';
+  btn.disabled=true;btn.textContent='Adding...';
   const fullAddr=`${addr}, ${city}, ${state} ${zip}`.trim();
   const{error}=await sb.from('locations').insert({
     name,address:fullAddr,org_id:MY_ORG.id,
@@ -540,7 +554,7 @@ async function submitAddLocation(){
   await loadLocations();
 }
 
-// ── INVITE CO-LEADER ──
+// -- INVITE CO-LEADER --
 function openInviteLeaderModal(){openModal('invite-leader-modal');}
 async function submitInviteLeader(){
   const email=document.getElementById('il-email').value.trim().toLowerCase();
@@ -548,7 +562,7 @@ async function submitInviteLeader(){
   const last=document.getElementById('il-last').value.trim();
   if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showModalAlert('il-error','Please enter a valid email address.');return;}
   const btn=document.getElementById('il-btn');
-  btn.disabled=true;btn.textContent='Sending…';
+  btn.disabled=true;btn.textContent='Sending...';
   // Generate invite token and store on org record as co-leader invite
   // For now, insert a placeholder user record flagged as pending co-leader
   // Full email automation will fire through the send-invite edge function
@@ -565,44 +579,65 @@ async function submitInviteLeader(){
   showToast('Invite sent!');
 }
 
-// ── REMOVE CO-LEADER ──
+// -- REMOVE CO-LEADER --
 async function removeCoLeader(leaderId,name,btn){
   if(!btn.classList.contains('confirm')){
     btn.textContent='Confirm remove';btn.classList.add('confirm');
     setTimeout(()=>{btn.textContent='Remove';btn.classList.remove('confirm');},3000);
     return;
   }
-  btn.disabled=true;btn.textContent='Removing…';
+  btn.disabled=true;btn.textContent='Removing...';
   const{error}=await sb.from('org_leaders').delete().eq('id',leaderId);
-  if(error){btn.disabled=false;btn.textContent='Remove';showToast('Could not remove — try again.');return;}
+  if(error){btn.disabled=false;btn.textContent='Remove';showToast('Could not remove -- try again.');return;}
   await loadCoLeaders();
   showToast(`${name} removed.`);
 }
 
-// ── TOGGLE LOCATION EXPAND ──
+// -- TOGGLE LOCATION EXPAND --
 function toggleLoc(id){
   const card=document.getElementById('loc-'+id);
   if(card)card.classList.toggle('expanded');
 }
 
-// ── SIGN OUT ──
+// -- SIGN OUT --
 async function handleSignOut(){
   await sb.auth.signOut();
   window.location.href='index.html';
 }
 
-// ── NAV MENU ──
+// -- NAV MENU --
 function toggleNavMenu(){
   const d=document.getElementById('nav-drop');
   if(d)d.classList.toggle('open');
 }
+
+// Hover open with delay
+(function(){
+  var _closeTimer=null;
+  var wrap=null;
+  document.addEventListener('DOMContentLoaded',function(){
+    wrap=document.querySelector('.nav-menu-wrap');
+    if(!wrap)return;
+    wrap.addEventListener('mouseenter',function(){
+      if(_closeTimer){clearTimeout(_closeTimer);_closeTimer=null;}
+      var d=document.getElementById('nav-drop');
+      if(d)d.classList.add('open');
+    });
+    wrap.addEventListener('mouseleave',function(){
+      _closeTimer=setTimeout(function(){
+        var d=document.getElementById('nav-drop');
+        if(d)d.classList.remove('open');
+      },300);
+    });
+  });
+})();
 document.addEventListener('click',e=>{
   const d=document.getElementById('nav-drop');
   if(d&&d.classList.contains('open')&&!e.target.closest('.nav-menu-btn')&&!e.target.closest('#nav-drop'))
     d.classList.remove('open');
 });
 
-// ── MODAL HELPERS ──
+// -- MODAL HELPERS --
 function openModal(id){document.getElementById(id).classList.add('show');}
 function closeModal(id){document.getElementById(id).classList.remove('show');}
 document.addEventListener('click',e=>{
@@ -610,8 +645,8 @@ document.addEventListener('click',e=>{
 });
 function showModalAlert(id,msg){const el=document.getElementById(id);el.textContent=msg;el.classList.add('show');}
 
-// ── TOAST ──
-// ── ASSIGN USER TO LOCATION ──
+// -- TOAST --
+// -- ASSIGN USER TO LOCATION --
 let _assignLocId=null;
 
 async function openAssignUserModal(locId,locName){
@@ -623,7 +658,7 @@ async function openAssignUserModal(locId,locName){
   const alreadyAssigned=new Set((locAssignments||[]).map(a=>a.user_id));
   const sel=document.getElementById('assign-user-select');
   const available=(allUsers||[]).filter(u=>!alreadyAssigned.has(u.id));
-  sel.innerHTML='<option value="">— Choose a user —</option>'+
+  sel.innerHTML='<option value="">-- Choose a user --</option>'+
     available.map(u=>`<option value="${u.id}">${escHtml(u.display_name||[u.first_name,u.last_name].filter(Boolean).join(' ')||u.email)}</option>`).join('');
   openModal('assign-user-modal');
 }
@@ -632,12 +667,12 @@ async function submitAssignUser(){
   const userId=document.getElementById('assign-user-select').value;
   if(!userId){showModalAssignAlert('Please select a user.');return;}
   const btn=document.getElementById('assign-btn');
-  btn.disabled=true;btn.textContent='Assigning…';
+  btn.disabled=true;btn.textContent='Assigning...';
   const{data:existing}=await sb.from('user_locations').select('id').eq('user_id',userId).eq('is_primary',true).maybeSingle();
   const{error}=await sb.from('user_locations').upsert({
     user_id:userId,location_id:_assignLocId,is_primary:!existing,
   },{onConflict:'user_id,location_id'});
-  btn.disabled=false;btn.textContent='Assign →';
+  btn.disabled=false;btn.textContent='Assign ->';
   if(error){showModalAssignAlert(error.message);return;}
   closeModal('assign-user-modal');
   showToast('User assigned to location.');
@@ -664,24 +699,44 @@ async function orgAdminLookupZip(zip){
 }
 
 // -- PROFILE MODAL --
+var _cropImg=null,_cropZoom=1.3,_cropX=0,_cropY=0,_cropDragging=false,_cropDragStartX=0,_cropDragStartY=0,_cropImgStartX=0,_cropImgStartY=0;
+var _croppedDataUrl=null;
+
+function togglePwFields(){
+  const f=document.getElementById('pm-pw-fields');
+  const btn=document.getElementById('pm-pw-toggle-btn');
+  if(!f)return;
+  const showing=f.style.display!=='none';
+  f.style.display=showing?'none':'block';
+  btn.textContent=showing?'Change password':'Cancel';
+  if(showing){
+    const pw=document.getElementById('pm-pw');
+    const pc=document.getElementById('pm-pw-confirm');
+    if(pw)pw.value='';if(pc)pc.value='';
+    document.getElementById('pm-pw-reqs').style.display='none';
+  }
+}
+
 function openProfileModal(){
   const modal=document.getElementById('profile-modal');
   if(!modal)return;
-  // Pre-fill from current user
   if(ME){
     document.getElementById('pm-first').value=ME.first_name||'';
     document.getElementById('pm-last').value=ME.last_name||'';
     document.getElementById('pm-display').value=ME.display_name||'';
     document.getElementById('pm-phone').value=ME.phone||'';
-    // Avatar
     const img=document.getElementById('pm-avatar-img');
     const initials=document.getElementById('pm-avatar-initials');
     const initial=((ME.first_name||'')[0]||(ME.display_name||'')[0]||'?').toUpperCase();
-    if(ME.avatar_url){img.src=ME.avatar_url;img.style.display='block';if(initials)initials.style.display='none';}
+    if(ME.avatar_url&&img){img.src=ME.avatar_url;img.style.display='block';if(initials)initials.style.display='none';}
     else{if(img)img.style.display='none';if(initials){initials.textContent=initial;initials.style.display='';}}
   }
-  document.getElementById('pm-pw').value='';
-  document.getElementById('pm-pw-confirm').value='';
+  _croppedDataUrl=null;
+  document.getElementById('pm-avatar-crop-name').textContent='';
+  document.getElementById('pm-pw-fields').style.display='none';
+  document.getElementById('pm-pw-toggle-btn').textContent='Change password';
+  const pw=document.getElementById('pm-pw');const pc=document.getElementById('pm-pw-confirm');
+  if(pw)pw.value='';if(pc)pc.value='';
   document.getElementById('pm-pw-reqs').style.display='none';
   document.getElementById('profile-error').style.display='none';
   document.getElementById('profile-success').style.display='none';
@@ -695,21 +750,95 @@ function checkPmPw(){
   reqs.style.display='block';
   document.getElementById('pm-req-len').className=pw.length>=8?'met':'';
   document.getElementById('pm-req-num').className=/[0-9]/.test(pw)?'met':'';
-  document.getElementById('pm-req-sp').className=/[!@#$%^&*()_+\-=\[\]{};':"\|,.<>\/?]/.test(pw)?'met':'';
+  document.getElementById('pm-req-sp').className=/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>\/?]/.test(pw)?'met':'';
 }
 
-async function handleProfileAvatarChange(input){
+function handleProfileAvatarChange(input){
   const file=input.files[0];
   if(!file)return;
-  if(file.size>2*1024*1024){showProfileMsg('error','Image must be under 2MB.');return;}
+  if(file.size>5*1024*1024){showProfileMsg('error','Image must be under 5MB.');return;}
   const reader=new FileReader();
   reader.onload=e=>{
-    const img=document.getElementById('pm-avatar-img');
-    const initials=document.getElementById('pm-avatar-initials');
-    if(img){img.src=e.target.result;img.style.display='block';}
-    if(initials)initials.style.display='none';
+    const img=new Image();
+    img.onload=()=>{
+      _cropImg=img;
+      _cropZoom=1.3;
+      const size=280;
+      _cropX=(size-img.width*_cropZoom)/2;
+      _cropY=(size-img.height*_cropZoom)/2;
+      document.getElementById('pm-avatar-crop-name').textContent=file.name;
+      openCropOverlay();
+    };
+    img.src=e.target.result;
   };
   reader.readAsDataURL(file);
+}
+
+function openCropOverlay(){
+  const overlay=document.getElementById('crop-overlay');
+  if(overlay)overlay.classList.add('show');
+  renderCropCanvas();
+  setupCropDrag();
+  updateZoomThumb();
+}
+
+function cancelCrop(){
+  document.getElementById('crop-overlay').classList.remove('show');
+  document.getElementById('pm-avatar-file').value='';
+  document.getElementById('pm-avatar-crop-name').textContent='';
+  _cropImg=null;
+}
+
+function applyCrop(){
+  const canvas=document.getElementById('crop-canvas');
+  _croppedDataUrl=canvas.toDataURL('image/jpeg',0.9);
+  const img=document.getElementById('pm-avatar-img');
+  const initials=document.getElementById('pm-avatar-initials');
+  if(img){img.src=_croppedDataUrl;img.style.display='block';}
+  if(initials)initials.style.display='none';
+  document.getElementById('crop-overlay').classList.remove('show');
+}
+
+function renderCropCanvas(){
+  if(!_cropImg)return;
+  const size=280;
+  const canvas=document.getElementById('crop-canvas');
+  canvas.width=size;canvas.height=size;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,size,size);
+  ctx.drawImage(_cropImg,_cropX,_cropY,_cropImg.width*_cropZoom,_cropImg.height*_cropZoom);
+}
+
+function adjustCropZoom(delta){
+  _cropZoom=Math.max(0.5,Math.min(4,_cropZoom+delta));
+  renderCropCanvas();
+  updateZoomThumb();
+}
+
+function onZoomTrackClick(e){
+  const track=document.getElementById('crop-zoom-track');
+  const rect=track.getBoundingClientRect();
+  const pct=(e.clientX-rect.left)/rect.width;
+  _cropZoom=0.5+pct*3.5;
+  renderCropCanvas();
+  updateZoomThumb();
+}
+
+function updateZoomThumb(){
+  const thumb=document.getElementById('crop-zoom-thumb');
+  if(!thumb)return;
+  const pct=(_cropZoom-0.5)/3.5;
+  thumb.style.left=(pct*100)+'%';
+}
+
+function setupCropDrag(){
+  const canvas=document.getElementById('crop-canvas');
+  canvas.onmousedown=e=>{_cropDragging=true;_cropDragStartX=e.clientX;_cropDragStartY=e.clientY;_cropImgStartX=_cropX;_cropImgStartY=_cropY;};
+  canvas.ontouchstart=e=>{const t=e.touches[0];_cropDragging=true;_cropDragStartX=t.clientX;_cropDragStartY=t.clientY;_cropImgStartX=_cropX;_cropImgStartY=_cropY;};
+  window.onmousemove=e=>{if(!_cropDragging)return;_cropX=_cropImgStartX+(e.clientX-_cropDragStartX);_cropY=_cropImgStartY+(e.clientY-_cropDragStartY);renderCropCanvas();};
+  window.ontouchmove=e=>{if(!_cropDragging)return;const t=e.touches[0];_cropX=_cropImgStartX+(t.clientX-_cropDragStartX);_cropY=_cropImgStartY+(t.clientY-_cropDragStartY);renderCropCanvas();};
+  window.onmouseup=()=>{_cropDragging=false;};
+  window.ontouchend=()=>{_cropDragging=false;};
 }
 
 async function saveProfile(){
@@ -717,69 +846,39 @@ async function saveProfile(){
   btn.disabled=true;btn.textContent='Saving...';
   document.getElementById('profile-error').style.display='none';
   document.getElementById('profile-success').style.display='none';
-
   const first=document.getElementById('pm-first').value.trim();
   const last=document.getElementById('pm-last').value.trim();
   const display=document.getElementById('pm-display').value.trim()||first;
   const phone=document.getElementById('pm-phone').value.trim();
   const pw=document.getElementById('pm-pw').value;
   const pwConfirm=document.getElementById('pm-pw-confirm').value;
-
   if(!first||!last){showProfileMsg('error','Please enter your first and last name.');btn.disabled=false;btn.textContent='Save changes';return;}
-
-  // Validate password if provided
   if(pw){
-    if(pw.length<8||!/[0-9]/.test(pw)||!/[!@#$%^&*()_+\-=\[\]{};':"\|,.<>\/?]/.test(pw)){
-      showProfileMsg('error','Password must be 8+ characters with a number and special character.');btn.disabled=false;btn.textContent='Save changes';return;
-    }
+    if(pw.length<8||!/[0-9]/.test(pw)||!/[!@#$%^&*]/.test(pw)){showProfileMsg('error','Password must be 8+ characters with a number and special character.');btn.disabled=false;btn.textContent='Save changes';return;}
     if(pw!==pwConfirm){showProfileMsg('error','Passwords do not match.');btn.disabled=false;btn.textContent='Save changes';return;}
   }
-
   try{
-    // Upload avatar if new file selected
     let avatarUrl=ME?.avatar_url||null;
-    const fileInput=document.getElementById('pm-avatar-file');
-    if(fileInput.files[0]){
-      const file=fileInput.files[0];
-      const ext=file.name.split('.').pop();
-      const path=`avatars/${ME.id}.${ext}`;
-      const{error:upErr}=await sb.storage.from('avatars').upload(path,file,{upsert:true});
-      if(!upErr){
-        const{data:urlData}=sb.storage.from('avatars').getPublicUrl(path);
-        avatarUrl=urlData?.publicUrl||avatarUrl;
-      }
+    if(_croppedDataUrl){
+      const blob=await(await fetch(_croppedDataUrl)).blob();
+      const path='avatars/'+ME.id+'.jpg';
+      const{error:upErr}=await sb.storage.from('avatars').upload(path,blob,{upsert:true,contentType:'image/jpeg'});
+      if(!upErr){const{data:urlData}=sb.storage.from('avatars').getPublicUrl(path);avatarUrl=(urlData?.publicUrl||avatarUrl)+'?t='+Date.now();}
     }
-
-    // Update public.users
-    const{error:userErr}=await sb.from('users').update({
-      first_name:first,last_name:last,display_name:display,phone,avatar_url:avatarUrl
-    }).eq('id',ME.id);
+    const{error:userErr}=await sb.from('users').update({first_name:first,last_name:last,display_name:display,phone,avatar_url:avatarUrl}).eq('id',ME.id);
     if(userErr)throw userErr;
-
-    // Update password if provided
-    if(pw){
-      const{error:pwErr}=await sb.auth.updateUser({password:pw});
-      if(pwErr)throw pwErr;
-    }
-
-    // Update local ME and nav
+    if(pw){const{error:pwErr}=await sb.auth.updateUser({password:pw});if(pwErr)throw pwErr;}
     ME={...ME,first_name:first,last_name:last,display_name:display,phone,avatar_url:avatarUrl};
-    const dn=document.getElementById('nav-display-name');
-    if(dn)dn.textContent=display||first;
+    const dn=document.getElementById('nav-display-name');if(dn)dn.textContent=display||first;
     const navAv=document.getElementById('nav-avatar');
     if(navAv){
-      const sp=navAv.querySelector('span');
-      const im=navAv.querySelector('img');
+      const sp=navAv.querySelector('span');const im=navAv.querySelector('img');
       if(avatarUrl&&im){im.src=avatarUrl;im.style.display='block';if(sp)sp.style.display='none';}
       else if(sp){sp.textContent=(first[0]||'?').toUpperCase();sp.style.display='';}
     }
-
     showProfileMsg('success','Profile updated!');
     btn.disabled=false;btn.textContent='Save changes';
-  }catch(err){
-    showProfileMsg('error',err.message||'Failed to save. Please try again.');
-    btn.disabled=false;btn.textContent='Save changes';
-  }
+  }catch(err){showProfileMsg('error',err.message||'Failed to save.');btn.disabled=false;btn.textContent='Save changes';}
 }
 
 function showProfileMsg(type,msg){
@@ -796,7 +895,7 @@ function showToast(msg,dur=2400){
   clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity='0',dur);
 }
 
-// ── UTILS ──
+// -- UTILS --
 function fmt$(n){if(n===null||isNaN(n))return'$0.00';return'$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function setText(id,val){const el=document.getElementById(id);if(el)el.textContent=val;}
 function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
@@ -808,7 +907,7 @@ function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt
 fetch(window.location.href,{method:'HEAD'}).then(function(r){
   var lm=r.headers.get('last-modified');
   if(lm){var d=new Date(lm);var t=document.getElementById('version-tag');
-  if(t)t.textContent='MyClubTracker · v1.4.1 · Updated '+d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+' at '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZoneName:'short'});}
+  if(t)t.textContent='MyClubTracker - v1.4.1 - Updated '+d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+' at '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZoneName:'short'});}
 });
 </script>
 
@@ -828,7 +927,7 @@ fetch(window.location.href,{method:'HEAD'}).then(function(r){
     var b=document.createElement('div');
     b.id='update-banner';
     b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#2d6a4f;color:#fff;font-family:DM Sans,system-ui,sans-serif;font-size:13px;font-weight:600;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 2px 8px rgba(0,0,0,0.2);';
-    b.innerHTML='<span>🔄 A new version is available</span><button onclick="window.location.reload()" style="background:#fff;color:#2d6a4f;border:none;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">Refresh now</button>';
+    b.innerHTML='<span>&#128260; A new version is available</span><button onclick="window.location.reload()" style="background:#fff;color:#2d6a4f;border:none;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">Refresh now</button>';
     document.body.insertBefore(b, document.body.firstChild);
   }
 
@@ -851,12 +950,12 @@ fetch(window.location.href,{method:'HEAD'}).then(function(r){
     <div class="modal-field">
       <label class="modal-label">Select user</label>
       <select class="modal-input" id="assign-user-select">
-        <option value="">— Choose a user —</option>
+        <option value="">-- Choose a user --</option>
       </select>
     </div>
     <div class="modal-footer">
       <button class="btn-sm" onclick="closeModal('assign-user-modal')">Cancel</button>
-      <button class="btn-primary" id="assign-btn" onclick="submitAssignUser()">Assign →</button>
+      <button class="btn-primary" id="assign-btn" onclick="submitAssignUser()">Assign -></button>
     </div>
   </div>
 </div>
@@ -872,16 +971,17 @@ fetch(window.location.href,{method:'HEAD'}).then(function(r){
 
     <!-- AVATAR -->
     <div class="avatar-upload-wrap">
-      <div class="avatar-preview" id="pm-avatar-preview">
+      <div class="avatar-preview" id="pm-avatar-preview" style="cursor:pointer;" onclick="document.getElementById('pm-avatar-file').click()" title="Click to change photo">
         <img id="pm-avatar-img" src="" alt="" style="display:none;"/>
         <span id="pm-avatar-initials"></span>
       </div>
       <div>
         <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">Profile photo</div>
         <label style="font-size:12px;color:var(--b6);font-weight:600;cursor:pointer;text-decoration:underline;">
-          Upload photo
+          Upload &amp; crop photo
           <input type="file" id="pm-avatar-file" accept="image/*" style="display:none;" onchange="handleProfileAvatarChange(this)"/>
         </label>
+        <div id="pm-avatar-crop-name" style="font-size:11px;color:var(--text-faint);margin-top:3px;"></div>
       </div>
     </div>
 
@@ -897,7 +997,7 @@ fetch(window.location.href,{method:'HEAD'}).then(function(r){
       </div>
     </div>
     <div class="modal-field" style="margin-bottom:14px;">
-      <label class="modal-label">Display name <span style="font-weight:400;text-transform:none;">— shown in app</span></label>
+      <label class="modal-label">Display name <span style="font-weight:400;text-transform:none;">-- shown in app</span></label>
       <input class="modal-input" type="text" id="pm-display" placeholder="e.g. Mike"/>
     </div>
     <div class="modal-field" style="margin-bottom:20px;">
@@ -906,20 +1006,25 @@ fetch(window.location.href,{method:'HEAD'}).then(function(r){
     </div>
 
     <!-- CHANGE PASSWORD -->
-    <div style="border-top:1px solid var(--border-light);padding-top:16px;margin-bottom:16px;">
-      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px;">Change password</div>
-      <div class="modal-field" style="margin-bottom:10px;">
-        <label class="modal-label">New password <span style="font-weight:400;text-transform:none;">— leave blank to keep current</span></label>
-        <input class="modal-input" type="password" id="pm-pw" placeholder="New password" oninput="checkPmPw()"/>
-        <div class="pw-req-sm" id="pm-pw-reqs" style="display:none;">
-          <span id="pm-req-len">&#x2717; At least 8 characters</span><br/>
-          <span id="pm-req-num">&#x2717; At least one number</span><br/>
-          <span id="pm-req-sp">&#x2717; At least one special character</span>
-        </div>
+    <div style="border-top:1px solid var(--border-light);padding-top:14px;margin-bottom:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-size:12px;color:var(--text-faint);">Password</div>
+        <button onclick="togglePwFields()" id="pm-pw-toggle-btn" style="font-size:12px;color:var(--b6);font-weight:600;background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;">Change password</button>
       </div>
-      <div class="modal-field" style="margin-bottom:0;">
-        <label class="modal-label">Confirm new password</label>
-        <input class="modal-input" type="password" id="pm-pw-confirm" placeholder="Re-enter password"/>
+      <div id="pm-pw-fields" style="display:none;margin-top:12px;">
+        <div class="modal-field" style="margin-bottom:10px;">
+          <label class="modal-label">New password</label>
+          <input class="modal-input" type="password" id="pm-pw" placeholder="New password" oninput="checkPmPw()"/>
+          <div class="pw-req-sm" id="pm-pw-reqs" style="display:none;">
+            <span id="pm-req-len">&#x2717; At least 8 characters</span><br/>
+            <span id="pm-req-num">&#x2717; At least one number</span><br/>
+            <span id="pm-req-sp">&#x2717; At least one special character</span>
+          </div>
+        </div>
+        <div class="modal-field" style="margin-bottom:0;">
+          <label class="modal-label">Confirm new password</label>
+          <input class="modal-input" type="password" id="pm-pw-confirm" placeholder="Re-enter password"/>
+        </div>
       </div>
     </div>
 
@@ -927,6 +1032,26 @@ fetch(window.location.href,{method:'HEAD'}).then(function(r){
       <button class="btn-sm" onclick="closeModal('profile-modal')">Cancel</button>
       <button class="btn-primary" id="pm-save-btn" onclick="saveProfile()">Save changes</button>
     </div>
+  </div>
+</div>
+
+
+<!-- AVATAR CROP OVERLAY -->
+<div class="crop-overlay" id="crop-overlay">
+  <div style="color:white;font-size:14px;font-weight:600;margin-bottom:8px;">Drag to reposition &nbsp;|&nbsp; Zoom in/out</div>
+  <div class="crop-container" id="crop-container">
+    <canvas id="crop-canvas" class="crop-canvas"></canvas>
+  </div>
+  <div class="crop-controls">
+    <button class="crop-zoom-btn" onclick="adjustCropZoom(-0.1)">&#8722;</button>
+    <div class="crop-zoom-track" id="crop-zoom-track" onclick="onZoomTrackClick(event)">
+      <div class="crop-zoom-thumb" id="crop-zoom-thumb" style="left:30%;"></div>
+    </div>
+    <button class="crop-zoom-btn" onclick="adjustCropZoom(0.1)">&#43;</button>
+  </div>
+  <div class="crop-actions">
+    <button class="crop-btn crop-btn-cancel" onclick="cancelCrop()">Cancel</button>
+    <button class="crop-btn crop-btn-apply" onclick="applyCrop()">Apply</button>
   </div>
 </div>
 

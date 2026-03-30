@@ -1699,7 +1699,10 @@ async function init(){
     return;
   }
   setLoadText('Loading club data…');
-  const{data:loc}=await sb.from('locations').select('name,address,owner_name,owner_phone,settings').eq('id',LOCATION_ID).single();
+  console.log('[app] fetching location:',LOCATION_ID);
+  const{data:loc,error:locFetchErr}=await sb.from('locations').select('name,address,owner_name,owner_phone,settings').eq('id',LOCATION_ID).single();
+  if(locFetchErr)console.error('[app] location fetch error:',locFetchErr.message,locFetchErr.code);
+  console.log('[app] location data:',loc?.name);
   if(loc){
     // Set nav immediately from database — unconditional, no fallbacks needed
     const _ncn2=document.getElementById('nav-club-name');
