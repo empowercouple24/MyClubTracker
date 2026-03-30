@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-30 11:50:16 -->
+<!-- CACHE BUST: 2026-03-30 11:54:07 -->
 <html lang="en">
 <head>
 <script>
@@ -317,7 +317,14 @@ if('serviceWorker' in navigator){
 <script>
 const SURL='https://ndaqlamzlaucigvnhgfu.supabase.co';
 const SKEY='sb_publishable_wO6XM4pC2CcaISQ8OlbkfQ_liqKJbi_';
-const sb=supabase.createClient(SURL,SKEY);
+const sb=supabase.createClient(SURL,SKEY,{
+  auth:{
+    storage:window.localStorage,
+    persistSession:true,
+    detectSessionInUrl:true,
+    flowType:'implicit'
+  }
+});
 
 let ME=null,MY_ORG=null,MY_LOCATIONS=[],ALL_DAYS=[],ALL_USERS=[],CO_LEADERS=[];
 

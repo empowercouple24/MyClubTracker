@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-30 11:50:16 -->
+<!-- CACHE BUST: 2026-03-30 11:53:57 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -310,7 +310,14 @@ fetch(window.location.href, {method:'HEAD'}).then(function(r){
 <script>
 var SURL='https://ndaqlamzlaucigvnhgfu.supabase.co';
 var SKEY='sb_publishable_wO6XM4pC2CcaISQ8OlbkfQ_liqKJbi_';
-var sb=supabase.createClient(SURL,SKEY);
+var sb=supabase.createClient(SURL,SKEY,{
+  auth:{
+    storage:window.localStorage,
+    persistSession:true,
+    detectSessionInUrl:true,
+    flowType:'implicit'
+  }
+});
 var selectedRole='owner';
 var verifiedLocation=null;
 var US_STATES=[['AL','Alabama'],['AK','Alaska'],['AZ','Arizona'],['AR','Arkansas'],['CA','California'],['CO','Colorado'],['CT','Connecticut'],['DE','Delaware'],['FL','Florida'],['GA','Georgia'],['HI','Hawaii'],['ID','Idaho'],['IL','Illinois'],['IN','Indiana'],['IA','Iowa'],['KS','Kansas'],['KY','Kentucky'],['LA','Louisiana'],['ME','Maine'],['MD','Maryland'],['MA','Massachusetts'],['MI','Michigan'],['MN','Minnesota'],['MS','Mississippi'],['MO','Missouri'],['MT','Montana'],['NE','Nebraska'],['NV','Nevada'],['NH','New Hampshire'],['NJ','New Jersey'],['NM','New Mexico'],['NY','New York'],['NC','North Carolina'],['ND','North Dakota'],['OH','Ohio'],['OK','Oklahoma'],['OR','Oregon'],['PA','Pennsylvania'],['RI','Rhode Island'],['SC','South Carolina'],['SD','South Dakota'],['TN','Tennessee'],['TX','Texas'],['UT','Utah'],['VT','Vermont'],['VA','Virginia'],['WA','Washington'],['WV','West Virginia'],['WI','Wisconsin'],['WY','Wyoming']];

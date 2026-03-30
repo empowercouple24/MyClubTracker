@@ -174,7 +174,14 @@ if(location.protocol==='http:'&&location.hostname!=='localhost'){
 const SUPABASE_URL='https://ndaqlamzlaucigvnhgfu.supabase.co';
 const SUPABASE_ANON_KEY='sb_publishable_wO6XM4pC2CcaISQ8OlbkfQ_liqKJbi_';
 const{createClient}=supabase;
-const sb=createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const sb=createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{
+  auth:{
+    storage:window.localStorage,
+    persistSession:true,
+    detectSessionInUrl:true,
+    flowType:'implicit'
+  }
+});
 
 const DEFAULT_PRODUCTS=[
   ["PDM","Vanilla PDM","1426",57.64,12],["PDM","Chocolate PDM","245K",57.64,2],["PDM","Peanut Cookie PDM","1250",44.28,4],
