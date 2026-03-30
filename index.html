@@ -79,6 +79,9 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 .sml-link{display:block;width:100%;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--gf);cursor:pointer;text-decoration:underline;background:none;border:none;text-align:center;margin-top:8px;}
 .sml-link:hover{color:var(--gt);}
 .msg{display:none;padding:9px 12px;border-radius:var(--rs);font-size:13px;line-height:1.5;margin-bottom:10px;}
+.pw-req{font-size:12px;color:var(--gf);margin-top:6px;line-height:1.8;}
+.pw-req span{display:block;}
+.pw-req span.met{color:var(--grn);}
 .msg.show{display:block;}
 .msg.error{background:var(--rpale);border:1px solid rgba(192,48,48,0.2);color:var(--red);}
 .msg.success{background:var(--gpale);border:1px solid rgba(46,122,53,0.2);color:var(--grn);}
@@ -154,6 +157,28 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
     <div class="tc mt8"><button class="btn-g" onclick="showTab('forgot')">Forgot password?</button></div>
     <div class="divider"><div class="divider-line"></div><div class="divider-text">New to the app?</div><div class="divider-line"></div></div>
     <button class="btn-s" onclick="showTab('register')">Create Account →</button>
+  </div>
+
+  <!-- FORCE CHANGE PASSWORD -->
+  <div class="panel" id="panel-changepw">
+    <div class="step-icon">🔐</div>
+    <div class="step-title">Set your password</div>
+    <div class="step-body">Welcome to MyClubTracker! Please create a secure password to continue.</div>
+    <div class="msg" id="cp-msg"></div>
+    <div class="field">
+      <label>New password</label>
+      <input type="password" id="cp-pw" placeholder="At least 8 characters" oninput="checkCpPw()"/>
+      <div class="pw-req" id="cp-reqs">
+        <span id="req-len">✗ At least 8 characters</span>
+        <span id="req-num">✗ At least one number</span>
+        <span id="req-special">✗ At least one special character (!@#$%^&*)</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>Confirm password</label>
+      <input type="password" id="cp-confirm" placeholder="Re-enter password"/>
+    </div>
+    <button class="btn-p" id="cp-btn" onclick="submitChangePassword()">Set Password & Continue →</button>
   </div>
 
   <!-- FORGOT PASSWORD -->
@@ -412,6 +437,14 @@ async function doSignIn(){
         showMsg('si-msg','Setup failed: '+(fnRes.data?.error||fnRes.error?.message||'unknown error')+'. Please contact support@myclubtracker.com.','error');
         setBtn('si-btn',false,'Sign In');return;
       }
+      // After completing onboarding, force password change
+      window._pendingSession=res.data.session;
+      showChangePwPanel();return;
+    }
+    // Check if must change password
+    if(u.must_change_password){
+      window._pendingSession=res.data.session;
+      showChangePwPanel();return;
     }
     window.location.href='org-admin.html';return;
   }
@@ -423,6 +456,45 @@ async function doSignIn(){
   }
   showMsg('si-msg','No location assigned. Contact your admin.','error');setBtn('si-btn',false,'Sign In');
 }
+function showChangePwPanel(){
+  ['signin','forgot','newpassword','register','request'].forEach(function(p){
+    var el=document.getElementById('panel-'+p);if(el){el.classList.remove('active');el.style.display='none';}
+  });
+  var cp=document.getElementById('panel-changepw');
+  if(cp){cp.classList.add('active');cp.style.display='';}
+  // Hide tabs
+  document.querySelector('.tabs').style.display='none';
+}
+
+function checkCpPw(){
+  var pw=document.getElementById('cp-pw').value;
+  var reqLen=document.getElementById('req-len');
+  var reqNum=document.getElementById('req-num');
+  var reqSp=document.getElementById('req-special');
+  if(reqLen)reqLen.className=pw.length>=8?'met':'';
+  if(reqNum)reqNum.className=/[0-9]/.test(pw)?'met':'';
+  if(reqSp)reqSp.className=/[!@#$%^&*()_+\-=\[\]{};':"\|,.<>\/?]/.test(pw)?'met':'';
+}
+
+async function submitChangePassword(){
+  var pw=document.getElementById('cp-pw').value;
+  var cn=document.getElementById('cp-confirm').value;
+  var msg=document.getElementById('cp-msg');
+  msg.style.display='none';
+  if(pw.length<8){showMsg('cp-msg','Password must be at least 8 characters.','error');return;}
+  if(!/[0-9]/.test(pw)){showMsg('cp-msg','Password must contain at least one number.','error');return;}
+  if(!/[!@#$%^&*()_+\-=\[\]{};':"\|,.<>\/?]/.test(pw)){showMsg('cp-msg','Password must contain at least one special character.','error');return;}
+  if(pw!==cn){showMsg('cp-msg','Passwords do not match.','error');return;}
+  var btn=document.getElementById('cp-btn');
+  setBtn('cp-btn',true,'Saving...');
+  var{error}=await sb.auth.updateUser({password:pw});
+  if(error){showMsg('cp-msg',error.message,'error');setBtn('cp-btn',false,'Set Password & Continue →');return;}
+  // Clear must_change_password flag
+  var user=window._pendingSession?.user;
+  if(user){await sb.from('users').update({must_change_password:false}).eq('id',user.id);}
+  window.location.href='org-admin.html';
+}
+
 async function doResend(){var email=document.getElementById('si-email').value.trim();if(!email){showMsg('si-msg','Enter your email above first.','error');return;}await sb.auth.resend({type:'signup',email:email});showMsg('si-msg','Confirmation email resent! Check your inbox.','success');document.getElementById('resend-wrap').style.display='none';}
 async function doReset(){var email=document.getElementById('fp-email').value.trim();if(!email){showMsg('fp-msg','Please enter your email.','error');return;}setBtn('fp-btn',true,'Sending…');var res=await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+'/index.html'});setBtn('fp-btn',false,'Send Reset Link');if(res.error){showMsg('fp-msg',res.error.message,'error');return;}showMsg('fp-msg','Reset link sent! Check your inbox and spam folder.','success');}
 async function doNewPassword(){var pw=document.getElementById('np-password').value;var pw2=document.getElementById('np-password2').value;if(!pw||pw.length<6){showMsg('np-msg','Password must be at least 6 characters.','error');return;}if(pw!==pw2){showMsg('np-msg','Passwords do not match.','error');return;}setBtn('np-btn',true,'Updating…');var res=await sb.auth.updateUser({password:pw});setBtn('np-btn',false,'Update Password');if(res.error){showMsg('np-msg',res.error.message,'error');return;}showMsg('np-msg','Password updated! Redirecting…','success');setTimeout(async function(){var s=(await sb.auth.getSession()).data.session;if(s){var r=await sb.from('users').select('role,location_id').eq('id',s.user.id).single();var u=r.data;if(u&&u.role==='admin'){window.location.href='admin.html';return;}if(u&&u.location_id){window.location.href='app.html';return;}}},1500);}

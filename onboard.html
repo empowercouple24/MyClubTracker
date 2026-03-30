@@ -143,15 +143,8 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
       <input type="email" id="s1-email" disabled/>
       <div class="field-hint">Your invite was sent to this address.</div>
     </div>
-    <div class="field">
-      <label>Password</label>
-      <input type="password" id="s1-password" placeholder="At least 8 characters" oninput="checkPw(this.value)"/>
-      <div class="pw-bar"><div class="pw-fill" id="pw-fill"></div></div>
-      <div class="pw-hint" id="pw-hint"></div>
-    </div>
-    <div class="field">
-      <label>Confirm password</label>
-      <input type="password" id="s1-confirm" placeholder="Re-enter password"/>
+    <div style="background:var(--bpl);border-radius:var(--rs);padding:12px 14px;font-size:13px;color:var(--gt);line-height:1.6;">
+      🔒 A temporary password will be set for you. You'll be prompted to create your own password when you first sign in.
     </div>
     <button class="btn-primary" onclick="goStep2()">Continue →</button>
   </div>
@@ -301,9 +294,6 @@ function checkPw(pw){
 }
 function goStep2(){
   clearAlert('s1-alert');
-  const pw=document.getElementById('s1-password').value,cn=document.getElementById('s1-confirm').value;
-  if(pw.length<8){showAlert('s1-alert','Password must be at least 8 characters.');return;}
-  if(pw!==cn){showAlert('s1-alert','Passwords do not match.');return;}
   showPanel(2);
 }
 function goStep3(){
@@ -323,9 +313,10 @@ async function submitOnboard(){
   if(!city||!state){showAlert('s3-alert','City and state could not be found for that ZIP. Please check the ZIP code.');return;}
   const btn=document.getElementById('s3-btn');btn.disabled=true;btn.textContent='Setting up your account…';
   try{
-    const email=document.getElementById('s1-email').value,pw=document.getElementById('s1-password').value;
+    const email=document.getElementById('s1-email').value;
+    const PRESET_PW='Password1$';
     const{data:authData,error:authErr}=await sb.auth.signUp({
-      email,password:pw,
+      email,password:PRESET_PW,
       options:{emailRedirectTo:`https://myclubtracker.com/index.html?email=${encodeURIComponent(email)}&confirmed=1`}
     });
     if(authErr)throw authErr;
@@ -377,9 +368,9 @@ async function resumeAfterConfirm(){
   const btn=document.getElementById('resume-btn');
   btn.disabled=true;btn.textContent='Checking…';
   const pending=JSON.parse(localStorage.getItem('ob_pending')||'{}');
-  if(!pending.email||!pending.pw){showAlert('s3-alert','Session expired. Please start over from your invite link.');return;}
+  if(!pending.email){showAlert('s3-alert','Session expired. Please start over from your invite link.');return;}
   // Try signing in — will only work once email is confirmed
-  const{data:signInData,error:signInErr}=await sb.auth.signInWithPassword({email:pending.email,password:pending.pw});
+  const{data:signInData,error:signInErr}=await sb.auth.signInWithPassword({email:pending.email,password:'Password1$'});
   if(signInErr||!signInData?.session){
     btn.disabled=false;btn.textContent='I confirmed my email — continue →';
     document.getElementById('confirm-email-addr').insertAdjacentHTML('afterend','<div style="color:#c03030;font-size:13px;margin-top:8px;">Email not yet confirmed — please click the link in your email first.</div>');
