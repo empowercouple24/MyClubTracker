@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-30 11:53:57 -->
+<!-- CACHE BUST: 2026-03-30 15:42:43 -->
 <html lang="en">
 <head>
 <script>
@@ -134,7 +134,16 @@ if('serviceWorker' in navigator){
     .kpi-metric-val.big{font-size:28px}
     .kpi-sub{font-size:13px;color:var(--text-faint);margin-top:6px}
     .locations-list{display:flex;flex-direction:column;gap:10px}
-    .loc-card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden;transition:box-shadow 0.18s,border-color 0.18s}
+    /* ── ORG TREE ── */
+    .org-tree-group{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow-sm);}
+    .org-tree-header{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;background:var(--surface);transition:background 0.15s;}
+    .org-tree-header:hover{background:var(--b0);}
+    .org-tree-avatar{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--b7),var(--b5));color:white;font-family:'Outfit',sans-serif;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .org-tree-chevron{font-size:11px;color:var(--text-faint);transition:transform 0.2s;flex-shrink:0;}
+    .org-tree-locations{border-top:1px solid var(--border-light);padding:8px 8px 8px 44px;}
+    .org-tree-locations .loc-card{margin-bottom:8px;border-radius:calc(var(--radius) - 2px);}
+    .org-tree-locations .loc-card:last-child{margin-bottom:0;}
+        .loc-card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden;transition:box-shadow 0.18s,border-color 0.18s}
     .loc-card:hover{box-shadow:var(--shadow-md)}
     .loc-card.expanded{border-color:var(--b3);box-shadow:var(--shadow-md)}
     .loc-card-header{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;user-select:none}
@@ -654,6 +663,7 @@ function attachPlacesAutocomplete(streetInputId, cityId, stateId, zipId) {
 let allLocations=[];
 let allDays=[];
 let allLocationUsers=[];
+let allOrgsMap={};  // orgId -> org object, for tree view
 let allRequests=[];
 let approvingRequestId=null;
 let denyingRequestId=null;
@@ -1223,9 +1233,13 @@ async function init(){
   const _ndn=document.getElementById('nav-display-name');if(_ndn)_ndn.textContent=displayName||'';
   setNavAvatar(u.avatar_url, u.first_name, u.last_name, u.display_name);
 
-  const{data:locs,error:locsErr}=await sb.from('locations').select('id,name,address,owner_name,owner_phone,settings,invite_code,created_at').order('name');
+  const{data:locs,error:locsErr}=await sb.from('locations').select('id,name,address,owner_name,owner_phone,settings,invite_code,created_at,org_id').order('name');
   if(locsErr){console.error('Failed to load locations:',locsErr.message);}
   allLocations = locs || [];
+  // Load orgs for tree view
+  const{data:orgsData}=await sb.from('organizations').select('id,name,status,monthly_rate').order('name');
+  allOrgsMap={};
+  (orgsData||[]).forEach(o=>allOrgsMap[o.id]=o);
   const since=dateStr(daysAgo(32));
   const{data:days}=await sb.from('days').select('location_id,date,data').gte('date',since);
   allDays = days || [];
@@ -1377,7 +1391,7 @@ function goToLocation(locId){window.location.href=`app.html?location_id=${locId}
 function renderLocations(){
   const list=document.getElementById('locations-list');
   const yday=yesterday(),w0=last7Start(),m0=last30Start(),today=todayStr();
-  document.getElementById('locs-label').textContent=`Locations (${allLocations.length})`;
+  document.getElementById('locs-label').textContent=`Organizations`;
   if(!allLocations.length){
     list.innerHTML=`<div style="text-align:center;padding:48px 24px;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:var(--shadow-sm);">
       <div style="font-size:36px;margin-bottom:12px;">🏪</div>
@@ -1387,11 +1401,24 @@ function renderLocations(){
     </div>`;
     return;
   }
-  // Sort: activated locations alpha first, pending locations alpha second
-  const activated=allLocations.filter(l=>isActivated(l)).sort((a,b)=>a.name.localeCompare(b.name));
-  const pending=allLocations.filter(l=>!isActivated(l)).sort((a,b)=>a.name.localeCompare(b.name));
-  const sorted=[...activated,...pending];
-  list.innerHTML=sorted.map(loc=>{
+  // Group locations by org for tree view
+  const orgGroups={};
+  const unassigned=[];
+  allLocations.forEach(loc=>{
+    if(loc.org_id&&allOrgsMap[loc.org_id]){
+      if(!orgGroups[loc.org_id])orgGroups[loc.org_id]=[];
+      orgGroups[loc.org_id].push(loc);
+    } else {
+      unassigned.push(loc);
+    }
+  });
+  // Sort orgs alphabetically, locations within each org alphabetically
+  const orgIds=Object.keys(orgGroups).sort((a,b)=>allOrgsMap[a].name.localeCompare(allOrgsMap[b].name));
+  orgIds.forEach(oid=>orgGroups[oid].sort((a,b)=>a.name.localeCompare(b.name)));
+  unassigned.sort((a,b)=>a.name.localeCompare(b.name));
+
+  // Build HTML: org header + nested location cards
+  const renderOrgTree=(locs)=>locs.map(loc=>{
     const ld=allDays.filter(d=>d.location_id===loc.id);
     const initials=loc.name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
     const activated=isActivated(loc);
@@ -1499,7 +1526,63 @@ function renderLocations(){
         ${renderAdminUserSection(loc.id)}
       </div>
     </div>`;
+  });
+
+  // Wrap each org group
+  const orgSections=orgIds.map(oid=>{
+    const org=allOrgsMap[oid];
+    const locs=orgGroups[oid];
+    const orgInitials=(org.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const statusBadge=org.status==='active'
+      ? '<span class="badge badge-active" style="font-size:10px;">Active</span>'
+      : org.status==='suspended'
+        ? '<span class="badge badge-missing" style="font-size:10px;">Suspended</span>'
+        : '<span class="badge badge-pending" style="font-size:10px;">Pending</span>';
+    const totalLocs=locs.length;
+    const activeLocs=locs.filter(l=>isActivated(l)).length;
+    return `<div class="org-tree-group" id="otg-${org.id}">
+      <div class="org-tree-header" onclick="toggleOrgTree('${org.id}')">
+        <div class="org-tree-avatar">${orgInitials}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-family:'Outfit',sans-serif;font-size:15px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(org.name)}</div>
+          <div style="font-size:11px;color:var(--text-faint);margin-top:1px;">${totalLocs} location${totalLocs!==1?'s':''} &middot; ${activeLocs} active</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+          ${statusBadge}
+          <button onclick="event.stopPropagation();window.location.href='organizations.html?org=${org.id}'" style="font-size:11px;font-weight:600;color:var(--b6);background:var(--b0);border:1px solid var(--b2);border-radius:6px;padding:4px 10px;cursor:pointer;">Manage Org</button>
+          <span class="org-tree-chevron" id="otg-chev-${org.id}">▼</span>
+        </div>
+      </div>
+      <div class="org-tree-locations" id="otg-locs-${org.id}">
+        ${renderOrgTree(locs).join('')}
+      </div>
+    </div>`;
   }).join('');
+
+  // Unassigned locations (no org)
+  const unassignedSection=unassigned.length
+    ? `<div class="org-tree-group">
+        <div class="org-tree-header" onclick="toggleOrgTree('_unassigned')" style="background:var(--b0);">
+          <div class="org-tree-avatar" style="background:var(--text-faint);">?</div>
+          <div style="flex:1;"><div style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:var(--text-muted);">Unassigned Locations</div></div>
+          <span class="org-tree-chevron" id="otg-chev-_unassigned">▼</span>
+        </div>
+        <div class="org-tree-locations" id="otg-locs-_unassigned">
+          ${renderOrgTree(unassigned).join('')}
+        </div>
+      </div>`
+    : '';
+
+  list.innerHTML = orgSections + unassignedSection;
+}
+
+function toggleOrgTree(id){
+  const locsEl=document.getElementById('otg-locs-'+id);
+  const chevEl=document.getElementById('otg-chev-'+id);
+  if(!locsEl)return;
+  const isOpen=locsEl.style.display!=='none';
+  locsEl.style.display=isOpen?'none':'block';
+  if(chevEl)chevEl.style.transform=isOpen?'rotate(-90deg)':'rotate(0deg)';
 }
 
 function toggleCard(id){document.getElementById('lc-'+id).classList.toggle('expanded');}
