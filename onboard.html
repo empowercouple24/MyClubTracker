@@ -144,9 +144,9 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
       <div class="field-hint">Your invite was sent to this address.</div>
     </div>
     <div style="background:var(--bpl);border-radius:var(--rs);padding:12px 14px;font-size:13px;color:var(--gt);line-height:1.6;">
-      🔒 A temporary password will be set for you. You'll be prompted to create your own password when you first sign in.
+      A secure temporary password will be set for your account. You will be prompted to create your own password when you first sign in.
     </div>
-    <button class="btn-primary" onclick="goStep2()">Continue →</button>
+    <button class="btn-primary" onclick="goStep2()">Continue &rarr;</button>
   </div>
 
   <!-- STEP 2 -->
@@ -202,35 +202,27 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
     <button class="btn-ghost" onclick="showPanel(2)">← Back</button>
   </div>
 
-  <!-- EMAIL CONFIRMATION PENDING -->
-  <div class="ob-panel" id="panel-confirm-email">
-    <div style="text-align:center;padding:16px 0 8px;">
-      <div style="font-size:48px;margin-bottom:16px;">📧</div>
-      <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;color:var(--bdk);margin-bottom:8px;">Check your email</div>
-      <div style="font-size:14px;color:var(--gt);line-height:1.7;margin-bottom:20px;">
-        We sent a confirmation link to<br/>
-        <strong style="color:var(--bdk);" id="confirm-email-addr"></strong>
-      </div>
-      <div style="background:var(--bpl);border-radius:var(--rs);padding:16px;margin-bottom:20px;text-align:left;">
-        <div style="font-size:13px;color:var(--gt);line-height:1.8;">
-          Click the link in your email to confirm your account. Once confirmed, you'll be taken to the sign-in page where your account is ready to go.
-        </div>
-      </div>
-      <div style="font-size:12px;color:var(--gf);margin-top:8px;">
-        Didn't get the email? Check your spam folder or <a href="#" onclick="resendConfirmation()" style="color:var(--bmd);text-decoration:none;font-weight:600;">resend it</a>
-      </div>
-    </div>
-  </div>
-
   <!-- SUCCESS -->
   <div class="ob-panel" id="panel-success">
     <div style="text-align:center;padding:16px 0 8px;">
-      <div style="font-size:48px;margin-bottom:14px;">🎉</div>
-      <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;color:var(--grn);margin-bottom:6px;">You're all set!</div>
-      <div style="font-size:13px;color:var(--gt);line-height:1.6;margin-bottom:20px;">Your organization has been created and your first club location is ready to go.</div>
-      <div class="success-badge"><div class="success-badge-label">Organization</div><div class="success-badge-val" id="success-org"></div></div>
-      <div class="success-badge"><div class="success-badge-label">First Location</div><div class="success-badge-val" id="success-loc"></div></div>
-      <button class="btn-primary" style="margin-top:16px;" onclick="goToDashboard()">Go to my Dashboard →</button>
+      <div style="font-size:48px;margin-bottom:14px;">&#128231;</div>
+      <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;color:var(--bdk);margin-bottom:8px;">Check your email</div>
+      <div style="font-size:14px;color:var(--gt);line-height:1.7;margin-bottom:20px;">
+        We sent a confirmation link to<br/>
+        <strong style="color:var(--bdk);" id="success-email"></strong>
+      </div>
+      <div style="background:var(--bpl);border-radius:var(--rs);padding:16px;margin-bottom:20px;text-align:left;">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--gf);margin-bottom:10px;">After confirming:</div>
+        <div style="font-size:13px;color:var(--gt);line-height:1.8;">
+          1. Click the confirmation link in your email<br/>
+          2. Sign in at myclubtracker.com<br/>
+          3. You will be prompted to set your password
+        </div>
+      </div>
+      <div style="font-size:13px;color:var(--gt);">
+        Organization: <strong id="success-org" style="color:var(--bdk);"></strong><br/>
+        First location: <strong id="success-loc" style="color:var(--bdk);"></strong>
+      </div>
     </div>
   </div>
 
@@ -306,107 +298,52 @@ function goStep3(){
 }
 async function submitOnboard(){
   clearAlert('s3-alert');
-  const clubName=document.getElementById('s3-name').value.trim(),addr=document.getElementById('s3-addr').value.trim(),city=document.getElementById('s3-city').value.trim(),state=document.getElementById('s3-state').value.trim().toUpperCase(),zip=document.getElementById('s3-zip').value.trim();
+  const clubName=document.getElementById('s3-name').value.trim();
+  const addr=document.getElementById('s3-addr').value.trim();
+  const city=document.getElementById('s3-city').value.trim();
+  const state=document.getElementById('s3-state').value.trim().toUpperCase();
+  const zip=document.getElementById('s3-zip').value.trim();
   if(!clubName){showAlert('s3-alert','Please enter your club name.');return;}
   if(!addr){showAlert('s3-alert','Please enter the street address.');return;}
-  if(!zip||zip.length<5){showAlert('s3-alert','Please enter a valid ZIP code — city and state will fill automatically.');return;}
+  if(!zip||zip.length<5){showAlert('s3-alert','Please enter a valid ZIP code.');return;}
   if(!city||!state){showAlert('s3-alert','City and state could not be found for that ZIP. Please check the ZIP code.');return;}
-  const btn=document.getElementById('s3-btn');btn.disabled=true;btn.textContent='Setting up your account…';
+
+  const btn=document.getElementById('s3-btn');
+  btn.disabled=true;btn.textContent='Setting up your account...';
+
+  const email=document.getElementById('s1-email').value.trim();
+  const first=document.getElementById('s2-first').value.trim();
+  const last=document.getElementById('s2-last').value.trim();
+  const display=document.getElementById('s2-display').value.trim()||first;
+  const phone=document.getElementById('s2-phone').value.trim();
+  const orgName=document.getElementById('s2-org').value.trim();
+  const fullAddr=addr+', '+city+', '+state+' '+zip;
+
   try{
-    const email=document.getElementById('s1-email').value;
-    const PRESET_PW='Password1$';
-    const{data:authData,error:authErr}=await sb.auth.signUp({
-      email,password:PRESET_PW,
-      options:{emailRedirectTo:`https://myclubtracker.com/index.html?email=${encodeURIComponent(email)}&confirmed=1`}
-    });
-    if(authErr)throw authErr;
-    const userId=authData.user?.id;if(!userId)throw new Error('Account creation failed — please try again.');
-    // Get a valid JWT — if email confirmation is required, session won't exist yet
-    let accessToken=authData.session?.access_token;
-    if(!accessToken){
-      // Email confirmation required — store data and show confirmation message
-      // Store everything in sessionStorage so user can resume after confirming
-      localStorage.setItem('ob_pending',JSON.stringify({
-        orgId:_orgId,email,
-        firstName:document.getElementById('s2-first').value.trim(),
-        lastName:document.getElementById('s2-last').value.trim(),
-        displayName:document.getElementById('s2-display').value.trim(),
-        phone:document.getElementById('s2-phone').value.trim(),
-        orgName:document.getElementById('s2-org').value.trim(),
-        clubName,addr,city,state,zip,
-      }));
-      // Show email confirmation message instead of error
-      document.getElementById('ob-steps').style.display='none';
-      document.querySelectorAll('.ob-panel').forEach(p=>p.classList.remove('active'));
-      document.getElementById('confirm-email-addr').textContent=email;
-      document.getElementById('panel-confirm-email').classList.add('active');
-      btn.disabled=false;btn.textContent='Complete Setup →';
-      return;
-    }
-    const first=document.getElementById('s2-first').value.trim(),last=document.getElementById('s2-last').value.trim(),display=document.getElementById('s2-display').value.trim()||first,phone=document.getElementById('s2-phone').value.trim(),orgName=document.getElementById('s2-org').value.trim(),fullAddr=`${addr}, ${city}, ${state} ${zip}`.trim();
-    // All DB writes go through Edge Function with service role — bypasses RLS
     const{data:fnData,error:fnErr}=await sb.functions.invoke('complete-onboarding',{
-      headers:{'Authorization':`Bearer ${accessToken}`},
       body:{
-        userId,email,
+        email,
         firstName:first,lastName:last,displayName:display,phone,
         orgId:_orgId,orgName,
         clubName,address:fullAddr,
       }
     });
-    if(fnErr||!fnData?.ok)throw new Error(fnData?.error||fnErr?.message||'Setup failed — please try again.');
+    if(fnErr||!fnData?.ok)throw new Error(fnData?.error||fnErr?.message||'Setup failed. Please try again.');
     document.getElementById('success-org').textContent=fnData.orgName||orgName;
     document.getElementById('success-loc').textContent=fnData.clubName||clubName;
+    document.getElementById('success-email').textContent=email;
     document.getElementById('ob-steps').style.display='none';
     document.querySelectorAll('.ob-panel').forEach(p=>p.classList.remove('active'));
     document.getElementById('panel-success').classList.add('active');
-  }catch(err){btn.disabled=false;btn.textContent='Complete Setup →';showAlert('s3-alert',err.message||'Something went wrong. Please try again.');}
-}
-function goToDashboard(){window.location.href='org-admin.html';}
-
-async function resumeAfterConfirm(){
-  const btn=document.getElementById('resume-btn');
-  btn.disabled=true;btn.textContent='Checking…';
-  const pending=JSON.parse(localStorage.getItem('ob_pending')||'{}');
-  if(!pending.email){showAlert('s3-alert','Session expired. Please start over from your invite link.');return;}
-  // Try signing in — will only work once email is confirmed
-  const{data:signInData,error:signInErr}=await sb.auth.signInWithPassword({email:pending.email,password:'Password1$'});
-  if(signInErr||!signInData?.session){
-    btn.disabled=false;btn.textContent='I confirmed my email — continue →';
-    document.getElementById('confirm-email-addr').insertAdjacentHTML('afterend','<div style="color:#c03030;font-size:13px;margin-top:8px;">Email not yet confirmed — please click the link in your email first.</div>');
-    return;
+  }catch(err){
+    btn.disabled=false;
+    btn.textContent='Complete Setup →';
+    showAlert('s3-alert',err.message||'Something went wrong. Please try again.');
   }
-  // Sign in worked — now run the Edge Function
-  btn.textContent='Setting up your account…';
-  const fullAddr=`${pending.addr}, ${pending.city}, ${pending.state} ${pending.zip}`.trim();
-  const{data:fnData,error:fnErr}=await sb.functions.invoke('complete-onboarding',{
-    headers:{'Authorization':`Bearer ${signInData.session.access_token}`},
-    body:{
-      userId:signInData.user.id,email:pending.email,
-      firstName:pending.firstName,lastName:pending.lastName,
-      displayName:pending.displayName||pending.firstName,phone:pending.phone,
-      orgId:pending.orgId,orgName:pending.orgName,
-      clubName:pending.clubName,address:fullAddr,
-    }
-  });
-  if(fnErr||!fnData?.ok){
-    btn.disabled=false;btn.textContent='I confirmed my email — continue →';
-    alert(fnData?.error||fnErr?.message||'Setup failed. Please try again.');
-    return;
-  }
-  localStorage.removeItem('ob_pending');
-  document.getElementById('success-org').textContent=fnData.orgName||pending.orgName;
-  document.getElementById('success-loc').textContent=fnData.clubName||pending.clubName;
-  document.querySelectorAll('.ob-panel').forEach(p=>p.classList.remove('active'));
-  document.getElementById('panel-success').classList.add('active');
 }
 
-async function resendConfirmation(){
-  const pending=JSON.parse(localStorage.getItem('ob_pending')||'{}');
-  if(!pending.email)return;
-  await sb.auth.resend({type:'signup',email:pending.email});
-  alert('Confirmation email resent to '+pending.email);
-}
+function goToDashboard(){window.location.href='index.html';}
+
 document.addEventListener('DOMContentLoaded',()=>{
 
   // ZIP code auto-populate city and state

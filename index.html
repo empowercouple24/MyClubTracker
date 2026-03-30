@@ -415,33 +415,6 @@ async function doSignIn(){
   if(!u){showMsg('si-msg','Account not set up. Contact your admin.','error');setBtn('si-btn',false,'Sign In');return;}
   if(u.role==='admin'){window.location.href='admin.html';return;}
   if(u.role==='org_leader'){
-    // Check if onboarding is pending (stored before email confirmation)
-    var pending=null;
-    try{pending=JSON.parse(localStorage.getItem('ob_pending')||'null');}catch(e){}
-    if(pending&&!u.location_id){
-      // Complete onboarding automatically
-      setBtn('si-btn',true,'Completing your setup…');
-      var fullAddr=`${pending.addr}, ${pending.city}, ${pending.state} ${pending.zip}`.trim();
-      var fnRes=await sb.functions.invoke('complete-onboarding',{
-        headers:{'Authorization':`Bearer ${res.data.session.access_token}`},
-        body:{
-          userId:res.data.user.id,email:pending.email,
-          firstName:pending.firstName,lastName:pending.lastName,
-          displayName:pending.displayName||pending.firstName,phone:pending.phone,
-          orgId:pending.orgId,orgName:pending.orgName,
-          clubName:pending.clubName,address:fullAddr,
-        }
-      });
-      localStorage.removeItem('ob_pending');
-      if(fnRes.error||!fnRes.data?.ok){
-        showMsg('si-msg','Setup failed: '+(fnRes.data?.error||fnRes.error?.message||'unknown error')+'. Please contact support@myclubtracker.com.','error');
-        setBtn('si-btn',false,'Sign In');return;
-      }
-      // After completing onboarding, force password change
-      window._pendingSession=res.data.session;
-      showChangePwPanel();return;
-    }
-    // Check if must change password
     if(u.must_change_password){
       window._pendingSession=res.data.session;
       showChangePwPanel();return;
