@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-30 04:49:25 -->
+<!-- CACHE BUST: 2026-03-30 05:24:26 -->
 <html lang="en">
 <head>
 <script>
@@ -1025,13 +1025,13 @@ const sb=createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 let LOCATION_ID=null,IS_ADMIN_VIEW=false,OPEN_SETTINGS=false,ALL_DAYS=[],INV_SNAPSHOTS=[],USER_ROLE='owner',CURRENT_SESSION=null;
 let _entryDirty=false; // tracks unsaved edits on the Enter tab
 let _loadingDay=false; // suppresses markDirty during programmatic field loads
-let invOos={}; // {sku: {note:'', expectedDate:''}} — out of stock map
+let invOos={}; // {sku: {note:'', expectedDate:''}} -- out of stock map
 const DAY_NAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 let SETTINGS={clubName:'',taxRate:1.25,ohRate:32,otherRate:50,merchRate:100,dvDelta:3,
   opDays:[false,true,true,true,true,true,true],
   operators:[{name:'Operator 1',visible:true,aliases:''},{name:'Operator 2',visible:true,aliases:''},{name:'Operator 3',visible:false,aliases:''},{name:'Operator 4',visible:false,aliases:''}]};
 
-// ── CANONICAL PRODUCT LIST — matches Google Sheet exactly
+// -- CANONICAL PRODUCT LIST -- matches Google Sheet exactly
 // Format: [cat, name, sku, vp, par]
 const DEFAULT_PRODUCTS=[
   ["PDM","Vanilla PDM","1426",57.64,12],["PDM","Chocolate PDM","245K",57.64,2],["PDM","Peanut Cookie PDM","1250",44.28,4],
@@ -1162,15 +1162,15 @@ async function openProfileModal(){
         if(on||op||oe){
           parts.push('<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:2px;">Primary Owner</div>');
           if(on)parts.push('<strong>'+escHtml(on)+'</strong>');
-          if(op)parts.push('📞 '+escHtml(op));
-          if(oe)parts.push('✉️ '+escHtml(oe));
+          if(op)parts.push('&#128222; '+escHtml(op));
+          if(oe)parts.push('&#9993;&#65039; '+escHtml(oe));
         }
         if(sc&&(sc.name||sc.phone||sc.email)){
           if(parts.length)parts.push('<div style="height:6px;"></div>');
           parts.push('<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:2px;">Second Contact</div>');
           if(sc.name)parts.push('<strong>'+escHtml(sc.name)+'</strong>');
-          if(sc.phone)parts.push('📞 '+escHtml(sc.phone));
-          if(sc.email)parts.push('✉️ '+escHtml(sc.email));
+          if(sc.phone)parts.push('&#128222; '+escHtml(sc.phone));
+          if(sc.email)parts.push('&#9993;&#65039; '+escHtml(sc.email));
         }
         if(parts.length){lcBody.innerHTML=parts.join('<br>');lcEl.style.display='block';}
         else{lcEl.style.display='none';}
@@ -1189,8 +1189,8 @@ async function openProfileModal(){
           lines.push('<div style="height:4px;"></div>');
           lines.push('<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:1px;">Owner</div>');
           if(on)lines.push('<strong>'+escHtml(on)+'</strong>');
-          if(op)lines.push('📞 '+escHtml(op));
-          if(oe)lines.push('✉️ '+escHtml(oe));
+          if(op)lines.push('&#128222; '+escHtml(op));
+          if(oe)lines.push('&#9993;&#65039; '+escHtml(oe));
         }
         // Second contact
         const sc=SETTINGS.secondContact;
@@ -1198,8 +1198,8 @@ async function openProfileModal(){
           lines.push('<div style="height:4px;"></div>');
           lines.push('<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:1px;">Second Contact</div>');
           if(sc.name)lines.push('<strong>'+escHtml(sc.name)+'</strong>');
-          if(sc.phone)lines.push('📞 '+escHtml(sc.phone));
-          if(sc.email)lines.push('✉️ '+escHtml(sc.email));
+          if(sc.phone)lines.push('&#128222; '+escHtml(sc.phone));
+          if(sc.email)lines.push('&#9993;&#65039; '+escHtml(sc.email));
         }
         if(SETTINGS.employeeInviteCode){
           lines.push('<div style="height:4px;"></div>');
@@ -1239,7 +1239,7 @@ async function loadTeamMembers(){
           <option value="owner"    ${m.role==='owner'   ?'selected':''}>Owner</option>
           <option value="employee" ${m.role==='employee'?'selected':''}>Employee</option>
         </select>
-        <button onclick="confirmRemoveUser('${m.id}','${escHtml(name)}')" title="Remove user" style="background:none;border:1px solid var(--border);border-radius:5px;padding:3px 7px;cursor:pointer;font-size:13px;color:var(--r5);line-height:1;" onmouseover="this.style.background='var(--r0)'" onmouseout="this.style.background='none'">✕</button>
+        <button onclick="confirmRemoveUser('${m.id}','${escHtml(name)}')" title="Remove user" style="background:none;border:1px solid var(--border);border-radius:5px;padding:3px 7px;cursor:pointer;font-size:13px;color:var(--r5);line-height:1;" onmouseover="this.style.background='var(--r0)'" onmouseout="this.style.background='none'">&#10005;</button>
       </div>
     </div>`;
   }).join('');
@@ -1248,7 +1248,7 @@ async function loadTeamMembers(){
 async function changeTeamRole(userId,newRole,selectEl){
   const{error}=await sb.from('users').update({role:newRole}).eq('id',userId);
   if(error){showToast('Role change failed: '+error.message,'error');await loadTeamMembers();return;}
-  showToast(`Role updated to ${newRole} ✓`,'success');
+  showToast(`Role updated to ${newRole} ok`,'success');
 }
 
 function confirmRemoveUser(userId,name){
@@ -1257,10 +1257,10 @@ function confirmRemoveUser(userId,name){
 }
 
 async function removeUser(userId,name){
-  // Detach user from location — preserves auth account so they can rejoin with invite code
+  // Detach user from location -- preserves auth account so they can rejoin with invite code
   const{error}=await sb.from('users').update({location_id:null,role:'pending'}).eq('id',userId).eq('location_id',LOCATION_ID);
   if(error){showToast('Remove failed: '+error.message,'error');return;}
-  showToast(`${name} removed ✓`,'success');
+  showToast(`${name} removed ok`,'success');
   await loadTeamMembers();
 }
 
@@ -1284,7 +1284,7 @@ async function saveProfileAndSettings(){
     SETTINGS.merchRate=parseFloat(document.getElementById('s-merchrate')?.value||SETTINGS.merchRate);
     SETTINGS.dvDelta=parseFloat(document.getElementById('s-dvdelta')?.value||SETTINGS.dvDelta);
     SETTINGS.operators=[0,1,2,3].map(i=>({name:document.getElementById('s-op-'+i)?.value.trim()||'',visible:SETTINGS.operators[i]?.visible!==false,isOwner:SETTINGS.operators[i]?.isOwner===true,aliases:document.getElementById('s-alias-'+i)?.value.trim()||''}));
-    // opDays are toggled live into SETTINGS.opDays directly — no read needed here
+    // opDays are toggled live into SETTINGS.opDays directly -- no read needed here
     const empCode=document.getElementById('s-emp-code')?.value.trim();
     if(empCode)SETTINGS.employeeInviteCode=empCode;
     const{error:se}=await sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID);
@@ -1292,14 +1292,14 @@ async function saveProfileAndSettings(){
     populateOperatorDropdowns();recalc();
   }
   closeProfileModal();
-  showToast(isOwner?'Profile & settings saved ✓':'Profile saved ✓','success');
+  showToast(isOwner?'Profile & settings saved ok':'Profile saved ok','success');
 }
 function toggleAppCP(){
   const panel=document.getElementById('app-cp-panel');
   const btn=document.getElementById('app-cp-toggle');
   const open=panel.style.display==='none';
   panel.style.display=open?'block':'none';
-  btn.textContent=open?'Cancel':'Change →';
+  btn.textContent=open?'Cancel':'Change ->';
   if(!open){document.getElementById('app-cp-new').value='';document.getElementById('app-cp-confirm').value='';document.getElementById('app-cp-msg').style.display='none';}
 }
 async function doAppChangePassword(){
@@ -1310,7 +1310,7 @@ async function doAppChangePassword(){
   if(pw!==pw2){msgEl.style.display='block';msgEl.style.background='#fff0f0';msgEl.style.color='#c03030';msgEl.textContent='Passwords do not match.';return;}
   const{error}=await sb.auth.updateUser({password:pw});
   if(error){msgEl.style.display='block';msgEl.style.background='#fff0f0';msgEl.style.color='#c03030';msgEl.textContent=error.message;return;}
-  msgEl.style.display='block';msgEl.style.background='#eaf6eb';msgEl.style.color='#2e7a35';msgEl.textContent='Password updated ✓';
+  msgEl.style.display='block';msgEl.style.background='#eaf6eb';msgEl.style.color='#2e7a35';msgEl.textContent='Password updated ok';
   setTimeout(function(){toggleAppCP();},1500);
 }
 
@@ -1325,7 +1325,7 @@ function generateEmpCode(){
   // Will be saved when user clicks Save Settings
 }
 
-// ── NAV AVATAR ──
+// -- NAV AVATAR --
 function setNavAvatar(avatarUrl, firstName, lastName, displayName) {
   var circle = document.getElementById('nav-avatar');
   if (!circle) return;
@@ -1381,7 +1381,7 @@ function populateProfAvatar(avatarUrl, firstName, lastName, displayName) {
   }
 }
 
-// ── AVATAR CROP TOOL ──
+// -- AVATAR CROP TOOL --
 let _cropBitmap=null,_cropScale=1,_cropMinScale=1,_cropOffX=0,_cropOffY=0;
 let _cropDragging=false,_cropLastX=0,_cropLastY=0;
 let _cropPinchDist=0;
@@ -1507,9 +1507,9 @@ function detachCropEvents() {
 
 async function confirmCrop() {
   if(!_cropBitmap)return;
-  showToast('Uploading photo…');
+  showToast('Uploading photo...');
   try {
-    // Render the circular crop to a 256×256 canvas
+    // Render the circular crop to a 256&#215;256 canvas
     const out = document.createElement('canvas');
     out.width = 256; out.height = 256;
     const ctx = out.getContext('2d');
@@ -1537,7 +1537,7 @@ async function confirmCrop() {
     const dn = document.getElementById('prof-name')?.value || '';
     populateProfAvatar(avatarUrl, fn, ln, dn);
     setNavAvatar(avatarUrl, fn, ln, dn);
-    showToast('Photo saved ✓', 'success');
+    showToast('Photo saved ok', 'success');
   } catch(e) {
     showToast('Upload failed: ' + (e.message || e), 'error');
   }
@@ -1559,7 +1559,7 @@ async function removeAvatar() {
   }
 }
 
-// ── DARK MODE ──
+// -- DARK MODE --
 
 
 
@@ -1593,10 +1593,10 @@ function closeNavMenu(){var dd=document.getElementById('nav-dropdown');if(dd)dd.
 document.addEventListener('click',function(e){var wrap=document.querySelector('.nav-menu-wrap');if(wrap&&!wrap.contains(e.target))closeNavMenu();});
 
 async function init(){
-  setLoadText('Authenticating…');
+  setLoadText('Authenticating...');
 
   // If URL hash contains a Supabase token (email confirmation, magic link etc.)
-  // sign out and redirect to login page — never auto-login from a link
+  // sign out and redirect to login page -- never auto-login from a link
   const hash=window.location.hash;
   if(hash&&(hash.includes('access_token')||hash.includes('type=signup')||hash.includes('type=email')||hash.includes('type=magiclink'))){
     await sb.auth.signOut();
@@ -1615,7 +1615,7 @@ async function init(){
   }else{
     const{data:u,error:uErr}=await sb.from('users').select('role,location_id,display_name,first_name,last_name,phone,avatar_url').eq('id',session.user.id).single();
 
-    // If no users row yet — profile setup is still pending (trigger may not have fired)
+    // If no users row yet -- profile setup is still pending (trigger may not have fired)
     // Try to upsert from auth metadata then reload
     if(!u||uErr){
       const meta=session.user.user_metadata||{};
@@ -1631,7 +1631,7 @@ async function init(){
         window.location.reload();
         return;
       }
-      // No metadata either — send back to sign in with message
+      // No metadata either -- send back to sign in with message
       await sb.auth.signOut();
       window.location.href='index.html?msg=setup-incomplete';
       return;
@@ -1689,7 +1689,7 @@ async function init(){
     setNavAvatar(u.avatar_url, u.first_name, u.last_name, u.display_name);
   }
   if(!LOCATION_ID){
-    // org_leader with no location means onboarding incomplete — send to org admin
+    // org_leader with no location means onboarding incomplete -- send to org admin
     if(USER_ROLE==='org_leader'){
       window.location.href='org-admin.html';
       return;
@@ -1698,21 +1698,21 @@ async function init(){
     window.location.href='index.html?from=app&msg=nolocation';
     return;
   }
-  setLoadText('Loading club data…');
+  setLoadText('Loading club data...');
   console.log('[app] fetching location:',LOCATION_ID);
   const{data:loc,error:locFetchErr}=await sb.from('locations').select('name,address,owner_name,owner_phone,settings').eq('id',LOCATION_ID).single();
   if(locFetchErr)console.error('[app] location fetch error:',locFetchErr.message,locFetchErr.code);
   console.log('[app] location data:',loc?.name);
   if(loc){
-    // Set nav immediately from database — unconditional, no fallbacks needed
+    // Set nav immediately from database -- unconditional, no fallbacks needed
     const _ncn2=document.getElementById('nav-club-name');
     const _nca2=document.getElementById('nav-club-addr');
     if(_ncn2) _ncn2.textContent = loc.name;
     if(_nca2){
       const _navParts=[];
       if(loc.address)_navParts.push(loc.address);
-      if(IS_ADMIN_VIEW&&loc.owner_name)_navParts.push('👤 '+loc.owner_name);
-      if(_navParts.length){_nca2.textContent=_navParts.join(' · ');_nca2.style.display='block';}
+      if(IS_ADMIN_VIEW&&loc.owner_name)_navParts.push('&#128100; '+loc.owner_name);
+      if(_navParts.length){_nca2.textContent=_navParts.join(' - ');_nca2.style.display='block';}
     }
     // Merge settings and always keep loc.name as clubName
     if(loc.settings&&Object.keys(loc.settings).length>0){SETTINGS={...SETTINGS,...loc.settings};}
@@ -1727,18 +1727,18 @@ async function init(){
     const _nbb=document.getElementById('nav-back-btn');if(_nbb){
       _nbb.style.display='block';
       const _fromParam=new URLSearchParams(window.location.search).get('from');
-      _nbb.textContent=_fromParam==='org'?'← Dashboard':'← Locations';
+      _nbb.textContent=_fromParam==='org'?'&#8592; Dashboard':'&#8592; Locations';
     }
     const _so=document.getElementById('nav-signout-btn');if(_so)_so.style.display='none';
     const bn=document.getElementById('admin-banner');if(bn){bn.style.display='block';bn.textContent='Admin View: '+(loc?.name||LOCATION_ID);}
     const _aeb=document.getElementById('admin-edit-banner');if(_aeb){
       _aeb.classList.add('show');
       const _fromParam2=new URLSearchParams(window.location.search).get('from');
-      _aeb.textContent=(_fromParam2==='org'?'⚠ Admin View — click to return to Dashboard':'⚠ Admin Edit Mode — click to return to Locations');
+      _aeb.textContent=(_fromParam2==='org'?'&#9888; Admin View -- click to return to Dashboard':'&#9888; Admin Edit Mode -- click to return to Locations');
     }
     recalcContentTop();
     // settings merged into profile modal
-    const _smt=document.getElementById('profile-modal-title');if(_smt)_smt.textContent='Profile & Settings — '+(loc?.name||'Location');
+    const _smt=document.getElementById('profile-modal-title');if(_smt)_smt.textContent='Profile & Settings -- '+(loc?.name||'Location');
     const saveBtn=document.getElementById('btn-save-day');
     if(saveBtn){saveBtn.style.background='linear-gradient(135deg,var(--a6),var(--a4))';saveBtn.textContent='Save (Admin)';saveBtn.style.display='inline-flex';}
     // Set nav button to show admin name + ADMIN label
@@ -1776,8 +1776,8 @@ function setNavLocation(name, address, owner){
   if(nca){
     const parts=[];
     if(address)parts.push(address);
-    if(owner)parts.push('👤 '+owner);
-    if(parts.length){nca.textContent=parts.join(' · ');nca.style.display='block';}
+    if(owner)parts.push('&#128100; '+owner);
+    if(parts.length){nca.textContent=parts.join(' - ');nca.style.display='block';}
     else{nca.style.display='none';}
   }
 }
@@ -1803,7 +1803,7 @@ function switchTab(name){
 function toggleCollapse(t){const b=document.getElementById(t.dataset.target);t.classList.toggle('collapsed');b.classList.toggle('collapsed');}
 function pv(id){const el=document.getElementById(id);if(!el)return 0;return parseFloat(el.value.replace(/,/g,''))||0;}
 
-// ── CURRENCY FORMATTING ──
+// -- CURRENCY FORMATTING --
 const CURRENCY_FIELDS=['f-cashSales','f-cardSales','f-cardFees','f-giftCardRedeemed','f-cashAppPay','f-venmo','f-otherSales','f-merchSales','f-giftCardSales','f-giftCardLoadFees','f-fundraiserCash','f-fundraiserCard'];
 function fmtCurrencyVal(raw){
   var n=parseFloat(String(raw).replace(/,/g,''));
@@ -1841,7 +1841,7 @@ document.addEventListener('DOMContentLoaded',function(){
   });
 });
 
-// ── FORMULAS with conditional display
+// -- FORMULAS with conditional display
 function getOwnerOpName(){
   const ownerOp=SETTINGS.operators.find(o=>o.isOwner===true&&o.name);
   return ownerOp?ownerOp.name:null;
@@ -1859,7 +1859,7 @@ function calcAll(){
   const taxRate=SETTINGS.taxRate/100,ohRate=SETTINGS.ohRate/100,otherRate=SETTINGS.otherRate/100,merchRate=SETTINGS.merchRate/100,dvDelta=SETTINGS.dvDelta/100;
   // Row 15: cardDeposits = cardSales - cardFees + cashAppPay - giftCardLoadFees
   const cardDeposits=cardSales-cardFees+cashAppPay-giftCardLoadFees;
-  // Row 16: totalSales = cashSales + venmo + cardDeposits (no fundraiserCash — that's outside Square)
+  // Row 16: totalSales = cashSales + venmo + cardDeposits (no fundraiserCash -- that's outside Square)
   const totalSales=cashSales+venmo+cardDeposits;
   // Row 17: tax = totalSales * taxRate
   const tax=group1?totalSales*taxRate:null;
@@ -1883,9 +1883,9 @@ function calcAll(){
   const payouts=payoutsRaw!==null?(payoutsRaw-ownerShare):null;
   // Row 21: fundraiserTotal = fundraiserCard + fundraiserCash + pctDonation
   const fundraiserTotal=fundraiserCard+fundraiserCash+donation;
-  // Row 32: $/DV — use overhead2 (which includes reinvested share)
+  // Row 32: $/DV -- use overhead2 (which includes reinvested share)
   const perDV=group2&&overhead2!==null?(tax+overhead2+products+payouts+fundraiserTotal-fundraiserCash)/dv:null;
-  // Balance — use overhead2 so balance check still passes with reinvestment
+  // Balance -- use overhead2 so balance check still passes with reinvestment
   const hasFundraiser=fundraiserCard>0||fundraiserCash>0||fundraiserPct>0;
   const balLHS=tax!==null&&overhead2!==null&&products!==null&&payouts!==null?Math.round((tax+overhead2+products+payouts+(hasFundraiser?fundraiserTotal:0))*100)/100:null;
   const balRHS=group1?Math.round(totalSales*100)/100:null;
@@ -1895,8 +1895,8 @@ function calcAll(){
 }
 
 function fmt$(n){if(n===null||isNaN(n))return'$0.00';return'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
-function fmtN(n){if(n===null||isNaN(n))return'—';return n.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:1});}
-function fmtVP(n){if(n===null||n===undefined||isNaN(n))return'—';return Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtN(n){if(n===null||isNaN(n))return'--';return n.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:1});}
+function fmtVP(n){if(n===null||n===undefined||isNaN(n))return'--';return Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
 
 function markDirty(){
   if(_entryDirty)return;
@@ -1926,12 +1926,12 @@ function goToToday(){
 function recalc(){
   if(!_loadingDay)markDirty();
   const c=calcAll();
-  setText('sum-sales',   c.group1?fmt$(c.totalSales):'—');
-  setText('sum-tax',     c.group1?fmt$(c.tax):'—');
-  setText('sum-oh',      c.group1?fmt$(c.overhead):'—');
-  setText('sum-prod',    c.group2?fmt$(c.products):'—');
-  setText('sum-payouts', c.group2?fmt$(c.payouts):'—');
-  setText('sum-perdv',   c.group2?'$/DV: '+fmt$(c.perDV):'$/DV: —');
+  setText('sum-sales',   c.group1?fmt$(c.totalSales):'--');
+  setText('sum-tax',     c.group1?fmt$(c.tax):'--');
+  setText('sum-oh',      c.group1?fmt$(c.overhead):'--');
+  setText('sum-prod',    c.group2?fmt$(c.products):'--');
+  setText('sum-payouts', c.group2?fmt$(c.payouts):'--');
+  setText('sum-perdv',   c.group2?'$/DV: '+fmt$(c.perDV):'$/DV: --');
   // Fundraiser hero
   const heroEl=document.getElementById('sum-fundraiser-hero');
   if(heroEl)heroEl.classList.toggle('visible',c.hasFundraiser);
@@ -1955,8 +1955,8 @@ function recalc(){
   // Balance check
   const balEl=document.getElementById('sum-balance');
   if(c.balanced===null){balEl.textContent='Enter Cash Sales, Card Sales & Card Fees';balEl.className='balance-pending';}
-  else if(c.balanced){balEl.textContent='✓ Balanced';balEl.className='balance-ok';}
-  else{balEl.textContent='✗ Off by '+fmt$(Math.abs(c.balDiff));balEl.className='balance-fail';}
+  else if(c.balanced){balEl.textContent='ok Balanced';balEl.className='balance-ok';}
+  else{balEl.textContent='&#10007; Off by '+fmt$(Math.abs(c.balDiff));balEl.className='balance-fail';}
   renderOpsEarningsPreview();
 }
 
@@ -2000,7 +2000,7 @@ async function saveDay(){
   if(ex){const{error:e}=await sb.from('days').update({data}).eq('id',ex.id);error=e;if(!e)ex.data=data;}
   else{const{data:nr,error:e}=await sb.from('days').insert({location_id:LOCATION_ID,date,data}).select().single();error=e;if(!e&&nr)ALL_DAYS.unshift(nr);}
   if(error){showToast('Save failed: '+error.message,'error');return;}
-  showToast(IS_ADMIN_VIEW?'Saved (Admin Edit) ✓':'Day saved ✓','success');
+  showToast(IS_ADMIN_VIEW?'Saved (Admin Edit) ok':'Day saved ok','success');
   clearDirty();
   renderHistory();renderProjections();renderPayoutSnapshots();renderDashboardWidgets();
 }
@@ -2014,7 +2014,7 @@ function renderDashboardWidgets(){
   const sorted = [...ALL_DAYS].sort((a,b)=>a.date.localeCompare(b.date));
   const dateSet = new Set(sorted.map(d=>d.date));
 
-  // ── STREAK ──
+  // -- STREAK --
   let streak = 0, streakStart = null;
   let cursor = new Date(today);
   const opDays = SETTINGS.opDays || [false,true,true,true,true,true,true];
@@ -2027,7 +2027,7 @@ function renderDashboardWidgets(){
     const s = cursor.toISOString().slice(0,10);
     const dow = cursor.getDay();
     if(!opDays[dow]){
-      // Closed day — skip without breaking streak
+      // Closed day -- skip without breaking streak
       cursor.setDate(cursor.getDate()-1);
       continue;
     }
@@ -2047,7 +2047,7 @@ function renderDashboardWidgets(){
     } else if(streak === 1){
       streakSubEl.textContent = 'Started today';
     } else {
-      // No streak — show last entry date
+      // No streak -- show last entry date
       const lastDay = sorted[sorted.length - 1];
       if(lastDay){
         const ld = new Date(lastDay.date+'T00:00:00');
@@ -2058,7 +2058,7 @@ function renderDashboardWidgets(){
     }
   }
 
-  // ── WEEKLY ──
+  // -- WEEKLY --
   const dayOfWeek = today.getDay(); // 0=Sun
   const weekStart = new Date(today);
   weekStart.setDate(today.getDate() - dayOfWeek);
@@ -2070,7 +2070,7 @@ function renderDashboardWidgets(){
   if(weekEl) weekEl.textContent = fmt$(weekSales);
   if(weekSubEl) weekSubEl.textContent = weekDays.length + ' day' + (weekDays.length!==1?'s':'') + ' entered';
 
-  // ── MONTHLY ──
+  // -- MONTHLY --
   const monthStartStr = new Date(today.getFullYear(),today.getMonth(),1).toISOString().slice(0,10);
   const monthEndStr = new Date(today.getFullYear(),today.getMonth()+1,0).toISOString().slice(0,10);
   const monthDays = ALL_DAYS.filter(d => d.date >= monthStartStr && d.date <= monthEndStr);
@@ -2080,10 +2080,10 @@ function renderDashboardWidgets(){
   if(monthEl) monthEl.textContent = fmt$(monthSales);
   if(monthSubEl){
     const mn = today.toLocaleDateString('en-US',{month:'long'});
-    monthSubEl.textContent = mn + ' · ' + monthDays.length + ' day' + (monthDays.length!==1?'s':'') + ' entered';
+    monthSubEl.textContent = mn + ' - ' + monthDays.length + ' day' + (monthDays.length!==1?'s':'') + ' entered';
   }
 
-  // ── INVENTORY ──
+  // -- INVENTORY --
   const invValEl = document.getElementById('dw-inv-val');
   const invSubEl = document.getElementById('dw-inv-sub');
   if(invValEl && invSubEl){
@@ -2100,7 +2100,7 @@ function renderDashboardWidgets(){
       else valText = diffDays + 'd ago';
       invValEl.textContent = valText;
       // Sub: exact date + time
-      invSubEl.textContent = savedAt.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' · ' + savedAt.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+      invSubEl.textContent = savedAt.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' - ' + savedAt.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
     } else {
       invValEl.textContent = 'Never';
       invSubEl.textContent = 'No snapshots yet';
@@ -2132,13 +2132,13 @@ function renderOpsEarningsPreview(){
 
     if(ops.length > 0){
       const parts = ops.map(o => {
-        if(o === ownerName && isReinvesting) return `${o.split(' ')[0]} ↩`;
+        if(o === ownerName && isReinvesting) return `${o.split(' ')[0]} &#8617;`;
         const amt = c.group2 && c.payouts !== null
           ? (ops.length === 1 ? c.payouts : c.payouts / ops.filter(op=>!(op===ownerName&&isReinvesting)).length)
           : null;
         return amt !== null ? `${o.split(' ')[0]} ${fmt$(amt)}` : o.split(' ')[0];
       });
-      previewEl.textContent = parts.join(' · ');
+      previewEl.textContent = parts.join(' - ');
       previewEl.style.display = 'inline';
     } else {
       previewEl.style.display = 'none';
@@ -2152,7 +2152,7 @@ function renderHistory(){
   el.innerHTML=ALL_DAYS.map(d=>{
     const data=d.data||{},dt=new Date(d.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'}),ops=[data.op1,data.op2].filter(Boolean).join(', ');
     const adminTag=data._adminEdit?'<span class="hcard-pill" style="background:var(--a1);color:var(--a6);">Admin edit</span>':'';
-    return`<div class="history-card" onclick="openDetail('${d.date}')"><div class="hcard-top"><div class="hcard-date">${dt}</div><div class="hcard-sales">${fmt$(data.totalSales||0)}</div></div><div class="hcard-row"><span class="hcard-pill">DV: ${fmtN(data.dv||0)}</span><span class="hcard-pill">$/DV: ${data.dv?fmt$(data.perDV||0):'—'}</span><span class="hcard-pill">OH: ${fmt$(data.overhead||0)}</span>${ops?`<span class="hcard-pill">${ops}</span>`:''}${data.notes?'<span class="hcard-pill">📝</span>':''}${adminTag}</div></div>`;
+    return`<div class="history-card" onclick="openDetail('${d.date}')"><div class="hcard-top"><div class="hcard-date">${dt}</div><div class="hcard-sales">${fmt$(data.totalSales||0)}</div></div><div class="hcard-row"><span class="hcard-pill">DV: ${fmtN(data.dv||0)}</span><span class="hcard-pill">$/DV: ${data.dv?fmt$(data.perDV||0):'--'}</span><span class="hcard-pill">OH: ${fmt$(data.overhead||0)}</span>${ops?`<span class="hcard-pill">${ops}</span>`:''}${data.notes?'<span class="hcard-pill">&#128221;</span>':''}${adminTag}</div></div>`;
   }).join('');
 }
 function navToDate(d){document.getElementById('entry-date').value=d;updateDateDisplay();loadDay();switchTab('enter');document.querySelector('.content-area').scrollTo({top:0,behavior:'smooth'});}
@@ -2170,13 +2170,13 @@ function openDetail(date){
   // Summary box
   setText('ds-sales', fmt$(d.totalSales||0));
   setText('ds-dv',    fmtN(d.dv||0));
-  setText('ds-perdv', d.dv?fmt$(d.perDV||0):'—');
+  setText('ds-perdv', d.dv?fmt$(d.perDV||0):'--');
   setText('ds-tax',   fmt$(d.taxes||0));
   setText('ds-oh',    fmt$(d.overhead||0));
   setText('ds-payouts',fmt$(d.payouts||0));
 
-  // Sales fields — show $0.00 for zeros, dim if empty
-  const sfmt=(v)=>v?fmt$(v):`<span class="detail-row-val dim">—</span>`;
+  // Sales fields -- show $0.00 for zeros, dim if empty
+  const sfmt=(v)=>v?fmt$(v):`<span class="detail-row-val dim">--</span>`;
   document.getElementById('df-cashSales').innerHTML       = fmt$(d.cashSales||0);
   document.getElementById('df-cardSales').innerHTML       = fmt$(d.cardSales||0);
   document.getElementById('df-cardFees').innerHTML        = fmt$(d.cardFees||0);
@@ -2191,7 +2191,7 @@ function openDetail(date){
   // Fundraiser
   document.getElementById('df-fundraiserCash').innerHTML  = sfmt(d.fundraiserCash);
   document.getElementById('df-fundraiserCard').innerHTML  = sfmt(d.fundraiserCard);
-  document.getElementById('df-fundraiserPct').innerHTML   = d.fundraiserPct?`${d.fundraiserPct}%`:`<span class="detail-row-val dim">—</span>`;
+  document.getElementById('df-fundraiserPct').innerHTML   = d.fundraiserPct?`${d.fundraiserPct}%`:`<span class="detail-row-val dim">--</span>`;
 
   // Breakdown (recalculate from stored data for accuracy)
   const taxRate=(SETTINGS.taxRate||1.25)/100,ohRate=(SETTINGS.ohRate||32)/100;
@@ -2221,23 +2221,23 @@ function openDetail(date){
   document.getElementById('df-totalSales').textContent   = fmt$(totalS);
   document.getElementById('df-tax').textContent          = fmt$(tax);
   document.getElementById('df-overhead').textContent     = fmt$(ohFinal);
-  document.getElementById('df-donation').textContent     = don>0?fmt$(don):'—';
+  document.getElementById('df-donation').textContent     = don>0?fmt$(don):'--';
   document.getElementById('df-products').textContent     = fmt$(prod);
   document.getElementById('df-payouts').textContent      = fmt$(pay);
 
-  // Operators — mark reinvested owner with indicator
-  const reinvestTag = d.ownerReinvest ? ' <span style="font-size:10px;font-weight:700;background:#dbeafe;color:#1d4ed8;border-radius:4px;padding:1px 5px;vertical-align:middle;">↩ Reinvested</span>' : '';
+  // Operators -- mark reinvested owner with indicator
+  const reinvestTag = d.ownerReinvest ? ' <span style="font-size:10px;font-weight:700;background:#dbeafe;color:#1d4ed8;border-radius:4px;padding:1px 5px;vertical-align:middle;">&#8617; Reinvested</span>' : '';
   if(d.op1){
     const isOwner1 = ownerName && d.op1===ownerName;
     document.getElementById('df-op1').innerHTML = d.op1 + (isOwner1&&d.ownerReinvest?reinvestTag:'');
   } else {
-    document.getElementById('df-op1').innerHTML = `<span class="detail-row-val dim">—</span>`;
+    document.getElementById('df-op1').innerHTML = `<span class="detail-row-val dim">--</span>`;
   }
   if(d.op2){
     const isOwner2 = ownerName && d.op2===ownerName;
     document.getElementById('df-op2').innerHTML = d.op2 + (isOwner2&&d.ownerReinvest?reinvestTag:'');
   } else {
-    document.getElementById('df-op2').innerHTML = `<span class="detail-row-val dim">—</span>`;
+    document.getElementById('df-op2').innerHTML = `<span class="detail-row-val dim">--</span>`;
   }
 
   // Notes
@@ -2245,7 +2245,7 @@ function openDetail(date){
   if(d.notes&&d.notes.trim()){notesSec.style.display='block';document.getElementById('df-notes').textContent=d.notes;}
   else{notesSec.style.display='none';}
 
-  // Edit button — employees cannot edit
+  // Edit button -- employees cannot edit
   const editBtn=document.getElementById('detail-edit-btn');
   if(USER_ROLE==='employee'){editBtn.style.display='none';}
   else{editBtn.style.display='block';}
@@ -2262,10 +2262,10 @@ function renderProjections(){
   const picker=document.getElementById('proj-day-picker');
   if(!picker)return;
   const cur=picker.value;
-  picker.innerHTML='<option value="">— Choose a day from history —</option>';
+  picker.innerHTML='<option value="">-- Choose a day from history --</option>';
   [...ALL_DAYS].sort((a,b)=>b.date.localeCompare(a.date)).forEach(d=>{
     const dt=new Date(d.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
-    picker.innerHTML+=`<option value="${d.date}">${dt} — ${fmt$(d.data?.totalSales||0)}</option>`;
+    picker.innerHTML+=`<option value="${d.date}">${dt} -- ${fmt$(d.data?.totalSales||0)}</option>`;
   });
   if(cur)picker.value=cur;
   const now=new Date(),y=now.getFullYear(),m=now.getMonth();
@@ -2318,7 +2318,7 @@ function setProjMult(mult,btn){
   document.querySelectorAll('.proj-mult-btn').forEach(b=>b.classList.remove('active'));
   if(btn)btn.classList.add('active');
   const lbl=document.getElementById('proj-mult-label');
-  if(lbl)lbl.textContent='@ '+mult+'×';
+  if(lbl)lbl.textContent='@ '+mult+'&#215;';
   renderProjScenario();
 }
 function renderProjScenario(){
@@ -2361,18 +2361,18 @@ function renderInventory(){
     html+=`<div class="inv-cat-header">${cat}</div><table class="inv-table"><thead><tr><th style="text-align:left">Product</th><th style="text-align:center;font-size:10px;">OOS</th><th>VP</th><th>PAR</th><th>HAVE</th><th>NEED</th><th>DV Have</th><th>DV Need</th></tr></thead><tbody>`;
     vis.forEach(p=>{
       const haveRaw=invHave[p.sku],have=haveRaw||0,haveEntered=haveRaw!=null&&haveRaw!==undefined;
-      const need=Math.max(0,p.par-have),bc=need>0?'need':(haveEntered?'ok':'zero'),bt=need>0?need:(haveEntered?'✓':'—');
+      const need=Math.max(0,p.par-have),bc=need>0?'need':(haveEntered?'ok':'zero'),bt=need>0?need:(haveEntered?'ok':'--');
       const dvHave=(p.vp||0)*have,dvNeed=(p.vp||0)*need;
       const oos=invOos[p.sku];
       const isOos=!!oos;
       const rowClass=(isOos?'inv-row-oos':(need>0&&haveEntered?'inv-row-need':''));
-      const dvHaveStr=haveEntered?fmtVP(dvHave):'—';
-      const dvNeedStr=haveEntered&&dvNeed>0?fmtVP(dvNeed):'—';
-      const oosInfo=isOos&&oos.expectedDate?`<span class="oos-badge">OOS · ${new Date(oos.expectedDate+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>`:(isOos?`<span class="oos-badge">OOS</span>`:'');
+      const dvHaveStr=haveEntered?fmtVP(dvHave):'--';
+      const dvNeedStr=haveEntered&&dvNeed>0?fmtVP(dvNeed):'--';
+      const oosInfo=isOos&&oos.expectedDate?`<span class="oos-badge">OOS - ${new Date(oos.expectedDate+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>`:(isOos?`<span class="oos-badge">OOS</span>`:'');
       html+=`<tr class="${rowClass}" id="inv-row-${p.sku}">
         <td><div class="inv-name-cell"><span class="inv-name">${p.name}</span>${p.sku?`<span class="inv-sku">${p.sku}</span>`:''}</div>${oosInfo}</td>
         <td style="text-align:center;padding:6px 4px;"><input type="checkbox" class="oos-check" title="Mark out of stock" ${isOos?'checked':''} onchange="toggleOos('${p.sku}','${escHtml(p.name)}',this)"/></td>
-        <td>${p.vp!=null?fmtVP(p.vp):'—'}</td>
+        <td>${p.vp!=null?fmtVP(p.vp):'--'}</td>
         <td>${p.par}</td>
         <td><input class="inv-input" type="number" min="0" value="${haveEntered?have:''}" oninput="setHave('${p.sku}',this.value)" onfocus="this.closest('tr').classList.add('inv-row-active')" onblur="this.closest('tr').classList.remove('inv-row-active')" ondblclick="this.select()" onclick="this.focus()" onwheel="this.blur()" ${isOos?'disabled style="opacity:0.4"':''}/></td>
         <td><span class="need-badge ${bc}">${bt}</span></td>
@@ -2383,8 +2383,8 @@ function renderInventory(){
     html+=`<tr class="inv-cat-subtotal">
       <td style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">${cat} Total</td>
       <td></td><td></td><td></td><td></td><td></td>
-      <td id="cat-dvhave-${catSlug}" style="font-size:13px;font-weight:700;color:var(--b6);">${catAnyFilled?fmtVP(catDvHave):'—'}</td>
-      <td id="cat-dvneed-${catSlug}" style="font-size:13px;font-weight:700;color:var(--r5);opacity:0.85;">${catAnyFilled?fmtVP(catDvNeed):'—'}</td>
+      <td id="cat-dvhave-${catSlug}" style="font-size:13px;font-weight:700;color:var(--b6);">${catAnyFilled?fmtVP(catDvHave):'--'}</td>
+      <td id="cat-dvneed-${catSlug}" style="font-size:13px;font-weight:700;color:var(--r5);opacity:0.85;">${catAnyFilled?fmtVP(catDvNeed):'--'}</td>
     </tr>`;
     html+='</tbody></table>';
   });
@@ -2394,9 +2394,9 @@ function renderInventory(){
   const picker=document.getElementById('inv-snapshot-picker');
   if(picker&&INV_SNAPSHOTS.length){
     const cur=picker.value;
-    picker.innerHTML='<option value="">— Current —</option>'+INV_SNAPSHOTS.map(s=>{
+    picker.innerHTML='<option value="">-- Current --</option>'+INV_SNAPSHOTS.map(s=>{
       const dt=new Date(s.saved_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
-      const label=s.data?.label?`${s.data.label} — ${dt}`:dt;
+      const label=s.data?.label?`${s.data.label} -- ${dt}`:dt;
       return`<option value="${s.id}">${label}</option>`;
     }).join('');
     picker.value=cur||'';
@@ -2419,8 +2419,8 @@ function setHave(s,v){
     const dvNeed=(prod[3]||0)*need;
     const haveCell=document.getElementById('vptot-'+s);
     const needCell=document.getElementById('dvneed-'+s);
-    if(haveCell)haveCell.textContent=haveEntered?fmtVP(dvHave):'—';
-    if(needCell)needCell.textContent=(haveEntered&&dvNeed>0)?fmtVP(dvNeed):'—';
+    if(haveCell)haveCell.textContent=haveEntered?fmtVP(dvHave):'--';
+    if(needCell)needCell.textContent=(haveEntered&&dvNeed>0)?fmtVP(dvNeed):'--';
     // Update row need highlight
     const row=document.getElementById('inv-row-'+s);
     if(row&&!invOos[s]){
@@ -2434,8 +2434,8 @@ function setHave(s,v){
     const catDvNeed=catItems.reduce((sum,p)=>{const q=invHave[p[2]]||0;const he=invHave[p[2]]!=null;const n=Math.max(0,(p[4]||0)-q);return sum+(he?(p[3]||0)*n:0);},0);
     const catHaveEl=document.getElementById('cat-dvhave-'+catSlug);
     const catNeedEl=document.getElementById('cat-dvneed-'+catSlug);
-    if(catHaveEl)catHaveEl.textContent=catAnyFilled?fmtVP(catDvHave):'—';
-    if(catNeedEl)catNeedEl.textContent=catAnyFilled?fmtVP(catDvNeed):'—';
+    if(catHaveEl)catHaveEl.textContent=catAnyFilled?fmtVP(catDvHave):'--';
+    if(catNeedEl)catNeedEl.textContent=catAnyFilled?fmtVP(catDvNeed):'--';
   }
 }
 // OOS functions
@@ -2452,7 +2452,7 @@ function toggleOos(sku,name,checkbox){
     // Revert checkbox immediately, require confirmation
     checkbox.checked=true;
     if(checkbox.dataset.confirming==='1'){
-      // Second click — confirmed
+      // Second click -- confirmed
       checkbox.dataset.confirming='';
       checkbox.title='Mark out of stock';
       checkbox.style.outline='';
@@ -2460,7 +2460,7 @@ function toggleOos(sku,name,checkbox){
       saveOosToSettings();
       renderInventory();
     } else {
-      // First click — enter confirm state
+      // First click -- enter confirm state
       checkbox.dataset.confirming='1';
       checkbox.title='Click again to confirm removal';
       checkbox.style.outline='2px solid var(--a4,#f59e0b)';
@@ -2519,10 +2519,10 @@ function loadInvSnapshot(id){
     }
   });
   renderInventory();
-  showToast('Snapshot loaded — save to overwrite','');
+  showToast('Snapshot loaded -- save to overwrite','');
 }
 async function saveInvSnapshot(){
-  if(IS_ADMIN_VIEW){showToast('Admin view — cannot save','error');return;}
+  if(IS_ADMIN_VIEW){showToast('Admin view -- cannot save','error');return;}
   // Mark rows that were explicitly filled (including 0) with filled:true
   // Rows absent from invHave are saved as have:null, filled:false
   const entries=PRODUCTS.map(p=>{
@@ -2530,12 +2530,12 @@ async function saveInvSnapshot(){
     return{sku:p[2],name:p[1],have:filled?invHave[p[2]]:null,filled};
   });
   const{data:ns,error}=await sb.from('inventory').insert({location_id:LOCATION_ID,data:{entries}}).select().single();
-  if(error){showToast('Snapshot failed','error');return;}INV_SNAPSHOTS.unshift(ns);showToast('Snapshot saved ✓','success');renderInventoryHistory();renderDashboardWidgets();
+  if(error){showToast('Snapshot failed','error');return;}INV_SNAPSHOTS.unshift(ns);showToast('Snapshot saved ok','success');renderInventoryHistory();renderDashboardWidgets();
 }
 function renderInventoryHistory(){
   const picker=document.getElementById('invhist-picker');
   if(!picker)return;
-  picker.innerHTML='<option value="">— Choose a snapshot —</option>';
+  picker.innerHTML='<option value="">-- Choose a snapshot --</option>';
   if(!INV_SNAPSHOTS.length){
     picker.innerHTML='<option value="">No snapshots yet</option>';
     document.getElementById('invhist-body').innerHTML='<div class="empty-state">No snapshots yet.</div>';
@@ -2543,7 +2543,7 @@ function renderInventoryHistory(){
   }
   INV_SNAPSHOTS.forEach((snap,i)=>{
     const dt=new Date(snap.saved_at).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
-    const label=snap.data?.label?`${snap.data.label} — ${dt}`:dt;
+    const label=snap.data?.label?`${snap.data.label} -- ${dt}`:dt;
     picker.innerHTML+=`<option value="${snap.id}">${label}</option>`;
   });
   // Auto-select the most recent
@@ -2585,7 +2585,7 @@ async function saveSnapRename(){
   const opt=picker.querySelector(`option[value="${snapId}"]`);
   if(opt){
     const dt=new Date(snap.saved_at).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
-    opt.textContent=label?`${label} — ${dt}`:dt;
+    opt.textContent=label?`${label} -- ${dt}`:dt;
   }
   // Also refresh the inv-snapshot-picker on Inventory tab if present
   const invPicker=document.getElementById('inv-snapshot-picker');
@@ -2593,10 +2593,10 @@ async function saveSnapRename(){
     const invOpt=invPicker.querySelector(`option[value="${snapId}"]`);
     if(invOpt){
       const dt=new Date(snap.saved_at).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
-      invOpt.textContent=label?`${label} — ${dt}`:dt;
+      invOpt.textContent=label?`${label} -- ${dt}`:dt;
     }
   }
-  showToast(label?`Renamed to "${label}" ✓`:'Label cleared ✓','success');
+  showToast(label?`Renamed to "${label}" ok`:'Label cleared ok','success');
 }
 
 function deleteSnapConfirm(){
@@ -2621,7 +2621,7 @@ function deleteSnapConfirm(){
     setTimeout(()=>{
       if(btn.dataset.confirming==='1'){
         btn.dataset.confirming='';
-        btn.textContent='🗑';
+        btn.textContent='&#128465;';
         btn.style.background='';btn.style.color='var(--danger,#dc2626)';btn.style.borderColor='';
       }
     },3000);
@@ -2645,9 +2645,9 @@ function renderInvHistSnapshot(snapId){
   const balanceEl=document.getElementById('invhist-total-balance');
   if(!snapId){
     body.innerHTML='<div class="empty-state">Choose a snapshot above to view it.</div>';
-    if(dvHaveEl)dvHaveEl.textContent='—';
-    if(dvNeedEl)dvNeedEl.textContent='—';
-    if(balanceEl)balanceEl.textContent='—';
+    if(dvHaveEl)dvHaveEl.textContent='--';
+    if(dvNeedEl)dvNeedEl.textContent='--';
+    if(balanceEl)balanceEl.textContent='--';
     return;
   }
   const snap=INV_SNAPSHOTS.find(s=>s.id===snapId);
@@ -2665,7 +2665,7 @@ function renderInvHistSnapshot(snapId){
     }
   });
   const cats={};PRODUCTS.forEach(p=>{if(!cats[p[0]])cats[p[0]]=[];cats[p[0]].push({name:p[1],sku:p[2],vp:p[3],par:p[4]});});
-  // Grand totals — only count filled rows
+  // Grand totals -- only count filled rows
   let snapDvHave=0,snapDvNeed=0;
   PRODUCTS.forEach(p=>{
     const haveRaw=entryMap[p[2]];
@@ -2685,15 +2685,15 @@ function renderInvHistSnapshot(snapId){
       const need=Math.max(0,(p.par||0)-have);
       const dvHave=(p.vp||0)*have,dvNeed=(p.vp||0)*need;
       if(haveEntered){catAnyFilled=true;catDvHave+=dvHave;catDvNeed+=dvNeed;}
-      const bc=need>0?'need':(haveEntered?'ok':'zero'),bt=need>0?need:(haveEntered?'✓':'—');
+      const bc=need>0?'need':(haveEntered?'ok':'zero'),bt=need>0?need:(haveEntered?'ok':'--');
       const needClass=need>0&&haveEntered?'inv-row-need':'';
-      const dvHaveStr=haveEntered?fmtVP(dvHave):'—';
-      const dvNeedStr=haveEntered?fmtVP(dvNeed):'—';
+      const dvHaveStr=haveEntered?fmtVP(dvHave):'--';
+      const dvNeedStr=haveEntered?fmtVP(dvNeed):'--';
       return`<tr class="${needClass}">
         <td><div class="inv-name-cell"><span class="inv-name">${p.name}</span>${p.sku?`<span class="inv-sku">${p.sku}</span>`:''}</div></td>
-        <td>${p.vp!=null?fmtVP(p.vp):'—'}</td>
+        <td>${p.vp!=null?fmtVP(p.vp):'--'}</td>
         <td>${p.par}</td>
-        <td style="text-align:right;font-size:16px;font-weight:700;">${haveEntered?have:'—'}</td>
+        <td style="text-align:right;font-size:16px;font-weight:700;">${haveEntered?have:'--'}</td>
         <td><span class="need-badge ${bc}">${bt}</span></td>
         <td style="font-size:16px;font-weight:600;color:var(--b6);">${dvHaveStr}</td>
         <td style="font-size:16px;font-weight:600;color:var(--r5);opacity:0.85;">${dvNeedStr}</td>
@@ -2709,8 +2709,8 @@ function renderInvHistSnapshot(snapId){
           <tr class="inv-cat-subtotal">
             <td style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">${cat} Total</td>
             <td></td><td></td><td></td><td></td>
-            <td style="font-size:13px;font-weight:700;color:var(--b6);">${catAnyFilled?fmtVP(catDvHave):'—'}</td>
-            <td style="font-size:13px;font-weight:700;color:var(--r5);opacity:0.85;">${catAnyFilled?fmtVP(catDvNeed):'—'}</td>
+            <td style="font-size:13px;font-weight:700;color:var(--b6);">${catAnyFilled?fmtVP(catDvHave):'--'}</td>
+            <td style="font-size:13px;font-weight:700;color:var(--r5);opacity:0.85;">${catAnyFilled?fmtVP(catDvNeed):'--'}</td>
           </tr>
         </tbody>
       </table>`;
@@ -2748,7 +2748,7 @@ function renderPayouts(){
     const opRows=ops.map(o=>{
       const isOwnerOp=ownerName&&o===ownerName&&data.ownerReinvest;
       if(isOwnerOp){
-        return`<div class="payout-op-row"><div class="payout-op-name">${o}</div><div class="payout-op-amt" style="font-size:12px;color:var(--b6);font-weight:600;">↩ Reinvested</div></div>`;
+        return`<div class="payout-op-row"><div class="payout-op-name">${o}</div><div class="payout-op-amt" style="font-size:12px;color:var(--b6);font-weight:600;">&#8617; Reinvested</div></div>`;
       }
       return`<div class="payout-op-row"><div class="payout-op-name">${o}</div><div class="payout-op-amt">${fmt$(sh)}</div></div>`;
     }).join('');
@@ -2763,7 +2763,7 @@ function renderPayouts(){
   const toFmt=new Date(to+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
 
   el.innerHTML=`
-    <div class="section-label">Summary · ${fromFmt} – ${toFmt}</div>
+    <div class="section-label">Summary - ${fromFmt} &#8211; ${toFmt}</div>
     <div class="card" style="padding:12px;margin-bottom:12px;">
       <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);margin-bottom:8px;">Operator Totals</div>
       ${Object.entries(ot).map(([o,t])=>`<div class="payout-op-row" style="background:var(--b1);margin-bottom:4px;"><div class="payout-op-name" style="font-weight:700;">${o}</div><div class="payout-op-amt" style="font-size:15px;">${fmt$(t)}</div></div>`).join('')||'<div style="font-size:12px;color:var(--text-faint)">No operators found in this range.</div>'}
@@ -2809,7 +2809,7 @@ async function savePayoutSnapshot(){
   const{error}=await sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID);
   if(error){showToast('Save failed: '+error.message,'error');return;}
   if(document.getElementById('payout-snap-label'))document.getElementById('payout-snap-label').value='';
-  showToast('Payout snapshot saved ✓','success');
+  showToast('Payout snapshot saved ok','success');
   renderPayoutSnapshots();
 }
 
@@ -2828,12 +2828,12 @@ function renderPayoutSnapshots(){
     return`<div class="payout-day-card" style="margin-bottom:8px;">
       <div class="payout-day-header" onclick="togglePaySnap('ps-${i}')" style="cursor:pointer;">
         <div>
-          <div class="payout-day-date">${s.label||'Snapshot'} · ${fromFmt} – ${toFmt}</div>
+          <div class="payout-day-date">${s.label||'Snapshot'} - ${fromFmt} &#8211; ${toFmt}</div>
           <div style="font-size:10px;color:var(--text-faint);margin-top:2px;">Saved ${savedFmt}</div>
         </div>
         <div style="display:flex;align-items:center;gap:10px;">
           <div style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:var(--g5)">${fmt$(s.grand||0)}</div>
-          <button onclick="event.stopPropagation();deletePayoutSnap(${i})" style="background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:13px;padding:2px 4px;" title="Delete">🗑</button>
+          <button onclick="event.stopPropagation();deletePayoutSnap(${i})" style="background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:13px;padding:2px 4px;" title="Delete">&#128465;</button>
         </div>
       </div>
       <div id="ps-${i}" style="display:none;margin-top:6px;">${opRows}</div>
@@ -2854,10 +2854,10 @@ async function deletePayoutSnap(i){
 function resolveAlias(n){for(const op of SETTINGS.operators){if(!op.name)continue;const a=(op.aliases||'').split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);if(op.name.toLowerCase()===n.toLowerCase())return op.name;if(a.includes(n.toLowerCase()))return op.name;}return n;}
 
 function buildSettingsUI(){
-  // Always update nav club name from settings — no conditional
+  // Always update nav club name from settings -- no conditional
   const _bncn=document.getElementById('nav-club-name');
   if(_bncn&&SETTINGS.clubName){_bncn.textContent=SETTINGS.clubName;}
-  const c=document.getElementById('s-prod-count');if(c)c.textContent=PRODUCTS.length+' products →';
+  const c=document.getElementById('s-prod-count');if(c)c.textContent=PRODUCTS.length+' products ->';
   buildSelect('s-taxrate', range(0,4,0.25), SETTINGS.taxRate,  v=>v.toFixed(2)+'%');
   buildSelect('s-ohrate',  range(15,40,1),  SETTINGS.ohRate,   v=>v+'%');
   buildSelect('s-otherrate',range(30,60,2), SETTINGS.otherRate,v=>v+'%');
@@ -2936,10 +2936,10 @@ function range(f,t,s){const r=[];for(let v=f;v<=t+0.001;v=Math.round((v+s)*1000)
 function buildSelect(id,vals,cur,fn){const el=document.getElementById(id);if(!el)return;el.innerHTML=vals.map(v=>`<option value="${v}" ${Math.abs(v-cur)<0.001?'selected':''}>${fn(v)}</option>`).join('');}
 function openProductsEditor(){closeProfileModal();window.location.href=IS_ADMIN_VIEW?`products.html?location_id=${LOCATION_ID}&admin=1`:`products.html?location_id=${LOCATION_ID}`;}
 
-function populateOperatorDropdowns(){const ops=SETTINGS.operators.filter(o=>o.name&&o.visible!==false),blank='<option value="">—</option>';['f-op1','f-op2'].forEach(id=>{const el=document.getElementById(id);if(!el)return;const cur=el.value;el.innerHTML=blank+ops.map(o=>`<option value="${o.name}">${o.name}</option>`).join('');el.value=cur;});renderOpsEarningsPreview();}
+function populateOperatorDropdowns(){const ops=SETTINGS.operators.filter(o=>o.name&&o.visible!==false),blank='<option value="">--</option>';['f-op1','f-op2'].forEach(id=>{const el=document.getElementById(id);if(!el)return;const cur=el.value;el.innerHTML=blank+ops.map(o=>`<option value="${o.name}">${o.name}</option>`).join('');el.value=cur;});renderOpsEarningsPreview();}
 async function handleSignOut(){if(IS_ADMIN_VIEW){window.location.href='admin.html';return;}await sb.auth.signOut();window.location.href='index.html';}
 
-// ── LOCATION SWITCHER ──
+// -- LOCATION SWITCHER --
 function openLocSwitcher(){
   const locs=window._USER_LOCATIONS||[];
   const list=document.getElementById('loc-switcher-list');
@@ -2953,7 +2953,7 @@ function openLocSwitcher(){
           <div style="font-family:'Outfit',sans-serif;font-size:15px;font-weight:700;color:var(--text);">${loc.name||'Location'}</div>
           <div style="font-size:12px;color:var(--text-faint);margin-top:2px;">${loc.address||''}</div>
         </div>
-        ${isCurrent?'<span style="font-size:11px;font-weight:700;background:var(--b1);color:var(--b6);border:1px solid var(--b2);padding:2px 8px;border-radius:20px;">Current</span>':'<span style="font-size:12px;color:var(--b6);">Switch →</span>'}
+        ${isCurrent?'<span style="font-size:11px;font-weight:700;background:var(--b1);color:var(--b6);border:1px solid var(--b2);padding:2px 8px;border-radius:20px;">Current</span>':'<span style="font-size:12px;color:var(--b6);">Switch -></span>'}
       </div>
     </div>`;
   }).join('');
@@ -2999,7 +2999,7 @@ function recalcContentTop(){
 }
 window.addEventListener('resize',recalcContentTop);
 
-// ── DV FIELD FORMATTING (decimal with commas, 2 decimal places) ──
+// -- DV FIELD FORMATTING (decimal with commas, 2 decimal places) --
 function fmtDV(n){
   var v=parseFloat(String(n).replace(/,/g,''));
   if(isNaN(v)||n===''||n===undefined)return '';
@@ -3022,7 +3022,7 @@ document.addEventListener('DOMContentLoaded',function(){
     dvEl.addEventListener('blur',function(){onDVBlur(this);recalc();});
   }
 });
-// ── DATE DISPLAY FORMATTING ──
+// -- DATE DISPLAY FORMATTING --
 function updateDateDisplay(){
   var val=document.getElementById('entry-date').value;
   var el=document.getElementById('entry-date-display');
@@ -3031,7 +3031,7 @@ function updateDateDisplay(){
   var parts=val.split('-');
   var d=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));
   el.textContent=d.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
-  // Show "↩ Today" button only when not on today's date
+  // Show "&#8617; Today" button only when not on today's date
   const todayStr=new Date().toISOString().slice(0,10);
   const todayBtn=document.getElementById('btn-go-today');
   if(todayBtn)todayBtn.style.display=(val!==todayStr)?'inline-flex':'none';
@@ -3053,7 +3053,7 @@ function autoSizeInput(el){
   el.style.width=Math.min(max,Math.max(min,natural))+'px';
 }
 // Global error handler - shows errors visually instead of blank page
-// Version checker — polls server every 5 minutes for a newer file
+// Version checker -- polls server every 5 minutes for a newer file
 (function(){
   var CHECK_INTERVAL = 10000;
   var _initMod = null;
@@ -3074,7 +3074,7 @@ function autoSizeInput(el){
   }, CHECK_INTERVAL);
 })();
 
-// ── DEACTIVATION POLL ──
+// -- DEACTIVATION POLL --
 (function() {
   var deactivationShown = false;
   function injectDeactivationOverlay() {
@@ -3084,7 +3084,7 @@ function autoSizeInput(el){
     el.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(30,45,61,0.72);display:flex;align-items:center;justify-content:center;padding:20px;';
     el.innerHTML =
       '<div style="background:#fff;border-radius:18px;width:100%;max-width:380px;padding:36px 28px 28px;text-align:center;font-family:\'DM Sans\',sans-serif;">' +
-        '<div style="font-size:40px;margin-bottom:14px;">🔒</div>' +
+        '<div style="font-size:40px;margin-bottom:14px;">&#128274;</div>' +
         '<div style="font-family:\'Outfit\',sans-serif;font-size:20px;font-weight:700;color:#1e2d3d;margin-bottom:10px;">Account Deactivated</div>' +
         '<div style="font-size:14px;color:#5b7087;line-height:1.6;margin-bottom:24px;">Your account has been removed from this location. Contact your admin to request reactivation.</div>' +
         '<button onclick="window.location.href=\'index.html\'" style="width:100%;font-family:\'DM Sans\',sans-serif;font-size:15px;font-weight:600;background:linear-gradient(135deg,#3a5470,#5b80a0);color:white;border:none;border-radius:10px;padding:13px;cursor:pointer;">OK</button>' +
@@ -3097,13 +3097,13 @@ function autoSizeInput(el){
     try {
       var res = await sb.from('users').select('role,location_id').eq('id', CURRENT_SESSION.user.id).single();
       var u = res.data;
-      // org_leader role is set during onboarding before location is assigned — don't deactivate
+      // org_leader role is set during onboarding before location is assigned -- don't deactivate
       if (!u || u.role === 'pending' || (!u.location_id && u.role !== 'org_leader')) {
         deactivationShown = true;
         await sb.auth.signOut();
         injectDeactivationOverlay();
       }
-      // org_leader with no location_id means onboarding incomplete — redirect to onboard
+      // org_leader with no location_id means onboarding incomplete -- redirect to onboard
       if (u && u.role === 'org_leader' && !u.location_id) {
         window.location.href = 'index.html';
         return;
@@ -3113,7 +3113,7 @@ function autoSizeInput(el){
   setTimeout(function() { checkDeactivation(); setInterval(checkDeactivation, 30000); }, 10000);
 })();
 
-// ── IDLE AUTO-LOGOUT (30 min idle, 3 min warning) ──
+// -- IDLE AUTO-LOGOUT (30 min idle, 3 min warning) --
 (function () {
   var IDLE_LIMIT     = 30 * 60 * 1000;
   var WARN_BEFORE    =  3 * 60 * 1000;
@@ -3131,7 +3131,7 @@ function autoSizeInput(el){
     el.style.cssText = 'position:fixed;inset:0;z-index:9000;background:rgba(30,45,61,0.55);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px;';
     el.innerHTML =
       '<div style="background:#fff;border-radius:18px;width:100%;max-width:380px;padding:32px 28px 24px;box-shadow:0 20px 60px rgba(30,45,61,0.25);text-align:center;font-family:\'DM Sans\',sans-serif;">' +
-        '<div style="font-size:36px;margin-bottom:12px;">⏱</div>' +
+        '<div style="font-size:36px;margin-bottom:12px;">&#9201;</div>' +
         '<div style="font-family:\'Outfit\',sans-serif;font-size:20px;font-weight:700;color:#1e2d3d;margin-bottom:8px;">Still there?</div>' +
         '<div style="font-size:14px;color:#5b7087;margin-bottom:6px;line-height:1.5;">You will be signed out automatically due to inactivity in</div>' +
         '<div id="idle-countdown" style="font-family:\'Outfit\',sans-serif;font-size:36px;font-weight:800;color:#c47c0a;margin:10px 0 20px;letter-spacing:-1px;">3:00</div>' +
@@ -3198,12 +3198,12 @@ async function safeInit() {
   try {
     await init();
   } catch(e) {
-    // Show error directly on screen — never redirect (avoids loops)
+    // Show error directly on screen -- never redirect (avoids loops)
     document.body.style.cssText = 'margin:0;padding:0;font-family:DM Sans,sans-serif;background:#e8edf4;min-height:100vh;';
     document.body.innerHTML =
       '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;">' +
       '<div style="background:white;border-radius:16px;padding:32px;max-width:480px;width:100%;box-shadow:0 4px 20px rgba(0,0,0,0.1);">' +
-      '<div style="font-size:32px;margin-bottom:12px;">⚠️</div>' +
+      '<div style="font-size:32px;margin-bottom:12px;">&#9888;&#65039;</div>' +
       '<h2 style="font-size:18px;font-weight:700;color:#c03030;margin-bottom:12px;">App failed to load</h2>' +
       '<p style="font-size:14px;color:#5b7087;margin-bottom:8px;font-family:monospace;background:#fff0f0;padding:10px;border-radius:8px;word-break:break-all;">' + e.message + '</p>' +
       '<details style="margin-top:8px;"><summary style="font-size:12px;color:#8fa3b3;cursor:pointer;">Stack trace</summary>' +
