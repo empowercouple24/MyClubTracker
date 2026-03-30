@@ -882,6 +882,7 @@ async function saveProfile(){
     }
     showProfileMsg('success','Profile updated!');
     btn.disabled=false;btn.textContent='Save changes';
+    setTimeout(function(){closeModal('profile-modal');},800);
   }catch(err){showProfileMsg('error',err.message||'Failed to save.');btn.disabled=false;btn.textContent='Save changes';}
 }
 
