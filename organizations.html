@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-30 11:54:07 -->
+<!-- CACHE BUST: 2026-03-30 16:19:25 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -49,7 +49,7 @@
     .org-detail-val{font-size:13px;font-weight:600;color:var(--text);}
     .org-detail-val.muted{font-weight:400;color:var(--text-muted);}
     .org-locs-list{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;}
-    .org-loc-row{background:var(--surface);border:1px solid var(--border-light);border-radius:8px;padding:9px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+    .org-loc-row{background:var(--surface);border:1px solid var(--border-light);border-radius:8px;padding:9px 12px;display:flex;flex-direction:column;align-items:stretch;gap:0;transition:border-color 0.3s,box-shadow 0.3s;}
     .org-loc-name{font-size:13px;font-weight:600;color:var(--text);}
     .org-loc-addr{font-size:11px;color:var(--text-faint);margin-top:1px;}
     .org-expanded-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding-top:10px;border-top:1px solid var(--border-light);margin-top:12px;}
@@ -463,6 +463,29 @@ async function init() {
   setNavAvatar(u.avatar_url, u.first_name, u.last_name, u.display_name);
   await loadOrgs();
   await loadOrgRequests();
+  // Handle ?loc=X from admin.html Manage Club
+  const _locParam = new URLSearchParams(window.location.search).get('loc');
+  if (_locParam) {
+    // Find which org this location belongs to
+    const _targetLoc = allOrgLocations.find(l => l.id === _locParam);
+    if (_targetLoc) {
+      // Expand the org card
+      const _orgCard = document.getElementById('ocard-' + _targetLoc.org_id);
+      if (_orgCard && !_orgCard.classList.contains('expanded')) _orgCard.classList.add('expanded');
+      // Open the loc edit panel
+      setTimeout(() => {
+        toggleLocEdit(_locParam);
+        const _locRow = document.getElementById('locrow-' + _locParam);
+        if (_locRow) _locRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Highlight briefly
+        if (_locRow) {
+          _locRow.style.boxShadow = '0 0 0 2px var(--b4)';
+          _locRow.style.borderColor = 'var(--b4)';
+          setTimeout(() => { _locRow.style.boxShadow = ''; _locRow.style.borderColor = ''; }, 2500);
+        }
+      }, 150);
+    }
+  }
 }
 
 async function loadOrgs() {
@@ -474,7 +497,7 @@ async function loadOrgs() {
   // Load all locations for all orgs
   if (allOrgs.length) {
     const { data: locs } = await sb.from('locations')
-      .select('id,name,address,org_id')
+      .select('id,name,address,org_id,owner_name,owner_phone,settings,invite_code')
       .in('org_id', allOrgs.map(o => o.id));
     allOrgLocations = locs || [];
   }
@@ -533,14 +556,54 @@ function renderOrgs() {
 
     // Locations sub-list
     const locsHtml = locs.length
-      ? locs.map(l => `
-          <div class="org-loc-row">
-            <div>
-              <div class="org-loc-name">${escHtml(l.name)}</div>
-              <div class="org-loc-addr">${escHtml(l.address || '')}</div>
+      ? locs.map(l => {
+          const ownerEmail = l.settings?.ownerEmail || '';
+          return `
+          <div class="org-loc-row" id="locrow-${l.id}">
+            <div class="org-loc-summary" onclick="toggleLocEdit('${l.id}')" style="flex:1;cursor:pointer;display:flex;align-items:center;gap:12px;">
+              <div style="flex:1;">
+                <div class="org-loc-name">${escHtml(l.name)}</div>
+                <div class="org-loc-addr">${escHtml(l.address || '')}</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+                <a href="app.html?location_id=${l.id}&admin=1&from=org" onclick="event.stopPropagation()" class="btn-sm" style="font-size:12px;">Open App</a>
+                <span class="loc-edit-chevron" id="locchev-${l.id}" style="font-size:11px;color:var(--text-faint);transition:transform 0.2s;">&#9660;</span>
+              </div>
             </div>
-            <a href="app.html?location_id=${l.id}&admin=1&from=org" class="btn-sm" style="font-size:12px;">Open -></a>
-          </div>`).join('')
+            <div class="org-loc-edit" id="locedit-${l.id}" style="display:none;width:100%;margin-top:12px;border-top:1px solid var(--border-light);padding-top:12px;">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+                <div>
+                  <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);display:block;margin-bottom:4px;">Club Name</label>
+                  <input id="lef-name-${l.id}" type="text" value="${escHtml(l.name)}" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 10px;border:1px solid var(--border);border-radius:6px;color:var(--text);background:var(--bg);"/>
+                </div>
+                <div>
+                  <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);display:block;margin-bottom:4px;">Address</label>
+                  <input id="lef-addr-${l.id}" type="text" value="${escHtml(l.address||'')}" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 10px;border:1px solid var(--border);border-radius:6px;color:var(--text);background:var(--bg);"/>
+                </div>
+                <div>
+                  <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);display:block;margin-bottom:4px;">Owner Name</label>
+                  <input id="lef-owner-${l.id}" type="text" value="${escHtml(l.owner_name||'')}" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 10px;border:1px solid var(--border);border-radius:6px;color:var(--text);background:var(--bg);"/>
+                </div>
+                <div>
+                  <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);display:block;margin-bottom:4px;">Owner Phone</label>
+                  <input id="lef-phone-${l.id}" type="text" value="${escHtml(l.owner_phone||'')}" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 10px;border:1px solid var(--border);border-radius:6px;color:var(--text);background:var(--bg);"/>
+                </div>
+                <div style="grid-column:1/-1;">
+                  <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);display:block;margin-bottom:4px;">Owner Email</label>
+                  <input id="lef-email-${l.id}" type="email" value="${escHtml(ownerEmail)}" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 10px;border:1px solid var(--border);border-radius:6px;color:var(--text);background:var(--bg);"/>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <div style="font-size:11px;color:var(--text-faint);">Invite code: <strong style="font-family:monospace;letter-spacing:1px;">${escHtml(l.invite_code||'—')}</strong></div>
+                <div style="display:flex;gap:8px;">
+                  <button onclick="toggleLocEdit('${l.id}')" class="btn-sm">Cancel</button>
+                  <button onclick="saveLocDetails('${l.id}')" class="btn-sm" style="background:var(--b7);color:white;border-color:var(--b7);font-weight:700;">Save Changes</button>
+                </div>
+              </div>
+              <div id="lef-msg-${l.id}" style="font-size:12px;margin-top:6px;display:none;"></div>
+            </div>
+          </div>`;
+        }).join('')
       : '<div style="font-size:12px;color:var(--text-faint);">No locations yet.</div>';
 
     // Dates
@@ -623,6 +686,57 @@ function renderOrgs() {
 function toggleOrgCard(id) {
   const card = document.getElementById('ocard-' + id);
   if (card) card.classList.toggle('expanded');
+}
+
+// -- TOGGLE LOC EDIT --
+function toggleLocEdit(locId) {
+  const edit = document.getElementById('locedit-' + locId);
+  const chev = document.getElementById('locchev-' + locId);
+  if (!edit) return;
+  const isOpen = edit.style.display !== 'none';
+  edit.style.display = isOpen ? 'none' : 'block';
+  if (chev) chev.style.transform = isOpen ? '' : 'rotate(180deg)';
+}
+
+// -- SAVE LOC DETAILS --
+async function saveLocDetails(locId) {
+  const get = id => document.getElementById(id)?.value?.trim() || '';
+  const name    = get('lef-name-'  + locId);
+  const address = get('lef-addr-'  + locId);
+  const ownerName  = get('lef-owner-' + locId);
+  const ownerPhone = get('lef-phone-' + locId);
+  const ownerEmail = get('lef-email-' + locId);
+  const msgEl = document.getElementById('lef-msg-' + locId);
+
+  if (!name) {
+    if (msgEl) { msgEl.textContent = 'Club name is required.'; msgEl.style.color = 'var(--r5)'; msgEl.style.display = 'block'; }
+    return;
+  }
+
+  const btn = document.querySelector(`#locedit-${locId} button[onclick*="saveLocDetails"]`);
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+
+  // Fetch current settings to merge ownerEmail in
+  const { data: existing } = await sb.from('locations').select('settings').eq('id', locId).single();
+  const updatedSettings = { ...(existing?.settings || {}), ownerEmail };
+
+  const { error } = await sb.from('locations').update({
+    name, address, owner_name: ownerName, owner_phone: ownerPhone, settings: updatedSettings
+  }).eq('id', locId);
+
+  if (btn) { btn.disabled = false; btn.textContent = 'Save Changes'; }
+
+  if (error) {
+    if (msgEl) { msgEl.textContent = 'Error: ' + error.message; msgEl.style.color = 'var(--r5)'; msgEl.style.display = 'block'; }
+    return;
+  }
+
+  // Update local data
+  const loc = allOrgLocations.find(l => l.id === locId);
+  if (loc) { loc.name = name; loc.address = address; loc.owner_name = ownerName; loc.owner_phone = ownerPhone; if (!loc.settings) loc.settings = {}; loc.settings.ownerEmail = ownerEmail; }
+
+  if (msgEl) { msgEl.textContent = '✓ Saved'; msgEl.style.color = 'var(--g6)'; msgEl.style.display = 'block'; }
+  setTimeout(() => { toggleLocEdit(locId); if (msgEl) msgEl.style.display = 'none'; renderOrgs(); }, 900);
 }
 
 // -- BILLING TOGGLE --

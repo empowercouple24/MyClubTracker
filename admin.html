@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-30 15:42:43 -->
+<!-- CACHE BUST: 2026-03-30 16:19:32 -->
 <html lang="en">
 <head>
 <script>
@@ -1454,7 +1454,7 @@ function renderLocations(){
             Waiting for the club owner to register at <strong>myclubtracker.com</strong> using the invite code above.
           </div>
           <div class="expanded-footer">
-            <a class="btn-view-app" href="locations.html#locg-${loc.id}">Manage Club</a>
+            <a class="btn-view-app" href="organizations.html?loc=${loc.id}">Manage Club</a>
           </div>
         </div>
       </div>`;
@@ -1521,7 +1521,7 @@ function renderLocations(){
         </div>
         <div class="expanded-footer">
           ${lastFmt?`<div class="last-entry-note">Last entry: ${lastFmt}</div>`:'<div></div>'}
-          <a class="btn-view-app" href="locations.html#locg-${loc.id}">Manage Club</a>
+          <a class="btn-view-app" href="organizations.html?loc=${loc.id}">Manage Club</a>
         </div>
         ${renderAdminUserSection(loc.id)}
       </div>
