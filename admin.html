@@ -472,8 +472,11 @@ if('serviceWorker' in navigator){
       <input class="modal-input-sm" type="text" id="io-orgname" placeholder="e.g. Johnson Nutrition Team"/>
     </div>
     <div class="modal-field-sm">
-      <label class="modal-label-sm">Monthly rate <span>— $0.00 = free</span></label>
-      <input class="modal-input-sm" type="number" id="io-rate" value="0" min="0" step="0.01" style="max-width:120px;"/>
+      <label class="modal-label-sm">Monthly rate <span>— $0 = free</span></label>
+      <div style="display:flex;align-items:center;gap:4px;max-width:120px;">
+        <span style="font-size:14px;font-weight:600;color:var(--text-muted);">$</span>
+        <input class="modal-input-sm" type="number" id="io-rate" value="0" min="0" step="1" style="width:100%;" oninput="this.value=Math.round(Math.abs(this.value))||0"/>
+      </div>
     </div>
     <div id="io-link-wrap" style="display:none;margin-bottom:12px;">
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:6px;">Invite Link (copy &amp; send manually if email fails)</div>
@@ -495,7 +498,10 @@ if('serviceWorker' in navigator){
     <div class="modal-alert-sm error" id="er-error"></div>
     <div class="modal-field-sm">
       <label class="modal-label-sm">Monthly rate (USD)</label>
-      <input class="modal-input-sm" type="number" id="er-rate" value="0" min="0" step="0.01" style="max-width:140px;"/>
+      <div style="display:flex;align-items:center;gap:4px;max-width:140px;">
+        <span style="font-size:14px;font-weight:600;color:var(--text-muted);">$</span>
+        <input class="modal-input-sm" type="number" id="er-rate" value="0" min="0" step="1" style="width:100%;" oninput="this.value=Math.round(Math.abs(this.value))||0"/>
+      </div>
     </div>
     <div class="modal-field-sm">
       <label class="modal-label-sm">Plan</label>
@@ -1967,7 +1973,7 @@ function renderOrgs() {
     }[org.status] || '<span class="badge badge-deleted">Deleted</span>';
 
     const planBadge = org.billing_plan === 'paid'
-      ? `<span class="badge badge-paid">$${Number(org.monthly_rate||0).toFixed(2)}/mo</span>`
+      ? `<span class="badge badge-paid">$${Math.round(Number(org.monthly_rate||0))}/mo</span>`
       : '<span class="badge badge-free">Free</span>';
 
     const billingBadge = !org.billing_active
@@ -2131,7 +2137,7 @@ function openInviteOrgModal() {
 async function submitInviteOrg() {
   const email   = document.getElementById('io-email').value.trim().toLowerCase();
   const orgName = document.getElementById('io-orgname').value.trim();
-  const rate    = parseFloat(document.getElementById('io-rate').value) || 0;
+  const rate    = Math.round(parseFloat(document.getElementById('io-rate').value) || 0);
 
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     showOrgModalAlert('io-error', 'Please enter a valid email address.'); return;
@@ -2259,7 +2265,7 @@ function openEditRate(orgId, orgName, currentRate, e) {
 }
 
 async function submitEditRate() {
-  const rate = parseFloat(document.getElementById('er-rate').value) || 0;
+  const rate = Math.round(parseFloat(document.getElementById('er-rate').value) || 0);
   const plan = document.getElementById('er-plan').value;
   const btn  = document.getElementById('er-btn');
   btn.disabled = true; btn.textContent = 'Saving…';
