@@ -125,6 +125,7 @@ if('serviceWorker' in navigator){
     .kpi-period{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
     .kpi-period::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--radius) var(--radius) 0 0}
     .kpi-period.yesterday::before{background:var(--b6)}.kpi-period.week::before{background:var(--g5)}.kpi-period.month::before{background:var(--a5)}
+    #kpi-pending-orgs::before{background:var(--a5);}
     .kpi-period-label{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:10px}
     .kpi-period.yesterday .kpi-period-label{color:var(--b6)}.kpi-period.week .kpi-period-label{color:var(--g5)}.kpi-period.month .kpi-period-label{color:var(--a5)}
     .kpi-row{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:4px}
@@ -343,17 +344,6 @@ if('serviceWorker' in navigator){
     </div>
   </div>
 
-  <div id="pending-orgs-banner" style="display:none;background:linear-gradient(135deg,var(--a6),var(--a4,#d97706));border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;cursor:pointer;color:white;" onclick="window.location.href='organizations.html'">
-    <div style="display:flex;align-items:center;gap:12px;">
-      <div style="font-size:22px;">🏢</div>
-      <div>
-        <div style="font-size:14px;font-weight:700;" id="pending-orgs-banner-text">Organizations Pending Setup</div>
-        <div style="font-size:12px;opacity:0.85;margin-top:2px;">Click to review in Organizations</div>
-      </div>
-      <div style="margin-left:auto;font-size:20px;opacity:0.7;">→</div>
-    </div>
-  </div>
-
   <div id="alert-banner-wrap"></div>
 
   <!-- LAYOUT BODY — toggled between list and split via JS -->
@@ -387,7 +377,7 @@ if('serviceWorker' in navigator){
         <span id="missing-chip-wrap"></span>
       </div>
       <div id="missing-detail-wrap"></div>
-      <div class="kpi-strip">
+      <div class="kpi-strip" style="grid-template-columns:repeat(4,1fr);">
         <div class="kpi-period yesterday">
           <div class="kpi-period-label">Yesterday</div>
           <div class="kpi-row"><span class="kpi-metric-label">Sales</span><span class="kpi-metric-val big" id="kpi-yday-sales">—</span></div>
@@ -405,6 +395,11 @@ if('serviceWorker' in navigator){
           <div class="kpi-row"><span class="kpi-metric-label">Sales</span><span class="kpi-metric-val big" id="kpi-month-sales">—</span></div>
           <div class="kpi-row"><span class="kpi-metric-label">DV</span><span class="kpi-metric-val" id="kpi-month-dv">—</span></div>
           <div class="kpi-sub" id="kpi-month-sub"></div>
+        </div>
+        <div class="kpi-period" id="kpi-pending-orgs" style="cursor:pointer;border-color:var(--a4);" onclick="window.location.href='organizations.html'" title="Click to review in Organizations">
+          <div class="kpi-period-label" style="color:var(--a5);">Needs Review</div>
+          <div class="kpi-row"><span class="kpi-metric-label">Pending orgs</span><span class="kpi-metric-val big" id="kpi-pending-count" style="color:var(--a5);">—</span></div>
+          <div class="kpi-sub" id="kpi-pending-sub" style="color:var(--a5);">Click to review →</div>
         </div>
       </div>
 
@@ -672,12 +667,19 @@ let denyingRequestId=null;
 async function checkPendingOrgs(){
   const{data:orgs}=await sb.from('organizations').select('id,status').eq('status','invited');
   const count=(orgs||[]).length;
-  const banner=document.getElementById('pending-orgs-banner');
-  const bannerText=document.getElementById('pending-orgs-banner-text');
-  if(banner){
-    banner.style.display=count>0?'block':'none';
-    if(bannerText&&count>0) bannerText.textContent=`${count} Organization${count!==1?'s':''} Pending Setup`;
+  const widget=document.getElementById('kpi-pending-orgs');
+  const countEl=document.getElementById('kpi-pending-count');
+  const subEl=document.getElementById('kpi-pending-sub');
+  if(countEl) countEl.textContent=count>0?count:'0';
+  if(subEl) subEl.textContent=count>0?`Click to review →`:'All orgs active';
+  if(widget){
+    widget.style.opacity=count>0?'1':'0.5';
+    widget.style.cursor=count>0?'pointer':'default';
+    widget.onclick=count>0?()=>window.location.href='organizations.html':null;
   }
+  // Also update loadOrgs banner references safely
+  const banner=document.getElementById('pending-orgs-banner');
+  if(banner) banner.style.display='none';
 }
 
 async function loadRequests(){
@@ -1900,18 +1902,13 @@ async function loadOrgs() {
     badge.textContent = pending;
     badge.style.display = pending ? 'inline-flex' : 'none';
   }
-
-  // Pending orgs banner
-  const orgBanner = document.getElementById('pending-orgs-banner');
-  const orgBannerText = document.getElementById('pending-orgs-banner-text');
-  if (orgBanner) {
-    if (pending > 0) {
-      orgBanner.style.display = 'block';
-      if (orgBannerText) orgBannerText.textContent = `${pending} Organization${pending !== 1 ? 's' : ''} Pending Setup`;
-    } else {
-      orgBanner.style.display = 'none';
-    }
-  }
+  // Refresh pending widget
+  const countEl=document.getElementById('kpi-pending-count');
+  const subEl=document.getElementById('kpi-pending-sub');
+  const widget=document.getElementById('kpi-pending-orgs');
+  if(countEl) countEl.textContent=pending>0?pending:'0';
+  if(subEl) subEl.textContent=pending>0?'Click to review →':'All orgs active';
+  if(widget){widget.style.opacity=pending>0?'1':'0.5';widget.style.cursor=pending>0?'pointer':'default';}
 }
 
 // ── RENDER SUMMARY ──
