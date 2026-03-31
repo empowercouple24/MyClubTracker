@@ -2098,7 +2098,9 @@ async function init(){
     // Store owner contact for use in profile modal
     SETTINGS._ownerName  = loc.owner_name||'';
     SETTINGS._ownerPhone = loc.owner_phone||'';
-    SETTINGS._ownerEmail = (loc.settings&&loc.settings.ownerEmail)||'';
+    // Pull owner email live from users table (not stale settings JSON)
+    const{data:ownerUser}=await sb.from('users').select('email').eq('location_id',LOCATION_ID).eq('role','owner').limit(1).single();
+    SETTINGS._ownerEmail = ownerUser?.email||(loc.settings&&loc.settings.ownerEmail)||'';
   }
   if(IS_ADMIN_VIEW){
     const _nab=document.getElementById('nav-admin-badge');if(_nab)_nab.style.display='block';
