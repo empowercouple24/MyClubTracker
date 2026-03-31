@@ -359,7 +359,12 @@ let ME=null,MY_ORG=null,MY_LOCATIONS=[],ALL_DAYS=[],ALL_USERS=[],CO_LEADERS=[];
   if(dn)dn.textContent=user.display_name||[user.first_name,user.last_name].filter(Boolean).join(' ')||session.user.email;
   if(nn)nn.textContent=org.name||'MyClubTracker';
   const navAv=document.getElementById('nav-avatar');
-  if(navAv){const sp=navAv.querySelector('span');if(sp)sp.textContent=initials;}
+  if(navAv){
+    const sp=navAv.querySelector('span');
+    const img=navAv.querySelector('img');
+    if(sp)sp.textContent=initials;
+    if(img&&user.avatar_url){img.src=user.avatar_url+(user.avatar_url.includes('?')?'&':'?')+'r='+Date.now();img.style.display='block';if(sp)sp.style.display='none';}
+  }
 
   // Check suspended
   if(org.status==='suspended'||!org.billing_active){

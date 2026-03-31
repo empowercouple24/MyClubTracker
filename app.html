@@ -175,9 +175,11 @@ if('serviceWorker' in navigator){
     .hcal-dn{font-size:11px;font-weight:700;color:var(--text-faint);margin-bottom:4px;}
     .hcal-day.has-data .hcal-dn{color:var(--text-muted);}
     .hcal-sales{font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:var(--g5);line-height:1;margin-bottom:2px;}
-    .hcal-pills{display:flex;flex-direction:column;gap:2px;margin-top:auto;}
-    .hcal-pill{font-size:11px;font-weight:600;color:var(--text-faint);}
-    .hcal-day.has-data .hcal-pill{color:var(--text-muted);}
+    .hcal-pills{display:flex;flex-direction:column;gap:1px;margin-top:auto;}
+    .hcal-pill-label{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);opacity:0.7;}
+    .hcal-pill-val{font-size:11px;font-weight:700;color:var(--text-muted);}
+    .hcal-day.has-data .hcal-pill-label{color:var(--b4);}
+    .hcal-day.has-data .hcal-pill-val{color:var(--text);}
     .hcal-week-summary{background:var(--b8);border-radius:var(--radius-sm);padding:6px 10px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
     .hcal-week-label{font-size:10px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,0.55);}
     .hcal-week-total{font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:white;}
@@ -2354,11 +2356,12 @@ function renderHistCal(){
         const adminIcon=data._adminEdit?'<span style="font-size:8px;color:var(--a5);">✎</span> ':'';
         html+=`<div class="hcal-day has-data${isToday?' today-day':''}" onclick="openDetail('${dateStr}')">
           <div class="hcal-dn">${day}</div>
+          <div class="hcal-pill-label" style="color:var(--g6);opacity:1;">Sales</div>
           <div class="hcal-sales">${fmt$(calSales(data))}</div>
           <div class="hcal-pills">
-            <span class="hcal-pill">DV: ${fmtN(data.dv||0)}</span>
-            ${ops?`<span class="hcal-pill">${ops}</span>`:''}
-            ${(noteIcon||adminIcon)?`<span class="hcal-pill">${noteIcon}${adminIcon}</span>`:''}
+            <div><div class="hcal-pill-label">Documented Volume</div><div class="hcal-pill-val">${fmtN(data.dv||0)}</div></div>
+            ${ops?`<div class="hcal-pill-val" style="font-size:10px;color:var(--text-faint);margin-top:2px;">${ops}</div>`:''}
+            ${(noteIcon||adminIcon)?`<div class="hcal-pill-val" style="font-size:10px;">${noteIcon}${adminIcon}</div>`:''}
           </div>
         </div>`;
       } else if(isFuture){
