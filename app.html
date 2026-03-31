@@ -140,6 +140,7 @@ if('serviceWorker' in navigator){
     .summary-card-label{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.75)}
     .summary-card-sub{font-size:11px;font-weight:500;color:rgba(255,255,255,0.45);margin-top:1px}
     .summary-card-val{font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;letter-spacing:-0.5px;line-height:1;color:white}
+    .summary-card-rate{font-size:11px;font-weight:700;color:rgba(255,255,255,0.4);margin-left:8px;white-space:nowrap;flex-shrink:0;}
     .summary-balance{margin-top:2px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:space-between;font-size:11px}
     .balance-ok{color:#7de88a;font-weight:600}
     .balance-fail{color:#ff8080;font-weight:600}
@@ -505,6 +506,7 @@ if('serviceWorker' in navigator){
 
   <!-- DATE PICKER -->
   <div class="date-nav">
+    <button class="btn btn-ghost" onclick="shiftDay(-1)" style="padding:5px 10px;font-size:16px;flex-shrink:0;">←</button>
     <div class="date-display" onclick="document.getElementById('entry-date').showPicker&&document.getElementById('entry-date').showPicker()">
       <span class="date-display-text" id="entry-date-display">Today</span>
       <span class="date-display-icon">📅</span>
@@ -532,14 +534,17 @@ if('serviceWorker' in navigator){
       <div class="summary-card">
         <div class="summary-card-label">Taxes</div>
         <div class="summary-card-val" id="sum-tax">—</div>
+        <div class="summary-card-rate" id="sum-tax-rate"></div>
       </div>
       <div class="summary-card">
         <div class="summary-card-label">Overhead</div>
         <div class="summary-card-val" id="sum-oh">—</div>
+        <div class="summary-card-rate" id="sum-oh-rate"></div>
       </div>
       <div class="summary-card">
         <div class="summary-card-label">Herbalife</div>
         <div class="summary-card-val" id="sum-prod">—</div>
+        <div class="summary-card-rate" id="sum-prod-rate"></div>
       </div>
       <div class="summary-card">
         <div>
@@ -547,6 +552,7 @@ if('serviceWorker' in navigator){
           <div class="summary-card-sub" id="sum-perdv">—</div>
         </div>
         <div class="summary-card-val" id="sum-payouts">—</div>
+        <div class="summary-card-rate" id="sum-pay-rate"></div>
       </div>
     </div>
     <div class="summary-balance">
@@ -603,13 +609,13 @@ if('serviceWorker' in navigator){
         <div style="display:grid;grid-template-columns:1fr 90px 90px;gap:8px;padding:4px 10px;align-items:center;border-top:1px solid var(--border-light);">
           <select class="field-input" id="f-op1" onchange="markDirty();recalc()" style="margin:0;"></select>
           <select id="f-op1-hrs" onchange="markDirty();recalc()" style="font-family:'DM Sans',sans-serif;font-size:13px;padding:5px 6px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--b0);color:var(--text);text-align:center;"></select>
-          <div id="op1-payout-pill" style="font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;color:var(--g6);background:var(--g0);border-radius:var(--radius-sm);padding:5px 8px;text-align:right;">--</div>
+          <div id="op1-payout-pill" style="font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;color:var(--g6);border-radius:var(--radius-sm);padding:5px 8px;text-align:right;">--</div>
         </div>
         <!-- Op 2 row -->
         <div style="display:grid;grid-template-columns:1fr 90px 90px;gap:8px;padding:4px 10px;align-items:center;border-top:1px solid var(--border-light);">
           <select class="field-input" id="f-op2" onchange="markDirty();recalc()" style="margin:0;"></select>
           <select id="f-op2-hrs" onchange="markDirty();recalc()" style="font-family:'DM Sans',sans-serif;font-size:13px;padding:5px 6px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--b0);color:var(--text);text-align:center;"></select>
-          <div id="op2-payout-pill" style="font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;color:var(--g6);background:var(--g0);border-radius:var(--radius-sm);padding:5px 8px;text-align:right;">--</div>
+          <div id="op2-payout-pill" style="font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;color:var(--g6);border-radius:var(--radius-sm);padding:5px 8px;text-align:right;">--</div>
         </div>
         <!-- Hourly rate -->
         <div id="ops-hourly-rate-row" style="display:none;justify-content:space-between;align-items:center;padding:6px 10px;margin-top:2px;border-top:1px solid var(--border-light);background:var(--b0);border-radius:0 0 var(--radius) var(--radius);">
@@ -2149,6 +2155,19 @@ function clearDirty(){
   const saveBtn=document.getElementById('btn-save-day');
   if(saveBtn)saveBtn.style.display='none';
 }
+function shiftDay(dir){
+  const el=document.getElementById('entry-date');
+  if(!el||!el.value)return;
+  const d=new Date(el.value+'T00:00:00');
+  d.setDate(d.getDate()+dir);
+  const newDate=d.toISOString().slice(0,10);
+  // Don't go beyond today
+  if(newDate>new Date().toISOString().slice(0,10))return;
+  el.value=newDate;
+  updateDateDisplay();
+  loadDay();
+}
+
 function goToToday(){
   const todayStr=new Date().toISOString().slice(0,10);
   const dateEl=document.getElementById('entry-date');
@@ -2172,6 +2191,11 @@ function recalc(){
   setText('sum-prod',    c.group2?fmt$(c.products):'--');
   setText('sum-payouts', c.group2?fmt$(c.payouts):'--');
   setText('sum-perdv',   c.group2?'$/DV: '+fmt$(c.perDV):'$/DV: --');
+  // Rate indicators
+  setText('sum-tax-rate',  SETTINGS.taxRate+'%');
+  setText('sum-oh-rate',   SETTINGS.ohRate+'%');
+  setText('sum-prod-rate', SETTINGS.dvDelta>=0?'+'+SETTINGS.dvDelta+'% DV':SETTINGS.dvDelta+'% DV');
+  setText('sum-pay-rate',  '');
   // Fundraiser hero
   const heroEl=document.getElementById('sum-fundraiser-hero');
   if(heroEl)heroEl.classList.toggle('visible',c.hasFundraiser);
@@ -2240,7 +2264,7 @@ async function saveDay(){
   if(!date){showToast('Please set a date','error');return;}
   const c=calcAll();
   const isClosedDay=document.getElementById('f-closed-day')?.checked||false;
-  const data={cashSales:pv('f-cashSales'),cardSales:pv('f-cardSales'),cardFees:pv('f-cardFees'),giftCardRedeemed:pv('f-giftCardRedeemed'),cashAppPay:pv('f-cashAppPay'),venmo:pv('f-venmo'),otherSales:pv('f-otherSales'),merchSales:pv('f-merchSales'),giftCardSales:pv('f-giftCardSales'),giftCardLoadFees:pv('f-giftCardLoadFees'),fundraiserCash:pv('f-fundraiserCash'),fundraiserCard:pv('f-fundraiserCard'),fundraiserPct:pv('f-fundraiserPct'),dv:pv('f-dv'),notes:document.getElementById('f-notes')?.value||'',op1:document.getElementById('f-op1')?.value||'',op2:document.getElementById('f-op2')?.value||'',op1Hrs:parseFloat(document.getElementById('f-op1-hrs')?.value)||0,op2Hrs:parseFloat(document.getElementById('f-op2-hrs')?.value)||0,closedDay:isClosedDay,totalSales:c.totalSales||0,overhead:c.overhead||0,taxes:c.tax||0,products:c.products||0,payouts:c.payouts||0,donation:c.donation||0,perDV:c.perDV||0,ownerReinvest:c.ownerReinvest||false,ownerShare:c.ownerShare||0};
+  const data={cashSales:pv('f-cashSales'),cardSales:pv('f-cardSales'),cardFees:pv('f-cardFees'),giftCardRedeemed:pv('f-giftCardRedeemed'),cashAppPay:pv('f-cashAppPay'),venmo:pv('f-venmo'),otherSales:pv('f-otherSales'),merchSales:pv('f-merchSales'),giftCardSales:pv('f-giftCardSales'),giftCardLoadFees:pv('f-giftCardLoadFees'),fundraiserCash:pv('f-fundraiserCash'),fundraiserCard:pv('f-fundraiserCard'),fundraiserPct:pv('f-fundraiserPct'),dv:pv('f-dv'),notes:document.getElementById('f-notes')?.value||'',op1:document.getElementById('f-op1')?.value||'',op2:document.getElementById('f-op2')?.value||'',op1Hrs:parseFloat(document.getElementById('f-op1-hrs')?.value)||0,op2Hrs:parseFloat(document.getElementById('f-op2-hrs')?.value)||0,closedDay:isClosedDay,totalSales:c.totalSales||0,overhead:c.overhead||0,taxes:c.tax||0,products:c.products||0,payouts:c.payouts||0,donation:c.donation||0,perDV:c.perDV||0,ownerReinvest:c.ownerReinvest||false,ownerShare:c.ownerShare||0,savedRates:{taxRate:SETTINGS.taxRate,ohRate:SETTINGS.ohRate,otherRate:SETTINGS.otherRate,merchRate:SETTINGS.merchRate,dvDelta:SETTINGS.dvDelta}};
   // Track specific closed day overrides in settings
   if(!SETTINGS.closedDays)SETTINGS.closedDays={};
   const dow=new Date(date+'T00:00:00').getDay();
@@ -2397,8 +2421,8 @@ function renderOpsEarningsPreview(){
       const isReinvesting = ownerName && op1 === ownerName && c.ownerReinvest;
       pill1.textContent = isReinvesting ? '↩ reinvested' : (pay !== null ? fmt$(pay) : '--');
       pill1.style.color = isReinvesting ? 'var(--b6)' : 'var(--g6)';
-      pill1.style.background = isReinvesting ? 'var(--b1)' : 'var(--g0)';
-    } else { pill1.textContent = '--'; pill1.style.color='var(--g6)'; pill1.style.background='var(--g0)'; }
+      pill1.style.background = isReinvesting ? 'var(--b1)' : 'transparent';
+    } else { pill1.textContent = '--'; pill1.style.color='var(--g6)'; pill1.style.background='transparent'; }
   }
   if(pill2){
     if(op2 && payouts !== null){
@@ -2406,8 +2430,8 @@ function renderOpsEarningsPreview(){
       const isReinvesting = ownerName && op2 === ownerName && c.ownerReinvest;
       pill2.textContent = isReinvesting ? '↩ reinvested' : (pay !== null ? fmt$(pay) : '--');
       pill2.style.color = isReinvesting ? 'var(--b6)' : 'var(--g6)';
-      pill2.style.background = isReinvesting ? 'var(--b1)' : 'var(--g0)';
-    } else { pill2.textContent = '--'; pill2.style.color='var(--g6)'; pill2.style.background='var(--g0)'; }
+      pill2.style.background = isReinvesting ? 'var(--b1)' : 'transparent';
+    } else { pill2.textContent = '--'; pill2.style.color='var(--g6)'; pill2.style.background='transparent'; }
   }
 
   // Hourly rate row
@@ -3759,7 +3783,7 @@ function populateOperatorDropdowns(){
   ['f-op1-hrs','f-op2-hrs'].forEach(id=>{
     const el=document.getElementById(id);if(!el||el.options.length>1)return;
     el.innerHTML='<option value="">-- hrs</option>';
-    for(let h=0.5;h<=14;h+=0.5){
+    for(let h=0.5;h<=12;h+=0.5){
       const opt=document.createElement('option');
       opt.value=h;
       opt.textContent=Number.isInteger(h)?h+'.0 hrs':h+' hrs';
