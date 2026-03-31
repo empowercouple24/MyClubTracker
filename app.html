@@ -2504,7 +2504,8 @@ function renderProjections(){
   if(!picker)return;
   const cur=picker.value;
   picker.innerHTML='<option value="">-- Choose a day from history --</option>';
-  [...ALL_DAYS].sort((a,b)=>b.date.localeCompare(a.date)).forEach(d=>{\n    const dt=new Date(d.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+  [...ALL_DAYS].sort((a,b)=>b.date.localeCompare(a.date)).forEach(d=>{
+    const dt=new Date(d.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
     picker.innerHTML+=`<option value="${d.date}">${dt} -- ${fmt$(calSales(d.data||{}))}</option>`;
   });
   if(cur)picker.value=cur;
