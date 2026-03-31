@@ -1581,7 +1581,7 @@ function confirmRemoveUser(userId,name){
 }
 
 async function removeUser(userId,name){
-  const{error}=await sb.from('users').update({location_id:null,role:'pending'}).eq('id',userId).eq('location_id',LOCATION_ID);
+  const{error}=await sb.from('users').update({location_id:null,role:'pending'}).eq('id',userId);
   if(error){showToast('Remove failed: '+error.message,'error');return;}
   showToast(`${name} removed`,'success');
   await loadTeamMembers();
