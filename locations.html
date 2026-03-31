@@ -581,331 +581,20 @@ function renderLocations(){
 
 function copyCode(code){
   navigator.clipboard.writeText(code).then(function(){
-    showToast('Invite code copied ✓','success');
-  }).catch(function(){
-    showToast('Code: '+code,'');
-  });
-}
-
-function goToApp(locId){
-  window.location.href='app.html?location_id='+locId+'&admin=1';
-}
-
-// ── LOAD DATA ──
-async function loadData(){
-  var locRes=await sb.from('locations').select('id,name,address,owner_name,owner_phone,invite_code,settings').order('name');
-  allLocations=locRes.data||[];
-  var userRes=await sb.from('users').select('id,email,role,location_id,display_name,first_name,last_name,phone,avatar_url').in('role',['owner','employee']).order('role');
-  allUsers=userRes.data||[];
-  renderLocations();
-}
-
-// ── CHANGE USER ROLE ──
-async function changeUserRole(userId,newRole,selectEl){
-  var res=await sb.from('users').update({role:newRole}).eq('id',userId);
-  if(res.error){showToast('Role change failed: '+res.error.message,'error');await loadData();return;}
-  var u=allUsers.find(function(x){return x.id===userId;});
-  if(u)u.role=newRole;
-  renderLocations();
-  var roleLabel={owner:'owner',employee:'operator'};
-  showToast('Role updated to '+(roleLabel[newRole]||newRole)+' ✓','success');
-}
-
-function escAttr(s){return String(s||'').replace(/'/g,'&#39;').replace(/"/g,'&quot;');}
-
-function toggleLocUser(id){
-  var card=document.getElementById('luc-'+id);
-  if(card)card.classList.toggle('open');
-}
-
-async function locSaveUser(userId){
-  var fn=document.getElementById('luf-fn-'+userId)?.value.trim()||'';
-  var ln=document.getElementById('luf-ln-'+userId)?.value.trim()||'';
-  var dn=document.getElementById('luf-dn-'+userId)?.value.trim()||'';
-  var ph=document.getElementById('luf-ph-'+userId)?.value.trim()||'';
-  var displayName=dn||(fn&&ln?fn+' '+ln:fn||ln||'');
-  var res=await sb.from('users').update({first_name:fn,last_name:ln,display_name:displayName,phone:ph||null}).eq('id',userId);
-  if(res.error){showToast('Save failed: '+res.error.message,'error');return;}
-  showToast('Profile updated ✓','success');
-  await loadData();
-}
-
-async function locResetPassword(email, name){
-  if(!confirm('Send a password reset email to '+name+' ('+email+')?'))return;
-  var res=await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+'/index.html'});
-  if(res.error){showToast('Reset failed: '+res.error.message,'error');return;}
-  showToast('Reset email sent to '+name+' ✓','success');
-}
-
-// ── EDIT USER ──
-function openEditUser(id,firstName,lastName,displayName,phone){
-  document.getElementById('eu-id').value=id;
-  document.getElementById('eu-firstname').value=firstName||'';
-  document.getElementById('eu-lastname').value=lastName||'';
-  document.getElementById('eu-displayname').value=displayName||'';
-  document.getElementById('eu-phone').value=phone||'';
-  var msgEl=document.getElementById('eu-msg');
-  msgEl.className='modal-msg';msgEl.textContent='';
-  openModal('modal-edituser');
-}
-
-async function saveEditUser(){
-  var id=document.getElementById('eu-id').value;
-  var firstName=document.getElementById('eu-firstname').value.trim();
-  var lastName=document.getElementById('eu-lastname').value.trim();
-  var displayName=document.getElementById('eu-displayname').value.trim();
-  var phone=document.getElementById('eu-phone').value.trim();
-  var msgEl=document.getElementById('eu-msg');
-  var res=await sb.from('users').update({
-    first_name:firstName,last_name:lastName,
-    display_name:displayName,phone:phone||null
-  }).eq('id',id);
-  if(res.error){msgEl.textContent='Save failed: '+res.error.message;msgEl.className='modal-msg error';return;}
-  closeModal('modal-edituser');
-  showToast('Profile updated ✓','success');
-  await loadData();
-}
-
-function confirmRemoveUser(userId,name){
-  if(!confirm('Remove '+name+' from this location?\n\nThey will lose access immediately but can rejoin with an invite code.'))return;
-  removeUserFromLocation(userId,name);
-}
-
-async function removeUserFromLocation(userId,name){
-  var res=await sb.from('users').update({location_id:null,role:'pending'}).eq('id',userId);
-  if(res.error){showToast('Remove failed: '+res.error.message,'error');return;}
-  showToast(name+' removed ✓','success');
-  await loadData();
-}
-
-// ── EDIT LOCATION ──
-function openEditLocation(locId){
-  var loc=allLocations.find(function(l){return l.id===locId;});
-  if(!loc)return;
-  editingLocId=locId;
-  document.getElementById('el-name').value=loc.name||'';
-  document.getElementById('el-owner').value=loc.owner_name||'';
-  document.getElementById('el-email').value=(loc.settings&&loc.settings.ownerEmail)||'';
-  var parts=parseAddress(loc.address||'');
-  document.getElementById('el-street').value=parts.street||'';
-  document.getElementById('el-street2').value='';
-  document.getElementById('el-city').value=parts.city||'';
-  document.getElementById('el-zip').value=parts.zip||'';
-  document.getElementById('el-state').value=parts.state||'';
-  var phoneEl=document.getElementById('el-phone');
-  phoneEl.value=loc.owner_phone||'';
-  if(loc.owner_phone)fmtPhone(phoneEl);
-  var sc=loc.settings&&loc.settings.secondContact;
-  var hasSecond=!!(sc&&(sc.name||sc.phone||sc.email));
-  document.getElementById('el-second-toggle').checked=hasSecond;
-  document.getElementById('el-second-fields').style.display=hasSecond?'block':'none';
-  if(sc){
-    document.getElementById('el-owner2').value=sc.name||'';
-    document.getElementById('el-email2').value=sc.email||'';
-    var ph2=document.getElementById('el-phone2');ph2.value=sc.phone||'';if(sc.phone)fmtPhone(ph2);
-  }else{
-    document.getElementById('el-owner2').value='';document.getElementById('el-phone2').value='';document.getElementById('el-email2').value='';
-  }
-  clearModalMsg('el-msg');
-  attachPlacesAutocomplete('el-street','el-city','el-state','el-zip');
-  openModal('modal-editloc');
-}
-
-function toggleSecondContact(){
-  var checked=document.getElementById('el-second-toggle').checked;
-  document.getElementById('el-second-fields').style.display=checked?'block':'none';
-}
-
-async function submitEditLocation(){
-  var name=document.getElementById('el-name').value.trim();
-  if(!name){showModalMsg('el-msg','error','Club name is required.');return;}
-  var street=document.getElementById('el-street').value.trim();
-  var street2=document.getElementById('el-street2').value.trim();
-  var city=document.getElementById('el-city').value.trim();
-  var state=document.getElementById('el-state').value;
-  var zip=document.getElementById('el-zip').value.trim();
-  var owner=document.getElementById('el-owner').value.trim();
-  var phone=document.getElementById('el-phone').value.trim();
-  var email=document.getElementById('el-email').value.trim();
-  var hasSecond=document.getElementById('el-second-toggle').checked;
-  var owner2=document.getElementById('el-owner2').value.trim();
-  var phone2=document.getElementById('el-phone2').value.trim();
-  var email2=document.getElementById('el-email2').value.trim();
-  var btn=document.getElementById('el-btn');
-  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Saving…';
-  var streetFull=street+(street2?' '+street2:'');
-  var address=buildAddress(streetFull,city,state,zip);
-  var loc=allLocations.find(function(l){return l.id===editingLocId;});
-  var settings=Object.assign({},(loc&&loc.settings)||{});
-  if(email)settings.ownerEmail=email;else delete settings.ownerEmail;
-  if(hasSecond&&(owner2||phone2||email2)){settings.secondContact={name:owner2,phone:phone2,email:email2};}else{delete settings.secondContact;}
-  var res=await sb.from('locations').update({name:name,address:address,owner_name:owner,owner_phone:phone,settings:settings}).eq('id',editingLocId);
-  btn.disabled=false;btn.textContent='Save Changes';
-  if(res.error){showModalMsg('el-msg','error',res.error.message);return;}
-  closeModal('modal-editloc');showToast('Location updated ✓','success');
-  await loadData();
-}
-
-// ── ADD LOCATION ──
-function openAddLocation(){
-  document.getElementById('al-name').value='';
-  document.getElementById('al-street').value='';document.getElementById('al-street2').value='';
-  document.getElementById('al-city').value='';document.getElementById('al-zip').value='';document.getElementById('al-state').value='';
-  document.getElementById('al-owner').value='';document.getElementById('al-phone').value='';
-  genCode('al-code');
-  clearModalMsg('al-msg');
-  attachPlacesAutocomplete('al-street','al-city','al-state','al-zip');
-  openModal('modal-addloc');
-}
-
-async function submitAddLocation(){
-  var name=document.getElementById('al-name').value.trim();
-  var street=document.getElementById('al-street').value.trim();
-  var street2=document.getElementById('al-street2').value.trim();
-  var city=document.getElementById('al-city').value.trim();
-  var state=document.getElementById('al-state').value;
-  var zip=document.getElementById('al-zip').value.trim();
-  var owner=document.getElementById('al-owner').value.trim();
-  var phone=document.getElementById('al-phone').value.trim();
-  var code=document.getElementById('al-code').value.trim().toUpperCase();
-  var btn=document.getElementById('al-btn');
-  if(!name){showModalMsg('al-msg','error','Club name is required.');return;}
-  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Adding…';
-  var streetFull=street+(street2?' '+street2:'');
-  var address=buildAddress(streetFull,city,state,zip);
-  var settings={ohRate:32,otherRate:50,merchRate:100,dvDelta:3,opDays:[false,true,true,true,true,true,true],clubName:name,operators:[{name:'Operator 1',visible:true,aliases:''},{name:'Operator 2',visible:true,aliases:''},{name:'Operator 3',visible:false,aliases:''},{name:'Operator 4',visible:false,aliases:''}]};
-  var res=await sb.from('locations').insert({name:name,address:address,owner_name:owner,owner_phone:phone,invite_code:code,settings:settings});
-  btn.disabled=false;btn.textContent='Add Location';
-  if(res.error){showModalMsg('al-msg','error',res.error.code==='23505'?'That invite code is already in use.':res.error.message);return;}
-  closeModal('modal-addloc');showToast(name+' added ✓','success');
-  await loadData();
-}
-
-// ── REGEN CODE ──
-function openRegenCode(locId){
-  recodingLocId=locId;
-  genCode('rc-code');
-  clearModalMsg('rc-msg');
-  openModal('modal-recode');
-}
-
-function openRegenEmpCode(locId){
-  recodingLocId=locId;
-  genCode('rc-emp-code');
-  clearModalMsg('rc-emp-msg');
-  openModal('modal-recode-emp');
-}
-
-async function submitRegenEmpCode(){
-  var code=document.getElementById('rc-emp-code').value.trim().toUpperCase();
-  if(!code){showModalMsg('rc-emp-msg','error','Please enter or generate a code.');return;}
-  var btn=document.getElementById('rc-emp-btn');
-  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Saving…';
-  var loc=allLocations.find(function(l){return l.id===recodingLocId;});
-  var settings=Object.assign({},loc&&loc.settings||{});
-  settings.employeeInviteCode=code;
-  var res=await sb.from('locations').update({settings:settings}).eq('id',recodingLocId);
-  btn.disabled=false;btn.textContent='Save Code';
-  if(res.error){showModalMsg('rc-emp-msg','error',res.error.message);return;}
-  closeModal('modal-recode-emp');showToast('Operator code updated ✓','success');
-  await loadData();
-}
-
-async function submitRegenCode(){
-  var code=document.getElementById('rc-code').value.trim().toUpperCase();
-  if(!code){showModalMsg('rc-msg','error','Please enter or generate a code.');return;}
-  var btn=document.getElementById('rc-btn');
-  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Saving…';
-  var res=await sb.from('locations').update({invite_code:code}).eq('id',recodingLocId);
-  btn.disabled=false;btn.textContent='Save Code';
-  if(res.error){showModalMsg('rc-msg','error',res.error.code==='23505'?'That code is already in use.':res.error.message);return;}
-  closeModal('modal-recode');showToast('Invite code updated ✓','success');
-  await loadData();
-}
-
-// ── REMOVE LOCATION ──
-function confirmRemoveLocation(btn){
-  removingLocId=btn.dataset.id;
-  document.getElementById('remove-loc-name').textContent=btn.dataset.name||'this location';
-  document.getElementById('remove-loc-msg').className='modal-msg';
-  openModal('modal-removeloc');
-}
-
-async function executeRemoveLocation(){
-  if(!removingLocId)return;
-  var btn=document.getElementById('remove-loc-btn');
-  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Removing…';
-  // Delete related data first to avoid foreign key issues
-  await sb.from('days').delete().eq('location_id',removingLocId);
-  await sb.from('inventory').delete().eq('location_id',removingLocId);
-  await sb.from('users').update({location_id:null,role:'pending'}).eq('location_id',removingLocId);
-  var res=await sb.from('locations').delete().eq('id',removingLocId);
-  btn.disabled=false;btn.textContent='Remove Location';
-  if(res.error){
-    var msgEl=document.getElementById('remove-loc-msg');
-    msgEl.textContent='Remove failed: '+res.error.message;msgEl.className='modal-msg error';
-    return;
-  }
-  closeModal('modal-removeloc');showToast('Location removed ✓','success');removingLocId=null;
-  await loadData();
-}
-
-// ── MODAL HELPERS ──
-function openModal(id){document.getElementById(id).classList.add('open');}
-function closeModal(id){document.getElementById(id).classList.remove('open');}
-function closeMOnBg(e,id){if(e.target===document.getElementById(id))closeModal(id);}
-function showModalMsg(id,type,msg){var el=document.getElementById(id);el.className='modal-msg '+type;el.textContent=msg;}
-function clearModalMsg(id){var el=document.getElementById(id);el.className='modal-msg';el.textContent='';}
-
-var toastTimer;
-function showToast(msg,type){
-  var t=document.getElementById('toast');t.textContent=msg;
-  t.className='toast show'+(type?' '+type:'');
-  clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('show');},2600);
-}
-
-// ── INIT ──
-async function init(){
-  var sessionRes=await sb.auth.getSession();
-  var session=sessionRes.data.session;
-  if(!session){window.location.href='index.html';return;}
-  var userRes=await sb.from('users').select('role,display_name,first_name,last_name,avatar_url').eq('id',session.user.id).single();
-  if(!userRes.data||userRes.data.role!=='admin'){window.location.href='index.html';return;}
-  var _ndn=document.getElementById('nav-display-name');
-  if(_ndn){var u=userRes.data;_ndn.textContent=u.display_name||[u.first_name,u.last_name].filter(Boolean).join(' ')||'';}
-  setNavAvatar(userRes.data.avatar_url, userRes.data.first_name, userRes.data.last_name, userRes.data.display_name);
-  await loadData();
-  document.getElementById('loading-overlay').style.display='none';
-  // Scroll to and highlight a specific location card if hash is present
-  var hash=window.location.hash;
-  if(hash){
-    setTimeout(function(){
-      var target=document.querySelector(hash);
-      if(target){
-        target.scrollIntoView({behavior:'smooth',block:'start'});
-        target.style.transition='box-shadow 0.3s';
-        target.style.boxShadow='0 0 0 3px var(--b5)';
-        setTimeout(function(){target.style.boxShadow='';},2000);
-      }
-    },400);
-  }
-}
-
-init();
-</script>
-
-<script>
-
-</script>
-<script>
-(function(){
   var CHECK_INTERVAL = 10000;
-  var _initMod = null;
-  function getLastMod(){
-    return fetch(window.location.href, {method:'HEAD', cache:'no-store'})
-      .then(function(r){ return r.headers.get('last-modified'); })
-      .catch(function(){ return null; });
+  function extractVersion(html){
+    var m=html.match(/CACHE BUST: ([^-]+?) -->/);
+    return m?m[1].trim():null;
   }
+  var _initVersion=(function(){
+    var iter=document.createNodeIterator(document.documentElement,NodeFilter.SHOW_COMMENT);
+    var node;
+    while(node=iter.nextNode()){
+      var m=node.nodeValue.match(/CACHE BUST: (.+)/);
+      if(m)return m[1].trim();
+    }
+    return null;
+  })();
   function showUpdateBanner(){
     if(document.getElementById('update-banner'))return;
     var b=document.createElement('div');
@@ -914,11 +603,15 @@ init();
     b.innerHTML='<span>&#128260; A new version is available</span><button onclick="window.location.reload()" style="background:#fff;color:#2d6a4f;border:none;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">Refresh now</button>';
     document.body.insertBefore(b, document.body.firstChild);
   }
-  getLastMod().then(function(mod){ _initMod = mod; });
+  if(!_initVersion)return;
   setInterval(function(){
-    getLastMod().then(function(mod){
-      if(_initMod && mod && mod !== _initMod) showUpdateBanner();
-    });
+    fetch(window.location.href, {cache:'no-store'})
+      .then(function(r){return r.text();})
+      .then(function(html){
+        var v=extractVersion(html);
+        if(v&&v!==_initVersion)showUpdateBanner();
+      })
+      .catch(function(){});
   }, CHECK_INTERVAL);
 })();
 </script>

@@ -505,20 +505,36 @@ window.addEventListener('beforeunload',e=>{if(unsaved){e.preventDefault();e.retu
 init();
 
 // ── UPDATE CHECKER ──
-const PAGE_LOAD_TIME = Date.now();
-async function checkForUpdate() {
-  try {
-    const res = await fetch(window.location.pathname + '?_=' + Date.now(), { method: 'HEAD' });
-    const lastMod = res.headers.get('last-modified');
-    if (!lastMod) return;
-    if (new Date(lastMod).getTime() > PAGE_LOAD_TIME) {
-      const banner = document.getElementById('update-banner');
-      if (banner) banner.style.display = 'block';
+(function(){
+  var CHECK_INTERVAL = 10000;
+  function extractVersion(html){
+    var m=html.match(/CACHE BUST: ([^-]+?) -->/);
+    return m?m[1].trim():null;
+  }
+  var _initVersion=(function(){
+    var iter=document.createNodeIterator(document.documentElement,NodeFilter.SHOW_COMMENT);
+    var node;
+    while(node=iter.nextNode()){
+      var m=node.nodeValue.match(/CACHE BUST: (.+)/);
+      if(m)return m[1].trim();
     }
-  } catch(e) {}
-}
-setTimeout(checkForUpdate, 15000);
-setInterval(checkForUpdate, 15000);
+    return null;
+  })();
+  function showUpdateBanner(){
+    var banner=document.getElementById('update-banner');
+    if(banner)banner.style.display='flex';
+  }
+  if(!_initVersion)return;
+  setInterval(function(){
+    fetch(window.location.href, {cache:'no-store'})
+      .then(function(r){return r.text();})
+      .then(function(html){
+        var v=extractVersion(html);
+        if(v&&v!==_initVersion)showUpdateBanner();
+      })
+      .catch(function(){});
+  }, CHECK_INTERVAL);
+})();
 </script>
 </body>
 </html>

@@ -149,7 +149,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
   <div class="panel active" id="panel-signin">
     <div class="msg" id="si-msg"></div>
     <div class="field"><label>Email</label><input type="email" id="si-email" placeholder="you@example.com" autocomplete="email"></div>
-    <div class="field"><label>Password</label><input type="password" id="si-password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doSignIn()"></div>
+    <div class="field"><label>Password</label><div style="position:relative;display:flex;align-items:center;"><input type="password" id="si-password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doSignIn()" style="flex:1;padding-right:40px;"/><button type="button" onclick="togglePwVis('si-password',this)" style="position:absolute;right:10px;background:none;border:none;cursor:pointer;font-size:15px;color:#8fa3b3;padding:0;line-height:1;" title="Show/hide password">👁</button></div></div>
     <button class="btn-p" id="si-btn" onclick="doSignIn()">Sign In</button>
     <div id="resend-wrap" style="display:none;text-align:center;margin-top:10px;">
       <button class="btn-g" onclick="doResend()">Resend confirmation email</button>
@@ -460,6 +460,8 @@ async function init(){
     }
   }
 }
+function togglePwVis(id,btn){var el=document.getElementById(id);if(!el)return;var show=el.type==='password';el.type=show?'text':'password';btn.textContent=show?'🙈':'👁';}
+
 async function doSignIn(){
   var email=document.getElementById('si-email').value.trim();
   var pw=document.getElementById('si-password').value;
@@ -659,51 +661,20 @@ if(new URLSearchParams(window.location.search).get('tab')==='register')showTab('
 
 // Pre-fill email if redirected from email confirmation
 (function(){
-  var p=new URLSearchParams(window.location.search);
-  var em=p.get('email');
-  var confirmed=p.get('confirmed');
-  if(em&&confirmed){
-    var el=document.getElementById('si-email');
-    if(el)el.value=decodeURIComponent(em);
-    showTab('signin');
-    showMsg('si-msg','✓ Email confirmed! Sign in below to access your dashboard.','success');
-    // Clean URL
-    window.history.replaceState({},'',window.location.pathname);
-  }
-})();
-
-// ── ZIP CODE AUTO-FILL ──
-async function lookupZip(zip, cityId, stateId) {
-  if (!zip || zip.length !== 5) return;
-  try {
-    var res = await fetch('https://api.zippopotam.us/us/' + zip);
-    if (!res.ok) return;
-    var data = await res.json();
-    if (data.places && data.places.length > 0) {
-      var place = data.places[0];
-      var cityEl  = document.getElementById(cityId);
-      var stateEl = document.getElementById(stateId);
-      if (cityEl)  cityEl.value  = place['place name'];
-      if (stateEl) stateEl.value = place['state abbreviation'];
-    }
-  } catch(e) {}
-}
-
-init();
-</script>
-
-<script>
-
-</script>
-<script>
-(function(){
   var CHECK_INTERVAL = 10000;
-  var _initMod = null;
-  function getLastMod(){
-    return fetch(window.location.href, {method:'HEAD', cache:'no-store'})
-      .then(function(r){ return r.headers.get('last-modified'); })
-      .catch(function(){ return null; });
+  function extractVersion(html){
+    var m=html.match(/CACHE BUST: ([^-]+?) -->/);
+    return m?m[1].trim():null;
   }
+  var _initVersion=(function(){
+    var iter=document.createNodeIterator(document.documentElement,NodeFilter.SHOW_COMMENT);
+    var node;
+    while(node=iter.nextNode()){
+      var m=node.nodeValue.match(/CACHE BUST: (.+)/);
+      if(m)return m[1].trim();
+    }
+    return null;
+  })();
   function showUpdateBanner(){
     if(document.getElementById('update-banner'))return;
     var b=document.createElement('div');
@@ -712,11 +683,15 @@ init();
     b.innerHTML='<span>&#128260; A new version is available</span><button onclick="window.location.reload()" style="background:#fff;color:#2d6a4f;border:none;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">Refresh now</button>';
     document.body.insertBefore(b, document.body.firstChild);
   }
-  getLastMod().then(function(mod){ _initMod = mod; });
+  if(!_initVersion)return;
   setInterval(function(){
-    getLastMod().then(function(mod){
-      if(_initMod && mod && mod !== _initMod) showUpdateBanner();
-    });
+    fetch(window.location.href, {cache:'no-store'})
+      .then(function(r){return r.text();})
+      .then(function(html){
+        var v=extractVersion(html);
+        if(v&&v!==_initVersion)showUpdateBanner();
+      })
+      .catch(function(){});
   }, CHECK_INTERVAL);
 })();
 </script>

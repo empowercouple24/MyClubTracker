@@ -4136,13 +4136,22 @@ function autoSizeInput(el){
 // Global error handler - shows errors visually instead of blank page
 // Version checker -- polls server every 5 minutes for a newer file
 (function(){
-  var CHECK_INTERVAL = 10000;
-  var _initMod = null;
-  function getLastMod(){
-    return fetch(window.location.href, {method:'HEAD', cache:'no-store'})
-      .then(function(r){ return r.headers.get('last-modified'); })
-      .catch(function(){ return null; });
+  var CHECK_INTERVAL = 10000; // 5 minutes
+  // Extract CACHE BUST comment from HTML text
+  function extractVersion(html){
+    var m=html.match(/<!--\s*CACHE BUST:\s*([^-]+?)\s*-->/);
+    return m?m[1].trim():null;
   }
+  // Get current page version from the live DOM
+  var _initVersion=(function(){
+    var iter=document.createNodeIterator(document.documentElement,NodeFilter.SHOW_COMMENT);
+    var node;
+    while(node=iter.nextNode()){
+      var m=node.nodeValue.match(/\s*CACHE BUST:\s*(.+?)\s*$/);
+      if(m)return m[1].trim();
+    }
+    return null;
+  })();
   function showUpdateBanner(){
     if(document.getElementById('update-banner'))return;
     var b=document.createElement('div');
@@ -4151,11 +4160,15 @@ function autoSizeInput(el){
     b.innerHTML='<span>&#128260; A new version is available</span><button onclick="window.location.reload()" style="background:#fff;color:#2d6a4f;border:none;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">Refresh now</button>';
     document.body.prepend(b);
   }
-  getLastMod().then(function(mod){ _initMod = mod; });
+  if(!_initVersion)return; // No version comment found, skip polling
   setInterval(function(){
-    getLastMod().then(function(mod){
-      if(_initMod && mod && mod !== _initMod) showUpdateBanner();
-    });
+    fetch(window.location.href, {cache:'no-store'})
+      .then(function(r){return r.text();})
+      .then(function(html){
+        var v=extractVersion(html);
+        if(v&&v!==_initVersion)showUpdateBanner();
+      })
+      .catch(function(){});
   }, CHECK_INTERVAL);
 })();
 
