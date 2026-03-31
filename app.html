@@ -1514,15 +1514,10 @@ async function loadTeamMembers(){
     list.innerHTML='<div style="font-size:13px;color:var(--text-faint);">No other team members yet.</div>';
     return;
   }
-  // Primary owner is identified by matching SETTINGS._ownerEmail or _ownerName
-  const isPrimaryOwner=(m)=>{
-    if(SETTINGS._ownerEmail&&m.email&&m.email.toLowerCase()===SETTINGS._ownerEmail.toLowerCase())return true;
-    const mName=[m.first_name,m.last_name].filter(Boolean).join(' ')||m.display_name||'';
-    if(SETTINGS._ownerName&&mName&&mName.toLowerCase()===SETTINGS._ownerName.toLowerCase())return true;
-    return false;
-  };
-  const primaryOwners=members.filter(m=>m.role==='owner'&&isPrimaryOwner(m));
-  const otherOwners=members.filter(m=>m.role==='owner'&&!isPrimaryOwner(m));
+  // Primary owner = any user with role 'owner' at this location
+  // All owners are treated as primary (no one can remove an owner)
+  const primaryOwners=members.filter(m=>m.role==='owner');
+  const otherOwners=[];
   const employees=members.filter(m=>m.role!=='owner');
 
   const renderPrimaryOwner=(m)=>{
@@ -1556,12 +1551,8 @@ async function loadTeamMembers(){
 
   let html='';
   if(primaryOwners.length){
-    html+=`<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--g5);margin-bottom:2px;margin-top:4px;">Owner</div>`;
+    html+=`<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--g5);margin-bottom:2px;margin-top:4px;">Owner${primaryOwners.length>1?'s':''}</div>`;
     html+=primaryOwners.map(m=>renderPrimaryOwner(m)).join('');
-  }
-  if(otherOwners.length){
-    html+=`<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--g5);margin-bottom:2px;margin-top:10px;">Co-Owners</div>`;
-    html+=otherOwners.map(m=>renderMember(m,true)).join('');
   }
   if(employees.length){
     html+=`<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:2px;margin-top:10px;">Employees</div>`;
