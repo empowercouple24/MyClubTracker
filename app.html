@@ -605,27 +605,27 @@ if('serviceWorker' in navigator){
   <div class="enter-sales-row">
     <!-- Left: Primary Sales -->
     <div class="card">
-      <div class="field-row"><div class="field-label">Cash Sales</div><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" type="text" inputmode="decimal" id="f-cashSales" placeholder="0.00" oninput="recalc()"/></div></div>
-      <div class="field-row"><div class="field-label">Card Sales</div><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" type="text" inputmode="decimal" id="f-cardSales" placeholder="0.00" oninput="recalc()"/></div></div>
-      <div class="field-row"><div class="field-label">Card Fees</div><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" type="text" inputmode="decimal" id="f-cardFees" placeholder="0.00" oninput="recalc()"/></div></div>
-      <div class="field-row"><div class="field-label">Gift Card Redeemed</div><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" type="text" inputmode="decimal" id="f-giftCardRedeemed" placeholder="0.00" oninput="recalc()"/></div></div>
-      <div class="field-row"><div class="field-label">CashApp Pay (QR at POS)</div><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" type="text" inputmode="decimal" id="f-cashAppPay" placeholder="0.00" oninput="recalc()"/></div></div>
-      <div class="field-row"><div class="field-label">Venmo/CashApp (via App)</div><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" type="text" inputmode="decimal" id="f-venmo" placeholder="0.00" oninput="recalc()"/></div></div>
+      <div class="field-row"><div class="field-label">Cash Sales</div><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" type="text" inputmode="decimal" id="f-cashSales" placeholder="0.00" oninput="recalc(true)"/></div></div>
+      <div class="field-row"><div class="field-label">Card Sales</div><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" type="text" inputmode="decimal" id="f-cardSales" placeholder="0.00" oninput="recalc(true)"/></div></div>
+      <div class="field-row"><div class="field-label">Card Fees</div><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" type="text" inputmode="decimal" id="f-cardFees" placeholder="0.00" oninput="recalc(true)"/></div></div>
+      <div class="field-row"><div class="field-label">Gift Card Redeemed</div><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" type="text" inputmode="decimal" id="f-giftCardRedeemed" placeholder="0.00" oninput="recalc(true)"/></div></div>
+      <div class="field-row"><div class="field-label">CashApp Pay (QR at POS)</div><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" type="text" inputmode="decimal" id="f-cashAppPay" placeholder="0.00" oninput="recalc(true)"/></div></div>
+      <div class="field-row"><div class="field-label">Venmo/CashApp (via App)</div><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" type="text" inputmode="decimal" id="f-venmo" placeholder="0.00" oninput="recalc(true)"/></div></div>
     </div>
     <!-- Right: Other Sales + Gift Cards stacked -->
     <div class="enter-sales-right">
       <div class="card">
         <div class="collapsible-toggle" onclick="toggleCollapse(this)" data-target="other-body">Other Sales <span class="arrow">▼</span></div>
         <div class="collapsible-body" id="other-body">
-          <div class="field-row"><div class="field-label">Other Sales (Waffles/Bowls)</div><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" type="text" inputmode="decimal" id="f-otherSales" placeholder="0.00" oninput="recalc()"/></div></div>
-          <div class="field-row"><div class="field-label">Merchandise</div><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" type="text" inputmode="decimal" id="f-merchSales" placeholder="0.00" oninput="recalc()"/></div></div>
+          <div class="field-row"><div class="field-label">Other Sales (Waffles/Bowls)</div><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" type="text" inputmode="decimal" id="f-otherSales" placeholder="0.00" oninput="recalc(true)"/></div></div>
+          <div class="field-row"><div class="field-label">Merchandise</div><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" type="text" inputmode="decimal" id="f-merchSales" placeholder="0.00" oninput="recalc(true)"/></div></div>
         </div>
       </div>
       <div class="card">
         <div class="collapsible-toggle" onclick="toggleCollapse(this)" data-target="gc-body">Gift Cards <span class="arrow">▼</span></div>
         <div class="collapsible-body" id="gc-body">
-          <div class="field-row"><div class="field-label">Gift Card Sales</div><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" type="text" inputmode="decimal" id="f-giftCardSales" placeholder="0.00" oninput="recalc()"/></div></div>
-          <div class="field-row"><div class="field-label">Gift Card Load Fees</div><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" type="text" inputmode="decimal" id="f-giftCardLoadFees" placeholder="0.00" oninput="recalc()"/></div></div>
+          <div class="field-row"><div class="field-label">Gift Card Sales</div><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" type="text" inputmode="decimal" id="f-giftCardSales" placeholder="0.00" oninput="recalc(true)"/></div></div>
+          <div class="field-row"><div class="field-label">Gift Card Load Fees</div><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" type="text" inputmode="decimal" id="f-giftCardLoadFees" placeholder="0.00" oninput="recalc(true)"/></div></div>
         </div>
       </div>
     </div>
@@ -644,14 +644,14 @@ if('serviceWorker' in navigator){
         </div>
         <!-- Op 1 row -->
         <div style="display:grid;grid-template-columns:1fr 90px 90px;gap:8px;padding:4px 10px;align-items:center;border-top:1px solid var(--border-light);">
-          <select class="field-input" id="f-op1" onchange="markDirty();recalc()" style="margin:0;"></select>
-          <select id="f-op1-hrs" onchange="markDirty();recalc()" style="font-family:'DM Sans',sans-serif;font-size:13px;padding:5px 6px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--b0);color:var(--text);text-align:center;"></select>
+          <select class="field-input" id="f-op1" onchange="recalc(true)" style="margin:0;"></select>
+          <select id="f-op1-hrs" onchange="recalc(true)" style="font-family:'DM Sans',sans-serif;font-size:13px;padding:5px 6px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--b0);color:var(--text);text-align:center;"></select>
           <div id="op1-payout-pill" style="font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;color:var(--g6);border-radius:var(--radius-sm);padding:5px 8px;text-align:right;">--</div>
         </div>
         <!-- Op 2 row -->
         <div style="display:grid;grid-template-columns:1fr 90px 90px;gap:8px;padding:4px 10px;align-items:center;border-top:1px solid var(--border-light);">
-          <select class="field-input" id="f-op2" onchange="markDirty();recalc()" style="margin:0;"></select>
-          <select id="f-op2-hrs" onchange="markDirty();recalc()" style="font-family:'DM Sans',sans-serif;font-size:13px;padding:5px 6px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--b0);color:var(--text);text-align:center;"></select>
+          <select class="field-input" id="f-op2" onchange="recalc(true)" style="margin:0;"></select>
+          <select id="f-op2-hrs" onchange="recalc(true)" style="font-family:'DM Sans',sans-serif;font-size:13px;padding:5px 6px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--b0);color:var(--text);text-align:center;"></select>
           <div id="op2-payout-pill" style="font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;color:var(--g6);border-radius:var(--radius-sm);padding:5px 8px;text-align:right;">--</div>
         </div>
         <!-- Hourly rate -->
@@ -662,7 +662,7 @@ if('serviceWorker' in navigator){
         <!-- Reinvest -->
         <div id="reinvest-row" style="display:none;padding:4px 10px 2px;border-top:1px solid var(--border-light);margin-top:2px;">
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--b7);font-weight:600;">
-            <input type="checkbox" id="f-owner-reinvest" onchange="markDirty();recalc()" style="width:15px;height:15px;accent-color:var(--b7);cursor:pointer;"/>
+            <input type="checkbox" id="f-owner-reinvest" onchange="recalc(true)" style="width:15px;height:15px;accent-color:var(--b7);cursor:pointer;"/>
             ↩ Reinvest my share into overhead
           </label>
         </div>
@@ -672,11 +672,11 @@ if('serviceWorker' in navigator){
     <div class="card">
       <div class="collapsible-toggle" onclick="toggleCollapse(this)" data-target="fund-body">Fundraiser <span class="arrow">▼</span></div>
       <div class="collapsible-body" id="fund-body">
-        <div class="field-row"><div class="field-label">Cash Donations</div><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" type="text" inputmode="decimal" id="f-fundraiserCash" placeholder="0.00" oninput="recalc()"/></div></div>
-        <div class="field-row"><div class="field-label">Card Donations</div><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" type="text" inputmode="decimal" id="f-fundraiserCard" placeholder="0.00" oninput="recalc()"/></div></div>
+        <div class="field-row"><div class="field-label">Cash Donations</div><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" type="text" inputmode="decimal" id="f-fundraiserCash" placeholder="0.00" oninput="recalc(true)"/></div></div>
+        <div class="field-row"><div class="field-label">Card Donations</div><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" type="text" inputmode="decimal" id="f-fundraiserCard" placeholder="0.00" oninput="recalc(true)"/></div></div>
         <div class="field-row" style="flex-wrap:wrap;gap:4px;">
           <div class="field-label">Net Sales Donation %</div>
-          <select class="field-input" id="f-fundraiserPct" onchange="markDirty();recalc()">
+          <select class="field-input" id="f-fundraiserPct" onchange="recalc(true)">
             <option value="0">—</option>
             <option value="1">1%</option><option value="2">2%</option><option value="3">3%</option><option value="4">4%</option><option value="5">5%</option>
             <option value="6">6%</option><option value="7">7%</option><option value="8">8%</option><option value="9">9%</option><option value="10">10%</option>
@@ -692,7 +692,7 @@ if('serviceWorker' in navigator){
   <div class="dv-section">
     <div class="dv-box">
       <div class="dv-box-label">DV — Documented Volume<span>Enter total documented volume for this day</span></div>
-      <input class="dv-input" type="text" inputmode="decimal" id="f-dv" placeholder="0.00" oninput="recalc()"/>
+      <input class="dv-input" type="text" inputmode="decimal" id="f-dv" placeholder="0.00" oninput="recalc(true)"/>
     </div>
   </div>
 
@@ -2377,8 +2377,8 @@ function goToToday(){
   });
 }
 
-function recalc(){
-  if(!_loadingDay)markDirty();
+function recalc(userChanged=false){
+  if(!_loadingDay&&userChanged)markDirty();
   const c=calcAll();
   setText('sum-sales',   c.group1?fmt$(c.totalSales):'--');
   setText('sum-tax',     c.group1?fmt$(c.tax):'--');
