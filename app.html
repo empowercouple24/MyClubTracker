@@ -2207,6 +2207,7 @@ async function saveDay(){
 }
 
 function renderDashboardWidgets(){
+  console.log('renderDashboardWidgets called, ALL_DAYS length:', ALL_DAYS.length, 'sample:', ALL_DAYS[0]);
   if(!ALL_DAYS.length) return;
   const today = new Date();
   const todayStr = today.toISOString().slice(0,10);
@@ -2483,7 +2484,7 @@ async function saveAllDv(){
     const v=parseFloat(el.value.replace(/,/g,''));
     if(!v||v<=0)continue;
     const newData={...d.data,dv:v};
-    const{error}=await sb.from('sales_entries').update({data:newData}).eq('location_id',LOCATION_ID).eq('date',d.date);
+    const{error}=await sb.from('days').update({data:newData}).eq('id',d.id);
     if(!error){
       d.data=newData;
       saved++;
