@@ -172,6 +172,9 @@ if('serviceWorker' in navigator){
     .hcal-day.empty-day{background:transparent;border:1px solid transparent;cursor:default;}
     .hcal-day.no-data{background:var(--b0);border:1px dashed var(--border-light);cursor:pointer;opacity:0.6;transition:opacity 0.15s,border-color 0.15s;}
     .hcal-day.no-data:hover{opacity:1;border-color:var(--b4);border-style:solid;}
+    .hcal-day.closed-day{background:var(--b1);border:1px solid var(--border-light);cursor:default;opacity:0.5;}
+    .hcal-day.closed-day .hcal-dn{color:var(--text-faint);}
+    .hcal-closed-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-top:4px;}
     .hcal-day.today-day{border-color:var(--b5) !important;box-shadow:0 0 0 1px var(--b5);}
     .hcal-dn{font-size:12px;font-weight:700;color:var(--text-faint);margin-bottom:3px;}
     .hcal-day.has-data .hcal-dn{color:var(--text-muted);}
@@ -647,6 +650,15 @@ if('serviceWorker' in navigator){
       <div class="dv-box-label">DV — Documented Volume<span>Enter total documented volume for this day</span></div>
       <input class="dv-input" type="text" inputmode="decimal" id="f-dv" placeholder="0.00" oninput="recalc()"/>
     </div>
+  </div>
+
+  <!-- CLOSED DAY TOGGLE -->
+  <div id="closed-day-wrap" style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px;margin-bottom:8px;background:var(--b0);border-radius:var(--radius);border:1px solid var(--border-light);">
+    <span style="font-size:12px;font-weight:600;color:var(--text-muted);">Mark as closed day</span>
+    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+      <input type="checkbox" id="f-closed-day" onchange="onClosedDayToggle()" style="width:15px;height:15px;accent-color:var(--b7);cursor:pointer;"/>
+      <span id="closed-day-label" style="font-size:12px;font-weight:700;color:var(--text-faint);">Open</span>
+    </label>
   </div>
 
   <!-- NOTES — standalone at bottom -->
@@ -2213,6 +2225,7 @@ function loadDay(){
     var dvN=parseFloat(String(dvEl.value).replace(/,/g,''));
     if(!isNaN(dvN)&&dvN>0)dvEl.value=dvN.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
   }
+  updateClosedDayToggle(document.getElementById('entry-date').value);
   clearDirty();
   recalc();
   _loadingDay=false;
@@ -2222,7 +2235,15 @@ async function saveDay(){
   const date=document.getElementById('entry-date').value;
   if(!date){showToast('Please set a date','error');return;}
   const c=calcAll();
-  const data={cashSales:pv('f-cashSales'),cardSales:pv('f-cardSales'),cardFees:pv('f-cardFees'),giftCardRedeemed:pv('f-giftCardRedeemed'),cashAppPay:pv('f-cashAppPay'),venmo:pv('f-venmo'),otherSales:pv('f-otherSales'),merchSales:pv('f-merchSales'),giftCardSales:pv('f-giftCardSales'),giftCardLoadFees:pv('f-giftCardLoadFees'),fundraiserCash:pv('f-fundraiserCash'),fundraiserCard:pv('f-fundraiserCard'),fundraiserPct:pv('f-fundraiserPct'),dv:pv('f-dv'),notes:document.getElementById('f-notes')?.value||'',op1:document.getElementById('f-op1')?.value||'',op2:document.getElementById('f-op2')?.value||'',op1Hrs:parseFloat(document.getElementById('f-op1-hrs')?.value)||0,op2Hrs:parseFloat(document.getElementById('f-op2-hrs')?.value)||0,totalSales:c.totalSales||0,overhead:c.overhead||0,taxes:c.tax||0,products:c.products||0,payouts:c.payouts||0,donation:c.donation||0,perDV:c.perDV||0,ownerReinvest:c.ownerReinvest||false,ownerShare:c.ownerShare||0};
+  const isClosedDay=document.getElementById('f-closed-day')?.checked||false;
+  const data={cashSales:pv('f-cashSales'),cardSales:pv('f-cardSales'),cardFees:pv('f-cardFees'),giftCardRedeemed:pv('f-giftCardRedeemed'),cashAppPay:pv('f-cashAppPay'),venmo:pv('f-venmo'),otherSales:pv('f-otherSales'),merchSales:pv('f-merchSales'),giftCardSales:pv('f-giftCardSales'),giftCardLoadFees:pv('f-giftCardLoadFees'),fundraiserCash:pv('f-fundraiserCash'),fundraiserCard:pv('f-fundraiserCard'),fundraiserPct:pv('f-fundraiserPct'),dv:pv('f-dv'),notes:document.getElementById('f-notes')?.value||'',op1:document.getElementById('f-op1')?.value||'',op2:document.getElementById('f-op2')?.value||'',op1Hrs:parseFloat(document.getElementById('f-op1-hrs')?.value)||0,op2Hrs:parseFloat(document.getElementById('f-op2-hrs')?.value)||0,closedDay:isClosedDay,totalSales:c.totalSales||0,overhead:c.overhead||0,taxes:c.tax||0,products:c.products||0,payouts:c.payouts||0,donation:c.donation||0,perDV:c.perDV||0,ownerReinvest:c.ownerReinvest||false,ownerShare:c.ownerShare||0};
+  // Track specific closed day overrides in settings
+  if(!SETTINGS.closedDays)SETTINGS.closedDays={};
+  const dow=new Date(date+'T00:00:00').getDay();
+  const opDays=SETTINGS.opDays||[false,true,true,true,true,true,true];
+  const isScheduledClosed=!opDays[dow];
+  if(isClosedDay&&!isScheduledClosed) SETTINGS.closedDays[date]=true;
+  else if(!isClosedDay) delete SETTINGS.closedDays[date];
   if(IS_ADMIN_VIEW) data._adminEdit=new Date().toISOString(); // stamp when admin last edited
   const ex=ALL_DAYS.find(d=>d.date===date);let error;
   if(ex){const{error:e}=await sb.from('days').update({data}).eq('id',ex.id);error=e;if(!e)ex.data=data;}
@@ -2230,6 +2251,8 @@ async function saveDay(){
   if(error){showToast('Save failed: '+error.message,'error');return;}
   showToast(IS_ADMIN_VIEW?'Saved (Admin Edit) ok':'Day saved ok','success');
   clearDirty();
+  // Persist closedDays overrides to settings
+  sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID);
   renderHistory();renderProjections();renderPayoutSnapshots();renderDashboardWidgets();
 }
 
@@ -2654,10 +2677,17 @@ function renderHistCal(){
       const data=dayMap[dateStr];
       const isToday=dateStr===todayStr;
       const isFuture=dateStr>todayStr;
+      const dow=new Date(dateStr+'T00:00:00').getDay();
+      const opDays=SETTINGS.opDays||[false,true,true,true,true,true,true];
+      const isClosedBySchedule=!opDays[dow];
+      const closedDays=SETTINGS.closedDays||{};
+      const isClosedOverride=!!closedDays[dateStr];
+      const isClosed=isClosedBySchedule||isClosedOverride;
       if(data){
         const ops=[data.op1,data.op2].filter(Boolean).join(', ');
         const noteIcon=data.notes?'<span style="font-size:12px;line-height:1;">&#128221;</span>':'';
         const adminIcon=data._adminEdit?'<span style="font-size:8px;color:var(--a5);">✎</span> ':'';
+        const closedBadge=data.closedDay?'<div class="hcal-closed-label">Closed</div>':'';
         html+=`<div class="hcal-day has-data${isToday?' today-day':''}" onclick="openDetail('${dateStr}')">
           <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:3px;">
             <div class="hcal-dn" style="margin-bottom:0;">${day}</div>
@@ -2670,9 +2700,15 @@ function renderHistCal(){
             <div class="hcal-pill-val">${(parseFloat(data.dv)||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
           </div>
           ${ops?`<div class="hcal-extras">${ops}</div>`:''}
+          ${closedBadge}
         </div>`;
       } else if(isFuture){
         html+=`<div class="hcal-day empty-day"><div class="hcal-dn">${day}</div></div>`;
+      } else if(isClosed){
+        html+=`<div class="hcal-day closed-day${isToday?' today-day':''}">
+          <div class="hcal-dn">${day}</div>
+          <div class="hcal-closed-label">Closed</div>
+        </div>`;
       } else {
         html+=`<div class="hcal-day no-data${isToday?' today-day':''}" onclick="navToDate('${dateStr}')" title="Add entry for ${dateStr}">
           <div class="hcal-dn">${day}</div>
@@ -2689,6 +2725,32 @@ function renderHistCal(){
 
   grid.innerHTML=html;
 }
+function onClosedDayToggle(){
+  const checked=document.getElementById('f-closed-day')?.checked;
+  const label=document.getElementById('closed-day-label');
+  if(label) label.textContent=checked?'Closed':'Open';
+  if(label) label.style.color=checked?'var(--r5)':'var(--text-faint)';
+  markDirty();
+}
+
+function updateClosedDayToggle(date){
+  const cb=document.getElementById('f-closed-day');
+  const label=document.getElementById('closed-day-label');
+  if(!cb||!date)return;
+  const dow=new Date(date+'T00:00:00').getDay();
+  const opDays=SETTINGS.opDays||[false,true,true,true,true,true,true];
+  const isScheduledClosed=!opDays[dow];
+  const closedDays=SETTINGS.closedDays||{};
+  // Find existing day record for closedDay flag
+  const ex=ALL_DAYS.find(d=>d.date===date);
+  const isMarkedClosed=ex?.data?.closedDay||isScheduledClosed||(!!closedDays[date]);
+  cb.checked=isMarkedClosed;
+  if(label){label.textContent=isMarkedClosed?'Closed':'Open';label.style.color=isMarkedClosed?'var(--r5)':'var(--text-faint)';}
+  // Show wrap — hide on future days
+  const wrap=document.getElementById('closed-day-wrap');
+  if(wrap) wrap.style.display=date>new Date().toISOString().slice(0,10)?'none':'flex';
+}
+
 function navToDate(d){
   const dt=new Date(d+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
   document.getElementById('entry-date').value=d;
@@ -3782,6 +3844,7 @@ function updateDateDisplay(){
   const todayStr=new Date().toISOString().slice(0,10);
   const todayBtn=document.getElementById('btn-go-today');
   if(todayBtn)todayBtn.style.display=(val!==todayStr)?'inline-flex':'none';
+  updateClosedDayToggle(val);
 }
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function fmtPhone(input){let d=input.value.replace(/\D/g,'').slice(0,10);let f='';if(d.length>0)f='('+d.slice(0,3);if(d.length>=4)f+=') '+d.slice(3,6);if(d.length>=7)f+='-'+d.slice(6,10);input.value=f;}
