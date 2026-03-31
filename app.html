@@ -186,6 +186,26 @@ if('serviceWorker' in navigator){
     .hcal-month-total{background:var(--b8);border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;}
     .hcal-month-total-label{font-size:11px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,0.55);}
     .hcal-month-total-val{font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;color:white;}
+    /* PROJ MINI CAL */
+    .pcal-dow-row{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:2px;}
+    .pcal-dow{font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text-faint);text-align:center;padding:1px 0;}
+    .pcal-week{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:2px;}
+    .pcal-day{border-radius:5px;padding:4px 3px;min-height:44px;display:flex;flex-direction:column;position:relative;}
+    .pcal-day.has-data{background:var(--b0);border:1px solid var(--border-light);cursor:pointer;transition:box-shadow 0.12s,border-color 0.12s;}
+    .pcal-day.has-data:hover{box-shadow:var(--shadow-md);border-color:var(--b4);}
+    .pcal-day.has-data.selected{background:var(--b8);border-color:var(--b6);}
+    .pcal-day.empty-day{background:transparent;border:1px solid transparent;}
+    .pcal-day.no-data{background:transparent;border:1px dashed var(--border-light);opacity:0.35;}
+    .pcal-day.today-day{border-color:var(--b5) !important;}
+    .pcal-dn{font-size:9px;font-weight:700;color:var(--text-faint);line-height:1;}
+    .pcal-day.has-data .pcal-dn{color:var(--text-muted);}
+    .pcal-day.has-data.selected .pcal-dn{color:rgba(255,255,255,0.7);}
+    .pcal-slabel{font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--g6);margin-top:2px;line-height:1;}
+    .pcal-sval{font-family:'Outfit',sans-serif;font-size:10px;font-weight:800;color:var(--g5);line-height:1.1;}
+    .pcal-dvlabel{font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--b4);margin-top:2px;line-height:1;}
+    .pcal-dvval{font-size:9px;font-weight:700;color:var(--text);line-height:1.1;}
+    .pcal-day.has-data.selected .pcal-slabel,.pcal-day.has-data.selected .pcal-sval,
+    .pcal-day.has-data.selected .pcal-dvlabel,.pcal-day.has-data.selected .pcal-dvval{color:rgba(255,255,255,0.9);}
     /* PROJECTIONS */
     .proj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px}
     .proj-cell{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:10px 8px;text-align:center;box-shadow:var(--shadow-sm)}
@@ -620,16 +640,20 @@ if('serviceWorker' in navigator){
 
     <!-- Day selector -->
     <div class="section-label">Base Day</div>
-    <div class="card" style="margin-bottom:12px;">
-      <div class="field-row" style="gap:8px;align-items:center;flex-wrap:wrap;">
-        <div style="flex:1;min-width:0;">
-          <select id="proj-day-picker" class="field-input" onchange="loadProjDay(this.value)" style="font-size:13px;">
-            <option value="">— Choose a day from history —</option>
-          </select>
-        </div>
-        <button class="btn btn-ghost" onclick="loadProjAvg()" style="flex-shrink:0;font-size:12px;">Use Avg Day</button>
+    <div class="card" style="margin-bottom:12px;padding:10px 12px;">
+      <!-- Mini cal nav -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <button class="btn btn-ghost" onclick="projCalShift(-1)" style="padding:3px 10px;font-size:13px;">&#8592;</button>
+        <span id="proj-cal-label" style="font-family:'Outfit',sans-serif;font-size:13px;font-weight:800;color:var(--text);"></span>
+        <button class="btn btn-ghost" onclick="projCalShift(1)" style="padding:3px 10px;font-size:13px;">&#8594;</button>
       </div>
-      <div id="proj-day-info" style="display:none;padding:8px 10px 4px;font-size:11px;color:var(--text-faint);border-top:1px solid var(--border-light);margin-top:6px;"></div>
+      <!-- Mini cal grid -->
+      <div id="proj-cal-grid"></div>
+      <!-- Avg day button -->
+      <div style="border-top:1px solid var(--border-light);margin-top:8px;padding-top:8px;text-align:center;">
+        <button class="btn btn-ghost" onclick="loadProjAvg()" style="font-size:12px;width:100%;">Use Avg Day (This Month)</button>
+      </div>
+      <div id="proj-day-info" style="display:none;padding:6px 0 0;font-size:11px;color:var(--text-faint);text-align:center;"></div>
     </div>
 
     <!-- Base day summary -->
@@ -2497,18 +2521,90 @@ function closeDetail(){document.getElementById('detail-overlay').classList.remov
 function closeDetailOnBg(e){if(e.target===document.getElementById('detail-overlay'))closeDetail();}
 function editFromDetail(){closeDetail();if(_detailDate)navToDate(_detailDate);}
 
+let _projCalYear=null,_projCalMonth=null,_projSelectedDate=null;
 let _projBaseSales=0,_projBaseOh=0,_projBasePayouts=0,_projBaseTax=0,_projBaseProd=0,_projBaseDv=0,_projMult=1.0;
 
-function renderProjections(){
-  const picker=document.getElementById('proj-day-picker');
-  if(!picker)return;
-  const cur=picker.value;
-  picker.innerHTML='<option value="">-- Choose a day from history --</option>';
-  [...ALL_DAYS].sort((a,b)=>b.date.localeCompare(a.date)).forEach(d=>{
-    const dt=new Date(d.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
-    picker.innerHTML+=`<option value="${d.date}">${dt} -- ${fmt$(calSales(d.data||{}))}</option>`;
+function projCalShift(dir){
+  _projCalMonth+=dir;
+  if(_projCalMonth>11){_projCalMonth=0;_projCalYear++;}
+  if(_projCalMonth<0){_projCalMonth=11;_projCalYear--;}
+  renderProjCal();
+}
+
+function renderProjCal(){
+  const grid=document.getElementById('proj-cal-grid');
+  const label=document.getElementById('proj-cal-label');
+  if(!grid||!label)return;
+  const yr=_projCalYear,mo=_projCalMonth;
+  label.textContent=new Date(yr,mo,1).toLocaleDateString('en-US',{month:'long',year:'numeric'});
+
+  const dayMap={};
+  ALL_DAYS.forEach(d=>{
+    const dt=new Date(d.date+'T00:00:00');
+    if(dt.getFullYear()===yr&&dt.getMonth()===mo) dayMap[d.date]=d.data||{};
   });
-  if(cur)picker.value=cur;
+
+  const firstDay=new Date(yr,mo,1).getDay();
+  const daysInMonth=new Date(yr,mo+1,0).getDate();
+  const todayStr=new Date().toISOString().slice(0,10);
+  const allMonths=[...new Set(ALL_DAYS.map(d=>d.date.slice(0,7)))];
+  const thisMonthStr=`${yr}-${String(mo+1).padStart(2,'0')}`;
+  const prevBtn=document.querySelector('[onclick="projCalShift(-1)"]');
+  const nextBtn=document.querySelector('[onclick="projCalShift(1)"]');
+  if(prevBtn) prevBtn.disabled=!allMonths.some(m=>m<thisMonthStr);
+  if(nextBtn) nextBtn.disabled=!allMonths.some(m=>m>thisMonthStr);
+
+  const DOWS=['S','M','T','W','T','F','S'];
+  let html=`<div class="pcal-dow-row">${DOWS.map(d=>`<div class="pcal-dow">${d}</div>`).join('')}</div>`;
+  let cells=[];
+  for(let i=0;i<firstDay;i++) cells.push(null);
+  for(let d=1;d<=daysInMonth;d++) cells.push(d);
+  while(cells.length%7!==0) cells.push(null);
+  const weeks=[];
+  for(let i=0;i<cells.length;i+=7) weeks.push(cells.slice(i,i+7));
+
+  weeks.forEach(week=>{
+    html+=`<div class="pcal-week">`;
+    week.forEach(day=>{
+      if(day===null){html+=`<div class="pcal-day empty-day"></div>`;return;}
+      const dateStr=`${yr}-${String(mo+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      const data=dayMap[dateStr];
+      const isToday=dateStr===todayStr;
+      const isFuture=dateStr>todayStr;
+      const isSelected=dateStr===_projSelectedDate;
+      if(data){
+        const s=calSales(data);
+        const dv=parseFloat(data.dv)||0;
+        html+=`<div class="pcal-day has-data${isToday?' today-day':''}${isSelected?' selected':''}" onclick="loadProjDay('${dateStr}')">
+          <div class="pcal-dn">${day}</div>
+          <div class="pcal-slabel">Sales</div>
+          <div class="pcal-sval">${fmt$(s)}</div>
+          <div class="pcal-dvlabel">DV</div>
+          <div class="pcal-dvval">${dv.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+        </div>`;
+      } else if(isFuture){
+        html+=`<div class="pcal-day empty-day"><div class="pcal-dn">${day}</div></div>`;
+      } else {
+        html+=`<div class="pcal-day no-data"><div class="pcal-dn">${day}</div></div>`;
+      }
+    });
+    html+=`</div>`;
+  });
+  grid.innerHTML=html;
+}
+
+function renderProjections(){
+  // Init cal to most recent month with data
+  if(_projCalYear===null){
+    if(ALL_DAYS.length){
+      const d=new Date(ALL_DAYS[0].date+'T00:00:00');
+      _projCalYear=d.getFullYear();_projCalMonth=d.getMonth();
+    } else {
+      const now=new Date();_projCalYear=now.getFullYear();_projCalMonth=now.getMonth();
+    }
+  }
+  renderProjCal();
+
   const now=new Date(),y=now.getFullYear(),m=now.getMonth();
   const op=parseInt(document.getElementById('proj-opdays')?.value)||26;
   const md=ALL_DAYS.filter(d=>{const dt=new Date(d.date+'T00:00:00');return dt.getFullYear()===y&&dt.getMonth()===m;});
@@ -2521,8 +2617,10 @@ function loadProjDay(date){
   if(!date){document.getElementById('proj-base-section').style.display='none';document.getElementById('proj-empty').style.display='block';return;}
   const day=ALL_DAYS.find(d=>d.date===date);if(!day)return;
   const d=day.data||{};
-  _projBaseSales=d.totalSales||0;_projBaseOh=d.overhead||0;_projBasePayouts=d.payouts||0;
-  _projBaseTax=d.taxes||0;_projBaseProd=d.products||0;_projBaseDv=d.dv||0;
+  const c=calcAllFromData(d);
+  _projSelectedDate=date;
+  _projBaseSales=calSales(d);_projBaseOh=c.overhead||0;_projBasePayouts=c.payouts||0;
+  _projBaseTax=c.tax||0;_projBaseProd=c.products||0;_projBaseDv=d.dv||0;
   const dt=new Date(date+'T00:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
   const infoEl=document.getElementById('proj-day-info');
   if(infoEl){infoEl.textContent=dt;infoEl.style.display='block';}
@@ -2531,6 +2629,7 @@ function loadProjDay(date){
   setText('proj-base-prod',fmt$(_projBaseProd));setText('proj-base-dv',fmtN(_projBaseDv));
   document.getElementById('proj-base-section').style.display='block';
   document.getElementById('proj-empty').style.display='none';
+  renderProjCal();
   renderProjScenario();
 }
 function loadProjAvg(){
