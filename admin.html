@@ -34,10 +34,10 @@ if('serviceWorker' in navigator){
     .sa-tab.active{color:var(--b6);border-bottom-color:var(--b6);}
     .sa-tab:hover:not(.active){color:var(--text-muted);}
     .sa-tab-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;background:var(--r5);color:white;font-size:10px;font-weight:800;border-radius:20px;padding:0 5px;margin-left:6px;vertical-align:middle;}
-    .org-card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:10px;transition:box-shadow 0.18s;}
+    .org-card{background:#cfdae8;border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:10px;transition:box-shadow 0.18s;}
     .org-card:hover{box-shadow:var(--shadow-md);}
     .org-card.expanded{border-color:var(--b3);}
-    .org-card-header{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;user-select:none;}
+    .org-card-header{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;user-select:none;background:#cfdae8;transition:background 0.15s;}
     .org-avatar{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--b7),var(--b4));display:flex;align-items:center;justify-content:center;font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:white;flex-shrink:0;}
     .org-meta{flex:1;min-width:0;}
     .org-name{font-family:'Outfit',sans-serif;font-size:17px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -45,7 +45,7 @@ if('serviceWorker' in navigator){
     .org-badges{display:flex;align-items:center;gap:6px;flex-shrink:0;flex-wrap:wrap;}
     .org-chevron{font-size:11px;color:var(--text-faint);transition:transform 0.2s;flex-shrink:0;}
     .org-card.expanded .org-chevron{transform:rotate(180deg);}
-    .org-expanded{display:none;border-top:1px solid var(--border-light);background:var(--b0);padding:16px;animation:expandIn 0.18s ease;}
+    .org-expanded{display:none;border-top:1px solid var(--border-light);background:#eef3f8;padding:16px;animation:expandIn 0.18s ease;}
     .org-card.expanded .org-expanded{display:block;}
     .org-stat-strip{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--border-light);}
     .org-stat-cell{padding:8px 14px;border-right:1px solid var(--border-light);text-align:center;}
@@ -60,7 +60,8 @@ if('serviceWorker' in navigator){
     .org-detail-val{font-size:13px;font-weight:600;color:var(--text);}
     .org-detail-val.muted{font-weight:400;color:var(--text-muted);}
     .org-locs-list{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;}
-    .org-loc-row{background:var(--surface);border:1px solid var(--border-light);border-radius:8px;padding:9px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+    .org-loc-row{background:#fff;border:1px solid var(--border-light);border-radius:8px;padding:9px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;transition:background 0.15s;}
+    .org-loc-row:hover{background:#f5f8fb;}
     .org-loc-name{font-size:13px;font-weight:600;color:var(--text);}
     .org-loc-addr{font-size:11px;color:var(--text-faint);margin-top:1px;}
     .org-expanded-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding-top:10px;border-top:1px solid var(--border-light);margin-top:12px;}
@@ -373,7 +374,7 @@ if('serviceWorker' in navigator){
         <div class="kpi-sub" id="kpi-month-sub"></div>
       </div>
       <div class="kpi-period" id="kpi-pending-orgs" style="cursor:pointer;border-color:var(--a4);" onclick="window.location.href='organizations.html'" title="Click to review in Organizations">
-        <div class="kpi-period-label" style="color:var(--a5);">Needs Review</div>
+        <div class="kpi-period-label" style="color:var(--a5);">Org Requests</div>
         <div class="kpi-row"><span class="kpi-metric-label">Pending</span><span class="kpi-metric-val big" id="kpi-pending-count" style="color:var(--a5);">—</span></div>
         <div class="kpi-sub" id="kpi-pending-sub" style="color:var(--a5);">Loading...</div>
       </div>
