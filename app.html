@@ -2179,7 +2179,7 @@ function renderDashboardWidgets(){
   weekStart.setDate(today.getDate() - dayOfWeek);
   const weekStartStr = weekStart.toISOString().slice(0,10);
   const weekDays = ALL_DAYS.filter(d => d.date >= weekStartStr && d.date <= todayStr);
-  const weekSales = weekDays.reduce((s,d)=>s+(d.data?.totalSales||0),0);
+  const weekSales = weekDays.reduce((s,d)=>s+calSales(d.data||{}),0);
   const weekEl = document.getElementById('dw-week-val');
   const weekSubEl = document.getElementById('dw-week-sub');
   if(weekEl) weekEl.textContent = fmt$(weekSales);
@@ -2189,7 +2189,7 @@ function renderDashboardWidgets(){
   const monthStartStr = new Date(today.getFullYear(),today.getMonth(),1).toISOString().slice(0,10);
   const monthEndStr = new Date(today.getFullYear(),today.getMonth()+1,0).toISOString().slice(0,10);
   const monthDays = ALL_DAYS.filter(d => d.date >= monthStartStr && d.date <= monthEndStr);
-  const monthSales = monthDays.reduce((s,d)=>s+(d.data?.totalSales||0),0);
+  const monthSales = monthDays.reduce((s,d)=>s+calSales(d.data||{}),0);
   const monthEl = document.getElementById('dw-month-val');
   const monthSubEl = document.getElementById('dw-month-sub');
   if(monthEl) monthEl.textContent = fmt$(monthSales);
@@ -2261,6 +2261,9 @@ function renderOpsEarningsPreview(){
   }
 }
 
+// Global helper: calculate real sales total from raw stored fields
+function calSales(d){if(!d)return 0;const cs=parseFloat(d.cashSales)||0,cas=parseFloat(d.cardSales)||0,cf=parseFloat(d.cardFees)||0,cap=parseFloat(d.cashAppPay)||0,gcf=parseFloat(d.giftCardLoadFees)||0,vm=parseFloat(d.venmo)||0;return cs+vm+(cas-cf+cap-gcf);}
+
 // History calendar state
 let _histCalYear=null,_histCalMonth=null;
 
@@ -2305,7 +2308,6 @@ function renderHistCal(){
   const todayStr=new Date().toISOString().slice(0,10);
 
   // Month total
-  function calSales(d){const cs=parseFloat(d.cashSales)||0,cas=parseFloat(d.cardSales)||0,cf=parseFloat(d.cardFees)||0,cap=parseFloat(d.cashAppPay)||0,gcf=parseFloat(d.giftCardLoadFees)||0,vm=parseFloat(d.venmo)||0;return cs+vm+(cas-cf+cap-gcf);}
   const monthTotal=Object.values(dayMap).reduce((s,d)=>s+calSales(d),0);
   const activeDays=Object.keys(dayMap).length;
 
@@ -2502,15 +2504,14 @@ function renderProjections(){
   if(!picker)return;
   const cur=picker.value;
   picker.innerHTML='<option value="">-- Choose a day from history --</option>';
-  [...ALL_DAYS].sort((a,b)=>b.date.localeCompare(a.date)).forEach(d=>{
-    const dt=new Date(d.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
-    picker.innerHTML+=`<option value="${d.date}">${dt} -- ${fmt$(d.data?.totalSales||0)}</option>`;
+  [...ALL_DAYS].sort((a,b)=>b.date.localeCompare(a.date)).forEach(d=>{\n    const dt=new Date(d.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+    picker.innerHTML+=`<option value="${d.date}">${dt} -- ${fmt$(calSales(d.data||{}))}</option>`;
   });
   if(cur)picker.value=cur;
   const now=new Date(),y=now.getFullYear(),m=now.getMonth();
   const op=parseInt(document.getElementById('proj-opdays')?.value)||26;
   const md=ALL_DAYS.filter(d=>{const dt=new Date(d.date+'T00:00:00');return dt.getFullYear()===y&&dt.getMonth()===m;});
-  const di=md.length,ts=md.reduce((s,d)=>s+(d.data?.totalSales||0),0),tdv=md.reduce((s,d)=>s+(d.data?.dv||0),0);
+  const di=md.length,ts=md.reduce((s,d)=>s+calSales(d.data||{}),0),tdv=md.reduce((s,d)=>s+(d.data?.dv||0),0);
   const as=di>0?ts/di:0,adv=di>0?tdv/di:0;
   setText('proj-daysin',di);setText('proj-totalsales',fmt$(ts));setText('proj-avgsales',fmt$(as));
   setText('proj-sales',fmt$(as*op));setText('proj-avgdv',fmtN(tdv));setText('proj-dv',fmtN(adv*op));
@@ -2536,7 +2537,7 @@ function loadProjAvg(){
   const md=ALL_DAYS.filter(d=>{const dt=new Date(d.date+'T00:00:00');return dt.getFullYear()===y&&dt.getMonth()===m;});
   if(!md.length){showToast('No entries this month yet','');return;}
   const n=md.length;
-  _projBaseSales=md.reduce((s,d)=>s+(d.data?.totalSales||0),0)/n;
+  _projBaseSales=md.reduce((s,d)=>s+calSales(d.data||{}),0)/n;
   _projBaseOh=md.reduce((s,d)=>s+(d.data?.overhead||0),0)/n;
   _projBasePayouts=md.reduce((s,d)=>s+(d.data?.payouts||0),0)/n;
   _projBaseTax=md.reduce((s,d)=>s+(d.data?.taxes||0),0)/n;
@@ -2573,7 +2574,7 @@ function renderProjScenario(){
   setText('proj-week-dv',fmtN(projDv*5));setText('proj-month-dv',fmtN(projDv*op));
   const now=new Date(),y=now.getFullYear(),mo=now.getMonth();
   const md=ALL_DAYS.filter(d=>{const dt=new Date(d.date+'T00:00:00');return dt.getFullYear()===y&&dt.getMonth()===mo;});
-  const di=md.length,ts=md.reduce((s,d)=>s+(d.data?.totalSales||0),0),tdv=md.reduce((s,d)=>s+(d.data?.dv||0),0);
+  const di=md.length,ts=md.reduce((s,d)=>s+calSales(d.data||{}),0),tdv=md.reduce((s,d)=>s+(d.data?.dv||0),0);
   const as=di>0?ts/di:0,adv=di>0?tdv/di:0;
   setText('proj-daysin',di);setText('proj-totalsales',fmt$(ts));setText('proj-avgsales',fmt$(as));
   setText('proj-sales',fmt$(as*op));setText('proj-avgdv',fmtN(tdv));setText('proj-dv',fmtN(adv*op));
