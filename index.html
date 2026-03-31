@@ -332,6 +332,7 @@ fetch(window.location.href, {method:'HEAD'}).then(function(r){
 <script>
 var SURL='https://ndaqlamzlaucigvnhgfu.supabase.co';
 var SKEY='sb_publishable_wO6XM4pC2CcaISQ8OlbkfQ_liqKJbi_';
+var _rawHash=window.location.hash; // capture before Supabase strips it
 var sb=supabase.createClient(SURL,SKEY,{
   auth:{
     storage:window.localStorage,
@@ -355,7 +356,7 @@ function showTab(tab){
 }
 function showNPPanel(){showTab('newpassword');document.querySelector('.tabs').style.display='none';}
 async function init(){
-  var hash=window.location.hash;
+  var hash=_rawHash||window.location.hash;
   var params=new URLSearchParams(window.location.search);
   // Show error passed from app.html
   if(params.get('err')){
@@ -671,6 +672,8 @@ function attachPlacesAutocomplete(streetInputId, cityId, stateId, zipId) {
 document.documentElement.classList.remove('dark');
 
 if(new URLSearchParams(window.location.search).get('tab')==='register')showTab('register');
+
+init(); // explicit call — _rawHash already captured before Supabase strips it
 
 // Pre-fill email if redirected from email confirmation
 (function(){
