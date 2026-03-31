@@ -581,6 +581,23 @@ function renderLocations(){
 
 function copyCode(code){
   navigator.clipboard.writeText(code).then(function(){
+    showToast('Invite code copied!');
+  }).catch(function(){
+    var ta=document.createElement('textarea');ta.value=code;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+    showToast('Invite code copied!');
+  });
+}
+
+function showToast(msg){
+  var t=document.getElementById('toast-msg');
+  if(!t){t=document.createElement('div');t.id='toast-msg';t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1e3a5f;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.2);transition:opacity 0.3s;';document.body.appendChild(t);}
+  t.textContent=msg;t.style.opacity='1';
+  clearTimeout(t._to);t._to=setTimeout(function(){t.style.opacity='0';},2000);
+}
+
+</script>
+<script>
+(function(){
   var CHECK_INTERVAL = 10000;
   function extractVersion(html){
     var m=html.match(/CACHE BUST: ([^-]+?) -->/);
