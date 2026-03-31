@@ -1514,18 +1514,10 @@ async function loadTeamMembers(){
     list.innerHTML='<div style="font-size:13px;color:var(--text-faint);">No other team members yet.</div>';
     return;
   }
-  // Fetch location owner details to identify primary owner by email
-  const{data:locOwner}=await sb.from('locations').select('owner_name,owner_phone').eq('id',LOCATION_ID).single();
-  const locOwnerName=(locOwner?.owner_name||'').toLowerCase().trim();
-  // Lock anyone who is role=owner OR whose name matches the location's registered owner_name
-  const isLocked=(m)=>{
-    if(m.role==='owner')return true;
-    const mName=[m.first_name,m.last_name].filter(Boolean).join(' ').toLowerCase().trim();
-    return locOwnerName&&mName&&mName===locOwnerName;
-  };
-  const primaryOwners=members.filter(m=>isLocked(m));
+  // ALL owners are locked — no role change or removal allowed
+  const primaryOwners=members.filter(m=>m.role==='owner');
   const otherOwners=[];
-  const employees=members.filter(m=>!isLocked(m));
+  const employees=members.filter(m=>m.role!=='owner');
 
   const renderPrimaryOwner=(m)=>{
     const name=[m.first_name,m.last_name].filter(Boolean).join(' ')||m.display_name||m.email;
