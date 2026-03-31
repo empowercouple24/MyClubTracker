@@ -206,7 +206,11 @@ if('serviceWorker' in navigator){
     .pcal-dvval{font-size:13px;font-weight:700;color:var(--text);line-height:1.2;}
     .pcal-day.has-data.selected .pcal-slabel,.pcal-day.has-data.selected .pcal-sval,
     .pcal-day.has-data.selected .pcal-dvlabel,.pcal-day.has-data.selected .pcal-dvval{color:rgba(255,255,255,0.9);}
-    /* PROJ MULT CARDS */
+    /* PROJ PRESET BTNS */
+    .proj-preset-btn{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;transition:all 0.15s;}
+    .proj-preset-btn:hover{border-color:var(--b4);color:var(--text);}
+    .proj-preset-btn.active{background:var(--b7);color:#fff;border-color:var(--b7);}
+    /* PMULT CARDS */
     .pmult-header{background:linear-gradient(135deg,var(--b8),var(--b6));border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;color:white;}
     .pmult-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;opacity:0.6;margin-bottom:8px;}
     .pmult-row{display:flex;gap:8px;}
@@ -645,6 +649,12 @@ if('serviceWorker' in navigator){
 <div class="tab-panel" id="panel-proj">
   <div style="max-width:805px;margin:0 auto;padding:12px 12px 40px;">
 
+    <!-- Page heading -->
+    <div style="margin-bottom:18px;">
+      <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;color:var(--text);letter-spacing:-0.5px;margin-bottom:4px;">Sales Projections</div>
+      <div style="font-size:13px;color:var(--text-faint);line-height:1.5;">Pick a day from your history or use your monthly average as a base, then see what your numbers look like at different sales increases.</div>
+    </div>
+
     <!-- Day selector -->
     <div class="section-label">Base Day</div>
     <div class="card" style="margin-bottom:12px;padding:10px 12px;">
@@ -666,27 +676,33 @@ if('serviceWorker' in navigator){
     <!-- Base day summary + multiplier cards -->
     <div id="proj-base-section" style="display:none;">
 
-      <!-- Operating days number picker -->
-      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;">
-        <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">Operating Days / Month</span>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <button onclick="adjustOpDays(-1)" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--b0);font-size:16px;font-weight:700;cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center;line-height:1;">−</button>
-          <span id="proj-opdays-display" style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;color:var(--text);min-width:28px;text-align:center;">26</span>
-          <button onclick="adjustOpDays(1)" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--b0);font-size:16px;font-weight:700;cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center;line-height:1;">+</button>
+      <!-- Preset chooser + op days row -->
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;" id="proj-preset-btns">
+          <button class="proj-preset-btn active" onclick="setScenarioPreset(this,[0,10,20,30])">Conservative</button>
+          <button class="proj-preset-btn" onclick="setScenarioPreset(this,[0,20,40,60])">Moderate</button>
+          <button class="proj-preset-btn" onclick="setScenarioPreset(this,[0,30,50,100])">Aggressive</button>
+          <button class="proj-preset-btn" onclick="setScenarioPreset(this,[0,50,75,100])">Growth</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+          <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">Days/mo</span>
+          <button onclick="adjustOpDays(-1)" style="width:26px;height:26px;border-radius:50%;border:1px solid var(--border);background:var(--b0);font-size:15px;font-weight:700;cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center;line-height:1;">−</button>
+          <span id="proj-opdays-display" style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:var(--text);min-width:24px;text-align:center;">26</span>
+          <button onclick="adjustOpDays(1)" style="width:26px;height:26px;border-radius:50%;border:1px solid var(--border);background:var(--b0);font-size:15px;font-weight:700;cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center;line-height:1;">+</button>
         </div>
       </div>
       <input type="hidden" id="proj-opdays" value="26"/>
 
-      <!-- Estimator grid: columns = multipliers, rows = metrics -->
+      <!-- Estimator grid -->
       <div id="proj-estimator-grid" style="display:none;margin-bottom:12px;overflow-x:auto;">
         <table style="width:100%;border-collapse:separate;border-spacing:4px;">
           <thead>
             <tr>
               <td style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-faint);padding:4px 6px;"></td>
-              <th style="font-size:12px;font-weight:800;color:var(--text);background:var(--surface);border-radius:6px;padding:7px 10px;text-align:center;border:1px solid var(--border-light);">1×</th>
-              <th style="font-size:12px;font-weight:800;color:var(--text);background:var(--surface);border-radius:6px;padding:7px 10px;text-align:center;border:1px solid var(--border-light);">1.2×</th>
-              <th style="font-size:12px;font-weight:800;color:var(--text);background:var(--surface);border-radius:6px;padding:7px 10px;text-align:center;border:1px solid var(--border-light);">1.5×</th>
-              <th style="font-size:12px;font-weight:800;color:var(--text);background:var(--surface);border-radius:6px;padding:7px 10px;text-align:center;border:1px solid var(--border-light);">2×</th>
+              <th id="proj-col-h0" style="font-size:12px;font-weight:800;color:var(--text);background:var(--surface);border-radius:6px;padding:7px 10px;text-align:center;border:1px solid var(--border-light);">Base</th>
+              <th id="proj-col-h1" style="font-size:12px;font-weight:800;color:var(--text);background:var(--surface);border-radius:6px;padding:7px 10px;text-align:center;border:1px solid var(--border-light);">+10%</th>
+              <th id="proj-col-h2" style="font-size:12px;font-weight:800;color:var(--text);background:var(--surface);border-radius:6px;padding:7px 10px;text-align:center;border:1px solid var(--border-light);">+20%</th>
+              <th id="proj-col-h3" style="font-size:12px;font-weight:800;color:var(--text);background:var(--surface);border-radius:6px;padding:7px 10px;text-align:center;border:1px solid var(--border-light);">+30%</th>
             </tr>
           </thead>
           <tbody id="proj-estimator-body"></tbody>
@@ -2662,6 +2678,15 @@ function loadProjAvg(){
   document.getElementById('proj-empty').style.display='none';
   renderProjScenario();
 }
+let _projScenario=[0,10,20,30];
+
+function setScenarioPreset(btn,pcts){
+  _projScenario=pcts;
+  document.querySelectorAll('.proj-preset-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderProjScenario();
+}
+
 function adjustOpDays(dir){
   const input=document.getElementById('proj-opdays');
   const display=document.getElementById('proj-opdays-display');
@@ -2674,27 +2699,31 @@ function adjustOpDays(dir){
 
 function setProjMult(mult,btn){
   _projMult=mult;
-  const lbl=document.getElementById('proj-mult-label');
-  if(lbl)lbl.textContent='@ '+mult+'&#215;';
   renderProjScenario();
 }
 
 function renderProjScenario(){
   const op=parseInt(document.getElementById('proj-opdays')?.value)||26;
-  const mults=[1.0,1.2,1.5,2.0];
+  const pcts=_projScenario||[0,10,20,30];
+  const mults=pcts.map(p=>1+p/100);
 
-  // Blue progression: light→dark (4 shades)
-  const bgColors=['rgba(58,84,112,0.25)','rgba(58,84,112,0.45)','rgba(58,84,112,0.65)','rgba(30,45,61,0.85)'];
-  const textColor='rgba(255,255,255,0.92)';
-  const rowLabelStyle='font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-muted);padding:6px 8px;white-space:nowrap;';
-  const cellBase='border-radius:6px;padding:8px 10px;text-align:right;';
+  // Update column headers
+  ['proj-col-h0','proj-col-h1','proj-col-h2','proj-col-h3'].forEach((id,i)=>{
+    const el=document.getElementById(id);
+    if(el)el.textContent=pcts[i]===0?'Base':'+'+pcts[i]+'%';
+  });
+
+  // App-themed navy progression — very subtle left to right
+  const bgColors=['#263d54','#2b4560','#304e6c','#365779'];
+  const rowLabelStyle='font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-muted);padding:7px 8px;white-space:nowrap;';
+  const cellBase='border-radius:6px;padding:9px 12px;text-align:right;';
 
   const rows=[
-    {label:'Net Sales',    vals: mults.map((v,i)=>({val:fmt$(_projBaseSales*v),   bg:bgColors[i]}))},
-    {label:'Payouts',      vals: mults.map((v,i)=>({val:fmt$(_projBasePayouts*v), bg:bgColors[i]}))},
-    {label:'DV',           vals: mults.map((v,i)=>({val:fmtN(_projBaseDv*v),      bg:bgColors[i]}))},
-    {label:'Weekly (5d)',  vals: mults.map((v,i)=>({val:fmt$(_projBaseSales*v*5), bg:bgColors[i]}))},
-    {label:`Monthly (${op}d)`, vals: mults.map((v,i)=>({val:fmt$(_projBaseSales*v*op), bg:bgColors[i]}))},
+    {label:'Net Sales',         vals:mults.map((m,i)=>({val:fmt$(_projBaseSales*m),   bg:bgColors[i]}))},
+    {label:'Payouts',           vals:mults.map((m,i)=>({val:fmt$(_projBasePayouts*m), bg:bgColors[i]}))},
+    {label:'DV',                vals:mults.map((m,i)=>({val:fmtN(_projBaseDv*m),      bg:bgColors[i]}))},
+    {label:'Weekly (5d)',       vals:mults.map((m,i)=>({val:fmt$(_projBaseSales*m*5), bg:bgColors[i]}))},
+    {label:`Monthly (${op}d)`,  vals:mults.map((m,i)=>({val:fmt$(_projBaseSales*m*op),bg:bgColors[i]}))},
   ];
 
   const body=document.getElementById('proj-estimator-body');
@@ -2704,7 +2733,7 @@ function renderProjScenario(){
         <td style="${rowLabelStyle}">${row.label}</td>
         ${row.vals.map(({val,bg})=>`
           <td style="${cellBase}background:${bg};">
-            <span style="font-family:'Outfit',sans-serif;font-size:13px;font-weight:800;color:${textColor};">${val}</span>
+            <span style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:#ffffff;">${val}</span>
           </td>`).join('')}
       </tr>`).join('');
     document.getElementById('proj-estimator-grid').style.display='block';
