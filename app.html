@@ -1514,9 +1514,11 @@ async function loadTeamMembers(){
     list.innerHTML='<div style="font-size:13px;color:var(--text-faint);">No other team members yet.</div>';
     return;
   }
-  // Primary owner = any user with role 'owner' at this location
-  // All owners are treated as primary (no one can remove an owner)
-  const primaryOwners=members.filter(m=>m.role==='owner');
+  // Primary owner = role 'owner' OR is the location's registered owner email
+  // These are locked — no role change or removal allowed
+  const OWNER_EMAIL = SETTINGS._ownerEmail?.toLowerCase()||'';
+  const isPrimary=(m)=>m.role==='owner'||(OWNER_EMAIL&&m.email?.toLowerCase()===OWNER_EMAIL);
+  const primaryOwners=members.filter(m=>isPrimary(m));
   const otherOwners=[];
   const employees=members.filter(m=>m.role!=='owner');
 
