@@ -416,6 +416,25 @@ function attachPlacesAutocomplete(streetInputId, cityId, stateId, zipId) {
   // Google Places removed — using manual entry + zip auto-fill only
 }
 
+async function init(){
+  const{data:{session}}=await sb.auth.getSession();
+  if(!session){window.location.href='index.html';return;}
+  const{data:u}=await sb.from('users').select('role,location_id').eq('id',session.user.id).single();
+  if(!u||u.role!=='admin'){window.location.href='app.html';return;}
+  const{data:me}=await sb.from('users').select('display_name,first_name,last_name,avatar_url').eq('id',session.user.id).single();
+  const dn=(me?.display_name||[me?.first_name,me?.last_name].filter(Boolean).join(' ')||session.user.email||'Admin');
+  const navDN=document.getElementById('nav-display-name');if(navDN)navDN.textContent=dn;
+  const[{data:locs},{data:users}]=await Promise.all([
+    sb.from('locations').select('id,name,address,owner_name,owner_phone,invite_code,settings,created_at').order('name'),
+    sb.from('users').select('id,location_id,role,display_name,first_name,last_name,email,phone')
+  ]);
+  allLocations=locs||[];
+  allUsers=users||[];
+  renderLocations();
+  document.getElementById('loading-overlay').style.display='none';
+}
+document.addEventListener('DOMContentLoaded', init);
+
 // ── RENDER ──
 function renderLocations(){
   var list=document.getElementById('locations-list');
