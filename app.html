@@ -1926,7 +1926,7 @@ async function init(){
   const now=new Date();
   const _pf=document.getElementById('payout-from');if(_pf)_pf.value=new Date(now.getFullYear(),now.getMonth(),1).toISOString().slice(0,10);
   const _pt=document.getElementById('payout-to');if(_pt)_pt.value=new Date(now.getFullYear(),now.getMonth()+1,0).toISOString().slice(0,10);
-  populateOperatorDropdowns();buildSettingsUI();loadDay();renderHistory();renderInventory();renderInventoryHistory();renderProjections();renderPayoutSnapshots();
+  populateOperatorDropdowns();buildSettingsUI();loadDay();renderHistory();renderInventory();renderInventoryHistory();renderProjections();renderPayoutSnapshots();renderDashboardWidgets();
   recalcContentTop();
   // Unconditionally set nav name after everything loads
   const _finalNcn = document.getElementById('nav-club-name');
