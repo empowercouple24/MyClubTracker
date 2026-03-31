@@ -665,47 +665,17 @@ if('serviceWorker' in navigator){
 
     <!-- Base day summary + multiplier cards -->
     <div id="proj-base-section" style="display:none;">
-      <div class="pmult-header">
-        <div class="pmult-title" id="proj-base-date-label">Selected Day</div>
-        <!-- 1x row -->
-        <div class="pmult-row" style="margin-bottom:8px;">
-          <div class="pmult-card active" onclick="setProjMult(1.0,this)" data-mult="1.0"><div class="pmult-card-label">Sales</div><div class="pmult-card-mult">1×</div><div class="pmult-card-val" id="pmult-sales-1x">—</div></div>
-          <div class="pmult-card" style="cursor:default;"><div class="pmult-card-label">Overhead</div><div class="pmult-card-mult">1×</div><div class="pmult-card-val" id="pmult-oh-1x" style="color:rgba(255,255,255,0.85);">—</div></div>
-          <div class="pmult-card" style="cursor:default;"><div class="pmult-card-label">Payouts</div><div class="pmult-card-mult">1×</div><div class="pmult-card-val" id="pmult-pay-1x">—</div></div>
-        </div>
-        <!-- 1.2x row -->
-        <div class="pmult-row" style="margin-bottom:8px;">
-          <div class="pmult-card" onclick="setProjMult(1.2,this)" data-mult="1.2"><div class="pmult-card-label">Sales</div><div class="pmult-card-mult">1.2×</div><div class="pmult-card-val" id="pmult-sales-12x">—</div></div>
-          <div class="pmult-card" style="cursor:default;"><div class="pmult-card-label">Overhead</div><div class="pmult-card-mult">1.2×</div><div class="pmult-card-val" id="pmult-oh-12x" style="color:rgba(255,255,255,0.85);">—</div></div>
-          <div class="pmult-card" style="cursor:default;"><div class="pmult-card-label">Payouts</div><div class="pmult-card-mult">1.2×</div><div class="pmult-card-val" id="pmult-pay-12x">—</div></div>
-        </div>
-        <!-- 1.5x row -->
-        <div class="pmult-row" style="margin-bottom:8px;">
-          <div class="pmult-card" onclick="setProjMult(1.5,this)" data-mult="1.5"><div class="pmult-card-label">Sales</div><div class="pmult-card-mult">1.5×</div><div class="pmult-card-val" id="pmult-sales-15x">—</div></div>
-          <div class="pmult-card" style="cursor:default;"><div class="pmult-card-label">Overhead</div><div class="pmult-card-mult">1.5×</div><div class="pmult-card-val" id="pmult-oh-15x" style="color:rgba(255,255,255,0.85);">—</div></div>
-          <div class="pmult-card" style="cursor:default;"><div class="pmult-card-label">Payouts</div><div class="pmult-card-mult">1.5×</div><div class="pmult-card-val" id="pmult-pay-15x">—</div></div>
-        </div>
-        <!-- 2x row -->
-        <div class="pmult-row">
-          <div class="pmult-card" onclick="setProjMult(2.0,this)" data-mult="2.0"><div class="pmult-card-label">Sales</div><div class="pmult-card-mult">2×</div><div class="pmult-card-val" id="pmult-sales-2x">—</div></div>
-          <div class="pmult-card" style="cursor:default;"><div class="pmult-card-label">Overhead</div><div class="pmult-card-mult">2×</div><div class="pmult-card-val" id="pmult-oh-2x" style="color:rgba(255,255,255,0.85);">—</div></div>
-          <div class="pmult-card" style="cursor:default;"><div class="pmult-card-label">Payouts</div><div class="pmult-card-mult">2×</div><div class="pmult-card-val" id="pmult-pay-2x">—</div></div>
-        </div>
-      </div>
-      <!-- Hidden fields still needed by renderProjScenario -->
-      <div style="display:none;">
-        <span id="proj-base-sales"></span><span id="proj-base-oh"></span><span id="proj-base-payouts"></span>
-        <span id="proj-base-tax"></span><span id="proj-base-prod"></span><span id="proj-base-dv"></span>
-        <span id="proj-mult-label"></span>
-        <span id="proj-day-sales"></span><span id="proj-day-oh"></span><span id="proj-day-payouts"></span>
-        <span id="proj-day-tax"></span><span id="proj-day-prod"></span><span id="proj-day-dv"></span>
-      </div>
 
-      <!-- Operating days -->
-      <div class="section-label">Operating Days / Month</div>
-      <div class="card" style="margin-bottom:12px;">
-        <div class="field-row"><div class="field-label">Days per month</div><input class="field-input" type="text" inputmode="numeric" id="proj-opdays" value="26" oninput="renderProjScenario()"/></div>
+      <!-- Operating days number picker -->
+      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;">
+        <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">Operating Days / Month</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button onclick="adjustOpDays(-1)" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--b0);font-size:16px;font-weight:700;cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center;line-height:1;">−</button>
+          <span id="proj-opdays-display" style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;color:var(--text);min-width:28px;text-align:center;">26</span>
+          <button onclick="adjustOpDays(1)" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--b0);font-size:16px;font-weight:700;cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center;line-height:1;">+</button>
+        </div>
       </div>
+      <input type="hidden" id="proj-opdays" value="26"/>
 
       <!-- Estimator grid: columns = multipliers, rows = metrics -->
       <div id="proj-estimator-grid" style="display:none;margin-bottom:12px;overflow-x:auto;">
@@ -736,11 +706,21 @@ if('serviceWorker' in navigator){
         </div>
       </div>
 
-      <!-- Hidden legacy period total IDs still referenced by renderProjScenario -->
+      <!-- Hidden legacy IDs -->
       <div style="display:none;">
+        <span id="proj-base-sales"></span><span id="proj-base-oh"></span><span id="proj-base-payouts"></span>
+        <span id="proj-base-tax"></span><span id="proj-base-prod"></span><span id="proj-base-dv"></span>
+        <span id="proj-mult-label"></span>
+        <span id="proj-day-sales"></span><span id="proj-day-oh"></span><span id="proj-day-payouts"></span>
+        <span id="proj-day-tax"></span><span id="proj-day-prod"></span><span id="proj-day-dv"></span>
         <span id="proj-week-sales"></span><span id="proj-month-sales"></span>
         <span id="proj-week-payouts"></span><span id="proj-month-payouts"></span>
         <span id="proj-week-dv"></span><span id="proj-month-dv"></span>
+        <span id="pmult-sales-1x"></span><span id="pmult-oh-1x"></span><span id="pmult-pay-1x"></span>
+        <span id="pmult-sales-12x"></span><span id="pmult-oh-12x"></span><span id="pmult-pay-12x"></span>
+        <span id="pmult-sales-15x"></span><span id="pmult-oh-15x"></span><span id="pmult-pay-15x"></span>
+        <span id="pmult-sales-2x"></span><span id="pmult-oh-2x"></span><span id="pmult-pay-2x"></span>
+        <span id="proj-base-date-label"></span>
       </div>
     </div>
 
@@ -2682,11 +2662,18 @@ function loadProjAvg(){
   document.getElementById('proj-empty').style.display='none';
   renderProjScenario();
 }
+function adjustOpDays(dir){
+  const input=document.getElementById('proj-opdays');
+  const display=document.getElementById('proj-opdays-display');
+  let v=parseInt(input.value)||26;
+  v=Math.min(31,Math.max(20,v+dir));
+  input.value=v;
+  if(display)display.textContent=v;
+  renderProjScenario();
+}
+
 function setProjMult(mult,btn){
   _projMult=mult;
-  document.querySelectorAll('.pmult-card[data-mult]').forEach(b=>{
-    b.classList.toggle('active', parseFloat(b.dataset.mult)===mult);
-  });
   const lbl=document.getElementById('proj-mult-label');
   if(lbl)lbl.textContent='@ '+mult+'&#215;';
   renderProjScenario();
@@ -2696,26 +2683,18 @@ function renderProjScenario(){
   const op=parseInt(document.getElementById('proj-opdays')?.value)||26;
   const mults=[1.0,1.2,1.5,2.0];
 
-  // Populate mult cards in the dark header
-  const multKeys=['1x','12x','15x','2x'];
-  mults.forEach((v,i)=>{
-    const k=multKeys[i];
-    setText(`pmult-sales-${k}`, fmt$(_projBaseSales*v));
-    setText(`pmult-oh-${k}`,    fmt$(_projBaseOh*v));
-    setText(`pmult-pay-${k}`,   fmt$(_projBasePayouts*v));
-  });
-
-  // Sales color progression: white → light green → mid green → deep green
-  const salesColors=['#ffffff','#a8f0c0','#4ade80','#16a34a'];
-  const rowLabelStyle='font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);padding:6px 8px;white-space:nowrap;';
-  const cellBase='border-radius:6px;padding:8px 10px;text-align:right;border:1px solid var(--border-light);';
+  // Blue progression: light→dark (4 shades)
+  const bgColors=['rgba(58,84,112,0.25)','rgba(58,84,112,0.45)','rgba(58,84,112,0.65)','rgba(30,45,61,0.85)'];
+  const textColor='rgba(255,255,255,0.92)';
+  const rowLabelStyle='font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-muted);padding:6px 8px;white-space:nowrap;';
+  const cellBase='border-radius:6px;padding:8px 10px;text-align:right;';
 
   const rows=[
-    {label:'Net Sales', vals: mults.map((v,i)=>({val:fmt$(_projBaseSales*v), color:salesColors[i], bg:'var(--b8)'}))},
-    {label:'Payouts',   vals: mults.map(v=>({val:fmt$(_projBasePayouts*v), color:'rgba(255,255,255,0.85)', bg:'var(--surface)'}))},
-    {label:'DV',        vals: mults.map(v=>({val:fmtN(_projBaseDv*v), color:'rgba(255,255,255,0.85)', bg:'var(--surface)'}))},
-    {label:'Weekly (5d)', vals: mults.map((v,i)=>({val:fmt$(_projBaseSales*v*5), color:salesColors[i], bg:'var(--b7)'}))},
-    {label:`Monthly (${op}d)`, vals: mults.map((v,i)=>({val:fmt$(_projBaseSales*v*op), color:salesColors[i], bg:'var(--b8)'}))},
+    {label:'Net Sales',    vals: mults.map((v,i)=>({val:fmt$(_projBaseSales*v),   bg:bgColors[i]}))},
+    {label:'Payouts',      vals: mults.map((v,i)=>({val:fmt$(_projBasePayouts*v), bg:bgColors[i]}))},
+    {label:'DV',           vals: mults.map((v,i)=>({val:fmtN(_projBaseDv*v),      bg:bgColors[i]}))},
+    {label:'Weekly (5d)',  vals: mults.map((v,i)=>({val:fmt$(_projBaseSales*v*5), bg:bgColors[i]}))},
+    {label:`Monthly (${op}d)`, vals: mults.map((v,i)=>({val:fmt$(_projBaseSales*v*op), bg:bgColors[i]}))},
   ];
 
   const body=document.getElementById('proj-estimator-body');
@@ -2723,23 +2702,13 @@ function renderProjScenario(){
     body.innerHTML=rows.map(row=>`
       <tr>
         <td style="${rowLabelStyle}">${row.label}</td>
-        ${row.vals.map(({val,color,bg})=>`
+        ${row.vals.map(({val,bg})=>`
           <td style="${cellBase}background:${bg};">
-            <span style="font-family:'Outfit',sans-serif;font-size:13px;font-weight:800;color:${color};">${val}</span>
+            <span style="font-family:'Outfit',sans-serif;font-size:13px;font-weight:800;color:${textColor};">${val}</span>
           </td>`).join('')}
       </tr>`).join('');
     document.getElementById('proj-estimator-grid').style.display='block';
   }
-
-  // Legacy hidden fields
-  const m=_projMult;
-  const projSales=_projBaseSales*m,projPay=_projBasePayouts*m,projDv=_projBaseDv*m;
-  setText('proj-day-sales',fmt$(projSales));setText('proj-day-oh',fmt$(_projBaseOh*m));
-  setText('proj-day-payouts',fmt$(projPay));setText('proj-day-tax',fmt$(_projBaseTax*m));
-  setText('proj-day-prod',fmt$(_projBaseProd*m));setText('proj-day-dv',fmtN(projDv));
-  setText('proj-week-sales',fmt$(projSales*5));setText('proj-month-sales',fmt$(projSales*op));
-  setText('proj-week-payouts',fmt$(projPay*5));setText('proj-month-payouts',fmt$(projPay*op));
-  setText('proj-week-dv',fmtN(projDv*5));setText('proj-month-dv',fmtN(projDv*op));
 
   // Current month actuals
   const now=new Date(),y=now.getFullYear(),mo=now.getMonth();
