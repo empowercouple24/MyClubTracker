@@ -1456,27 +1456,42 @@ async function openProfileModal(){
       if(empClub&&empClubBody){
         var lines=[];
         if(SETTINGS.clubName)lines.push('<strong style="font-size:14px;">'+escHtml(SETTINGS.clubName)+'</strong>');
+        // Club address
+        const{data:locData}=await sb.from('locations').select('address').eq('id',LOCATION_ID).single();
+        if(locData?.address)lines.push('<span style="font-size:12px;color:var(--text-faint);">&#128205; '+escHtml(locData.address)+'</span>');
         // Primary owner contact
         const on=SETTINGS._ownerName,op=SETTINGS._ownerPhone,oe=SETTINGS._ownerEmail;
         if(on||op||oe){
-          lines.push('<div style="height:4px;"></div>');
+          lines.push('<div style="height:6px;"></div>');
           lines.push('<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:1px;">Owner</div>');
           if(on)lines.push('<strong>'+escHtml(on)+'</strong>');
           if(op)lines.push('&#128222; '+escHtml(op));
           if(oe)lines.push('&#9993;&#65039; '+escHtml(oe));
         }
+        // Other owners from DB
+        const{data:otherOwners}=await sb.from('users')
+          .select('first_name,last_name,display_name,email,phone')
+          .eq('location_id',LOCATION_ID)
+          .eq('role','owner')
+          .neq('id',CURRENT_SESSION.user.id);
+        if(otherOwners&&otherOwners.length){
+          otherOwners.forEach(o=>{
+            const oName=[o.first_name,o.last_name].filter(Boolean).join(' ')||o.display_name||'';
+            lines.push('<div style="height:6px;"></div>');
+            lines.push('<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:1px;">Co-Owner</div>');
+            if(oName)lines.push('<strong>'+escHtml(oName)+'</strong>');
+            if(o.phone)lines.push('&#128222; '+escHtml(o.phone));
+            if(o.email)lines.push('&#9993;&#65039; '+escHtml(o.email));
+          });
+        }
         // Second contact
         const sc=SETTINGS.secondContact;
         if(sc&&(sc.name||sc.phone||sc.email)){
-          lines.push('<div style="height:4px;"></div>');
+          lines.push('<div style="height:6px;"></div>');
           lines.push('<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:1px;">Second Contact</div>');
           if(sc.name)lines.push('<strong>'+escHtml(sc.name)+'</strong>');
           if(sc.phone)lines.push('&#128222; '+escHtml(sc.phone));
           if(sc.email)lines.push('&#9993;&#65039; '+escHtml(sc.email));
-        }
-        if(SETTINGS.employeeInviteCode){
-          lines.push('<div style="height:4px;"></div>');
-          lines.push('<span style="font-size:11px;color:var(--text-faint);">Employee code: <strong style="font-family:monospace;letter-spacing:1px;color:var(--b6);">'+escHtml(SETTINGS.employeeInviteCode)+'</strong></span>');
         }
         empClubBody.innerHTML=lines.join('<br>');
         empClub.style.display='block';
@@ -1499,8 +1514,28 @@ async function loadTeamMembers(){
     list.innerHTML='<div style="font-size:13px;color:var(--text-faint);">No other team members yet.</div>';
     return;
   }
-  const owners=members.filter(m=>m.role==='owner');
+  // Primary owner is identified by matching SETTINGS._ownerEmail or _ownerName
+  const isPrimaryOwner=(m)=>{
+    if(SETTINGS._ownerEmail&&m.email&&m.email.toLowerCase()===SETTINGS._ownerEmail.toLowerCase())return true;
+    const mName=[m.first_name,m.last_name].filter(Boolean).join(' ')||m.display_name||'';
+    if(SETTINGS._ownerName&&mName&&mName.toLowerCase()===SETTINGS._ownerName.toLowerCase())return true;
+    return false;
+  };
+  const primaryOwners=members.filter(m=>m.role==='owner'&&isPrimaryOwner(m));
+  const otherOwners=members.filter(m=>m.role==='owner'&&!isPrimaryOwner(m));
   const employees=members.filter(m=>m.role!=='owner');
+
+  const renderPrimaryOwner=(m)=>{
+    const name=[m.first_name,m.last_name].filter(Boolean).join(' ')||m.display_name||m.email;
+    return`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-light);gap:8px;opacity:0.75;">
+      <div style="min-width:0;flex:1;">
+        <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(name)}</div>
+        <div style="font-size:11px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(m.email)}</div>
+      </div>
+      <span style="font-size:11px;font-weight:700;background:var(--g0,#f0fdf4);color:var(--g5);border:1px solid var(--g2,#bbf7d0);border-radius:6px;padding:3px 10px;flex-shrink:0;">Primary Owner</span>
+    </div>`;
+  };
+
   const renderMember=(m,isOwner)=>{
     const name=[m.first_name,m.last_name].filter(Boolean).join(' ')||m.display_name||m.email;
     const roleColor=isOwner?'var(--g5)':'var(--text-muted)';
@@ -1518,13 +1553,18 @@ async function loadTeamMembers(){
       </div>
     </div>`;
   };
+
   let html='';
-  if(owners.length){
-    html+=`<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--g5);margin-bottom:2px;margin-top:4px;">Other Owners</div>`;
-    html+=owners.map(m=>renderMember(m,true)).join('');
+  if(primaryOwners.length){
+    html+=`<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--g5);margin-bottom:2px;margin-top:4px;">Owner</div>`;
+    html+=primaryOwners.map(m=>renderPrimaryOwner(m)).join('');
+  }
+  if(otherOwners.length){
+    html+=`<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--g5);margin-bottom:2px;margin-top:10px;">Co-Owners</div>`;
+    html+=otherOwners.map(m=>renderMember(m,true)).join('');
   }
   if(employees.length){
-    if(owners.length)html+=`<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:2px;margin-top:10px;">Employees</div>`;
+    html+=`<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:2px;margin-top:10px;">Employees</div>`;
     html+=employees.map(m=>renderMember(m,false)).join('');
   }
   list.innerHTML=html;
