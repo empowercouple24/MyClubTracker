@@ -588,9 +588,31 @@ if('serviceWorker' in navigator){
   <div class="enter-ops-row">
     <div class="card">
       <div class="collapsible-toggle" onclick="toggleCollapse(this)" data-target="ops-body">Operators <span style="display:flex;align-items:center;gap:10px;margin-left:auto;"><span id="ops-earnings-preview" style="font-family:'Outfit',sans-serif;font-size:13px;font-weight:800;color:var(--b7);display:none;"></span><span class="arrow">▼</span></span></div>
-      <div class="collapsible-body" id="ops-body" style="display:flex;flex-direction:column;gap:6px;padding:8px 0;">
-        <div class="field-row" style="border-bottom:none;"><div class="field-label">Operator 1</div><select class="field-input" id="f-op1" onchange="markDirty();recalc()"></select></div>
-        <div class="field-row" style="border-bottom:none;"><div class="field-label">Operator 2</div><select class="field-input" id="f-op2" onchange="markDirty();recalc()"></select></div>
+      <div class="collapsible-body" id="ops-body" style="display:flex;flex-direction:column;gap:0;padding:8px 0;">
+        <!-- Column headers -->
+        <div style="display:grid;grid-template-columns:1fr 90px 90px;gap:8px;padding:0 10px 4px;align-items:center;">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">Operator</div>
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);text-align:center;">Hours</div>
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);text-align:right;">Payout</div>
+        </div>
+        <!-- Op 1 row -->
+        <div style="display:grid;grid-template-columns:1fr 90px 90px;gap:8px;padding:4px 10px;align-items:center;border-top:1px solid var(--border-light);">
+          <select class="field-input" id="f-op1" onchange="markDirty();recalc()" style="margin:0;"></select>
+          <select id="f-op1-hrs" onchange="markDirty();recalc()" style="font-family:'DM Sans',sans-serif;font-size:13px;padding:5px 6px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--b0);color:var(--text);text-align:center;"></select>
+          <div id="op1-payout-pill" style="font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;color:var(--g6);background:var(--g0);border-radius:var(--radius-sm);padding:5px 8px;text-align:right;">--</div>
+        </div>
+        <!-- Op 2 row -->
+        <div style="display:grid;grid-template-columns:1fr 90px 90px;gap:8px;padding:4px 10px;align-items:center;border-top:1px solid var(--border-light);">
+          <select class="field-input" id="f-op2" onchange="markDirty();recalc()" style="margin:0;"></select>
+          <select id="f-op2-hrs" onchange="markDirty();recalc()" style="font-family:'DM Sans',sans-serif;font-size:13px;padding:5px 6px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--b0);color:var(--text);text-align:center;"></select>
+          <div id="op2-payout-pill" style="font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;color:var(--g6);background:var(--g0);border-radius:var(--radius-sm);padding:5px 8px;text-align:right;">--</div>
+        </div>
+        <!-- Hourly rate -->
+        <div id="ops-hourly-rate-row" style="display:none;justify-content:space-between;align-items:center;padding:6px 10px;margin-top:2px;border-top:1px solid var(--border-light);background:var(--b0);border-radius:0 0 var(--radius) var(--radius);">
+          <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">Hourly rate <span id="ops-total-hrs-label" style="font-weight:500;text-transform:none;letter-spacing:0;"></span></span>
+          <span id="ops-hourly-rate-val" style="font-family:'Outfit',sans-serif;font-size:15px;font-weight:800;color:var(--b7);">--</span>
+        </div>
+        <!-- Reinvest -->
         <div id="reinvest-row" style="display:none;padding:4px 10px 2px;border-top:1px solid var(--border-light);margin-top:2px;">
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--b7);font-weight:600;">
             <input type="checkbox" id="f-owner-reinvest" onchange="markDirty();recalc()" style="width:15px;height:15px;accent-color:var(--b7);cursor:pointer;"/>
@@ -1013,6 +1035,7 @@ if('serviceWorker' in navigator){
       <div class="card" style="margin:0 0 10px;">
         <div class="detail-row"><span class="detail-row-label">Operator 1</span><span class="detail-row-val" id="df-op1"></span></div>
         <div class="detail-row"><span class="detail-row-label">Operator 2</span><span class="detail-row-val" id="df-op2"></span></div>
+        <div class="detail-row" id="df-hourly-row" style="display:none;border-top:1px solid var(--border-light);margin-top:4px;padding-top:4px;"><span class="detail-row-label">Hourly rate</span><span class="detail-row-val" id="df-hourly-rate" style="font-weight:700;color:var(--b6);"></span></div>
       </div>
 
       <!-- Notes -->
@@ -2173,12 +2196,16 @@ function loadDay(){
     const fp=document.getElementById('f-fundraiserPct');if(fp)fp.value=d.fundraiserPct||'0';
     const o1=document.getElementById('f-op1'),o2=document.getElementById('f-op2');
     if(o1&&d.op1!==undefined)o1.value=d.op1;if(o2&&d.op2!==undefined)o2.value=d.op2;
+    const h1=document.getElementById('f-op1-hrs'),h2=document.getElementById('f-op2-hrs');
+    if(h1)h1.value=d.op1Hrs||'';if(h2)h2.value=d.op2Hrs||'';
     // Restore reinvest checkbox
     const rc=document.getElementById('f-owner-reinvest');if(rc)rc.checked=d.ownerReinvest===true;
   }else{
     ENTRY_FIELDS.forEach(k=>{const el=document.getElementById('f-'+k);if(el)el.value='';});
     const fp=document.getElementById('f-fundraiserPct');if(fp)fp.value='0';
     const rc=document.getElementById('f-owner-reinvest');if(rc)rc.checked=false;
+    const h1=document.getElementById('f-op1-hrs'),h2=document.getElementById('f-op2-hrs');
+    if(h1)h1.value='';if(h2)h2.value='';
   }
   formatAllCurrencyFields();
   var dvEl=document.getElementById('f-dv');
@@ -2195,7 +2222,7 @@ async function saveDay(){
   const date=document.getElementById('entry-date').value;
   if(!date){showToast('Please set a date','error');return;}
   const c=calcAll();
-  const data={cashSales:pv('f-cashSales'),cardSales:pv('f-cardSales'),cardFees:pv('f-cardFees'),giftCardRedeemed:pv('f-giftCardRedeemed'),cashAppPay:pv('f-cashAppPay'),venmo:pv('f-venmo'),otherSales:pv('f-otherSales'),merchSales:pv('f-merchSales'),giftCardSales:pv('f-giftCardSales'),giftCardLoadFees:pv('f-giftCardLoadFees'),fundraiserCash:pv('f-fundraiserCash'),fundraiserCard:pv('f-fundraiserCard'),fundraiserPct:pv('f-fundraiserPct'),dv:pv('f-dv'),notes:document.getElementById('f-notes')?.value||'',op1:document.getElementById('f-op1')?.value||'',op2:document.getElementById('f-op2')?.value||'',totalSales:c.totalSales||0,overhead:c.overhead||0,taxes:c.tax||0,products:c.products||0,payouts:c.payouts||0,donation:c.donation||0,perDV:c.perDV||0,ownerReinvest:c.ownerReinvest||false,ownerShare:c.ownerShare||0};
+  const data={cashSales:pv('f-cashSales'),cardSales:pv('f-cardSales'),cardFees:pv('f-cardFees'),giftCardRedeemed:pv('f-giftCardRedeemed'),cashAppPay:pv('f-cashAppPay'),venmo:pv('f-venmo'),otherSales:pv('f-otherSales'),merchSales:pv('f-merchSales'),giftCardSales:pv('f-giftCardSales'),giftCardLoadFees:pv('f-giftCardLoadFees'),fundraiserCash:pv('f-fundraiserCash'),fundraiserCard:pv('f-fundraiserCard'),fundraiserPct:pv('f-fundraiserPct'),dv:pv('f-dv'),notes:document.getElementById('f-notes')?.value||'',op1:document.getElementById('f-op1')?.value||'',op2:document.getElementById('f-op2')?.value||'',op1Hrs:parseFloat(document.getElementById('f-op1-hrs')?.value)||0,op2Hrs:parseFloat(document.getElementById('f-op2-hrs')?.value)||0,totalSales:c.totalSales||0,overhead:c.overhead||0,taxes:c.tax||0,products:c.products||0,payouts:c.payouts||0,donation:c.donation||0,perDV:c.perDV||0,ownerReinvest:c.ownerReinvest||false,ownerShare:c.ownerShare||0};
   if(IS_ADMIN_VIEW) data._adminEdit=new Date().toISOString(); // stamp when admin last edited
   const ex=ALL_DAYS.find(d=>d.date===date);let error;
   if(ex){const{error:e}=await sb.from('days').update({data}).eq('id',ex.id);error=e;if(!e)ex.data=data;}
@@ -2316,31 +2343,68 @@ function renderOpsEarningsPreview(){
   const reinvestRow = document.getElementById('reinvest-row');
   const op1 = document.getElementById('f-op1')?.value || '';
   const op2 = document.getElementById('f-op2')?.value || '';
+  const h1 = parseFloat(document.getElementById('f-op1-hrs')?.value) || 0;
+  const h2 = parseFloat(document.getElementById('f-op2-hrs')?.value) || 0;
   const ops = [op1, op2].filter(Boolean);
   const ownerName = getOwnerOpName();
   const ownerIsSelected = ownerName && ops.includes(ownerName);
-  const isReinvesting = c.ownerReinvest && ownerIsSelected;
 
   // Show/hide reinvest row
   if(reinvestRow) reinvestRow.style.display = ownerIsSelected ? 'block' : 'none';
 
-  // Header preview label
-  if(previewEl){
-    const share = (c.group2 && c.payouts !== null && ops.length > 0 && !isReinvesting)
-      ? c.payouts / ops.filter(o=>o!==ownerName||!isReinvesting).length
-      : null;
-    const fullShare = (c.group2 && c.payoutsRaw !== null && ops.length > 0)
-      ? (c.payouts + c.ownerShare) / ops.length : null;
+  // Hours-based payout split
+  const totalHrs = h1 + h2;
+  const payouts = c.group2 && c.payouts !== null ? c.payouts : null;
+  const hourlyRate = (payouts !== null && totalHrs > 0) ? payouts / totalHrs : null;
 
-    if(ops.length > 0){
-      const parts = ops.map(o => {
-        if(o === ownerName && isReinvesting) return `${o.split(' ')[0]} &#8617;`;
-        const amt = c.group2 && c.payouts !== null
-          ? (ops.length === 1 ? c.payouts : c.payouts / ops.filter(op=>!(op===ownerName&&isReinvesting)).length)
-          : null;
-        return amt !== null ? `${o.split(' ')[0]} ${fmt$(amt)}` : o.split(' ')[0];
+  // Op payout pills
+  const pill1 = document.getElementById('op1-payout-pill');
+  const pill2 = document.getElementById('op2-payout-pill');
+  const rateRow = document.getElementById('ops-hourly-rate-row');
+  const rateVal = document.getElementById('ops-hourly-rate-val');
+  const totalHrsLabel = document.getElementById('ops-total-hrs-label');
+
+  if(pill1){
+    if(op1 && payouts !== null){
+      const pay = hourlyRate !== null && h1 > 0 ? hourlyRate * h1 : (ops.length > 0 ? payouts / ops.length : null);
+      const isReinvesting = ownerName && op1 === ownerName && c.ownerReinvest;
+      pill1.textContent = isReinvesting ? '↩ reinvested' : (pay !== null ? fmt$(pay) : '--');
+      pill1.style.color = isReinvesting ? 'var(--b6)' : 'var(--g6)';
+      pill1.style.background = isReinvesting ? 'var(--b1)' : 'var(--g0)';
+    } else { pill1.textContent = '--'; pill1.style.color='var(--g6)'; pill1.style.background='var(--g0)'; }
+  }
+  if(pill2){
+    if(op2 && payouts !== null){
+      const pay = hourlyRate !== null && h2 > 0 ? hourlyRate * h2 : (ops.length > 0 ? payouts / ops.length : null);
+      const isReinvesting = ownerName && op2 === ownerName && c.ownerReinvest;
+      pill2.textContent = isReinvesting ? '↩ reinvested' : (pay !== null ? fmt$(pay) : '--');
+      pill2.style.color = isReinvesting ? 'var(--b6)' : 'var(--g6)';
+      pill2.style.background = isReinvesting ? 'var(--b1)' : 'var(--g0)';
+    } else { pill2.textContent = '--'; pill2.style.color='var(--g6)'; pill2.style.background='var(--g0)'; }
+  }
+
+  // Hourly rate row
+  if(rateRow){
+    if(hourlyRate !== null && totalHrs > 0){
+      rateRow.style.display = 'flex';
+      if(rateVal) rateVal.textContent = fmt$(hourlyRate) + '/hr';
+      if(totalHrsLabel) totalHrsLabel.textContent = '· ' + totalHrs.toFixed(1) + ' total hrs';
+    } else {
+      rateRow.style.display = 'none';
+    }
+  }
+
+  // Header preview
+  if(previewEl){
+    if(ops.length > 0 && payouts !== null){
+      const parts = ops.map((o,i) => {
+        const h = i === 0 ? h1 : h2;
+        const isReinvesting = ownerName && o === ownerName && c.ownerReinvest;
+        if(isReinvesting) return `${o.split(' ')[0]} ↩`;
+        const pay = hourlyRate !== null && h > 0 ? hourlyRate * h : payouts / ops.length;
+        return `${o.split(' ')[0]} ${fmt$(pay)}`;
       });
-      previewEl.textContent = parts.join(' - ');
+      previewEl.textContent = parts.join(' · ');
       previewEl.style.display = 'inline';
     } else {
       previewEl.style.display = 'none';
@@ -2592,17 +2656,20 @@ function renderHistCal(){
       const isFuture=dateStr>todayStr;
       if(data){
         const ops=[data.op1,data.op2].filter(Boolean).join(', ');
-        const noteIcon=data.notes?'&#128221; ':'';
+        const noteIcon=data.notes?'<span style="font-size:12px;line-height:1;">&#128221;</span>':'';
         const adminIcon=data._adminEdit?'<span style="font-size:8px;color:var(--a5);">✎</span> ':'';
         html+=`<div class="hcal-day has-data${isToday?' today-day':''}" onclick="openDetail('${dateStr}')">
-          <div class="hcal-dn">${day}</div>
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:3px;">
+            <div class="hcal-dn" style="margin-bottom:0;">${day}</div>
+            <div style="display:flex;align-items:center;gap:2px;">${adminIcon}${noteIcon}</div>
+          </div>
           <div class="hcal-sales-label">Sales</div>
           <div class="hcal-sales">${fmt$(calSales(data))}</div>
           <div class="hcal-dv-block">
             <div class="hcal-pill-label">Documented Volume</div>
             <div class="hcal-pill-val">${(parseFloat(data.dv)||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
           </div>
-          ${(ops||noteIcon||adminIcon)?`<div class="hcal-extras">${ops}${noteIcon}${adminIcon}</div>`:''}
+          ${ops?`<div class="hcal-extras">${ops}</div>`:''}
         </div>`;
       } else if(isFuture){
         html+=`<div class="hcal-day empty-day"><div class="hcal-dn">${day}</div></div>`;
@@ -2712,20 +2779,35 @@ function openDetail(date){
   document.getElementById('df-products').textContent     = prod!==null ? fmt$(prod) : '--';
   document.getElementById('df-payouts').textContent      = pay!==null ? fmt$(pay) : '--';
 
-  // Operators -- mark reinvested owner with indicator
   const ownerName = getOwnerOpName();
   const reinvestTag = d.ownerReinvest ? ' <span style="font-size:10px;font-weight:700;background:#dbeafe;color:#1d4ed8;border-radius:4px;padding:1px 5px;vertical-align:middle;">&#8617; Reinvested</span>' : '';
+  const h1 = parseFloat(d.op1Hrs)||0, h2 = parseFloat(d.op2Hrs)||0;
+  const totalHrs = h1 + h2;
+  const hourlyRate = (c.payouts !== null && totalHrs > 0) ? c.payouts / totalHrs : null;
+
   if(d.op1){
     const isOwner1 = ownerName && d.op1===ownerName;
-    document.getElementById('df-op1').innerHTML = d.op1 + (isOwner1&&d.ownerReinvest?reinvestTag:'');
+    const hrsTag = h1 > 0 ? ` <span style="font-size:11px;color:var(--text-faint);font-weight:500;">${h1.toFixed(1)} hrs</span>` : '';
+    const payTag = hourlyRate !== null && h1 > 0 ? ` · <span style="font-weight:700;color:var(--g6);">${fmt$(hourlyRate*h1)}</span>` : '';
+    document.getElementById('df-op1').innerHTML = d.op1 + hrsTag + payTag + (isOwner1&&d.ownerReinvest?reinvestTag:'');
   } else {
     document.getElementById('df-op1').innerHTML = `<span class="detail-row-val dim">--</span>`;
   }
   if(d.op2){
     const isOwner2 = ownerName && d.op2===ownerName;
-    document.getElementById('df-op2').innerHTML = d.op2 + (isOwner2&&d.ownerReinvest?reinvestTag:'');
+    const hrsTag = h2 > 0 ? ` <span style="font-size:11px;color:var(--text-faint);font-weight:500;">${h2.toFixed(1)} hrs</span>` : '';
+    const payTag = hourlyRate !== null && h2 > 0 ? ` · <span style="font-weight:700;color:var(--g6);">${fmt$(hourlyRate*h2)}</span>` : '';
+    document.getElementById('df-op2').innerHTML = d.op2 + hrsTag + payTag + (isOwner2&&d.ownerReinvest?reinvestTag:'');
   } else {
     document.getElementById('df-op2').innerHTML = `<span class="detail-row-val dim">--</span>`;
+  }
+  const hourlyRow = document.getElementById('df-hourly-row');
+  const hourlyRateEl = document.getElementById('df-hourly-rate');
+  if(hourlyRow && hourlyRateEl){
+    if(hourlyRate !== null){
+      hourlyRow.style.display = 'flex';
+      hourlyRateEl.textContent = fmt$(hourlyRate) + '/hr · ' + totalHrs.toFixed(1) + ' total hrs';
+    } else { hourlyRow.style.display = 'none'; }
   }
 
   // Notes
@@ -3583,7 +3665,22 @@ function range(f,t,s){const r=[];for(let v=f;v<=t+0.001;v=Math.round((v+s)*1000)
 function buildSelect(id,vals,cur,fn){const el=document.getElementById(id);if(!el)return;el.innerHTML=vals.map(v=>`<option value="${v}" ${Math.abs(v-cur)<0.001?'selected':''}>${fn(v)}</option>`).join('');}
 function openProductsEditor(){closeProfileModal();window.location.href=IS_ADMIN_VIEW?`products.html?location_id=${LOCATION_ID}&admin=1`:`products.html?location_id=${LOCATION_ID}`;}
 
-function populateOperatorDropdowns(){const ops=SETTINGS.operators.filter(o=>o.name&&o.visible!==false),blank='<option value="">--</option>';['f-op1','f-op2'].forEach(id=>{const el=document.getElementById(id);if(!el)return;const cur=el.value;el.innerHTML=blank+ops.map(o=>`<option value="${o.name}">${o.name}</option>`).join('');el.value=cur;});renderOpsEarningsPreview();}
+function populateOperatorDropdowns(){
+  const ops=SETTINGS.operators.filter(o=>o.name&&o.visible!==false),blank='<option value="">--</option>';
+  ['f-op1','f-op2'].forEach(id=>{const el=document.getElementById(id);if(!el)return;const cur=el.value;el.innerHTML=blank+ops.map(o=>`<option value="${o.name}">${o.name}</option>`).join('');el.value=cur;});
+  // Populate hours dropdowns if not already done
+  ['f-op1-hrs','f-op2-hrs'].forEach(id=>{
+    const el=document.getElementById(id);if(!el||el.options.length>1)return;
+    el.innerHTML='<option value="">-- hrs</option>';
+    for(let h=0.5;h<=14;h+=0.5){
+      const opt=document.createElement('option');
+      opt.value=h;
+      opt.textContent=Number.isInteger(h)?h+'.0 hrs':h+' hrs';
+      el.appendChild(opt);
+    }
+  });
+  renderOpsEarningsPreview();
+}
 async function handleSignOut(){if(IS_ADMIN_VIEW){window.location.href='admin.html';return;}await sb.auth.signOut();window.location.href='index.html';}
 
 // -- LOCATION SWITCHER --
