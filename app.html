@@ -1549,7 +1549,7 @@ async function loadTeamMembers(){
           <option value="owner"    ${m.role==='owner'   ?'selected':''}>Owner</option>
           <option value="employee" ${m.role==='employee'?'selected':''}>Employee</option>
         </select>
-        <button onclick="confirmRemoveUser('${m.id}','${escHtml(name)}')" title="Remove user" style="background:none;border:1px solid var(--border);border-radius:5px;padding:3px 7px;cursor:pointer;font-size:13px;color:var(--r5);line-height:1;" onmouseover="this.style.background='var(--r0)'" onmouseout="this.style.background='none'">&#10005;</button>
+        <button onclick="confirmRemoveUser('${m.id}','${escHtml(name)}')" title="Remove operator" style="background:none;border:1px solid var(--border);border-radius:5px;padding:3px 7px;cursor:pointer;font-size:13px;color:var(--r5);line-height:1;" onmouseover="this.style.background='var(--r0)'" onmouseout="this.style.background='none'">&#10005;</button>
       </div>
     </div>`;
   };
@@ -1576,15 +1576,14 @@ async function changeTeamRole(userId,newRole,selectEl){
 }
 
 function confirmRemoveUser(userId,name){
-  if(!confirm(`Remove ${name} from this location?\n\nThis will revoke their access immediately. They will need a new invite code to re-register.`))return;
+  if(!confirm(`Remove ${name} from this location?\n\nThey will lose access immediately and will need a new invite code to rejoin.`))return;
   removeUser(userId,name);
 }
 
 async function removeUser(userId,name){
-  // Detach user from location -- preserves auth account so they can rejoin with invite code
   const{error}=await sb.from('users').update({location_id:null,role:'pending'}).eq('id',userId).eq('location_id',LOCATION_ID);
   if(error){showToast('Remove failed: '+error.message,'error');return;}
-  showToast(`${name} removed ok`,'success');
+  showToast(`${name} removed`,'success');
   await loadTeamMembers();
 }
 
