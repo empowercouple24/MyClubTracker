@@ -1140,18 +1140,18 @@ if('serviceWorker' in navigator){
     <!-- ── MY PROFILE (all roles) ── -->
     <div class="settings-group">
       <div class="settings-group-title">My Profile</div>
-      <!-- Avatar upload -->
-      <div class="settings-row" style="gap:12px;align-items:center;padding:6px 0 10px;">
-        <div class="prof-avatar-wrap" onclick="document.getElementById('prof-avatar-input').click()" title="Upload photo">
-          <div class="prof-avatar-circle" id="prof-avatar-circle"><span id="prof-avatar-initials"></span><img id="prof-avatar-img" alt="" style="display:none;"/></div>
-          <div class="prof-avatar-overlay">📷</div>
+      <!-- Avatar upload — centered org-admin style -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:10px 0 14px;">
+        <div class="prof-avatar-wrap" onclick="document.getElementById('prof-avatar-input').click()" title="Upload photo" style="width:80px;height:80px;">
+          <div class="prof-avatar-circle" id="prof-avatar-circle" style="width:80px;height:80px;font-size:28px;"><span id="prof-avatar-initials"></span><img id="prof-avatar-img" alt="" style="display:none;width:80px;height:80px;object-fit:cover;border-radius:50%;"/></div>
+          <div class="prof-avatar-overlay" style="width:26px;height:26px;font-size:13px;">📷</div>
           <input type="file" id="prof-avatar-input" accept="image/*" style="display:none;" onchange="handleAvatarUpload(this)"/>
         </div>
-        <div style="flex:1;min-width:0;">
+        <div style="text-align:center;">
           <div style="font-size:13px;font-weight:600;color:var(--text);">Profile Photo</div>
           <div style="font-size:11px;color:var(--text-faint);margin-top:2px;">Tap the circle to upload. Shown in nav and team views.</div>
-          <button id="prof-avatar-remove-btn" class="btn btn-ghost" onclick="removeAvatar()" style="display:none;margin-top:6px;font-size:11px;padding:3px 10px;color:var(--danger,#dc2626);">Remove photo</button>
         </div>
+        <button id="prof-avatar-remove-btn" class="btn btn-ghost" onclick="removeAvatar()" style="display:none;font-size:11px;padding:4px 14px;color:var(--danger,#dc2626);">Remove photo</button>
       </div>
       <div class="settings-row" style="gap:6px;"><label style="min-width:90px;">First Name</label><input type="text" class="prof-input" id="prof-firstname" placeholder="First name"/></div>
       <div class="settings-row" style="gap:6px;"><label style="min-width:90px;">Last Name</label><input type="text" class="prof-input" id="prof-lastname" placeholder="Last name"/></div>
@@ -1177,6 +1177,7 @@ if('serviceWorker' in navigator){
       <div class="settings-group">
         <div class="settings-group-title">Club</div>
         <div class="settings-row"><label>Club Name</label><input type="text" id="s-clubname" placeholder="Club name" style="flex:1;min-width:0;"/></div>
+        <div class="settings-row"><label style="color:var(--text-faint);">Address</label><div id="s-club-address" style="flex:1;font-size:13px;color:var(--text-muted);padding:4px 0;"></div></div>
       </div>
       <!-- Operating Days -->
       <div class="settings-group">
@@ -1204,33 +1205,17 @@ if('serviceWorker' in navigator){
       <div class="settings-group" id="prof-role-section">
         <div class="settings-group-title">Team Members</div>
         <div id="prof-team-list" style="font-size:13px;color:var(--text-muted);padding:8px 0;">Loading…</div>
-      </div>
-      <!-- Employee Access -->
-      <div class="settings-group" id="s-employee-section">
-        <div class="settings-group-title">Employee Access</div>
-        <div class="settings-row" style="flex-wrap:wrap;gap:6px;">
-          <label style="flex:none;width:100%;font-size:12px;color:var(--text-faint);">Share this code with employees so they can log in.</label>
-          <div style="display:flex;gap:8px;width:100%;align-items:center;">
-            <div id="s-emp-code-display" onclick="copyEmpCode()" title="Click to copy"
-              style="flex:1;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;color:var(--b7);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;cursor:pointer;user-select:all;min-height:36px;display:flex;align-items:center;gap:8px;">
-              <span id="s-emp-code-text" style="flex:1;"></span>
-              <span style="font-size:10px;font-weight:500;color:var(--text-faint);letter-spacing:0;">copy</span>
+        <!-- Invite by email (moved here from employee section) -->
+        <div style="margin-top:10px;border-top:1px solid var(--border-light);padding-top:10px;" id="s-employee-section">
+          <div id="emp-invite-toggle" onclick="toggleEmpInvite()" style="font-size:12px;font-weight:600;color:var(--b6);cursor:pointer;display:inline-flex;align-items:center;gap:4px;">+ Invite employee by email</div>
+          <div id="emp-invite-panel" style="display:none;margin-top:8px;">
+            <div style="display:flex;gap:8px;align-items:center;">
+              <input type="email" id="emp-invite-email" placeholder="employee@email.com"
+                style="flex:1;font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 10px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--b0);color:var(--text);outline:none;"/>
+              <button class="btn btn-primary" onclick="sendEmpInviteEmail()" style="white-space:nowrap;flex-shrink:0;font-size:12px;padding:7px 14px;">Send Invite</button>
             </div>
-            <input type="hidden" id="s-emp-code"/>
-            <button class="btn btn-ghost" onclick="generateEmpCode()" style="white-space:nowrap;flex-shrink:0;">Generate</button>
-          </div>
-          <!-- Invite by email -->
-          <div style="width:100%;margin-top:6px;">
-            <div id="emp-invite-toggle" onclick="toggleEmpInvite()" style="font-size:12px;font-weight:600;color:var(--b6);cursor:pointer;display:inline-flex;align-items:center;gap:4px;">+ Invite by email</div>
-            <div id="emp-invite-panel" style="display:none;margin-top:8px;">
-              <div style="display:flex;gap:8px;align-items:center;">
-                <input type="email" id="emp-invite-email" placeholder="employee@email.com"
-                  style="flex:1;font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 10px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--b0);color:var(--text);outline:none;"/>
-                <button class="btn btn-primary" onclick="sendEmpInviteEmail()" style="white-space:nowrap;flex-shrink:0;font-size:12px;padding:7px 14px;">Send Invite</button>
-              </div>
-              <div style="font-size:11px;color:var(--text-faint);margin-top:5px;">They'll receive an email with the invite code and a link to register.</div>
-              <div id="emp-invite-msg" style="display:none;font-size:12px;font-weight:600;margin-top:6px;padding:6px 10px;border-radius:6px;"></div>
-            </div>
+            <div style="font-size:11px;color:var(--text-faint);margin-top:5px;">They'll receive an email with the invite code and a link to register.</div>
+            <div id="emp-invite-msg" style="display:none;font-size:12px;font-weight:600;margin-top:6px;padding:6px 10px;border-radius:6px;"></div>
           </div>
         </div>
       </div>
@@ -1405,13 +1390,25 @@ async function openProfileModal(){
     populateProfAvatar(u?.avatar_url, u?.first_name, u?.last_name, u?.display_name);
     autoSizeInput(document.getElementById('prof-name'));
     const phoneEl=document.getElementById('prof-phone');
-    phoneEl.value=u?.phone||'';
-    if(u?.phone)fmtPhone(phoneEl);
+    // Pre-populate phone from users table, fallback to auth metadata from signup
+    let phone = u?.phone || '';
+    if(!phone){
+      const{data:{user:authUser}}=await sb.auth.getUser();
+      phone=authUser?.user_metadata?.phone||'';
+    }
+    phoneEl.value=phone;
+    if(phone)fmtPhone(phoneEl);
     document.getElementById('prof-email').value=CURRENT_SESSION.user.email||'';
     if(isOwner){
       // Show owner sections, hide employee club info
       document.getElementById('prof-owner-sections').style.display='block';
       document.getElementById('prof-emp-club').style.display='none';
+      // Club address
+      const addrEl=document.getElementById('s-club-address');
+      if(addrEl){
+        const{data:loc}=await sb.from('locations').select('address').eq('id',LOCATION_ID).single();
+        addrEl.textContent=loc?.address||'—';
+      }
       // Build settings UI inside the unified modal
       buildSettingsUI();
       loadTeamMembers();
@@ -1489,16 +1486,25 @@ async function loadTeamMembers(){
     list.innerHTML='<div style="font-size:13px;color:var(--text-faint);">No other team members yet.</div>';
     return;
   }
-  const roleColors={owner:'var(--g5)',employee:'var(--text-muted)'};
-  list.innerHTML=members.map(m=>{
+  // Sort: owners first, then employees
+  const sorted=[...members].sort((a,b)=>{
+    if(a.role===b.role)return 0;
+    return a.role==='owner'?-1:1;
+  });
+  list.innerHTML=sorted.map(m=>{
     const name=[m.first_name,m.last_name].filter(Boolean).join(' ')||m.display_name||m.email;
+    const isOwner=m.role==='owner';
+    const roleColor=isOwner?'var(--g5)':'var(--text-muted)';
     return`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-light);gap:8px;">
       <div style="min-width:0;flex:1;">
-        <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(name)}</div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(name)}</span>
+          ${isOwner?`<span style="font-size:10px;font-weight:700;background:var(--g0,#f0fdf4);color:var(--g5);border:1px solid var(--g2,#bbf7d0);border-radius:4px;padding:1px 6px;flex-shrink:0;">Owner</span>`:''}
+        </div>
         <div style="font-size:11px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(m.email)}</div>
       </div>
       <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-        <select onchange="changeTeamRole('${m.id}',this.value,this)" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:3px 6px;border-radius:5px;border:1px solid var(--border);background:var(--surface);color:${roleColors[m.role]||'var(--text-muted)'};cursor:pointer;outline:none;">
+        <select onchange="changeTeamRole('${m.id}',this.value,this)" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:3px 6px;border-radius:5px;border:1px solid var(--border);background:var(--surface);color:${roleColor};cursor:pointer;outline:none;">
           <option value="owner"    ${m.role==='owner'   ?'selected':''}>Owner</option>
           <option value="employee" ${m.role==='employee'?'selected':''}>Employee</option>
         </select>
