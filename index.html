@@ -154,6 +154,17 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
     <div id="resend-wrap" style="display:none;text-align:center;margin-top:10px;">
       <button class="btn-g" onclick="doResend()">Resend confirmation email</button>
     </div>
+    <!-- Rejoin with invite code (shown for pending/removed accounts) -->
+    <div id="si-rejoin-wrap" style="display:none;margin-top:12px;background:#fef9ec;border:1px solid #fde68a;border-radius:10px;padding:12px 14px;">
+      <div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:8px;">Re-enter with invite code</div>
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="si-rejoin-code" placeholder="Invite code" maxlength="10"
+          style="flex:1;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:8px 10px;border-radius:8px;border:1px solid #fde68a;background:#fff;outline:none;"
+          oninput="this.value=this.value.toUpperCase()"/>
+        <button onclick="doRejoin()" style="padding:8px 16px;border-radius:8px;background:#1e3a5f;color:#fff;border:none;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">Rejoin</button>
+      </div>
+      <div id="si-rejoin-msg" style="display:none;font-size:12px;margin-top:6px;font-weight:600;"></div>
+    </div>
     <div class="tc mt8"><button class="btn-g" onclick="showTab('forgot')">Forgot password?</button></div>
     <div class="divider"><div class="divider-line"></div><div class="divider-text">New to the app?</div><div class="divider-line"></div></div>
     <button class="btn-s" onclick="showTab('register')">Create Account →</button>
@@ -406,6 +417,23 @@ async function init(){
     if(code||emailParam) showMsg('reg-msg1','Your details have been pre-filled ✓','success');
     return;
   }
+  // Auto-open rejoin flow with pre-filled code and email
+  if(params.get('tab')==='rejoin'){
+    showTab('signin');
+    var rejoinCode=params.get('code');
+    var rejoinEmail=params.get('email');
+    if(rejoinCode){
+      var rcEl=document.getElementById('si-rejoin-code');
+      if(rcEl)rcEl.value=decodeURIComponent(rejoinCode).toUpperCase();
+    }
+    if(rejoinEmail){
+      var reEl=document.getElementById('si-email');
+      if(reEl)reEl.value=decodeURIComponent(rejoinEmail);
+    }
+    document.getElementById('si-rejoin-wrap').style.display='block';
+    showMsg('si-msg','Sign in below then click Rejoin to re-link your account.','info');
+    return;
+  }
   var session=(await sb.auth.getSession()).data.session;
   if(session){
     var r=await sb.from('users').select('role,location_id').eq('id',session.user.id).single();
@@ -456,7 +484,8 @@ async function doSignIn(){
     if(u.location_id){window.location.href='app.html';return;}
     if(u.role==='pending'||!u.location_id){
       await sb.auth.signOut();
-      showMsg('si-msg','Your account has been deactivated. Contact your admin to request reactivation.','error');
+      showMsg('si-msg','Your account is not linked to a club. Enter your invite code below to rejoin.','error');
+      document.getElementById('si-rejoin-wrap').style.display='block';
       setBtn('si-btn',false,'Sign In');return;
     }
     showMsg('si-msg','No location assigned. Contact your admin.','error');setBtn('si-btn',false,'Sign In');
@@ -505,6 +534,30 @@ async function submitChangePassword(){
 }
 
 async function doResend(){var email=document.getElementById('si-email').value.trim();if(!email){showMsg('si-msg','Enter your email above first.','error');return;}await sb.auth.resend({type:'signup',email:email});showMsg('si-msg','Confirmation email resent! Check your inbox.','success');document.getElementById('resend-wrap').style.display='none';}
+
+async function doRejoin(){
+  const code=document.getElementById('si-rejoin-code').value.trim().toUpperCase();
+  const email=document.getElementById('si-email').value.trim();
+  const password=document.getElementById('si-password').value;
+  const msgEl=document.getElementById('si-rejoin-msg');
+  if(!code){msgEl.style.display='block';msgEl.style.color='#dc2626';msgEl.textContent='Enter your invite code.';return;}
+  msgEl.style.display='none';
+  // Sign in first to get session
+  const{data:signInData,error:signInErr}=await sb.auth.signInWithPassword({email,password});
+  if(signInErr){msgEl.style.display='block';msgEl.style.color='#dc2626';msgEl.textContent='Sign in failed: '+signInErr.message;return;}
+  // Find location by invite code
+  const{data:locations}=await sb.from('locations').select('id,name,settings');
+  const match=locations?.find(l=>
+    (l.settings?.employeeInviteCode&&l.settings.employeeInviteCode.toUpperCase()===code)||
+    (l.invite_code&&l.invite_code.toUpperCase()===code)
+  );
+  if(!match){await sb.auth.signOut();msgEl.style.display='block';msgEl.style.color='#dc2626';msgEl.textContent='Invalid invite code. Check with your club owner.';return;}
+  // Re-link user to location
+  const role=match.invite_code?.toUpperCase()===code?'owner':'employee';
+  const{error:updateErr}=await sb.from('users').update({location_id:match.id,role}).eq('id',signInData.user.id);
+  if(updateErr){await sb.auth.signOut();msgEl.style.display='block';msgEl.style.color='#dc2626';msgEl.textContent='Could not rejoin: '+updateErr.message;return;}
+  window.location.href='app.html';
+}
 async function doReset(){var email=document.getElementById('fp-email').value.trim();if(!email){showMsg('fp-msg','Please enter your email.','error');return;}setBtn('fp-btn',true,'Sending…');var res=await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+'/index.html'});setBtn('fp-btn',false,'Send Reset Link');if(res.error){showMsg('fp-msg',res.error.message,'error');return;}showMsg('fp-msg','Reset link sent! Check your inbox and spam folder.','success');}
 async function doNewPassword(){var pw=document.getElementById('np-password').value;var pw2=document.getElementById('np-password2').value;if(!pw||pw.length<6){showMsg('np-msg','Password must be at least 6 characters.','error');return;}if(pw!==pw2){showMsg('np-msg','Passwords do not match.','error');return;}setBtn('np-btn',true,'Updating…');var res=await sb.auth.updateUser({password:pw});setBtn('np-btn',false,'Update Password');if(res.error){showMsg('np-msg',res.error.message,'error');return;}showMsg('np-msg','Password updated! Redirecting…','success');setTimeout(async function(){var s=(await sb.auth.getSession()).data.session;if(s){var r=await sb.from('users').select('role,location_id').eq('id',s.user.id).single();var u=r.data;if(u&&u.role==='admin'){window.location.href='admin.html';return;}if(u&&u.location_id){window.location.href='app.html';return;}}},1500);}
 function selectRole(role){selectedRole=role;document.getElementById('role-owner').classList.toggle('selected',role==='owner');document.getElementById('role-employee').classList.toggle('selected',role==='employee');document.getElementById('code-label').textContent=role==='owner'?'Owner Invite Code':'Operator Invite Code';resetVerify();}
