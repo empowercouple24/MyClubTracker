@@ -162,6 +162,28 @@ if('serviceWorker' in navigator){
     .hcard-sales{font-family:'Outfit',sans-serif;font-size:15px;font-weight:700;color:var(--g5)}
     .hcard-row{display:flex;gap:5px;flex-wrap:wrap}
     .hcard-pill{font-size:11px;font-weight:500;background:var(--b0);color:var(--text-muted);border-radius:20px;padding:2px 7px}
+    /* HISTORY CALENDAR */
+    .hcal-dow-row{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px;}
+    .hcal-dow{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-faint);text-align:center;padding:2px 0;}
+    .hcal-week{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px;}
+    .hcal-day{border-radius:var(--radius-sm);padding:5px 4px;min-height:58px;display:flex;flex-direction:column;cursor:pointer;transition:box-shadow 0.12s,border-color 0.12s;position:relative;}
+    .hcal-day.has-data{background:var(--surface);border:1px solid var(--border-light);box-shadow:var(--shadow-sm);}
+    .hcal-day.has-data:hover{box-shadow:var(--shadow-md);border-color:var(--b3);}
+    .hcal-day.empty-day{background:transparent;border:1px solid transparent;cursor:default;}
+    .hcal-day.no-data{background:var(--b0);border:1px dashed var(--border-light);cursor:default;opacity:0.5;}
+    .hcal-day.today-day{border-color:var(--b5) !important;box-shadow:0 0 0 1px var(--b5);}
+    .hcal-dn{font-size:11px;font-weight:700;color:var(--text-faint);margin-bottom:3px;}
+    .hcal-day.has-data .hcal-dn{color:var(--text-muted);}
+    .hcal-sales{font-family:'Outfit',sans-serif;font-size:13px;font-weight:800;color:var(--g5);line-height:1;}
+    .hcal-pills{display:flex;flex-direction:column;gap:2px;margin-top:3px;}
+    .hcal-pill{font-size:9px;font-weight:500;color:var(--text-faint);}
+    .hcal-day.has-data .hcal-pill{color:var(--text-muted);}
+    .hcal-week-summary{background:var(--b8);border-radius:var(--radius-sm);padding:6px 10px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+    .hcal-week-label{font-size:10px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,0.55);}
+    .hcal-week-total{font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:white;}
+    .hcal-month-total{background:var(--b8);border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;}
+    .hcal-month-total-label{font-size:11px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,0.55);}
+    .hcal-month-total-val{font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;color:white;}
     /* PROJECTIONS */
     .proj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px}
     .proj-cell{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:10px 8px;text-align:center;box-shadow:var(--shadow-sm)}
@@ -580,7 +602,14 @@ if('serviceWorker' in navigator){
   </div>
 </div><!-- /panel-enter -->
 
-<div class="tab-panel" id="panel-history"><div id="history-list"><div class="empty-state">No entries yet.</div></div></div>
+<div class="tab-panel" id="panel-history">
+  <div id="history-cal-nav" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+    <button class="btn btn-ghost" id="hist-prev-btn" onclick="histCalShift(-1)" style="padding:5px 12px;font-size:16px;">&#8592;</button>
+    <span id="hist-cal-label" style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:var(--text);"></span>
+    <button class="btn btn-ghost" id="hist-next-btn" onclick="histCalShift(1)" style="padding:5px 12px;font-size:16px;">&#8594;</button>
+  </div>
+  <div id="history-cal-grid" style="width:100%;"></div>
+</div>
 
 <div class="tab-panel" id="panel-proj">
   <div style="max-width:700px;margin:0 auto;padding:12px 12px 40px;">
@@ -809,63 +838,100 @@ if('serviceWorker' in navigator){
 <div class="detail-overlay" id="detail-overlay" onclick="closeDetailOnBg(event)">
   <div class="detail-sheet">
     <div class="detail-handle"></div>
-    <div class="detail-header">
-      <div class="detail-date" id="detail-date"></div>
-      <div class="detail-total" id="detail-total"></div>
-    </div>
-    <!-- Summary box -->
-    <div class="detail-summary-box">
-      <div class="detail-summary-grid">
-        <div><div class="detail-summary-item-label">Total Sales</div><div class="detail-summary-item-val hl" id="ds-sales"></div></div>
-        <div><div class="detail-summary-item-label">DV</div><div class="detail-summary-item-val" id="ds-dv"></div></div>
-        <div><div class="detail-summary-item-label">$/DV</div><div class="detail-summary-item-val" id="ds-perdv"></div></div>
-        <div><div class="detail-summary-item-label">Tax</div><div class="detail-summary-item-val" id="ds-tax"></div></div>
-        <div><div class="detail-summary-item-label">Overhead</div><div class="detail-summary-item-val" id="ds-oh"></div></div>
-        <div><div class="detail-summary-item-label">Payouts</div><div class="detail-summary-item-val hl" id="ds-payouts"></div></div>
+    <div style="padding:0 16px 0;overflow-y:auto;flex:1;">
+
+      <!-- Summary box — matches Enter tab style -->
+      <div class="summary-box" style="margin-bottom:10px;">
+        <div class="summary-title" id="detail-date"></div>
+        <div class="summary-hero">
+          <div>
+            <div class="summary-net-label">Total Sales Deposits</div>
+            <div class="summary-net-val" id="ds-sales">—</div>
+          </div>
+          <div class="summary-hero-right" id="ds-fundraiser-hero">
+            <div class="summary-fund-label">Fundraiser</div>
+            <div class="summary-fund-val" id="ds-fundraiser">—</div>
+            <div class="summary-fund-breakdown" id="ds-fundraiser-breakdown"></div>
+          </div>
+        </div>
+        <div class="summary-cards">
+          <div class="summary-card">
+            <div class="summary-card-label">Taxes</div>
+            <div class="summary-card-val" id="ds-tax">—</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-card-label">Overhead</div>
+            <div class="summary-card-val" id="ds-oh">—</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-card-label">Herbalife</div>
+            <div class="summary-card-val" id="ds-prod">—</div>
+          </div>
+          <div class="summary-card">
+            <div>
+              <div class="summary-card-label">Payouts</div>
+              <div class="summary-card-sub" id="ds-perdv">—</div>
+            </div>
+            <div class="summary-card-val" id="ds-payouts">—</div>
+          </div>
+        </div>
+        <div class="summary-balance">
+          <span id="ds-ops-label" style="color:rgba(255,255,255,0.5);font-size:11px;">—</span>
+          <span id="ds-balance" class="balance-pending">—</span>
+        </div>
       </div>
-    </div>
-    <!-- Sales fields -->
-    <div class="detail-section-label">Sales</div>
-    <div class="card" style="margin:0 16px;">
-      <div class="detail-row"><span class="detail-row-label">Cash Sales</span><span class="detail-row-val" id="df-cashSales"></span></div>
-      <div class="detail-row"><span class="detail-row-label">Card Sales</span><span class="detail-row-val" id="df-cardSales"></span></div>
-      <div class="detail-row"><span class="detail-row-label">Card Fees</span><span class="detail-row-val" id="df-cardFees"></span></div>
-      <div class="detail-row"><span class="detail-row-label">Gift Card Redeemed</span><span class="detail-row-val" id="df-giftCardRedeemed"></span></div>
-      <div class="detail-row"><span class="detail-row-label">CashApp Pay (QR)</span><span class="detail-row-val" id="df-cashAppPay"></span></div>
-      <div class="detail-row"><span class="detail-row-label">Venmo/CashApp (App)</span><span class="detail-row-val" id="df-venmo"></span></div>
-      <div class="detail-row"><span class="detail-row-label">Other Sales</span><span class="detail-row-val" id="df-otherSales"></span></div>
-      <div class="detail-row"><span class="detail-row-label">Merchandise</span><span class="detail-row-val" id="df-merchSales"></span></div>
-      <div class="detail-row"><span class="detail-row-label">Gift Card Sales</span><span class="detail-row-val" id="df-giftCardSales"></span></div>
-      <div class="detail-row"><span class="detail-row-label">Gift Card Load Fees</span><span class="detail-row-val" id="df-giftCardLoadFees"></span></div>
-    </div>
-    <!-- Fundraiser -->
-    <div class="detail-section-label">Fundraiser</div>
-    <div class="card" style="margin:0 16px;">
-      <div class="detail-row"><span class="detail-row-label">Cash Donations</span><span class="detail-row-val" id="df-fundraiserCash"></span></div>
-      <div class="detail-row"><span class="detail-row-label">Card Donations</span><span class="detail-row-val" id="df-fundraiserCard"></span></div>
-      <div class="detail-row"><span class="detail-row-label">Donation %</span><span class="detail-row-val" id="df-fundraiserPct"></span></div>
-    </div>
-    <!-- Breakdown -->
-    <div class="detail-section-label">Breakdown</div>
-    <div class="card" style="margin:0 16px;">
-      <div class="detail-row"><span class="detail-row-label">Card Deposits</span><span class="detail-row-val" id="df-cardDeposits"></span></div>
-      <div class="detail-row"><span class="detail-row-label">Total Sales</span><span class="detail-row-val green" id="df-totalSales"></span></div>
-      <div class="detail-row"><span class="detail-row-label">Tax</span><span class="detail-row-val" id="df-tax"></span></div>
-      <div class="detail-row"><span class="detail-row-label">Overhead</span><span class="detail-row-val" id="df-overhead"></span></div>
-      <div class="detail-row"><span class="detail-row-label">Donation</span><span class="detail-row-val" id="df-donation"></span></div>
-      <div class="detail-row"><span class="detail-row-label">Products</span><span class="detail-row-val" id="df-products"></span></div>
-      <div class="detail-row"><span class="detail-row-label">Payouts</span><span class="detail-row-val green" id="df-payouts"></span></div>
-    </div>
-    <!-- Operators -->
-    <div class="detail-section-label">Operators</div>
-    <div class="card" style="margin:0 16px;">
-      <div class="detail-row"><span class="detail-row-label">Operator 1</span><span class="detail-row-val" id="df-op1"></span></div>
-      <div class="detail-row"><span class="detail-row-label">Operator 2</span><span class="detail-row-val" id="df-op2"></span></div>
-    </div>
-    <!-- Notes -->
-    <div id="df-notes-section" style="display:none;">
-      <div class="detail-section-label">Notes</div>
-      <div class="detail-notes-box" id="df-notes"></div>
+
+      <!-- Sales fields -->
+      <div class="detail-section-label">Sales</div>
+      <div class="card" style="margin:0 0 10px;">
+        <div class="detail-row"><span class="detail-row-label">Cash Sales</span><span class="detail-row-val" id="df-cashSales"></span></div>
+        <div class="detail-row"><span class="detail-row-label">Card Sales</span><span class="detail-row-val" id="df-cardSales"></span></div>
+        <div class="detail-row"><span class="detail-row-label">Card Fees</span><span class="detail-row-val" id="df-cardFees"></span></div>
+        <div class="detail-row"><span class="detail-row-label">Gift Card Redeemed</span><span class="detail-row-val" id="df-giftCardRedeemed"></span></div>
+        <div class="detail-row"><span class="detail-row-label">CashApp Pay (QR)</span><span class="detail-row-val" id="df-cashAppPay"></span></div>
+        <div class="detail-row"><span class="detail-row-label">Venmo/CashApp (App)</span><span class="detail-row-val" id="df-venmo"></span></div>
+        <div class="detail-row"><span class="detail-row-label">Other Sales</span><span class="detail-row-val" id="df-otherSales"></span></div>
+        <div class="detail-row"><span class="detail-row-label">Merchandise</span><span class="detail-row-val" id="df-merchSales"></span></div>
+        <div class="detail-row"><span class="detail-row-label">Gift Card Sales</span><span class="detail-row-val" id="df-giftCardSales"></span></div>
+        <div class="detail-row"><span class="detail-row-label">Gift Card Load Fees</span><span class="detail-row-val" id="df-giftCardLoadFees"></span></div>
+      </div>
+
+      <!-- Fundraiser -->
+      <div id="df-fundraiser-section" style="display:none;">
+        <div class="detail-section-label">Fundraiser</div>
+        <div class="card" style="margin:0 0 10px;">
+          <div class="detail-row"><span class="detail-row-label">Cash Donations</span><span class="detail-row-val" id="df-fundraiserCash"></span></div>
+          <div class="detail-row"><span class="detail-row-label">Card Donations</span><span class="detail-row-val" id="df-fundraiserCard"></span></div>
+          <div class="detail-row"><span class="detail-row-label">Donation %</span><span class="detail-row-val" id="df-fundraiserPct"></span></div>
+        </div>
+      </div>
+
+      <!-- Breakdown -->
+      <div class="detail-section-label">Breakdown</div>
+      <div class="card" style="margin:0 0 10px;">
+        <div class="detail-row"><span class="detail-row-label">Card Deposits</span><span class="detail-row-val" id="df-cardDeposits"></span></div>
+        <div class="detail-row"><span class="detail-row-label">Total Sales</span><span class="detail-row-val green" id="df-totalSales"></span></div>
+        <div class="detail-row"><span class="detail-row-label">Tax</span><span class="detail-row-val" id="df-tax"></span></div>
+        <div class="detail-row"><span class="detail-row-label">Overhead</span><span class="detail-row-val" id="df-overhead"></span></div>
+        <div class="detail-row"><span class="detail-row-label">Donation</span><span class="detail-row-val" id="df-donation"></span></div>
+        <div class="detail-row"><span class="detail-row-label">Products</span><span class="detail-row-val" id="df-products"></span></div>
+        <div class="detail-row"><span class="detail-row-label">Payouts</span><span class="detail-row-val green" id="df-payouts"></span></div>
+      </div>
+
+      <!-- Operators -->
+      <div class="detail-section-label">Operators</div>
+      <div class="card" style="margin:0 0 10px;">
+        <div class="detail-row"><span class="detail-row-label">Operator 1</span><span class="detail-row-val" id="df-op1"></span></div>
+        <div class="detail-row"><span class="detail-row-label">Operator 2</span><span class="detail-row-val" id="df-op2"></span></div>
+      </div>
+
+      <!-- Notes -->
+      <div id="df-notes-section" style="display:none;">
+        <div class="detail-section-label">Notes</div>
+        <div class="detail-notes-box" id="df-notes"></div>
+      </div>
+
+      <div style="height:16px;"></div>
     </div>
     <!-- Footer -->
     <div class="detail-footer">
@@ -2156,14 +2222,123 @@ function renderOpsEarningsPreview(){
   }
 }
 
+// History calendar state
+let _histCalYear=null,_histCalMonth=null;
+
 function renderHistory(){
-  const el=document.getElementById('history-list');
-  if(!ALL_DAYS.length){el.innerHTML='<div class="empty-state">No entries yet.</div>';return;}
-  el.innerHTML=ALL_DAYS.map(d=>{
-    const data=d.data||{},dt=new Date(d.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'}),ops=[data.op1,data.op2].filter(Boolean).join(', ');
-    const adminTag=data._adminEdit?'<span class="hcard-pill" style="background:var(--a1);color:var(--a6);">Admin edit</span>':'';
-    return`<div class="history-card" onclick="openDetail('${d.date}')"><div class="hcard-top"><div class="hcard-date">${dt}</div><div class="hcard-sales">${fmt$(data.totalSales||0)}</div></div><div class="hcard-row"><span class="hcard-pill">DV: ${fmtN(data.dv||0)}</span><span class="hcard-pill">$/DV: ${data.dv?fmt$(data.perDV||0):'--'}</span><span class="hcard-pill">OH: ${fmt$(data.overhead||0)}</span>${ops?`<span class="hcard-pill">${ops}</span>`:''}${data.notes?'<span class="hcard-pill">&#128221;</span>':''}${adminTag}</div></div>`;
-  }).join('');
+  const grid=document.getElementById('history-cal-grid');
+  if(!grid)return;
+  if(!ALL_DAYS.length){grid.innerHTML='<div class="empty-state">No entries yet.</div>';return;}
+  // Init to most recent month with data
+  if(_histCalYear===null){
+    const latest=ALL_DAYS[0];
+    const d=new Date(latest.date+'T00:00:00');
+    _histCalYear=d.getFullYear();
+    _histCalMonth=d.getMonth();
+  }
+  renderHistCal();
+}
+
+function histCalShift(dir){
+  _histCalMonth+=dir;
+  if(_histCalMonth>11){_histCalMonth=0;_histCalYear++;}
+  if(_histCalMonth<0){_histCalMonth=11;_histCalYear--;}
+  renderHistCal();
+}
+
+function renderHistCal(){
+  const grid=document.getElementById('history-cal-grid');
+  const label=document.getElementById('hist-cal-label');
+  if(!grid||!label)return;
+  const yr=_histCalYear,mo=_histCalMonth;
+  label.textContent=new Date(yr,mo,1).toLocaleDateString('en-US',{month:'long',year:'numeric'});
+
+  // Build date→data map for this month
+  const dayMap={};
+  ALL_DAYS.forEach(d=>{
+    const dt=new Date(d.date+'T00:00:00');
+    if(dt.getFullYear()===yr&&dt.getMonth()===mo) dayMap[d.date]=d.data||{};
+  });
+
+  // Month boundaries
+  const firstDay=new Date(yr,mo,1).getDay(); // 0=Sun
+  const daysInMonth=new Date(yr,mo+1,0).getDate();
+  const todayStr=new Date().toISOString().slice(0,10);
+
+  // Month total
+  const monthTotal=Object.values(dayMap).reduce((s,d)=>s+(d.totalSales||0),0);
+  const activeDays=Object.keys(dayMap).length;
+
+  // Check prev/next month availability
+  const allMonths=[...new Set(ALL_DAYS.map(d=>d.date.slice(0,7)))];
+  const thisMonthStr=`${yr}-${String(mo+1).padStart(2,'0')}`;
+  const prevBtn=document.getElementById('hist-prev-btn');
+  const nextBtn=document.getElementById('hist-next-btn');
+  if(prevBtn) prevBtn.disabled=!allMonths.some(m=>m<thisMonthStr);
+  if(nextBtn) nextBtn.disabled=!allMonths.some(m=>m>thisMonthStr);
+
+  // Build calendar grid HTML
+  const DOWS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let html=`<div class="hcal-month-total"><span class="hcal-month-total-label">${activeDays} day${activeDays!==1?'s':''} recorded</span><span class="hcal-month-total-val">${fmt$(monthTotal)}</span></div>`;
+  html+=`<div class="hcal-dow-row">${DOWS.map(d=>`<div class="hcal-dow">${d}</div>`).join('')}</div>`;
+
+  // Build weeks
+  let cells=[];
+  // Leading blanks
+  for(let i=0;i<firstDay;i++) cells.push(null);
+  for(let d=1;d<=daysInMonth;d++) cells.push(d);
+  // Trailing blanks to complete last week
+  while(cells.length%7!==0) cells.push(null);
+
+  // Group into weeks
+  const weeks=[];
+  for(let i=0;i<cells.length;i+=7) weeks.push(cells.slice(i,i+7));
+
+  weeks.forEach((week,wi)=>{
+    const weekDays=week.filter(Boolean);
+    const weekTotal=weekDays.reduce((s,d)=>{
+      const dateStr=`${yr}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      return s+((dayMap[dateStr]||{}).totalSales||0);
+    },0);
+    const weekHasData=weekDays.some(d=>{
+      const dateStr=`${yr}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      return !!dayMap[dateStr];
+    });
+
+    html+=`<div class="hcal-week">`;
+    week.forEach(day=>{
+      if(day===null){html+=`<div class="hcal-day empty-day"></div>`;return;}
+      const dateStr=`${yr}-${String(mo+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      const data=dayMap[dateStr];
+      const isToday=dateStr===todayStr;
+      const isFuture=dateStr>todayStr;
+      if(data){
+        const ops=[data.op1,data.op2].filter(Boolean).join(', ');
+        const noteIcon=data.notes?'&#128221; ':'';
+        const adminIcon=data._adminEdit?'<span style="font-size:8px;color:var(--a5);">✎</span> ':'';
+        html+=`<div class="hcal-day has-data${isToday?' today-day':''}" onclick="openDetail('${dateStr}')">
+          <div class="hcal-dn">${day}</div>
+          <div class="hcal-sales">${fmt$(data.totalSales||0)}</div>
+          <div class="hcal-pills">
+            <span class="hcal-pill">DV: ${fmtN(data.dv||0)}</span>
+            ${ops?`<span class="hcal-pill">${ops}</span>`:''}
+            ${(noteIcon||adminIcon)?`<span class="hcal-pill">${noteIcon}${adminIcon}</span>`:''}
+          </div>
+        </div>`;
+      } else if(isFuture){
+        html+=`<div class="hcal-day empty-day"><div class="hcal-dn">${day}</div></div>`;
+      } else {
+        html+=`<div class="hcal-day no-data${isToday?' today-day':''}"><div class="hcal-dn">${day}</div></div>`;
+      }
+    });
+    html+=`</div>`;
+
+    if(weekHasData){
+      html+=`<div class="hcal-week-summary"><span class="hcal-week-label">Week ${wi+1}</span><span class="hcal-week-total">${fmt$(weekTotal)}</span></div>`;
+    }
+  });
+
+  grid.innerHTML=html;
 }
 function navToDate(d){document.getElementById('entry-date').value=d;updateDateDisplay();loadDay();switchTab('enter');document.querySelector('.content-area').scrollTo({top:0,behavior:'smooth'});}
 
@@ -2174,16 +2349,7 @@ function openDetail(date){
   if(!day)return;
   const d=day.data||{};
   const dt=new Date(date+'T00:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
-  document.getElementById('detail-date').textContent=dt;
-  document.getElementById('detail-total').textContent=fmt$(d.totalSales||0);
-
-  // Summary box
-  setText('ds-sales', fmt$(d.totalSales||0));
-  setText('ds-dv',    fmtN(d.dv||0));
-  setText('ds-perdv', d.dv?fmt$(d.perDV||0):'--');
-  setText('ds-tax',   fmt$(d.taxes||0));
-  setText('ds-oh',    fmt$(d.overhead||0));
-  setText('ds-payouts',fmt$(d.payouts||0));
+  document.getElementById('detail-date').textContent=dt.toUpperCase();
 
   // Sales fields -- show $0.00 for zeros, dim if empty
   const sfmt=(v)=>v?fmt$(v):`<span class="detail-row-val dim">--</span>`;
@@ -2203,39 +2369,70 @@ function openDetail(date){
   document.getElementById('df-fundraiserCard').innerHTML  = sfmt(d.fundraiserCard);
   document.getElementById('df-fundraiserPct').innerHTML   = d.fundraiserPct?`${d.fundraiserPct}%`:`<span class="detail-row-val dim">--</span>`;
 
-  // Breakdown (recalculate from stored data for accuracy)
-  const taxRate=(SETTINGS.taxRate||1.25)/100,ohRate=(SETTINGS.ohRate||32)/100;
-  const otherRate=(SETTINGS.otherRate||50)/100,merchRate=(SETTINGS.merchRate||100)/100,dvDelta=(SETTINGS.dvDelta||3)/100;
-  const cs=d.cashSales||0,cas=d.cardSales||0,cf=d.cardFees||0,cap=d.cashAppPay||0,vm=d.venmo||0;
-  const gcSales=d.giftCardSales||0,gcFees=d.giftCardLoadFees||0,os=d.otherSales||0,ms=d.merchSales||0;
-  const fCash=d.fundraiserCash||0,fCard=d.fundraiserCard||0,fPct=d.fundraiserPct||0,dv=d.dv||0;
-  const cardDep=cas-cf+cap-gcFees;
-  const totalS=cs+vm+fCash+cardDep;
-  const netS=totalS-fCard-fCash;
-  const tax=(totalS+vm-fCard-fCash)*taxRate;
-  const ohBase=totalS-os-ms-gcSales-fCard-fCash;
-  const ohRaw=ohBase*ohRate+(ms+gcSales)*merchRate+os*otherRate;
-  const don=fPct>0?netS*(fPct/100):0;
-  const oh=ohRaw-don;
-  const prod=dv*(dvDelta+1);
-  const payRaw=totalS-fCard-fCash-tax-oh-prod;
-  const ownerName=getOwnerOpName();
-  const ops=[d.op1,d.op2].filter(Boolean);
-  const opsCount=ops.length;
-  const ownerInOps=ownerName&&ops.includes(ownerName);
-  const ownerShareAmt=(d.ownerReinvest&&ownerInOps&&opsCount>0)?payRaw/opsCount:0;
-  const pay=payRaw-ownerShareAmt;
-  const ohFinal=oh+ownerShareAmt;
+  // Breakdown — use authoritative calcAll() on stored data
+  const _saved = {
+    cashSales: d.cashSales||0, cardSales: d.cardSales||0, cardFees: d.cardFees||0,
+    giftCardRedeemed: d.giftCardRedeemed||0, cashAppPay: d.cashAppPay||0,
+    venmo: d.venmo||0, otherSales: d.otherSales||0, merchSales: d.merchSales||0,
+    giftCardSales: d.giftCardSales||0, giftCardLoadFees: d.giftCardLoadFees||0,
+    fundraiserCash: d.fundraiserCash||0, fundraiserCard: d.fundraiserCard||0,
+    fundraiserPct: d.fundraiserPct||0, dv: d.dv||0,
+    op1: d.op1||'', op2: d.op2||'', ownerReinvest: d.ownerReinvest||false,
+  };
+  const c = calcAll(_saved);
+  const cardDep = c.cardDeposits;
+  const totalS  = c.totalSales;
+  const tax     = c.tax;
+  const ohFinal = c.overhead;
+  const don     = c.donation;
+  const prod    = c.products;
+  const pay     = c.payouts;
+
+  // Populate summary-box (Enter tab style)
+  setText('ds-sales',   c.group1 ? fmt$(totalS) : '--');
+  setText('ds-tax',     c.group1 ? fmt$(tax||0) : '--');
+  setText('ds-oh',      c.group1 ? fmt$(ohFinal||0) : '--');
+  setText('ds-prod',    c.group2 ? fmt$(prod||0) : '--');
+  setText('ds-payouts', c.group2 ? fmt$(pay||0) : '--');
+  setText('ds-perdv',   d.dv ? `$/DV: ${fmt$(c.perDV||0)}` : '');
+
+  // Fundraiser hero
+  const dsFundHero = document.getElementById('ds-fundraiser-hero');
+  const dsFundBreak = document.getElementById('ds-fundraiser-breakdown');
+  if(c.hasFundraiser){
+    dsFundHero.classList.add('visible');
+    setText('ds-fundraiser', fmt$(c.fundraiserTotal||0));
+    dsFundBreak.innerHTML = (d.fundraiserCash?`<span>Cash: ${fmt$(d.fundraiserCash)}</span>`:'') + (d.fundraiserCard?`<span>Card: ${fmt$(d.fundraiserCard)}</span>`:'') + (d.fundraiserPct?`<span>${d.fundraiserPct}% donation</span>`:'');
+  } else {
+    dsFundHero.classList.remove('visible');
+  }
+
+  // Balance indicator
+  const dsBalance = document.getElementById('ds-balance');
+  const dsOpsLabel = document.getElementById('ds-ops-label');
+  const ops2 = [d.op1,d.op2].filter(Boolean);
+  dsOpsLabel.textContent = ops2.length ? ops2.join(' · ') : '—';
+  if(c.group1){
+    if(c.balanced){ dsBalance.className='balance-ok'; dsBalance.textContent='✓ Balanced'; }
+    else { dsBalance.className='balance-fail'; dsBalance.textContent=`Off by ${fmt$(Math.abs(c.balDiff||0))}`; }
+  } else {
+    dsBalance.className='balance-pending'; dsBalance.textContent='Partial data';
+  }
+
+  // Fundraiser section visibility
+  const fundSec = document.getElementById('df-fundraiser-section');
+  if(fundSec) fundSec.style.display = c.hasFundraiser ? 'block' : 'none';
 
   document.getElementById('df-cardDeposits').textContent = fmt$(cardDep);
   document.getElementById('df-totalSales').textContent   = fmt$(totalS);
-  document.getElementById('df-tax').textContent          = fmt$(tax);
-  document.getElementById('df-overhead').textContent     = fmt$(ohFinal);
-  document.getElementById('df-donation').textContent     = don>0?fmt$(don):'--';
-  document.getElementById('df-products').textContent     = fmt$(prod);
-  document.getElementById('df-payouts').textContent      = fmt$(pay);
+  document.getElementById('df-tax').textContent          = tax!==null ? fmt$(tax) : '--';
+  document.getElementById('df-overhead').textContent     = ohFinal!==null ? fmt$(ohFinal) : '--';
+  document.getElementById('df-donation').textContent     = (don&&don>0) ? fmt$(don) : '--';
+  document.getElementById('df-products').textContent     = prod!==null ? fmt$(prod) : '--';
+  document.getElementById('df-payouts').textContent      = pay!==null ? fmt$(pay) : '--';
 
   // Operators -- mark reinvested owner with indicator
+  const ownerName = getOwnerOpName();
   const reinvestTag = d.ownerReinvest ? ' <span style="font-size:10px;font-weight:700;background:#dbeafe;color:#1d4ed8;border-radius:4px;padding:1px 5px;vertical-align:middle;">&#8617; Reinvested</span>' : '';
   if(d.op1){
     const isOwner1 = ownerName && d.op1===ownerName;
@@ -2631,7 +2828,7 @@ function deleteSnapConfirm(){
     setTimeout(()=>{
       if(btn.dataset.confirming==='1'){
         btn.dataset.confirming='';
-        btn.textContent='&#128465;';
+        btn.innerHTML='&#128465;';
         btn.style.background='';btn.style.color='var(--danger,#dc2626)';btn.style.borderColor='';
       }
     },3000);
