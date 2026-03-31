@@ -2724,6 +2724,7 @@ function renderProjScenario(){
     {label:'DV',                vals:mults.map((m,i)=>({val:fmtN(_projBaseDv*m),      bg:bgColors[i]}))},
     {label:'Weekly (5d)',       vals:mults.map((m,i)=>({val:fmt$(_projBaseSales*m*5), bg:bgColors[i]}))},
     {label:`Monthly (${op}d)`,  vals:mults.map((m,i)=>({val:fmt$(_projBaseSales*m*op),bg:bgColors[i]}))},
+    {label:`Monthly DV (${op}d)`,vals:mults.map((m,i)=>({val:fmtN(_projBaseDv*m*op), bg:bgColors[i]}))},
   ];
 
   const body=document.getElementById('proj-estimator-body');
