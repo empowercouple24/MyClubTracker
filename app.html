@@ -390,8 +390,6 @@ if('serviceWorker' in navigator){
     .detail-footer{padding:12px 16px;display:flex;gap:8px;flex-shrink:0;border-top:1px solid var(--border-light);background:var(--surface);}
     /* Admin edit banner */
     .admin-edit-banner{background:linear-gradient(135deg,var(--a6),var(--a4));color:white;font-size:11px;font-weight:700;text-align:center;padding:5px 12px;letter-spacing:0.3px;display:none}
-    .update-banner{background:var(--g5);color:white;font-size:12px;font-weight:600;text-align:center;padding:7px 12px;display:none;cursor:pointer;letter-spacing:0.2px;}
-    .update-banner:hover{background:var(--g4);}
     .admin-edit-banner.show{display:block}
     .admin-location-banner{background:var(--b8);color:white;font-size:11px;font-weight:600;text-align:center;padding:4px 12px;letter-spacing:0.3px}
     
@@ -401,7 +399,6 @@ if('serviceWorker' in navigator){
 
 <div id="loading-overlay"><div class="load-spinner"></div><div class="load-text" id="load-text">Loading…</div></div>
 <div class="admin-edit-banner" id="admin-edit-banner" style="cursor:pointer;" onclick="goBackToAdmin()" title="Click to return to locations">⚠ Admin Edit Mode — click to return to Locations</div>
-<div class="update-banner" id="update-banner" onclick="window.location.reload(true)">🔄 A new version is available — click to update</div>
 <div class="admin-location-banner" id="admin-banner" style="display:none;"></div>
 
 <nav class="topnav">
@@ -710,26 +707,40 @@ if('serviceWorker' in navigator){
         <div class="field-row"><div class="field-label">Days per month</div><input class="field-input" type="text" inputmode="numeric" id="proj-opdays" value="26" oninput="renderProjScenario()"/></div>
       </div>
 
-      <!-- Weekly & Monthly projections -->
-      <div class="section-label">Projected Period Totals</div>
-      <div class="proj-grid" style="grid-template-columns:repeat(2,1fr);margin-bottom:12px;">
-        <div class="proj-cell highlight"><div class="proj-cell-label">Week (5 days)</div><div class="proj-cell-val" id="proj-week-sales">—</div></div>
-        <div class="proj-cell highlight"><div class="proj-cell-label">Month</div><div class="proj-cell-val" id="proj-month-sales">—</div></div>
-        <div class="proj-cell"><div class="proj-cell-label">Week Payouts</div><div class="proj-cell-val" id="proj-week-payouts">—</div></div>
-        <div class="proj-cell"><div class="proj-cell-label">Month Payouts</div><div class="proj-cell-val" id="proj-month-payouts">—</div></div>
-        <div class="proj-cell"><div class="proj-cell-label">Week DV</div><div class="proj-cell-val" id="proj-week-dv">—</div></div>
-        <div class="proj-cell"><div class="proj-cell-month">Month DV</div><div class="proj-cell-val" id="proj-month-dv">—</div></div>
+      <!-- Estimator grid: columns = multipliers, rows = metrics -->
+      <div id="proj-estimator-grid" style="display:none;margin-bottom:12px;overflow-x:auto;">
+        <table style="width:100%;border-collapse:separate;border-spacing:4px;">
+          <thead>
+            <tr>
+              <td style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-faint);padding:4px 6px;"></td>
+              <th style="font-size:12px;font-weight:800;color:var(--text);background:var(--surface);border-radius:6px;padding:7px 10px;text-align:center;border:1px solid var(--border-light);">1×</th>
+              <th style="font-size:12px;font-weight:800;color:var(--text);background:var(--surface);border-radius:6px;padding:7px 10px;text-align:center;border:1px solid var(--border-light);">1.2×</th>
+              <th style="font-size:12px;font-weight:800;color:var(--text);background:var(--surface);border-radius:6px;padding:7px 10px;text-align:center;border:1px solid var(--border-light);">1.5×</th>
+              <th style="font-size:12px;font-weight:800;color:var(--text);background:var(--surface);border-radius:6px;padding:7px 10px;text-align:center;border:1px solid var(--border-light);">2×</th>
+            </tr>
+          </thead>
+          <tbody id="proj-estimator-body"></tbody>
+        </table>
       </div>
 
-      <!-- Current month context -->
-      <div class="section-label">Current Month Actuals</div>
-      <div class="proj-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:4px;">
-        <div class="proj-cell"><div class="proj-cell-label">Days In</div><div class="proj-cell-val" id="proj-daysin">0</div></div>
-        <div class="proj-cell"><div class="proj-cell-label">Total Sales</div><div class="proj-cell-val" id="proj-totalsales">$0</div></div>
-        <div class="proj-cell"><div class="proj-cell-label">Avg/Day</div><div class="proj-cell-val" id="proj-avgsales">$0</div></div>
-        <div class="proj-cell"><div class="proj-cell-label">Proj Month</div><div class="proj-cell-val" id="proj-sales">$0</div></div>
-        <div class="proj-cell"><div class="proj-cell-label">Total DV</div><div class="proj-cell-val" id="proj-avgdv">0</div></div>
-        <div class="proj-cell"><div class="proj-cell-label">Proj DV</div><div class="proj-cell-val" id="proj-dv">0</div></div>
+      <!-- Current month actuals — blue card -->
+      <div class="inv-header" style="margin-bottom:0;">
+        <div class="inv-header-title">Current Month Actuals</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+          <div class="inv-dv-card"><div class="inv-dv-item-label">Days In</div><div class="inv-dv-item-val" id="proj-daysin" style="font-size:20px;">0</div></div>
+          <div class="inv-dv-card"><div class="inv-dv-item-label">Total Sales</div><div class="inv-dv-item-val" id="proj-totalsales" style="font-size:20px;">$0</div></div>
+          <div class="inv-dv-card"><div class="inv-dv-item-label">Avg / Day</div><div class="inv-dv-item-val" id="proj-avgsales" style="font-size:20px;">$0</div></div>
+          <div class="inv-dv-card"><div class="inv-dv-item-label">Proj Month Sales</div><div class="inv-dv-item-val" id="proj-sales" style="font-size:20px;">$0</div></div>
+          <div class="inv-dv-card"><div class="inv-dv-item-label">Total DV</div><div class="inv-dv-item-val" id="proj-avgdv" style="font-size:20px;">0</div></div>
+          <div class="inv-dv-card"><div class="inv-dv-item-label">Proj Month DV</div><div class="inv-dv-item-val" id="proj-dv" style="font-size:20px;">0</div></div>
+        </div>
+      </div>
+
+      <!-- Hidden legacy period total IDs still referenced by renderProjScenario -->
+      <div style="display:none;">
+        <span id="proj-week-sales"></span><span id="proj-month-sales"></span>
+        <span id="proj-week-payouts"></span><span id="proj-month-payouts"></span>
+        <span id="proj-week-dv"></span><span id="proj-month-dv"></span>
       </div>
     </div>
 
@@ -2673,7 +2684,6 @@ function loadProjAvg(){
 }
 function setProjMult(mult,btn){
   _projMult=mult;
-  // Highlight the entire row by matching data-mult on sales cards
   document.querySelectorAll('.pmult-card[data-mult]').forEach(b=>{
     b.classList.toggle('active', parseFloat(b.dataset.mult)===mult);
   });
@@ -2681,27 +2691,57 @@ function setProjMult(mult,btn){
   if(lbl)lbl.textContent='@ '+mult+'&#215;';
   renderProjScenario();
 }
+
 function renderProjScenario(){
   const op=parseInt(document.getElementById('proj-opdays')?.value)||26;
-  const m=_projMult;
-  const projSales=_projBaseSales*m,projOh=_projBaseOh*m,projPay=_projBasePayouts*m;
-  const projTax=_projBaseTax*m,projProd=_projBaseProd*m,projDv=_projBaseDv*m;
+  const mults=[1.0,1.2,1.5,2.0];
 
-  // Populate all 4 multiplier rows
-  const mults=[{k:'1x',v:1.0},{k:'12x',v:1.2},{k:'15x',v:1.5},{k:'2x',v:2.0}];
-  mults.forEach(({k,v})=>{
+  // Populate mult cards in the dark header
+  const multKeys=['1x','12x','15x','2x'];
+  mults.forEach((v,i)=>{
+    const k=multKeys[i];
     setText(`pmult-sales-${k}`, fmt$(_projBaseSales*v));
     setText(`pmult-oh-${k}`,    fmt$(_projBaseOh*v));
     setText(`pmult-pay-${k}`,   fmt$(_projBasePayouts*v));
   });
 
-  // Still populate hidden legacy fields for period totals
-  setText('proj-day-sales',fmt$(projSales));setText('proj-day-oh',fmt$(projOh));
-  setText('proj-day-payouts',fmt$(projPay));setText('proj-day-tax',fmt$(projTax));
-  setText('proj-day-prod',fmt$(projProd));setText('proj-day-dv',fmtN(projDv));
+  // Sales color progression: white → light green → mid green → deep green
+  const salesColors=['#ffffff','#a8f0c0','#4ade80','#16a34a'];
+  const rowLabelStyle='font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);padding:6px 8px;white-space:nowrap;';
+  const cellBase='border-radius:6px;padding:8px 10px;text-align:right;border:1px solid var(--border-light);';
+
+  const rows=[
+    {label:'Net Sales', vals: mults.map((v,i)=>({val:fmt$(_projBaseSales*v), color:salesColors[i], bg:'var(--b8)'}))},
+    {label:'Payouts',   vals: mults.map(v=>({val:fmt$(_projBasePayouts*v), color:'rgba(255,255,255,0.85)', bg:'var(--surface)'}))},
+    {label:'DV',        vals: mults.map(v=>({val:fmtN(_projBaseDv*v), color:'rgba(255,255,255,0.85)', bg:'var(--surface)'}))},
+    {label:'Weekly (5d)', vals: mults.map((v,i)=>({val:fmt$(_projBaseSales*v*5), color:salesColors[i], bg:'var(--b7)'}))},
+    {label:`Monthly (${op}d)`, vals: mults.map((v,i)=>({val:fmt$(_projBaseSales*v*op), color:salesColors[i], bg:'var(--b8)'}))},
+  ];
+
+  const body=document.getElementById('proj-estimator-body');
+  if(body){
+    body.innerHTML=rows.map(row=>`
+      <tr>
+        <td style="${rowLabelStyle}">${row.label}</td>
+        ${row.vals.map(({val,color,bg})=>`
+          <td style="${cellBase}background:${bg};">
+            <span style="font-family:'Outfit',sans-serif;font-size:13px;font-weight:800;color:${color};">${val}</span>
+          </td>`).join('')}
+      </tr>`).join('');
+    document.getElementById('proj-estimator-grid').style.display='block';
+  }
+
+  // Legacy hidden fields
+  const m=_projMult;
+  const projSales=_projBaseSales*m,projPay=_projBasePayouts*m,projDv=_projBaseDv*m;
+  setText('proj-day-sales',fmt$(projSales));setText('proj-day-oh',fmt$(_projBaseOh*m));
+  setText('proj-day-payouts',fmt$(projPay));setText('proj-day-tax',fmt$(_projBaseTax*m));
+  setText('proj-day-prod',fmt$(_projBaseProd*m));setText('proj-day-dv',fmtN(projDv));
   setText('proj-week-sales',fmt$(projSales*5));setText('proj-month-sales',fmt$(projSales*op));
   setText('proj-week-payouts',fmt$(projPay*5));setText('proj-month-payouts',fmt$(projPay*op));
   setText('proj-week-dv',fmtN(projDv*5));setText('proj-month-dv',fmtN(projDv*op));
+
+  // Current month actuals
   const now=new Date(),y=now.getFullYear(),mo=now.getMonth();
   const md=ALL_DAYS.filter(d=>{const dt=new Date(d.date+'T00:00:00');return dt.getFullYear()===y&&dt.getMonth()===mo;});
   const di=md.length,ts=md.reduce((s,d)=>s+calSales(d.data||{}),0),tdv=md.reduce((s,d)=>s+(d.data?.dv||0),0);
@@ -3359,7 +3399,7 @@ function recalcInvCatTop(){
 }
 function recalcContentTop(){
   var total=0;
-  ['admin-edit-banner','update-banner','admin-banner'].forEach(function(id){
+  ['admin-edit-banner','admin-banner'].forEach(function(id){
     var el=document.getElementById(id);
     if(el&&el.offsetHeight>0)total+=el.offsetHeight;
   });
@@ -3436,8 +3476,12 @@ function autoSizeInput(el){
       .catch(function(){ return null; });
   }
   function showUpdateBanner(){
-    var b = document.getElementById('update-banner');
-    if(b) b.style.display = 'block';
+    if(document.getElementById('update-banner'))return;
+    var b=document.createElement('div');
+    b.id='update-banner';
+    b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#2d6a4f;color:#fff;font-family:DM Sans,system-ui,sans-serif;font-size:13px;font-weight:600;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 2px 8px rgba(0,0,0,0.2);';
+    b.innerHTML='<span>&#128260; A new version is available</span><button onclick="window.location.reload()" style="background:#fff;color:#2d6a4f;border:none;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">Refresh now</button>';
+    document.body.prepend(b);
   }
   getLastMod().then(function(mod){ _initMod = mod; });
   setInterval(function(){
