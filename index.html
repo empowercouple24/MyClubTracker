@@ -373,6 +373,19 @@ async function init(){
     showMsg('si-msg','You were signed out after 30 minutes of inactivity.','info');
     return;
   }
+  if(hash&&hash.includes('error=access_denied')){
+    var errDesc=(hash.match(/error_description=([^&]+)/)||[])[1]||'';
+    errDesc=decodeURIComponent(errDesc.replace(/\+/g,' '));
+    showTab('signin');
+    var isExpired=errDesc.toLowerCase().includes('expired')||errDesc.toLowerCase().includes('invalid');
+    showMsg('si-msg', isExpired
+      ? '⚠️ That link has expired. Request a new password reset below.'
+      : '⚠️ '+errDesc, 'error');
+    window.history.replaceState({},'',window.location.pathname);
+    // Show forgot password panel automatically
+    setTimeout(function(){showTab('forgot');},1200);
+    return;
+  }
   if(hash&&hash.includes('type=recovery')){
     var s=(await sb.auth.getSession()).data.session;
     if(s){showNPPanel();return;}
