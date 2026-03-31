@@ -346,6 +346,40 @@ if('serviceWorker' in navigator){
 
   <div id="alert-banner-wrap"></div>
 
+  <!-- KPI STRIP -->
+  <div style="margin-bottom:16px;">
+    <div class="kpi-header-row">
+      <div class="section-label" id="kpi-label" style="margin:0;">Org Overview</div>
+      <span id="missing-chip-wrap"></span>
+    </div>
+    <div id="missing-detail-wrap"></div>
+    <div class="kpi-strip" style="grid-template-columns:repeat(4,1fr);">
+      <div class="kpi-period yesterday">
+        <div class="kpi-period-label">Yesterday</div>
+        <div class="kpi-row"><span class="kpi-metric-label">Sales</span><span class="kpi-metric-val big" id="kpi-yday-sales">—</span></div>
+        <div class="kpi-row"><span class="kpi-metric-label">DV</span><span class="kpi-metric-val" id="kpi-yday-dv">—</span></div>
+        <div class="kpi-sub" id="kpi-yday-sub"></div>
+      </div>
+      <div class="kpi-period week">
+        <div class="kpi-period-label">Last 7 Days</div>
+        <div class="kpi-row"><span class="kpi-metric-label">Sales</span><span class="kpi-metric-val big" id="kpi-week-sales">—</span></div>
+        <div class="kpi-row"><span class="kpi-metric-label">DV</span><span class="kpi-metric-val" id="kpi-week-dv">—</span></div>
+        <div class="kpi-sub" id="kpi-week-sub"></div>
+      </div>
+      <div class="kpi-period month">
+        <div class="kpi-period-label">Last 30 Days</div>
+        <div class="kpi-row"><span class="kpi-metric-label">Sales</span><span class="kpi-metric-val big" id="kpi-month-sales">—</span></div>
+        <div class="kpi-row"><span class="kpi-metric-label">DV</span><span class="kpi-metric-val" id="kpi-month-dv">—</span></div>
+        <div class="kpi-sub" id="kpi-month-sub"></div>
+      </div>
+      <div class="kpi-period" id="kpi-pending-orgs" style="cursor:pointer;border-color:var(--a4);" onclick="window.location.href='organizations.html'" title="Click to review in Organizations">
+        <div class="kpi-period-label" style="color:var(--a5);">Needs Review</div>
+        <div class="kpi-row"><span class="kpi-metric-label">Pending</span><span class="kpi-metric-val big" id="kpi-pending-count" style="color:var(--a5);">—</span></div>
+        <div class="kpi-sub" id="kpi-pending-sub" style="color:var(--a5);">Loading...</div>
+      </div>
+    </div>
+  </div>
+
   <!-- LAYOUT BODY — toggled between list and split via JS -->
   <div id="layout-body">
 
@@ -372,36 +406,7 @@ if('serviceWorker' in navigator){
 
     <!-- RIGHT / BOTTOM: KPIs + chart (moves to sidebar in split mode) -->
     <div id="metrics-col">
-      <div class="kpi-header-row">
-        <div class="section-label" id="kpi-label" style="margin:0;">Org Overview</div>
-        <span id="missing-chip-wrap"></span>
-      </div>
-      <div id="missing-detail-wrap"></div>
-      <div class="kpi-strip" style="grid-template-columns:repeat(4,1fr);">
-        <div class="kpi-period yesterday">
-          <div class="kpi-period-label">Yesterday</div>
-          <div class="kpi-row"><span class="kpi-metric-label">Sales</span><span class="kpi-metric-val big" id="kpi-yday-sales">—</span></div>
-          <div class="kpi-row"><span class="kpi-metric-label">DV</span><span class="kpi-metric-val" id="kpi-yday-dv">—</span></div>
-          <div class="kpi-sub" id="kpi-yday-sub"></div>
-        </div>
-        <div class="kpi-period week">
-          <div class="kpi-period-label">Last 7 Days</div>
-          <div class="kpi-row"><span class="kpi-metric-label">Sales</span><span class="kpi-metric-val big" id="kpi-week-sales">—</span></div>
-          <div class="kpi-row"><span class="kpi-metric-label">DV</span><span class="kpi-metric-val" id="kpi-week-dv">—</span></div>
-          <div class="kpi-sub" id="kpi-week-sub"></div>
-        </div>
-        <div class="kpi-period month">
-          <div class="kpi-period-label">Last 30 Days</div>
-          <div class="kpi-row"><span class="kpi-metric-label">Sales</span><span class="kpi-metric-val big" id="kpi-month-sales">—</span></div>
-          <div class="kpi-row"><span class="kpi-metric-label">DV</span><span class="kpi-metric-val" id="kpi-month-dv">—</span></div>
-          <div class="kpi-sub" id="kpi-month-sub"></div>
-        </div>
-        <div class="kpi-period" id="kpi-pending-orgs" style="cursor:pointer;border-color:var(--a4);" onclick="window.location.href='organizations.html'" title="Click to review in Organizations">
-          <div class="kpi-period-label" style="color:var(--a5);">Needs Review</div>
-          <div class="kpi-row"><span class="kpi-metric-label">Pending orgs</span><span class="kpi-metric-val big" id="kpi-pending-count" style="color:var(--a5);">—</span></div>
-          <div class="kpi-sub" id="kpi-pending-sub" style="color:var(--a5);">Click to review →</div>
-        </div>
-      </div>
+
 
       <!-- COMPARISON CHART -->
       <div id="chart-section" style="display:none;">
@@ -665,19 +670,28 @@ let approvingRequestId=null;
 let denyingRequestId=null;
 
 async function checkPendingOrgs(){
-  const{data:orgs}=await sb.from('organizations').select('id,status').eq('status','invited');
-  const count=(orgs||[]).length;
-  const widget=document.getElementById('kpi-pending-orgs');
+  const[{data:orgs},{data:requests}]=await Promise.all([
+    sb.from('organizations').select('id,status').eq('status','invited'),
+    sb.from('location_requests').select('id').eq('status','pending')
+  ]);
+  const pendingOrgs=(orgs||[]).length;
+  const pendingReqs=(requests||[]).length;
+  const total=pendingOrgs+pendingReqs;
   const countEl=document.getElementById('kpi-pending-count');
   const subEl=document.getElementById('kpi-pending-sub');
-  if(countEl) countEl.textContent=count>0?count:'0';
-  if(subEl) subEl.textContent=count>0?`Click to review →`:'All orgs active';
-  if(widget){
-    widget.style.opacity=count>0?'1':'0.5';
-    widget.style.cursor=count>0?'pointer':'default';
-    widget.onclick=count>0?()=>window.location.href='organizations.html':null;
+  const widget=document.getElementById('kpi-pending-orgs');
+  if(countEl) countEl.textContent=total>0?total:'0';
+  if(subEl){
+    const parts=[];
+    if(pendingReqs>0) parts.push(`${pendingReqs} access request${pendingReqs!==1?'s':''}`);
+    if(pendingOrgs>0) parts.push(`${pendingOrgs} org${pendingOrgs!==1?'s':''} pending setup`);
+    subEl.textContent=total>0?parts.join(' · '):'All clear';
   }
-  // Also update loadOrgs banner references safely
+  if(widget){
+    widget.style.opacity=total>0?'1':'0.5';
+    widget.style.cursor=total>0?'pointer':'default';
+    widget.onclick=total>0?()=>window.location.href='organizations.html':null;
+  }
   const banner=document.getElementById('pending-orgs-banner');
   if(banner) banner.style.display='none';
 }
