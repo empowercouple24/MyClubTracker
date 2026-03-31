@@ -180,15 +180,14 @@ if('serviceWorker' in navigator){
     .hcal-dn{font-size:12px;font-weight:700;color:var(--text-faint);margin-bottom:3px;}
     .hcal-day.has-data .hcal-dn{color:var(--text-muted);}
     .hcal-sales-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--g6);white-space:nowrap;}
-    .hcal-sales{font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--g5);line-height:1.1;}
-    .hcal-dv-block{display:flex;flex-direction:column;}
+    .hcal-sales{font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--g5);line-height:1.1;margin-bottom:4px;}
+    .hcal-dv-block{display:flex;flex-direction:column;margin:auto 0 0;}
     .hcal-pill-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--b4);white-space:nowrap;}
-    .hcal-pill-val{font-size:14px;font-weight:800;color:var(--text);line-height:1.1;}
-    .hcal-metrics-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px;}
+    .hcal-pill-val{font-size:13px;font-weight:700;color:var(--text);}
     .hcal-extras{margin-top:3px;font-size:10px;color:var(--text-faint);}
-    .hcal-week-summary{background:var(--b8);border-radius:var(--radius-sm);padding:6px 10px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+    .hcal-week-summary{background:var(--b8);border-radius:var(--radius-sm);padding:6px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
     .hcal-week-label{font-size:10px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,0.55);}
-    .hcal-week-total{font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:white;}
+    .hcal-week-total{font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:white;line-height:1.2;}
     .hcal-month-total{background:var(--b8);border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;}
     .hcal-month-total-label{font-size:11px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,0.55);}
     .hcal-month-total-val{font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;color:white;}
@@ -2670,6 +2669,10 @@ function renderHistCal(){
       const dateStr=`${yr}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
       return s+calSales(dayMap[dateStr]||{});
     },0);
+    const weekDvTotal=weekDays.reduce((s,d)=>{
+      const dateStr=`${yr}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      return s+(parseFloat((dayMap[dateStr]||{}).dv)||0);
+    },0);
     const weekHasData=weekDays.some(d=>{
       const dateStr=`${yr}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
       return !!dayMap[dateStr];
@@ -2698,15 +2701,11 @@ function renderHistCal(){
             <div class="hcal-dn" style="margin-bottom:0;">${day}</div>
             <div style="display:flex;align-items:center;gap:2px;">${adminIcon}${noteIcon}</div>
           </div>
-          <div class="hcal-metrics-row">
-            <div>
-              <div class="hcal-sales-label">Sales</div>
-              <div class="hcal-sales">${fmt$(calSales(data))}</div>
-            </div>
-            <div class="hcal-dv-block">
-              <div class="hcal-pill-label">DV</div>
-              <div class="hcal-pill-val">${(parseFloat(data.dv)||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
-            </div>
+          <div class="hcal-sales-label">Sales</div>
+          <div class="hcal-sales">${fmt$(calSales(data))}</div>
+          <div class="hcal-dv-block">
+            <div class="hcal-pill-label">Documented Volume</div>
+            <div class="hcal-pill-val">${(parseFloat(data.dv)||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
           </div>
           ${ops?`<div class="hcal-extras">${ops}</div>`:''}
           ${closedBadge}
@@ -2728,7 +2727,19 @@ function renderHistCal(){
     html+=`</div>`;
 
     if(weekHasData){
-      html+=`<div class="hcal-week-summary"><span class="hcal-week-label">Week ${wi+1}</span><span class="hcal-week-total">${fmt$(weekTotal)}</span></div>`;
+      html+=`<div class="hcal-week-summary">
+        <span class="hcal-week-label">Week ${wi+1}</span>
+        <div style="display:flex;align-items:center;gap:20px;">
+          <div style="text-align:right;">
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:rgba(255,255,255,0.45);">Sales</div>
+            <div class="hcal-week-total">${fmt$(weekTotal)}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:rgba(255,255,255,0.45);">DV</div>
+            <div class="hcal-week-total" style="color:var(--b2);">${fmtN(weekDvTotal)}</div>
+          </div>
+        </div>
+      </div>`;
     }
   });
 
