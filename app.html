@@ -640,7 +640,10 @@ if('serviceWorker' in navigator){
     <div id="history-cal-nav" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <button class="btn btn-ghost" id="hist-prev-btn" onclick="histCalShift(-1)" style="padding:5px 12px;font-size:16px;">&#8592;</button>
       <span id="hist-cal-label" style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:var(--text);"></span>
-      <button class="btn btn-ghost" id="hist-next-btn" onclick="histCalShift(1)" style="padding:5px 12px;font-size:16px;">&#8594;</button>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button id="fill-dv-btn" onclick="openFillDvModal()" style="display:none;font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;background:#854F0B;color:#fff;border:none;cursor:pointer;">&#9679; Fill missing DV</button>
+        <button class="btn btn-ghost" id="hist-next-btn" onclick="histCalShift(1)" style="padding:5px 12px;font-size:16px;">&#8594;</button>
+      </div>
     </div>
     <div id="history-cal-grid" style="width:100%;"></div>
   </div>
@@ -886,6 +889,41 @@ if('serviceWorker' in navigator){
 </div><!-- /content-area -->
 
 <!-- HISTORY DETAIL MODAL -->
+<!-- FILL MISSING DV MODAL -->
+<div class="modal-overlay" id="fill-dv-modal" onclick="closeFillDvOnBg(event)" style="display:none;align-items:flex-end;justify-content:center;z-index:250;">
+  <div style="background:var(--surface);border-radius:18px 18px 0 0;width:100%;max-width:560px;max-height:90vh;display:flex;flex-direction:column;animation:sheetUp 0.3s cubic-bezier(0.16,1,0.3,1);">
+    <div style="flex-shrink:0;">
+      <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0;"></div>
+      <!-- Mini status calendar -->
+      <div style="padding:12px 16px 0;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-family:'Outfit',sans-serif;font-size:15px;font-weight:800;color:var(--text);" id="fdv-cal-title">March 2026</span>
+          <div style="display:flex;gap:6px;">
+            <span id="fdv-missing-badge" style="font-size:11px;padding:2px 8px;border-radius:20px;background:#FAEEDA;color:#854F0B;font-weight:600;"></span>
+            <span id="fdv-filled-badge" style="font-size:11px;padding:2px 8px;border-radius:20px;background:#EAF3DE;color:#3B6D11;font-weight:600;"></span>
+          </div>
+        </div>
+        <div id="fdv-mini-cal" style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:12px;"></div>
+      </div>
+      <!-- List panel header -->
+      <div style="background:var(--b8);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:13px;font-weight:700;color:#fff;">Fill missing DV</span>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span id="fdv-progress" style="font-size:11px;color:rgba(255,255,255,0.6);"></span>
+          <button onclick="saveAllDv()" style="padding:5px 14px;border-radius:6px;background:#fff;color:var(--b8);border:none;font-size:12px;font-weight:700;cursor:pointer;">Save all</button>
+        </div>
+      </div>
+    </div>
+    <!-- Scrollable list -->
+    <div id="fdv-list" style="overflow-y:auto;flex:1;"></div>
+    <!-- Footer -->
+    <div style="flex-shrink:0;padding:12px 16px;display:flex;gap:8px;border-top:1px solid var(--border-light);">
+      <button onclick="closeFillDvModal()" class="btn btn-ghost" style="flex:1;">Cancel</button>
+      <button onclick="saveAllDv()" class="btn btn-primary" style="flex:2;">Save all</button>
+    </div>
+  </div>
+</div>
+
 <div class="detail-overlay" id="detail-overlay" onclick="closeDetailOnBg(event)">
   <div class="detail-sheet">
     <div class="detail-handle"></div>
@@ -2314,6 +2352,154 @@ function calSales(d){if(!d)return 0;const cs=parseFloat(d.cashSales)||0,cas=pars
 // History calendar state
 let _histCalYear=null,_histCalMonth=null;
 
+// -- FILL MISSING DV --
+function getMissingDvDays(){
+  return [...ALL_DAYS]
+    .filter(d=>calSales(d.data||{})>0 && !(parseFloat(d.data?.dv)||0))
+    .sort((a,b)=>a.date.localeCompare(b.date));
+}
+
+function updateFillDvBtn(){
+  const btn=document.getElementById('fill-dv-btn');
+  if(!btn)return;
+  const missing=getMissingDvDays();
+  btn.style.display=missing.length?'inline-block':'none';
+  btn.textContent=`\u25CF Fill missing DV (${missing.length})`;
+}
+
+function openFillDvModal(){
+  document.getElementById('fill-dv-modal').style.display='flex';
+  renderFillDvModal();
+}
+function closeFillDvModal(){document.getElementById('fill-dv-modal').style.display='none';}
+function closeFillDvOnBg(e){if(e.target===document.getElementById('fill-dv-modal'))closeFillDvModal();}
+
+function renderFillDvModal(){
+  const missing=getMissingDvDays();
+  const allWithSales=ALL_DAYS.filter(d=>calSales(d.data||{})>0);
+  const filled=allWithSales.filter(d=>parseFloat(d.data?.dv)||0);
+
+  // Title — use current hist cal month
+  const yr=_histCalYear,mo=_histCalMonth;
+  const title=document.getElementById('fdv-cal-title');
+  if(title)title.textContent=new Date(yr,mo,1).toLocaleDateString('en-US',{month:'long',year:'numeric'});
+
+  // Badges
+  const mb=document.getElementById('fdv-missing-badge');
+  const fb=document.getElementById('fdv-filled-badge');
+  if(mb)mb.textContent=`${missing.length} missing`;
+  if(fb)fb.textContent=`${filled.length} filled`;
+
+  // Progress
+  const prog=document.getElementById('fdv-progress');
+  if(prog)prog.textContent=`${filled.length} of ${allWithSales.length} filled`;
+
+  // Mini calendar for current month
+  const cal=document.getElementById('fdv-mini-cal');
+  if(cal){
+    const dayMap={};
+    ALL_DAYS.forEach(d=>{
+      const dt=new Date(d.date+'T00:00:00');
+      if(dt.getFullYear()===yr&&dt.getMonth()===mo) dayMap[d.date]=d.data||{};
+    });
+    const firstDay=new Date(yr,mo,1).getDay();
+    const daysInMonth=new Date(yr,mo+1,0).getDate();
+    const DOWS=['S','M','T','W','T','F','S'];
+    let html=DOWS.map(d=>`<div style="font-size:9px;font-weight:600;text-align:center;color:var(--text-faint);padding:1px 0;">${d}</div>`).join('');
+    for(let i=0;i<firstDay;i++) html+=`<div></div>`;
+    for(let d=1;d<=daysInMonth;d++){
+      const dateStr=`${yr}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const data=dayMap[dateStr];
+      if(!data){html+=`<div style="border-radius:4px;padding:2px;min-height:28px;"></div>`;continue;}
+      const hasSales=calSales(data)>0;
+      const hasDv=parseFloat(data.dv)||0;
+      const isMissing=hasSales&&!hasDv;
+      const bg=isMissing?'#FAEEDA':hasSales?'#EAF3DE':'var(--b0)';
+      const border=isMissing?'1px solid #EF9F27':hasSales?'1px solid #97C459':'1px solid var(--border-light)';
+      html+=`<div style="border-radius:4px;padding:2px 3px;min-height:28px;background:${bg};border:${border};">
+        <div style="font-size:9px;font-weight:600;color:var(--text-faint);">${d}</div>
+        ${hasDv?`<div style="font-size:9px;color:#3B6D11;">${fmtN(hasDv)}</div>`:(hasSales?`<div style="font-size:9px;color:#854F0B;">—</div>`:'')}
+      </div>`;
+    }
+    cal.innerHTML=html;
+  }
+
+  // List of missing days
+  const list=document.getElementById('fdv-list');
+  if(!list)return;
+  if(!missing.length){
+    list.innerHTML=`<div style="padding:24px;text-align:center;color:var(--text-faint);font-size:13px;">All days with sales have DV recorded.</div>`;
+    return;
+  }
+  list.innerHTML=missing.map((d,i)=>{
+    const dt=new Date(d.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    const sales=fmt$(calSales(d.data||{}));
+    return`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border-light);" id="fdv-row-${d.date}">
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--text);">${dt}</div>
+        <div style="font-size:12px;color:var(--text-faint);">${sales} sales</div>
+      </div>
+      <input type="text" inputmode="decimal" id="fdv-input-${d.date}" placeholder="0.00"
+        style="width:90px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--b0);font-size:14px;font-weight:600;text-align:right;color:var(--text);"
+        oninput="onFdvInput(this,'${d.date}')"
+        onkeydown="onFdvKey(event,${i},${missing.length})"/>
+    </div>`;
+  }).join('');
+  // Focus first
+  setTimeout(()=>{const first=document.getElementById(`fdv-input-${missing[0].date}`);if(first)first.focus();},100);
+}
+
+function onFdvInput(el,date){
+  const v=parseFloat(el.value.replace(/,/g,''));
+  const row=document.getElementById(`fdv-row-${date}`);
+  if(v>0){
+    el.style.borderColor='var(--g5)';el.style.background='rgba(125,232,138,0.08)';
+    if(row)row.style.background='rgba(125,232,138,0.05)';
+  } else {
+    el.style.borderColor='var(--border)';el.style.background='var(--b0)';
+    if(row)row.style.background='';
+  }
+}
+
+function onFdvKey(e,idx,total){
+  if(e.key==='Enter'||e.key==='Tab'){
+    e.preventDefault();
+    const missing=getMissingDvDays();
+    const next=missing[idx+1];
+    if(next){const el=document.getElementById(`fdv-input-${next.date}`);if(el){el.focus();el.select();}}
+  }
+}
+
+async function saveAllDv(){
+  const missing=getMissingDvDays();
+  let saved=0;
+  const btn=document.querySelector('#fill-dv-modal .btn-primary');
+  if(btn){btn.disabled=true;btn.textContent='Saving...';}
+
+  for(const d of missing){
+    const el=document.getElementById(`fdv-input-${d.date}`);
+    if(!el)continue;
+    const v=parseFloat(el.value.replace(/,/g,''));
+    if(!v||v<=0)continue;
+    const newData={...d.data,dv:v};
+    const{error}=await sb.from('sales_entries').update({data:newData}).eq('location_id',LOCATION_ID).eq('date',d.date);
+    if(!error){
+      d.data=newData;
+      saved++;
+    }
+  }
+
+  if(btn){btn.disabled=false;btn.textContent='Save all';}
+  if(saved>0){
+    showToast(`${saved} day${saved!==1?'s':''} updated`,'success');
+    renderHistory();
+    renderProjections();
+    renderDashboardWidgets();
+  }
+  updateFillDvBtn();
+  renderFillDvModal();
+}
+
 function renderHistory(){
   const grid=document.getElementById('history-cal-grid');
   if(!grid)return;
@@ -2326,6 +2512,7 @@ function renderHistory(){
     _histCalMonth=d.getMonth();
   }
   renderHistCal();
+  updateFillDvBtn();
 }
 
 function histCalShift(dir){
