@@ -1623,15 +1623,13 @@ async function sendEmpInviteEmail(){
   const btn=document.querySelector('#emp-invite-panel .btn-primary');
   if(btn){btn.disabled=true;btn.textContent='Sending...';}
   try{
-    const{data:fnData,error}=await sb.functions.invoke('send-email',{body:{
-      to:email,
-      subject:`You're invited to ${SETTINGS.clubName||'our club'} on MyClubTracker`,
-      html:`<p>You've been invited to join <strong>${escHtml(SETTINGS.clubName||'our club')}</strong> on MyClubTracker.</p>
-      <p>Your employee invite code is: <strong style="font-size:20px;letter-spacing:3px;color:#1e3a5f;">${escHtml(code)}</strong></p>
-      <p><a href="https://myclubtracker.com" style="background:#1e3a5f;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:700;">Register Now →</a></p>
-      <p style="color:#888;font-size:12px;">Enter this code when registering to join the team.</p>`
-    }});
-    console.log('send-email result:', fnData, error);
+    const{data:{session:_ses}}=await sb.auth.getSession();
+    const _authHdr=_ses?.access_token?{'Authorization':`Bearer ${_ses.access_token}`}:{};
+    const{data:fnData,error}=await sb.functions.invoke('send-org-invite',{
+      headers:_authHdr,
+      body:{email,role:'employee',inviteCode:code,clubName:SETTINGS.clubName||'',locationId:LOCATION_ID}
+    });
+    console.log('send-org-invite result:', fnData, error);
     if(error)throw error;
     if(msg){msg.style.display='block';msg.style.background='#f0fdf4';msg.style.color='var(--g6)';msg.textContent=`Invite sent to ${email}`;}
     document.getElementById('emp-invite-email').value='';
