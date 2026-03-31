@@ -187,25 +187,35 @@ if('serviceWorker' in navigator){
     .hcal-month-total-label{font-size:11px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,0.55);}
     .hcal-month-total-val{font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;color:white;}
     /* PROJ MINI CAL */
-    .pcal-dow-row{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:2px;}
-    .pcal-dow{font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text-faint);text-align:center;padding:1px 0;}
-    .pcal-week{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:2px;}
-    .pcal-day{border-radius:5px;padding:4px 3px;min-height:44px;display:flex;flex-direction:column;position:relative;}
+    .pcal-dow-row{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px;}
+    .pcal-dow{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-faint);text-align:center;padding:2px 0;}
+    .pcal-week{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px;}
+    .pcal-day{border-radius:6px;padding:5px 5px;min-height:64px;display:flex;flex-direction:column;position:relative;}
     .pcal-day.has-data{background:var(--b0);border:1px solid var(--border-light);cursor:pointer;transition:box-shadow 0.12s,border-color 0.12s;}
     .pcal-day.has-data:hover{box-shadow:var(--shadow-md);border-color:var(--b4);}
     .pcal-day.has-data.selected{background:var(--b8);border-color:var(--b6);}
     .pcal-day.empty-day{background:transparent;border:1px solid transparent;}
     .pcal-day.no-data{background:transparent;border:1px dashed var(--border-light);opacity:0.35;}
     .pcal-day.today-day{border-color:var(--b5) !important;}
-    .pcal-dn{font-size:9px;font-weight:700;color:var(--text-faint);line-height:1;}
+    .pcal-dn{font-size:11px;font-weight:700;color:var(--text-faint);line-height:1;margin-bottom:2px;}
     .pcal-day.has-data .pcal-dn{color:var(--text-muted);}
     .pcal-day.has-data.selected .pcal-dn{color:rgba(255,255,255,0.7);}
-    .pcal-slabel{font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--g6);margin-top:2px;line-height:1;}
-    .pcal-sval{font-family:'Outfit',sans-serif;font-size:10px;font-weight:800;color:var(--g5);line-height:1.1;}
-    .pcal-dvlabel{font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--b4);margin-top:2px;line-height:1;}
-    .pcal-dvval{font-size:9px;font-weight:700;color:var(--text);line-height:1.1;}
+    .pcal-slabel{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--g6);line-height:1;}
+    .pcal-sval{font-family:'Outfit',sans-serif;font-size:12px;font-weight:800;color:var(--g5);line-height:1.2;}
+    .pcal-dvlabel{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--b4);margin-top:3px;line-height:1;}
+    .pcal-dvval{font-size:11px;font-weight:700;color:var(--text);line-height:1.2;}
     .pcal-day.has-data.selected .pcal-slabel,.pcal-day.has-data.selected .pcal-sval,
     .pcal-day.has-data.selected .pcal-dvlabel,.pcal-day.has-data.selected .pcal-dvval{color:rgba(255,255,255,0.9);}
+    /* PROJ MULT CARDS */
+    .pmult-header{background:linear-gradient(135deg,var(--b8),var(--b6));border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;color:white;}
+    .pmult-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;opacity:0.6;margin-bottom:8px;}
+    .pmult-row{display:flex;gap:8px;}
+    .pmult-card{flex:1;background:rgba(255,255,255,0.1);border-radius:8px;padding:8px 10px;cursor:pointer;transition:background 0.15s;border:1px solid transparent;}
+    .pmult-card:hover{background:rgba(255,255,255,0.18);}
+    .pmult-card.active{background:rgba(255,255,255,0.22);border-color:rgba(255,255,255,0.35);}
+    .pmult-card-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;opacity:0.6;margin-bottom:3px;}
+    .pmult-card-mult{font-size:11px;font-weight:800;opacity:0.75;margin-bottom:4px;}
+    .pmult-card-val{font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.5px;line-height:1;color:#7de88a;}
     /* PROJECTIONS */
     .proj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px}
     .proj-cell{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:10px 8px;text-align:center;box-shadow:var(--shadow-sm)}
@@ -656,36 +666,42 @@ if('serviceWorker' in navigator){
       <div id="proj-day-info" style="display:none;padding:6px 0 0;font-size:11px;color:var(--text-faint);text-align:center;"></div>
     </div>
 
-    <!-- Base day summary -->
+    <!-- Base day summary + multiplier cards -->
     <div id="proj-base-section" style="display:none;">
-      <div class="section-label">Base Day Sales</div>
-      <div class="proj-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:12px;">
-        <div class="proj-cell"><div class="proj-cell-label">Total Sales</div><div class="proj-cell-val" id="proj-base-sales">—</div></div>
-        <div class="proj-cell"><div class="proj-cell-label">Overhead</div><div class="proj-cell-val" id="proj-base-oh">—</div></div>
-        <div class="proj-cell"><div class="proj-cell-label">Payouts</div><div class="proj-cell-val" id="proj-base-payouts">—</div></div>
-        <div class="proj-cell"><div class="proj-cell-label">Taxes</div><div class="proj-cell-val" id="proj-base-tax">—</div></div>
-        <div class="proj-cell"><div class="proj-cell-label">Herbalife</div><div class="proj-cell-val" id="proj-base-prod">—</div></div>
-        <div class="proj-cell"><div class="proj-cell-label">DV</div><div class="proj-cell-val" id="proj-base-dv">—</div></div>
+      <div class="pmult-header">
+        <div class="pmult-title" id="proj-base-date-label">Selected Day</div>
+        <!-- 1x row -->
+        <div class="pmult-row" style="margin-bottom:8px;">
+          <div class="pmult-card active" onclick="setProjMult(1.0,this)" data-mult="1.0"><div class="pmult-card-label">Sales</div><div class="pmult-card-mult">1×</div><div class="pmult-card-val" id="pmult-sales-1x">—</div></div>
+          <div class="pmult-card" style="cursor:default;"><div class="pmult-card-label">Overhead</div><div class="pmult-card-mult">1×</div><div class="pmult-card-val" id="pmult-oh-1x" style="color:rgba(255,255,255,0.85);">—</div></div>
+          <div class="pmult-card" style="cursor:default;"><div class="pmult-card-label">Payouts</div><div class="pmult-card-mult">1×</div><div class="pmult-card-val" id="pmult-pay-1x">—</div></div>
+        </div>
+        <!-- 1.2x row -->
+        <div class="pmult-row" style="margin-bottom:8px;">
+          <div class="pmult-card" onclick="setProjMult(1.2,this)" data-mult="1.2"><div class="pmult-card-label">Sales</div><div class="pmult-card-mult">1.2×</div><div class="pmult-card-val" id="pmult-sales-12x">—</div></div>
+          <div class="pmult-card" style="cursor:default;"><div class="pmult-card-label">Overhead</div><div class="pmult-card-mult">1.2×</div><div class="pmult-card-val" id="pmult-oh-12x" style="color:rgba(255,255,255,0.85);">—</div></div>
+          <div class="pmult-card" style="cursor:default;"><div class="pmult-card-label">Payouts</div><div class="pmult-card-mult">1.2×</div><div class="pmult-card-val" id="pmult-pay-12x">—</div></div>
+        </div>
+        <!-- 1.5x row -->
+        <div class="pmult-row" style="margin-bottom:8px;">
+          <div class="pmult-card" onclick="setProjMult(1.5,this)" data-mult="1.5"><div class="pmult-card-label">Sales</div><div class="pmult-card-mult">1.5×</div><div class="pmult-card-val" id="pmult-sales-15x">—</div></div>
+          <div class="pmult-card" style="cursor:default;"><div class="pmult-card-label">Overhead</div><div class="pmult-card-mult">1.5×</div><div class="pmult-card-val" id="pmult-oh-15x" style="color:rgba(255,255,255,0.85);">—</div></div>
+          <div class="pmult-card" style="cursor:default;"><div class="pmult-card-label">Payouts</div><div class="pmult-card-mult">1.5×</div><div class="pmult-card-val" id="pmult-pay-15x">—</div></div>
+        </div>
+        <!-- 2x row -->
+        <div class="pmult-row">
+          <div class="pmult-card" onclick="setProjMult(2.0,this)" data-mult="2.0"><div class="pmult-card-label">Sales</div><div class="pmult-card-mult">2×</div><div class="pmult-card-val" id="pmult-sales-2x">—</div></div>
+          <div class="pmult-card" style="cursor:default;"><div class="pmult-card-label">Overhead</div><div class="pmult-card-mult">2×</div><div class="pmult-card-val" id="pmult-oh-2x" style="color:rgba(255,255,255,0.85);">—</div></div>
+          <div class="pmult-card" style="cursor:default;"><div class="pmult-card-label">Payouts</div><div class="pmult-card-mult">2×</div><div class="pmult-card-val" id="pmult-pay-2x">—</div></div>
+        </div>
       </div>
-
-      <!-- Multiplier selector -->
-      <div class="section-label">Multiplier</div>
-      <div style="display:flex;gap:8px;margin-bottom:12px;">
-        <button class="proj-mult-btn active" data-mult="1.0" onclick="setProjMult(1.0,this)">1×</button>
-        <button class="proj-mult-btn" data-mult="1.2" onclick="setProjMult(1.2,this)">1.2×</button>
-        <button class="proj-mult-btn" data-mult="1.5" onclick="setProjMult(1.5,this)">1.5×</button>
-        <button class="proj-mult-btn" data-mult="2.0" onclick="setProjMult(2.0,this)">2×</button>
-      </div>
-
-      <!-- Projected day -->
-      <div class="section-label">Projected Day <span id="proj-mult-label" style="color:var(--b6);font-weight:800;font-size:11px;">@ 1×</span></div>
-      <div class="proj-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:12px;">
-        <div class="proj-cell highlight"><div class="proj-cell-label">Sales</div><div class="proj-cell-val" id="proj-day-sales">—</div></div>
-        <div class="proj-cell"><div class="proj-cell-label">Overhead</div><div class="proj-cell-val" id="proj-day-oh">—</div></div>
-        <div class="proj-cell"><div class="proj-cell-label">Payouts</div><div class="proj-cell-val" id="proj-day-payouts">—</div></div>
-        <div class="proj-cell"><div class="proj-cell-label">Taxes</div><div class="proj-cell-val" id="proj-day-tax">—</div></div>
-        <div class="proj-cell"><div class="proj-cell-label">Herbalife</div><div class="proj-cell-val" id="proj-day-prod">—</div></div>
-        <div class="proj-cell"><div class="proj-cell-label">DV</div><div class="proj-cell-val" id="proj-day-dv">—</div></div>
+      <!-- Hidden fields still needed by renderProjScenario -->
+      <div style="display:none;">
+        <span id="proj-base-sales"></span><span id="proj-base-oh"></span><span id="proj-base-payouts"></span>
+        <span id="proj-base-tax"></span><span id="proj-base-prod"></span><span id="proj-base-dv"></span>
+        <span id="proj-mult-label"></span>
+        <span id="proj-day-sales"></span><span id="proj-day-oh"></span><span id="proj-day-payouts"></span>
+        <span id="proj-day-tax"></span><span id="proj-day-prod"></span><span id="proj-day-dv"></span>
       </div>
 
       <!-- Operating days -->
@@ -2622,6 +2638,7 @@ function loadProjDay(date){
   _projBaseSales=calSales(d);_projBaseOh=c.overhead||0;_projBasePayouts=c.payouts||0;
   _projBaseTax=c.tax||0;_projBaseProd=c.products||0;_projBaseDv=d.dv||0;
   const dt=new Date(date+'T00:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  const dateLabel=document.getElementById('proj-base-date-label');if(dateLabel)dateLabel.textContent=dt.toUpperCase();
   const infoEl=document.getElementById('proj-day-info');
   if(infoEl){infoEl.textContent=dt;infoEl.style.display='block';}
   setText('proj-base-sales',fmt$(_projBaseSales));setText('proj-base-oh',fmt$(_projBaseOh));
@@ -2645,6 +2662,7 @@ function loadProjAvg(){
   _projBaseDv=md.reduce((s,d)=>s+(d.data?.dv||0),0)/n;
   const picker=document.getElementById('proj-day-picker');if(picker)picker.value='';
   const infoEl=document.getElementById('proj-day-info');
+  const avgLabel=document.getElementById('proj-base-date-label');if(avgLabel)avgLabel.textContent='AVG OF '+n+' DAYS — THIS MONTH';
   if(infoEl){infoEl.textContent='Average of '+n+' days this month';infoEl.style.display='block';}
   setText('proj-base-sales',fmt$(_projBaseSales));setText('proj-base-oh',fmt$(_projBaseOh));
   setText('proj-base-payouts',fmt$(_projBasePayouts));setText('proj-base-tax',fmt$(_projBaseTax));
@@ -2655,8 +2673,10 @@ function loadProjAvg(){
 }
 function setProjMult(mult,btn){
   _projMult=mult;
-  document.querySelectorAll('.proj-mult-btn').forEach(b=>b.classList.remove('active'));
-  if(btn)btn.classList.add('active');
+  // Highlight the entire row by matching data-mult on sales cards
+  document.querySelectorAll('.pmult-card[data-mult]').forEach(b=>{
+    b.classList.toggle('active', parseFloat(b.dataset.mult)===mult);
+  });
   const lbl=document.getElementById('proj-mult-label');
   if(lbl)lbl.textContent='@ '+mult+'&#215;';
   renderProjScenario();
@@ -2666,6 +2686,16 @@ function renderProjScenario(){
   const m=_projMult;
   const projSales=_projBaseSales*m,projOh=_projBaseOh*m,projPay=_projBasePayouts*m;
   const projTax=_projBaseTax*m,projProd=_projBaseProd*m,projDv=_projBaseDv*m;
+
+  // Populate all 4 multiplier rows
+  const mults=[{k:'1x',v:1.0},{k:'12x',v:1.2},{k:'15x',v:1.5},{k:'2x',v:2.0}];
+  mults.forEach(({k,v})=>{
+    setText(`pmult-sales-${k}`, fmt$(_projBaseSales*v));
+    setText(`pmult-oh-${k}`,    fmt$(_projBaseOh*v));
+    setText(`pmult-pay-${k}`,   fmt$(_projBasePayouts*v));
+  });
+
+  // Still populate hidden legacy fields for period totals
   setText('proj-day-sales',fmt$(projSales));setText('proj-day-oh',fmt$(projOh));
   setText('proj-day-payouts',fmt$(projPay));setText('proj-day-tax',fmt$(projTax));
   setText('proj-day-prod',fmt$(projProd));setText('proj-day-dv',fmtN(projDv));
