@@ -376,11 +376,16 @@ async function init(){
   if(params.get('tab')==='register'){
     showTab('register');
     var code=params.get('code');
+    var emailParam=params.get('email');
     if(code){
       var codeEl=document.getElementById('reg-code');
       if(codeEl){codeEl.value=decodeURIComponent(code).toUpperCase();}
-      showMsg('reg-msg1','Invite code pre-filled ✓','success');
     }
+    if(emailParam){
+      var emailEl=document.getElementById('reg-email');
+      if(emailEl){emailEl.value=decodeURIComponent(emailParam);}
+    }
+    if(code||emailParam) showMsg('reg-msg1','Your details have been pre-filled ✓','success');
     return;
   }
   var session=(await sb.auth.getSession()).data.session;
