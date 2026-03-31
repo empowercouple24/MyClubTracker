@@ -1518,6 +1518,7 @@ async function loadTeamMembers(){
   const primaryOwners=members.filter(m=>m.role==='owner');
   const otherOwners=[];
   const employees=members.filter(m=>m.role!=='owner');
+  console.log('loadTeamMembers — primaryOwners:', primaryOwners.map(m=>m.email+' role:'+m.role), 'employees:', employees.map(m=>m.email+' role:'+m.role));
 
   const renderPrimaryOwner=(m)=>{
     const name=[m.first_name,m.last_name].filter(Boolean).join(' ')||m.display_name||m.email;
