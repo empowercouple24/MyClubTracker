@@ -2319,8 +2319,8 @@ function showSaToast(msg, dur = 2400) {
     if(document.getElementById('update-banner'))return;
     var b=document.createElement('div');
     b.id='update-banner';
-    b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#2d6a4f;color:#fff;font-family:DM Sans,system-ui,sans-serif;font-size:13px;font-weight:600;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 2px 8px rgba(0,0,0,0.2);';
-    b.innerHTML='<span>&#128260; A new version is available</span><button onclick="window.location.reload()" style="background:#fff;color:#2d6a4f;border:none;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">Refresh now</button>';
+    b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#1e3a5f;color:#fff;font-family:DM Sans,system-ui,sans-serif;font-size:13px;font-weight:600;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 2px 8px rgba(0,0,0,0.2);';
+    b.innerHTML='<span>&#128260; A new version is available</span><button onclick="window.location.reload()" style="background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">Refresh now</button>';
     document.body.insertBefore(b, document.body.firstChild);
   }
   if(!_initVersion)return;
