@@ -1514,20 +1514,20 @@ async function loadTeamMembers(){
     list.innerHTML='<div style="font-size:13px;color:var(--text-faint);">No other team members yet.</div>';
     return;
   }
-  // ALL owners are locked — no role change or removal allowed
-  const primaryOwners=members.filter(m=>m.role==='owner');
+  // Lock owners AND admins — neither can be removed or role-changed
+  const primaryOwners=members.filter(m=>m.role==='owner'||m.role==='admin');
   const otherOwners=[];
-  const employees=members.filter(m=>m.role!=='owner');
+  const employees=members.filter(m=>m.role!=='owner'&&m.role!=='admin');
   console.log('loadTeamMembers — primaryOwners:', primaryOwners.map(m=>m.email+' role:'+m.role), 'employees:', employees.map(m=>m.email+' role:'+m.role));
 
-  const renderPrimaryOwner=(m)=>{
+  const renderPrimaryOwner=(m,badge='Primary Owner')=>{
     const name=[m.first_name,m.last_name].filter(Boolean).join(' ')||m.display_name||m.email;
     return`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-light);gap:8px;opacity:0.75;">
       <div style="min-width:0;flex:1;">
         <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(name)}</div>
         <div style="font-size:11px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(m.email)}</div>
       </div>
-      <span style="font-size:11px;font-weight:700;background:var(--g0,#f0fdf4);color:var(--g5);border:1px solid var(--g2,#bbf7d0);border-radius:6px;padding:3px 10px;flex-shrink:0;">Primary Owner</span>
+      <span style="font-size:11px;font-weight:700;background:var(--g0,#f0fdf4);color:var(--g5);border:1px solid var(--g2,#bbf7d0);border-radius:6px;padding:3px 10px;flex-shrink:0;">${escHtml(badge)}</span>
     </div>`;
   };
 
@@ -1552,7 +1552,10 @@ async function loadTeamMembers(){
   let html='';
   if(primaryOwners.length){
     html+=`<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--g5);margin-bottom:2px;margin-top:4px;">Owner${primaryOwners.length>1?'s':''}</div>`;
-    html+=primaryOwners.map(m=>renderPrimaryOwner(m)).join('');
+    html+=primaryOwners.map(m=>{
+      const badge=m.role==='admin'?'Admin':'Primary Owner';
+      return renderPrimaryOwner(m,badge);
+    }).join('');
   }
   if(employees.length){
     html+=`<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:2px;margin-top:10px;">Operators</div>`;
