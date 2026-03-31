@@ -1992,7 +1992,9 @@ async function init(){
   if(SETTINGS.customProducts)PRODUCTS=SETTINGS.customProducts;
   if(SETTINGS.invOos)invOos=SETTINGS.invOos;
   const today=new Date().toISOString().slice(0,10);
-  const _ed=document.getElementById('entry-date');if(_ed)_ed.value=today;
+  const _savedDate=localStorage.getItem('mct_entry_date_'+CURRENT_SESSION.user.id);
+  const _startDate=(_savedDate&&_savedDate<=today)?_savedDate:today;
+  const _ed=document.getElementById('entry-date');if(_ed)_ed.value=_startDate;
   updateDateDisplay();
   const now=new Date();
   const _pf=document.getElementById('payout-from');if(_pf)_pf.value=new Date(now.getFullYear(),now.getMonth(),1).toISOString().slice(0,10);
@@ -3948,6 +3950,8 @@ function updateDateDisplay(){
   var el=document.getElementById('entry-date-display');
   if(!el)return;
   if(!val){el.textContent='Select date';return;}
+  // Persist selected date across refreshes
+  if(CURRENT_SESSION)localStorage.setItem('mct_entry_date_'+CURRENT_SESSION.user.id, val);
   var parts=val.split('-');
   var d=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));
   el.textContent=d.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
