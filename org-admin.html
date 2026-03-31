@@ -166,7 +166,6 @@ if('serviceWorker' in navigator){
     </button>
     <div class="nav-drop" id="nav-drop">
       <button class="nav-drop-item" onclick="openProfileModal();toggleNavMenu()">&#9881; Profile &amp; Settings</button>
-      <button class="nav-drop-item" onclick="openInviteLeaderModal();toggleNavMenu()">&#43; Invite Co-Leader</button>
       <div class="nav-drop-divider"></div>
       <button class="nav-drop-item danger" onclick="handleSignOut()">&#8618; Sign out</button>
     </div>
@@ -266,7 +265,7 @@ if('serviceWorker' in navigator){
 </div>
 
 <!-- -- INVITE CO-LEADER MODAL -- -->
-<div class="modal-overlay" id="invite-leader-modal">
+<div class="modal-overlay" id="invite-leader-modal" style="z-index:300;">
   <div class="modal">
     <div class="modal-title">Invite a Co-Leader</div>
     <div class="modal-sub">They'll receive an email with a link to join your organization as a co-leader.</div>
@@ -998,7 +997,7 @@ fetch(window.location.href,{method:'HEAD'}).then(function(r){
     <div style="border-top:1px solid var(--border-light);padding-top:14px;margin-bottom:16px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
         <div style="font-size:13px;font-weight:700;color:var(--text);">Co-Leaders</div>
-        <button onclick="openInviteLeaderModal()" style="font-size:12px;color:var(--b6);font-weight:600;background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;">+ Invite Co-Leader</button>
+        <button onclick="openInviteLeaderModal()" style="font-size:13px;font-weight:700;background:var(--b7);color:#fff;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;">+ Invite Co-Leader</button>
       </div>
       <div id="coleaders-list-settings" style="font-size:13px;color:var(--text-faint);">Loading…</div>
     </div>
