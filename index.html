@@ -242,6 +242,17 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
     </div>
   </div>
 
+  <!-- EMAIL CONFIRMATION MODAL -->
+  <div id="confirm-email-modal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(15,25,40,0.7);align-items:center;justify-content:center;padding:20px;">
+    <div style="background:#fff;border-radius:18px;padding:32px 28px;width:100%;max-width:360px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.2);">
+      <div style="font-size:48px;margin-bottom:12px;">✉️</div>
+      <div style="font-family:'Outfit',sans-serif;font-size:20px;font-weight:800;color:#1e2d3d;margin-bottom:8px;">Check your email</div>
+      <div style="font-size:14px;color:#4b6277;line-height:1.6;margin-bottom:6px;" id="confirm-modal-msg">We sent a confirmation link to your email address.</div>
+      <div style="font-size:13px;color:#8fa3b3;margin-bottom:24px;">Click the link in your email to activate your account, then come back to sign in.</div>
+      <button onclick="closeConfirmModal()" style="width:100%;padding:13px;border-radius:10px;background:#1e3a5f;color:#fff;border:none;font-size:15px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;">Got it — close this</button>
+    </div>
+  </div>
+
   <!-- REQUEST TO JOIN -->
   <div class="panel" id="panel-request">
     <div id="req-s1">
@@ -546,7 +557,17 @@ async function doRegister(){
   var rl=verifiedLocation.role==='owner'?'club owner':'employee';
   setBtn('reg-btn',false,'Create Account');
   document.getElementById('reg-s2').style.display='none';document.getElementById('reg-s3').style.display='block';
-  document.getElementById('reg-success-msg').textContent='Welcome, '+dn+'! A confirmation link has been sent to your email. Click it to activate your '+rl+' account for '+verifiedLocation.name+'.';
+  var successMsg='Welcome, '+dn+'! A confirmation link has been sent to your email. Click it to activate your '+rl+' account for '+verifiedLocation.name+'.';
+  document.getElementById('reg-success-msg').textContent=successMsg;
+  // Show confirmation modal
+  var regEmail=document.getElementById('reg-email')?.value?.trim()||'your email';
+  var modalMsg=document.getElementById('confirm-modal-msg');
+  if(modalMsg)modalMsg.textContent='We sent a confirmation link to '+regEmail+'. Click it to activate your account, then come back here to sign in.';
+  document.getElementById('confirm-email-modal').style.display='flex';
+}
+function closeConfirmModal(){
+  document.getElementById('confirm-email-modal').style.display='none';
+  showTab('signin');
 }
 function showReqStep(n){[1,2,3,4].forEach(function(i){var el=document.getElementById('req-s'+i);if(el)el.style.display=i===n?'block':'none';});}
 async function doVerifyOrgKey(){var key=document.getElementById('req-org-key').value.trim();if(!key){showMsg('req-msg-key','Please enter the organization key.','error');return;}setBtn('req-key-btn',true,'Checking…');clearMsg('req-msg-key');var res=await sb.from('app_settings').select('value').eq('key','org_key').single();setBtn('req-key-btn',false,'Unlock Request Form →');if(res.error||!res.data){showMsg('req-msg-key','Unable to verify key. Try again later.','error');return;}if(res.data.value.toUpperCase()!==key.toUpperCase()){showMsg('req-msg-key','Incorrect organization key.','error');return;}showReqStep(2);}
