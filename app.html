@@ -2716,7 +2716,7 @@ function renderProjScenario(){
   const labelStyle='font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-muted);padding:9px 10px;white-space:nowrap;border-radius:8px;background:var(--b0);border:1px solid var(--border-light);transition:background 0.1s;';
   const cellStyle='padding:9px 14px;text-align:right;border-radius:8px;background:var(--surface);border:1px solid var(--border-light);transition:background 0.1s;';
   const valStyle='font-family:\'Outfit\',sans-serif;font-size:14px;font-weight:600;color:var(--text);';
-  const renderRow=r=>`<tr class="proj-grid-row" onmouseenter="this.querySelectorAll('td').forEach(td=>td.style.background='var(--b1)')" onmouseleave="this.querySelectorAll('td').forEach(td=>td.style.background=td.dataset.bg)">${'<td style="'+labelStyle+'" data-bg="var(--b0)">'+r.label+'</td>'+r.vals.map(v=>`<td style="${cellStyle}" data-bg="var(--surface)"><span style="${valStyle}">${v}</span></td>`).join('')}</tr>`;
+  const renderRow=r=>`<tr class="proj-grid-row">${'<td style="'+labelStyle+'" data-bg="var(--b0)" data-col="0">'+r.label+'</td>'+r.vals.map((v,i)=>`<td style="${cellStyle}" data-bg="var(--surface)" data-col="${i+1}"><span style="${valStyle}">${v}</span></td>`).join('')}</tr>`;
   const sectionStyle='font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);padding:8px 4px 2px;background:transparent;border:none;';
 
   const salesRows=[
@@ -2737,6 +2737,23 @@ function renderProjScenario(){
       sectionRow('Sales')+salesRows.map(renderRow).join('')+
       sectionRow('Documented Volume')+dvRows.map(renderRow).join('');
     document.getElementById('proj-estimator-grid').style.display='block';
+    // Crosshair hover
+    body.querySelectorAll('td[data-col]').forEach(cell=>{
+      cell.addEventListener('mouseenter',function(){
+        const row=this.parentElement;
+        const col=this.dataset.col;
+        const table=body.closest('table');
+        table.querySelectorAll('td[data-col]').forEach(td=>{
+          if(td===this) td.style.background='var(--b2)';
+          else if(td.parentElement===row||td.dataset.col===col) td.style.background='var(--b1)';
+          else td.style.background=td.dataset.bg;
+        });
+      });
+      cell.addEventListener('mouseleave',function(){
+        const table=body.closest('table');
+        table.querySelectorAll('td[data-col]').forEach(td=>td.style.background=td.dataset.bg);
+      });
+    });
   }
 
   // Current month actuals
