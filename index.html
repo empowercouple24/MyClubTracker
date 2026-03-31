@@ -507,7 +507,7 @@ async function submitChangePassword(){
 async function doResend(){var email=document.getElementById('si-email').value.trim();if(!email){showMsg('si-msg','Enter your email above first.','error');return;}await sb.auth.resend({type:'signup',email:email});showMsg('si-msg','Confirmation email resent! Check your inbox.','success');document.getElementById('resend-wrap').style.display='none';}
 async function doReset(){var email=document.getElementById('fp-email').value.trim();if(!email){showMsg('fp-msg','Please enter your email.','error');return;}setBtn('fp-btn',true,'Sending…');var res=await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+'/index.html'});setBtn('fp-btn',false,'Send Reset Link');if(res.error){showMsg('fp-msg',res.error.message,'error');return;}showMsg('fp-msg','Reset link sent! Check your inbox and spam folder.','success');}
 async function doNewPassword(){var pw=document.getElementById('np-password').value;var pw2=document.getElementById('np-password2').value;if(!pw||pw.length<6){showMsg('np-msg','Password must be at least 6 characters.','error');return;}if(pw!==pw2){showMsg('np-msg','Passwords do not match.','error');return;}setBtn('np-btn',true,'Updating…');var res=await sb.auth.updateUser({password:pw});setBtn('np-btn',false,'Update Password');if(res.error){showMsg('np-msg',res.error.message,'error');return;}showMsg('np-msg','Password updated! Redirecting…','success');setTimeout(async function(){var s=(await sb.auth.getSession()).data.session;if(s){var r=await sb.from('users').select('role,location_id').eq('id',s.user.id).single();var u=r.data;if(u&&u.role==='admin'){window.location.href='admin.html';return;}if(u&&u.location_id){window.location.href='app.html';return;}}},1500);}
-function selectRole(role){selectedRole=role;document.getElementById('role-owner').classList.toggle('selected',role==='owner');document.getElementById('role-employee').classList.toggle('selected',role==='employee');document.getElementById('code-label').textContent=role==='owner'?'Owner Invite Code':'Employee Invite Code';resetVerify();}
+function selectRole(role){selectedRole=role;document.getElementById('role-owner').classList.toggle('selected',role==='owner');document.getElementById('role-employee').classList.toggle('selected',role==='employee');document.getElementById('code-label').textContent=role==='owner'?'Owner Invite Code':'Operator Invite Code';resetVerify();}
 function resetVerify(){verifiedLocation=null;document.getElementById('verified-badge').classList.remove('show');document.getElementById('reg-next-btn').disabled=true;clearMsg('reg-msg1');}
 async function doVerifyCode(){
   var code=document.getElementById('reg-code').value.trim().toUpperCase();
@@ -528,10 +528,10 @@ async function doVerifyCode(){
     else{showMsg('reg-msg1','Invalid invite code. Check with your admin.','error');return;}
   }
   document.getElementById('verified-badge').classList.add('show');
-  document.getElementById('verified-text').textContent=(verifiedLocation.role==='owner'?'🏪 Club Owner':'👤 Employee')+' — '+verifiedLocation.name;
+  document.getElementById('verified-text').textContent=(verifiedLocation.role==='owner'?'🏪 Club Owner':'👤 Operator')+' — '+verifiedLocation.name;
   document.getElementById('reg-next-btn').disabled=false;
 }
-function goRegStep2(){if(!verifiedLocation)return;document.getElementById('reg-location-name').textContent=(verifiedLocation.role==='owner'?'🏪 Club Owner':'👤 Employee')+' — '+verifiedLocation.name;document.getElementById('reg-s1').style.display='none';document.getElementById('reg-s2').style.display='block';}
+function goRegStep2(){if(!verifiedLocation)return;document.getElementById('reg-location-name').textContent=(verifiedLocation.role==='owner'?'🏪 Club Owner':'👤 Operator')+' — '+verifiedLocation.name;document.getElementById('reg-s1').style.display='none';document.getElementById('reg-s2').style.display='block';}
 function goRegStep1(){document.getElementById('reg-s1').style.display='block';document.getElementById('reg-s2').style.display='none';clearMsg('reg-msg2');}
 async function doRegister(){
   var fn=document.getElementById('reg-firstname').value.trim();var ln=document.getElementById('reg-lastname').value.trim();
@@ -554,7 +554,7 @@ async function doRegister(){
   }
   if(!auth.data.user){showMsg('reg-msg2','Sign-up failed. Try again.','error');setBtn('reg-btn',false,'Create Account');return;}
   var dn=[fn,ln].map(function(w){return w.charAt(0).toUpperCase()+w.slice(1).toLowerCase();}).join(' ');
-  var rl=verifiedLocation.role==='owner'?'club owner':'employee';
+  var rl=verifiedLocation.role==='owner'?'club owner':'operator';
   setBtn('reg-btn',false,'Create Account');
   document.getElementById('reg-s2').style.display='none';document.getElementById('reg-s3').style.display='block';
   var successMsg='Welcome, '+dn+'! A confirmation link has been sent to your email. Click it to activate your '+rl+' account for '+verifiedLocation.name+'.';

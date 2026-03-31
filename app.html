@@ -1209,7 +1209,7 @@ if('serviceWorker' in navigator){
         <div style="margin-top:10px;border-top:1px solid var(--border-light);padding-top:10px;" id="s-employee-section">
           <!-- Employee code display -->
           <div style="margin-bottom:10px;">
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:6px;">Employee Invite Code</div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:6px;">Operator Invite Code</div>
             <div style="display:flex;gap:8px;align-items:center;">
               <div id="s-emp-code-display" onclick="copyEmpCode()" title="Click to copy"
                 style="flex:1;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;color:var(--b7);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;cursor:pointer;user-select:all;display:flex;align-items:center;gap:8px;">
@@ -1220,10 +1220,10 @@ if('serviceWorker' in navigator){
               <button class="btn btn-ghost" onclick="generateEmpCode()" style="white-space:nowrap;flex-shrink:0;">Generate</button>
             </div>
           </div>
-          <div id="emp-invite-toggle" onclick="toggleEmpInvite()" style="font-size:12px;font-weight:600;color:var(--b6);cursor:pointer;display:inline-flex;align-items:center;gap:4px;">+ Invite employee by email</div>
+          <div id="emp-invite-toggle" onclick="toggleEmpInvite()" style="font-size:12px;font-weight:600;color:var(--b6);cursor:pointer;display:inline-flex;align-items:center;gap:4px;">+ Invite operator by email</div>
           <div id="emp-invite-panel" style="display:none;margin-top:8px;">
             <div style="display:flex;gap:8px;align-items:center;">
-              <input type="email" id="emp-invite-email" placeholder="employee@email.com"
+              <input type="email" id="emp-invite-email" placeholder="operator@email.com"
                 style="flex:1;font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 10px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--b0);color:var(--text);outline:none;"/>
               <button class="btn btn-primary" onclick="sendEmpInviteEmail()" style="white-space:nowrap;flex-shrink:0;font-size:12px;padding:7px 14px;">Send Invite</button>
             </div>
@@ -1544,7 +1544,7 @@ async function loadTeamMembers(){
       <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
         <select onchange="changeTeamRole('${m.id}',this.value,this)" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:3px 6px;border-radius:5px;border:1px solid var(--border);background:var(--surface);color:${roleColor};cursor:pointer;outline:none;">
           <option value="owner"    ${m.role==='owner'   ?'selected':''}>Owner</option>
-          <option value="employee" ${m.role==='employee'?'selected':''}>Employee</option>
+          <option value="employee" ${m.role==='employee'?'selected':''}>Operator</option>
         </select>
         <button onclick="confirmRemoveUser('${m.id}','${escHtml(name)}')" title="Remove operator" style="background:none;border:1px solid var(--border);border-radius:5px;padding:3px 7px;cursor:pointer;font-size:13px;color:var(--r5);line-height:1;" onmouseover="this.style.background='var(--r0)'" onmouseout="this.style.background='none'">&#10005;</button>
       </div>
@@ -1557,7 +1557,7 @@ async function loadTeamMembers(){
     html+=primaryOwners.map(m=>renderPrimaryOwner(m)).join('');
   }
   if(employees.length){
-    html+=`<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:2px;margin-top:10px;">Employees</div>`;
+    html+=`<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:2px;margin-top:10px;">Operators</div>`;
     html+=employees.map(m=>renderMember(m,false)).join('');
   }
   list.innerHTML=html;
