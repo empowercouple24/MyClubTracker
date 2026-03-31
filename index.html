@@ -364,10 +364,17 @@ async function init(){
   }
   // Handle registration email confirmation — sign out and show success message
   if(hash&&hash.includes('type=signup')){
+    // Grab email from session before signing out
+    const{data:{session:_confirmSess}}=await sb.auth.getSession();
+    const _confirmedEmail=_confirmSess?.user?.email||'';
     await sb.auth.signOut();
     window.history.replaceState({},'',window.location.pathname);
     showTab('signin');
     showMsg('si-msg','✓ Email confirmed! You can now sign in.','success');
+    if(_confirmedEmail){
+      const _siEl=document.getElementById('si-email');
+      if(_siEl){_siEl.value=_confirmedEmail;_siEl.focus();}
+    }
     return;
   }
   if(params.get('msg')==='confirmed'){showTab('signin');showMsg('si-msg','✓ Email confirmed! You can now sign in.','success');return;}
