@@ -699,10 +699,10 @@ if('serviceWorker' in navigator){
           <thead>
             <tr>
               <td style="width:28%;"></td>
-              <th id="proj-col-h0" style="font-size:12px;font-weight:600;color:var(--text);background:var(--b0);border-radius:8px;padding:7px 10px;text-align:center;border:1px solid var(--border-light);">Base</th>
-              <th id="proj-col-h1" style="font-size:12px;font-weight:600;color:var(--text);background:var(--b0);border-radius:8px;padding:7px 10px;text-align:center;border:1px solid var(--border-light);">+10%</th>
-              <th id="proj-col-h2" style="font-size:12px;font-weight:600;color:var(--text);background:var(--b0);border-radius:8px;padding:7px 10px;text-align:center;border:1px solid var(--border-light);">+20%</th>
-              <th id="proj-col-h3" style="font-size:12px;font-weight:600;color:var(--text);background:var(--b0);border-radius:8px;padding:7px 10px;text-align:center;border:1px solid var(--border-light);">+30%</th>
+              <th id="proj-col-h0" data-col="1" style="font-size:12px;font-weight:600;color:var(--text);background:var(--b0);border-radius:8px;padding:7px 10px;text-align:center;border:1px solid var(--border-light);transition:background 0.1s;">Base</th>
+              <th id="proj-col-h1" data-col="2" style="font-size:12px;font-weight:600;color:var(--text);background:var(--b0);border-radius:8px;padding:7px 10px;text-align:center;border:1px solid var(--border-light);transition:background 0.1s;">+10%</th>
+              <th id="proj-col-h2" data-col="3" style="font-size:12px;font-weight:600;color:var(--text);background:var(--b0);border-radius:8px;padding:7px 10px;text-align:center;border:1px solid var(--border-light);transition:background 0.1s;">+20%</th>
+              <th id="proj-col-h3" data-col="4" style="font-size:12px;font-weight:600;color:var(--text);background:var(--b0);border-radius:8px;padding:7px 10px;text-align:center;border:1px solid var(--border-light);transition:background 0.1s;">+30%</th>
             </tr>
           </thead>
           <tbody id="proj-estimator-body"></tbody>
@@ -2716,7 +2716,7 @@ function renderProjScenario(){
   const labelStyle='font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-muted);padding:9px 10px;white-space:nowrap;border-radius:8px;background:var(--b0);border:1px solid var(--border-light);transition:background 0.1s;';
   const cellStyle='padding:9px 14px;text-align:right;border-radius:8px;background:var(--surface);border:1px solid var(--border-light);transition:background 0.1s;';
   const valStyle='font-family:\'Outfit\',sans-serif;font-size:14px;font-weight:600;color:var(--text);';
-  const renderRow=r=>`<tr class="proj-grid-row">${'<td style="'+labelStyle+'" data-bg="var(--b0)" data-col="0">'+r.label+'</td>'+r.vals.map((v,i)=>`<td style="${cellStyle}" data-bg="var(--surface)" data-col="${i+1}"><span style="${valStyle}">${v}</span></td>`).join('')}</tr>`;
+  const renderRow=(r,ri)=>`<tr class="proj-grid-row">${'<td style="'+labelStyle+'" data-bg="var(--b0)" data-col="0" data-row="'+ri+'">'+r.label+'</td>'+r.vals.map((v,i)=>`<td style="${cellStyle}" data-bg="var(--surface)" data-col="${i+1}" data-row="${ri}"><span style="${valStyle}">${v}</span></td>`).join('')}</tr>`;
   const sectionStyle='font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);padding:8px 4px 2px;background:transparent;border:none;';
 
   const salesRows=[
@@ -2733,25 +2733,47 @@ function renderProjScenario(){
 
   const body=document.getElementById('proj-estimator-body');
   if(body){
+    const allRows=[...salesRows,...dvRows];
     body.innerHTML=
-      sectionRow('Sales')+salesRows.map(renderRow).join('')+
-      sectionRow('Documented Volume')+dvRows.map(renderRow).join('');
+      sectionRow('Sales')+salesRows.map((r,i)=>renderRow(r,i)).join('')+
+      sectionRow('Documented Volume')+dvRows.map((r,i)=>renderRow(r,salesRows.length+i)).join('');
     document.getElementById('proj-estimator-grid').style.display='block';
-    // Crosshair hover
+
+    // Crosshair: highlight left+up only (row label, column header, cells ≤ hovered col in same row, cells ≤ hovered row in same col)
+    const table=body.closest('table');
+    const thead=table.querySelector('thead');
+
     body.querySelectorAll('td[data-col]').forEach(cell=>{
       cell.addEventListener('mouseenter',function(){
-        const row=this.parentElement;
-        const col=this.dataset.col;
-        const table=body.closest('table');
-        table.querySelectorAll('td[data-col]').forEach(td=>{
-          if(td===this) td.style.background='var(--b2)';
-          else if(td.parentElement===row||td.dataset.col===col) td.style.background='var(--b1)';
-          else td.style.background=td.dataset.bg;
-        });
-      });
-      cell.addEventListener('mouseleave',function(){
-        const table=body.closest('table');
+        const hovRow=parseInt(this.dataset.row);
+        const hovCol=parseInt(this.dataset.col);
+
+        // Reset all body cells
         table.querySelectorAll('td[data-col]').forEach(td=>td.style.background=td.dataset.bg);
+        // Reset thead cells
+        thead.querySelectorAll('th[data-col]').forEach(th=>th.style.background='var(--b0)');
+
+        // Hovered cell — strongest
+        this.style.background='var(--b2)';
+
+        // Same row, columns to the LEFT (col < hovCol) including col 0 (label)
+        body.querySelectorAll(`td[data-row="${hovRow}"]`).forEach(td=>{
+          if(parseInt(td.dataset.col)<hovCol) td.style.background='var(--b1)';
+        });
+
+        // Same column, rows ABOVE (row < hovRow)
+        body.querySelectorAll(`td[data-col="${hovCol}"]`).forEach(td=>{
+          if(parseInt(td.dataset.row)<hovRow) td.style.background='var(--b1)';
+        });
+
+        // Column header
+        const th=thead.querySelector(`th[data-col="${hovCol}"]`);
+        if(th) th.style.background='var(--b1)';
+      });
+
+      cell.addEventListener('mouseleave',function(){
+        table.querySelectorAll('td[data-col]').forEach(td=>td.style.background=td.dataset.bg);
+        thead.querySelectorAll('th[data-col]').forEach(th=>th.style.background='var(--b0)');
       });
     });
   }
