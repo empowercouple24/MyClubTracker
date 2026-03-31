@@ -713,6 +713,11 @@ function openProfileModal(){
     document.getElementById('pm-last').value=ME.last_name||'';
     document.getElementById('pm-display').value=ME.display_name||'';
     document.getElementById('pm-phone').value=ME.phone||'';
+    const emailEl=document.getElementById('pm-email-display');
+    if(emailEl){
+      const email=ME.email||(await sb.auth.getSession())?.data?.session?.user?.email||'—';
+      emailEl.textContent=email;
+    }
     const img=document.getElementById('pm-avatar-img');
     const initials=document.getElementById('pm-avatar-initials');
     const initial=((ME.first_name||'')[0]||(ME.display_name||'')[0]||'?').toUpperCase();
@@ -948,6 +953,12 @@ fetch(window.location.href,{method:'HEAD'}).then(function(r){
         <div style="font-size:11px;color:var(--text-faint);margin-bottom:6px;">Tap the circle to upload.</div>
         <button id="pm-avatar-remove-btn" onclick="removePmAvatar()" style="display:none;font-size:11px;color:var(--danger,#dc2626);background:none;border:1px solid var(--danger,#dc2626);border-radius:6px;padding:3px 10px;cursor:pointer;">Remove photo</button>
       </div>
+    </div>
+
+    <!-- EMAIL (read-only) -->
+    <div class="modal-field" style="margin-bottom:14px;">
+      <label class="modal-label">Email</label>
+      <div id="pm-email-display" style="font-size:13px;color:var(--text-muted);background:var(--b0);border:1px solid var(--border-light);border-radius:8px;padding:9px 12px;">&mdash;</div>
     </div>
 
     <!-- NAME -->

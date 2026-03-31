@@ -187,23 +187,23 @@ if('serviceWorker' in navigator){
     .hcal-month-total-label{font-size:11px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,0.55);}
     .hcal-month-total-val{font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;color:white;}
     /* PROJ MINI CAL */
-    .pcal-dow-row{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px;}
-    .pcal-dow{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-faint);text-align:center;padding:2px 0;}
-    .pcal-week{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px;}
-    .pcal-day{border-radius:6px;padding:5px 5px;min-height:64px;display:flex;flex-direction:column;position:relative;}
+    .pcal-dow-row{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px;}
+    .pcal-dow{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-faint);text-align:center;padding:3px 0;}
+    .pcal-week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px;}
+    .pcal-day{border-radius:6px;padding:7px 7px;min-height:74px;display:flex;flex-direction:column;position:relative;}
     .pcal-day.has-data{background:var(--b0);border:1px solid var(--border-light);cursor:pointer;transition:box-shadow 0.12s,border-color 0.12s;}
     .pcal-day.has-data:hover{box-shadow:var(--shadow-md);border-color:var(--b4);}
     .pcal-day.has-data.selected{background:var(--b8);border-color:var(--b6);}
     .pcal-day.empty-day{background:transparent;border:1px solid transparent;}
     .pcal-day.no-data{background:transparent;border:1px dashed var(--border-light);opacity:0.35;}
     .pcal-day.today-day{border-color:var(--b5) !important;}
-    .pcal-dn{font-size:11px;font-weight:700;color:var(--text-faint);line-height:1;margin-bottom:2px;}
+    .pcal-dn{font-size:13px;font-weight:700;color:var(--text-faint);line-height:1;margin-bottom:3px;}
     .pcal-day.has-data .pcal-dn{color:var(--text-muted);}
     .pcal-day.has-data.selected .pcal-dn{color:rgba(255,255,255,0.7);}
-    .pcal-slabel{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--g6);line-height:1;}
-    .pcal-sval{font-family:'Outfit',sans-serif;font-size:12px;font-weight:800;color:var(--g5);line-height:1.2;}
-    .pcal-dvlabel{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--b4);margin-top:3px;line-height:1;}
-    .pcal-dvval{font-size:11px;font-weight:700;color:var(--text);line-height:1.2;}
+    .pcal-slabel{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--g6);line-height:1;}
+    .pcal-sval{font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--g5);line-height:1.2;}
+    .pcal-dvlabel{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--b4);margin-top:4px;line-height:1;}
+    .pcal-dvval{font-size:13px;font-weight:700;color:var(--text);line-height:1.2;}
     .pcal-day.has-data.selected .pcal-slabel,.pcal-day.has-data.selected .pcal-sval,
     .pcal-day.has-data.selected .pcal-dvlabel,.pcal-day.has-data.selected .pcal-dvval{color:rgba(255,255,255,0.9);}
     /* PROJ MULT CARDS */
@@ -646,7 +646,7 @@ if('serviceWorker' in navigator){
 </div>
 
 <div class="tab-panel" id="panel-proj">
-  <div style="max-width:700px;margin:0 auto;padding:12px 12px 40px;">
+  <div style="max-width:805px;margin:0 auto;padding:12px 12px 40px;">
 
     <!-- Day selector -->
     <div class="section-label">Base Day</div>
