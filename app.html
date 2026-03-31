@@ -2294,8 +2294,10 @@ async function saveDay(){
   const dow=new Date(date+'T00:00:00').getDay();
   const opDays=SETTINGS.opDays||[false,true,true,true,true,true,true];
   const isScheduledClosed=!opDays[dow];
-  if(isClosedDay&&!isScheduledClosed) SETTINGS.closedDays[date]=true;
-  else if(!isClosedDay) delete SETTINGS.closedDays[date];
+  if(isClosedDay&&!isScheduledClosed) SETTINGS.closedDays[date]=true;   // open day marked closed manually
+  else if(isClosedDay&&isScheduledClosed) delete SETTINGS.closedDays[date]; // scheduled closed, no override needed
+  else if(!isClosedDay&&isScheduledClosed) SETTINGS.closedDays[date]='open'; // scheduled closed but worked it
+  else delete SETTINGS.closedDays[date]; // open day, no override
   if(IS_ADMIN_VIEW) data._adminEdit=new Date().toISOString(); // stamp when admin last edited
   const ex=ALL_DAYS.find(d=>d.date===date);let error;
   if(ex){const{error:e}=await sb.from('days').update({data}).eq('id',ex.id);error=e;if(!e)ex.data=data;}
@@ -2738,7 +2740,8 @@ function renderHistCal(){
       const isClosedBySchedule=!opDays[dow];
       const closedDays=SETTINGS.closedDays||{};
       const isClosedOverride=!!closedDays[dateStr];
-      const isClosed=isClosedBySchedule||isClosedOverride;
+      const isOpenOverride=closedDays[dateStr]==='open';
+      const isClosed=(isClosedBySchedule||isClosedOverride)&&!isOpenOverride;
       if(data){
         const ops=[data.op1,data.op2].filter(Boolean).join(', ');
         const noteIcon=data.notes?'<span style="font-size:12px;line-height:1;">&#128221;</span>':'';
@@ -2813,11 +2816,12 @@ function updateClosedDayToggle(date){
   const isScheduledClosed=!opDays[dow];
   const closedDays=SETTINGS.closedDays||{};
   const ex=ALL_DAYS.find(d=>d.date===date);
-  const isMarkedClosed=ex?.data?.closedDay||isScheduledClosed||(!!closedDays[date]);
+  const isOpenOverride=closedDays[date]==='open';
+  const isMarkedClosed=(ex?.data?.closedDay||isScheduledClosed||(closedDays[date]===true))&&!isOpenOverride;
   cb.checked=isMarkedClosed;
   // Disable checkbox on scheduled closed days — they're auto-closed
-  cb.disabled=isScheduledClosed;
-  if(sub) sub.textContent=isScheduledClosed?'Scheduled closed day (from operating hours)':'Scheduled open day';
+  cb.disabled=false;
+  if(sub) sub.textContent=isOpenOverride?'Overridden — working a scheduled closed day':isScheduledClosed?'Scheduled closed day (from operating hours)':'Scheduled open day';
   if(label){label.textContent=isMarkedClosed?'Closed':'Open';label.style.color=isMarkedClosed?'var(--r5)':'var(--text-faint)';}
   if(wrap){wrap.style.background=isMarkedClosed?'rgba(220,38,38,0.06)':'var(--b0)';wrap.style.borderColor=isMarkedClosed?'rgba(220,38,38,0.2)':'var(--border-light)';}
   const future=date>new Date().toISOString().slice(0,10);

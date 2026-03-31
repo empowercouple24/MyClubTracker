@@ -26,7 +26,9 @@
     .org-card{background:#eef3f8;border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:10px;transition:box-shadow 0.18s;}
     .org-card:hover{box-shadow:var(--shadow-md);}
     .org-card.expanded{border-color:var(--b3);}
-    .org-card-header{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;user-select:none;}
+    .org-card-header{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;user-select:none;background:#dde7f0;border-radius:var(--radius) var(--radius) 0 0;transition:background 0.15s;}
+    .org-card-header:hover{background:#cfdae8;}
+    .org-card:not(.expanded) .org-card-header{border-radius:var(--radius);}
     .org-avatar{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--b7),var(--b4));display:flex;align-items:center;justify-content:center;font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:white;flex-shrink:0;}
     .org-meta{flex:1;min-width:0;}
     .org-name{font-family:'Outfit',sans-serif;font-size:17px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -49,7 +51,8 @@
     .org-detail-val{font-size:13px;font-weight:600;color:var(--text);}
     .org-detail-val.muted{font-weight:400;color:var(--text-muted);}
     .org-locs-list{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;}
-    .org-loc-row{background:var(--surface);border:1px solid var(--border-light);border-radius:8px;padding:9px 12px;display:flex;flex-direction:column;align-items:stretch;gap:0;transition:border-color 0.3s,box-shadow 0.3s;}
+    .org-loc-row{background:var(--surface);border:1px solid var(--border-light);border-radius:8px;padding:9px 12px;display:flex;flex-direction:column;align-items:stretch;gap:0;transition:border-color 0.15s,background 0.15s;}
+    .org-loc-row:hover{background:#eef3f8;border-color:var(--b3);}
     .org-loc-name{font-size:13px;font-weight:600;color:var(--text);}
     .org-loc-addr{font-size:11px;color:var(--text-faint);margin-top:1px;}
     .org-expanded-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding-top:10px;border-top:1px solid var(--border-light);margin-top:12px;}
