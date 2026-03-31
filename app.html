@@ -1205,8 +1205,21 @@ if('serviceWorker' in navigator){
       <div class="settings-group" id="prof-role-section">
         <div class="settings-group-title">Team Members</div>
         <div id="prof-team-list" style="font-size:13px;color:var(--text-muted);padding:8px 0;">Loading…</div>
-        <!-- Invite by email (moved here from employee section) -->
+        <!-- Invite by email — owners only -->
         <div style="margin-top:10px;border-top:1px solid var(--border-light);padding-top:10px;" id="s-employee-section">
+          <!-- Employee code display -->
+          <div style="margin-bottom:10px;">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:6px;">Employee Invite Code</div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <div id="s-emp-code-display" onclick="copyEmpCode()" title="Click to copy"
+                style="flex:1;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;color:var(--b7);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;cursor:pointer;user-select:all;display:flex;align-items:center;gap:8px;">
+                <span id="s-emp-code-text" style="flex:1;"></span>
+                <span style="font-size:10px;font-weight:500;color:var(--text-faint);letter-spacing:0;">copy</span>
+              </div>
+              <input type="hidden" id="s-emp-code"/>
+              <button class="btn btn-ghost" onclick="generateEmpCode()" style="white-space:nowrap;flex-shrink:0;">Generate</button>
+            </div>
+          </div>
           <div id="emp-invite-toggle" onclick="toggleEmpInvite()" style="font-size:12px;font-weight:600;color:var(--b6);cursor:pointer;display:inline-flex;align-items:center;gap:4px;">+ Invite employee by email</div>
           <div id="emp-invite-panel" style="display:none;margin-top:8px;">
             <div style="display:flex;gap:8px;align-items:center;">
@@ -1486,21 +1499,14 @@ async function loadTeamMembers(){
     list.innerHTML='<div style="font-size:13px;color:var(--text-faint);">No other team members yet.</div>';
     return;
   }
-  // Sort: owners first, then employees
-  const sorted=[...members].sort((a,b)=>{
-    if(a.role===b.role)return 0;
-    return a.role==='owner'?-1:1;
-  });
-  list.innerHTML=sorted.map(m=>{
+  const owners=members.filter(m=>m.role==='owner');
+  const employees=members.filter(m=>m.role!=='owner');
+  const renderMember=(m,isOwner)=>{
     const name=[m.first_name,m.last_name].filter(Boolean).join(' ')||m.display_name||m.email;
-    const isOwner=m.role==='owner';
     const roleColor=isOwner?'var(--g5)':'var(--text-muted)';
     return`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-light);gap:8px;">
       <div style="min-width:0;flex:1;">
-        <div style="display:flex;align-items:center;gap:6px;">
-          <span style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(name)}</span>
-          ${isOwner?`<span style="font-size:10px;font-weight:700;background:var(--g0,#f0fdf4);color:var(--g5);border:1px solid var(--g2,#bbf7d0);border-radius:4px;padding:1px 6px;flex-shrink:0;">Owner</span>`:''}
-        </div>
+        <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(name)}</div>
         <div style="font-size:11px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(m.email)}</div>
       </div>
       <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
@@ -1511,9 +1517,18 @@ async function loadTeamMembers(){
         <button onclick="confirmRemoveUser('${m.id}','${escHtml(name)}')" title="Remove user" style="background:none;border:1px solid var(--border);border-radius:5px;padding:3px 7px;cursor:pointer;font-size:13px;color:var(--r5);line-height:1;" onmouseover="this.style.background='var(--r0)'" onmouseout="this.style.background='none'">&#10005;</button>
       </div>
     </div>`;
-  }).join('');
+  };
+  let html='';
+  if(owners.length){
+    html+=`<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--g5);margin-bottom:2px;margin-top:4px;">Other Owners</div>`;
+    html+=owners.map(m=>renderMember(m,true)).join('');
+  }
+  if(employees.length){
+    if(owners.length)html+=`<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:2px;margin-top:10px;">Employees</div>`;
+    html+=employees.map(m=>renderMember(m,false)).join('');
+  }
+  list.innerHTML=html;
 }
-
 async function changeTeamRole(userId,newRole,selectEl){
   const{error}=await sb.from('users').update({role:newRole}).eq('id',userId);
   if(error){showToast('Role change failed: '+error.message,'error');await loadTeamMembers();return;}
@@ -3881,7 +3896,7 @@ function buildSettingsUI(){
   const empEl=document.getElementById('s-emp-code');
   const empDisp=document.getElementById('s-emp-code-text');
   if(empEl)empEl.value=SETTINGS.employeeInviteCode||'';
-  if(empDisp)empDisp.textContent=SETTINGS.employeeInviteCode||'No code set';
+  if(empDisp)empDisp.textContent=SETTINGS.employeeInviteCode||'No code yet';
   // Operating days toggles
   const opdEl=document.getElementById('s-opdays');
   if(opdEl){
@@ -3892,7 +3907,7 @@ function buildSettingsUI(){
   }
   // Hide employee section for employees (they can't generate their own codes)
   const empSection=document.getElementById('s-employee-section');
-  if(empSection&&USER_ROLE==='employee')empSection.style.display='none';
+  if(empSection)empSection.style.display=USER_ROLE==='employee'?'none':'block';
 }
 
 function toggleOperatorOwner(i){
