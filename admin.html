@@ -342,6 +342,18 @@ if('serviceWorker' in navigator){
       <div style="margin-left:auto;font-size:20px;opacity:0.7;">↓</div>
     </div>
   </div>
+
+  <div id="pending-orgs-banner" style="display:none;background:linear-gradient(135deg,var(--a6),var(--a4,#d97706));border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;cursor:pointer;color:white;" onclick="switchTab('orgs')">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="font-size:22px;">🏢</div>
+      <div>
+        <div style="font-size:14px;font-weight:700;" id="pending-orgs-banner-text">Organizations Pending Setup</div>
+        <div style="font-size:12px;opacity:0.85;margin-top:2px;">Click to review → go to Organizations tab</div>
+      </div>
+      <div style="margin-left:auto;font-size:20px;opacity:0.7;">→</div>
+    </div>
+  </div>
+
   <div id="alert-banner-wrap"></div>
 
   <!-- LAYOUT BODY — toggled between list and split via JS -->
@@ -1875,6 +1887,18 @@ async function loadOrgs() {
   if (badge) {
     badge.textContent = pending;
     badge.style.display = pending ? 'inline-flex' : 'none';
+  }
+
+  // Pending orgs banner
+  const orgBanner = document.getElementById('pending-orgs-banner');
+  const orgBannerText = document.getElementById('pending-orgs-banner-text');
+  if (orgBanner) {
+    if (pending > 0) {
+      orgBanner.style.display = 'block';
+      if (orgBannerText) orgBannerText.textContent = `${pending} Organization${pending !== 1 ? 's' : ''} Pending Setup`;
+    } else {
+      orgBanner.style.display = 'none';
+    }
   }
 }
 
