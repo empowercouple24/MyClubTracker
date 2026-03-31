@@ -726,6 +726,11 @@ async function openProfileModal(){
     else{if(img)img.style.display='none';if(initials){initials.textContent=initial;initials.style.display='';}if(removeBtn)removeBtn.style.display='none';}
   }
   _pmCroppedBlob=null;
+  const emailFields=document.getElementById('pm-email-fields');
+  const emailToggle=document.getElementById('pm-email-toggle-btn');
+  if(emailFields)emailFields.style.display='none';
+  if(emailToggle)emailToggle.textContent='Change email';
+  const emailNewEl=document.getElementById('pm-email-new');if(emailNewEl)emailNewEl.value='';
   document.getElementById('pm-pw-fields').style.display='none';
   document.getElementById('pm-pw-toggle-btn').textContent='Change password';
   const pw=document.getElementById('pm-pw');const pc=document.getElementById('pm-pw-confirm');
@@ -734,6 +739,15 @@ async function openProfileModal(){
   document.getElementById('profile-error').style.display='none';
   document.getElementById('profile-success').style.display='none';
   modal.classList.add('show');
+}
+
+function toggleEmailFields(){
+  const fields=document.getElementById('pm-email-fields');
+  const btn=document.getElementById('pm-email-toggle-btn');
+  const showing=fields.style.display!=='none';
+  fields.style.display=showing?'none':'block';
+  btn.textContent=showing?'Change email':'Cancel';
+  if(showing){const el=document.getElementById('pm-email-new');if(el)el.value='';}
 }
 
 function checkPmPw(){
@@ -856,6 +870,15 @@ async function saveProfile(){
     const{error:userErr}=await sb.from('users').update({first_name:first,last_name:last,display_name:display,phone,avatar_url:avatarUrl}).eq('id',ME.id);
     if(userErr)throw userErr;
     if(pw){const{error:pwErr}=await sb.auth.updateUser({password:pw});if(pwErr)throw pwErr;}
+    const newEmail=document.getElementById('pm-email-new')?.value.trim().toLowerCase();
+    if(newEmail&&newEmail!==ME.email){
+      const{error:emailErr}=await sb.auth.updateUser({email:newEmail});
+      if(emailErr)throw emailErr;
+      showProfileMsg('success','Profile saved! Check your new email address for a confirmation link.');
+      document.getElementById('pm-email-fields').style.display='none';
+      document.getElementById('pm-email-toggle-btn').textContent='Change email';
+      document.getElementById('pm-email-new').value='';
+    }
     ME={...ME,first_name:first,last_name:last,display_name:display,phone,avatar_url:avatarUrl};
     const dn=document.getElementById('nav-display-name');if(dn)dn.textContent=display||first;
     const navAv=document.getElementById('nav-avatar');
@@ -955,10 +978,20 @@ fetch(window.location.href,{method:'HEAD'}).then(function(r){
       </div>
     </div>
 
-    <!-- EMAIL (read-only) -->
+    <!-- EMAIL -->
     <div class="modal-field" style="margin-bottom:14px;">
-      <label class="modal-label">Email</label>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+        <label class="modal-label" style="margin:0;">Email</label>
+        <button onclick="toggleEmailFields()" id="pm-email-toggle-btn" style="font-size:12px;color:var(--b6);font-weight:600;background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;">Change email</button>
+      </div>
       <div id="pm-email-display" style="font-size:13px;color:var(--text-muted);background:var(--b0);border:1px solid var(--border-light);border-radius:8px;padding:9px 12px;">&mdash;</div>
+      <div id="pm-email-fields" style="display:none;margin-top:8px;">
+        <div class="modal-field" style="margin-bottom:8px;">
+          <label class="modal-label">New email address</label>
+          <input class="modal-input" type="email" id="pm-email-new" placeholder="new@email.com"/>
+        </div>
+        <div style="font-size:11px;color:var(--text-faint);background:var(--b0);border-radius:6px;padding:8px 10px;">A confirmation link will be sent to the new address. Your email won't change until you click it.</div>
+      </div>
     </div>
 
     <!-- NAME -->
