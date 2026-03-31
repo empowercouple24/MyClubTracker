@@ -178,7 +178,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
     <div class="msg" id="cp-msg"></div>
     <div class="field">
       <label>New password</label>
-      <input type="password" id="cp-pw" placeholder="At least 8 characters" oninput="checkCpPw()"/>
+      <div style="position:relative;display:flex;align-items:center;"><input type="password" id="cp-pw" placeholder="At least 8 characters" oninput="checkCpPw()" style="flex:1;padding-right:36px;"/><button type="button" onclick="togglePwVis('cp-pw',this)" tabindex="-1" style="position:absolute;right:8px;background:none;border:none;cursor:pointer;font-size:15px;color:#8fa3b3;padding:0;line-height:1;" title="Show/hide">👁</button></div>
       <div class="pw-req" id="cp-reqs">
         <span id="req-len">✗ At least 8 characters</span>
         <span id="req-num">✗ At least one number</span>
@@ -187,7 +187,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
     </div>
     <div class="field">
       <label>Confirm password</label>
-      <input type="password" id="cp-confirm" placeholder="Re-enter password"/>
+      <div style="position:relative;display:flex;align-items:center;"><input type="password" id="cp-confirm" placeholder="Re-enter password" style="flex:1;padding-right:36px;"/><button type="button" onclick="togglePwVis('cp-confirm',this)" tabindex="-1" style="position:absolute;right:8px;background:none;border:none;cursor:pointer;font-size:15px;color:#8fa3b3;padding:0;line-height:1;" title="Show/hide">👁</button></div>
     </div>
     <button class="btn-p" id="cp-btn" onclick="submitChangePassword()">Set Password & Continue →</button>
   </div>
@@ -209,8 +209,8 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
     <div class="step-title">Set New Password</div>
     <div class="step-body">Choose a new password for your account.</div>
     <div class="msg" id="np-msg"></div>
-    <div class="field"><label>New Password</label><input type="password" id="np-password" placeholder="At least 6 characters" autocomplete="off" data-lpignore="true" data-form-type="other"></div>
-    <div class="field"><label>Confirm New Password</label><input type="password" id="np-password2" placeholder="Repeat password" autocomplete="off" data-lpignore="true" data-form-type="other" onkeydown="if(event.key==='Enter')doNewPassword()"></div>
+    <div class="field"><label>New Password</label><div style="position:relative;display:flex;align-items:center;"><input type="password" id="np-password" placeholder="At least 6 characters" autocomplete="off" data-lpignore="true" data-form-type="other" style="flex:1;padding-right:36px;"><button type="button" onclick="togglePwVis('np-password',this)" tabindex="-1" style="position:absolute;right:8px;background:none;border:none;cursor:pointer;font-size:15px;color:#8fa3b3;padding:0;line-height:1;" title="Show/hide">👁</button></div></div>
+    <div class="field"><label>Confirm New Password</label><div style="position:relative;display:flex;align-items:center;"><input type="password" id="np-password2" placeholder="Repeat password" autocomplete="off" data-lpignore="true" data-form-type="other" onkeydown="if(event.key==='Enter')doNewPassword()" style="flex:1;padding-right:36px;"><button type="button" onclick="togglePwVis('np-password2',this)" tabindex="-1" style="position:absolute;right:8px;background:none;border:none;cursor:pointer;font-size:15px;color:#8fa3b3;padding:0;line-height:1;" title="Show/hide">👁</button></div></div>
     <button class="btn-p" id="np-btn" onclick="doNewPassword()">Update Password</button>
   </div>
 
@@ -237,8 +237,8 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
       </div>
       <div class="field"><label>Phone</label><input type="tel" id="reg-phone" placeholder="(555) 000-0000" autocomplete="tel" oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"></div>
       <div class="field"><label>Email</label><input type="email" id="reg-email" placeholder="you@example.com" autocomplete="email"></div>
-      <div class="field"><label>Password</label><input type="password" id="reg-password" placeholder="At least 6 characters" autocomplete="off" data-lpignore="true" data-form-type="other"></div>
-      <div class="field"><label>Confirm Password</label><input type="password" id="reg-password2" placeholder="Repeat password" autocomplete="off" data-lpignore="true" data-form-type="other" onkeydown="if(event.key==='Enter')doRegister()"></div>
+      <div class="field"><label>Password</label><div style="position:relative;display:flex;align-items:center;"><input type="password" id="reg-password" placeholder="At least 6 characters" autocomplete="off" data-lpignore="true" data-form-type="other" style="flex:1;padding-right:36px;"><button type="button" onclick="togglePwVis('reg-password',this)" tabindex="-1" style="position:absolute;right:8px;background:none;border:none;cursor:pointer;font-size:15px;color:#8fa3b3;padding:0;line-height:1;" title="Show/hide">👁</button></div></div>
+      <div class="field"><label>Confirm Password</label><div style="position:relative;display:flex;align-items:center;"><input type="password" id="reg-password2" placeholder="Repeat password" autocomplete="off" data-lpignore="true" data-form-type="other" onkeydown="if(event.key==='Enter')doRegister()" style="flex:1;padding-right:36px;"><button type="button" onclick="togglePwVis('reg-password2',this)" tabindex="-1" style="position:absolute;right:8px;background:none;border:none;cursor:pointer;font-size:15px;color:#8fa3b3;padding:0;line-height:1;" title="Show/hide">👁</button></div></div>
       <div class="msg" id="reg-msg2"></div>
       <button class="btn-p" id="reg-btn" onclick="doRegister()">Create Account</button>
       <button class="sml-link" onclick="goRegStep1()">← Back</button>

@@ -10,6 +10,7 @@ if(location.protocol==='http:'&&location.hostname!=='localhost'){
 if('serviceWorker' in navigator){
   navigator.serviceWorker.getRegistrations().then(regs=>{regs.forEach(r=>r.unregister());});
 }
+function togglePwVis(id,btn){var el=document.getElementById(id);if(!el)return;var show=el.type==='password';el.type=show?'text':'password';btn.textContent=show?'🙈':'👁';}
 </script>
   <meta charset="UTF-8"/>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
@@ -448,11 +449,11 @@ if('serviceWorker' in navigator){
       <div class="card">
         <div class="settings-row">
           <div class="row-label">New Password</div>
-          <input type="password" class="row-input" id="cp-new" placeholder="New password" autocomplete="off" data-lpignore="true" data-form-type="other"/>
+          <div style="position:relative;display:flex;align-items:center;flex:1;"><input type="password" class="row-input" id="cp-new" placeholder="New password" autocomplete="off" data-lpignore="true" data-form-type="other" style="flex:1;padding-right:36px;"/><button type="button" onclick="togglePwVis('cp-new',this)" tabindex="-1" style="position:absolute;right:8px;background:none;border:none;cursor:pointer;font-size:15px;color:#8fa3b3;padding:0;line-height:1;" title="Show/hide">👁</button></div>
         </div>
         <div class="settings-row">
           <div class="row-label">Confirm Password</div>
-          <input type="password" class="row-input" id="cp-confirm" placeholder="Repeat new password" autocomplete="off" data-lpignore="true" data-form-type="other"/>
+          <div style="position:relative;display:flex;align-items:center;flex:1;"><input type="password" class="row-input" id="cp-confirm" placeholder="Repeat new password" autocomplete="off" data-lpignore="true" data-form-type="other" style="flex:1;padding-right:36px;"/><button type="button" onclick="togglePwVis('cp-confirm',this)" tabindex="-1" style="position:absolute;right:8px;background:none;border:none;cursor:pointer;font-size:15px;color:#8fa3b3;padding:0;line-height:1;" title="Show/hide">👁</button></div>
         </div>
         <div id="cp-msg" style="display:none;padding:8px 16px;font-size:13px;border-radius:0 0 var(--radius) var(--radius);"></div>
       </div>

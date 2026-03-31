@@ -1253,8 +1253,8 @@ if('serviceWorker' in navigator){
         <button id="app-cp-toggle" class="btn btn-ghost btn-sm" onclick="toggleAppCP()" style="font-size:12px;">Change →</button>
       </div>
       <div id="app-cp-panel" style="display:none;">
-        <div class="settings-row"><label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);">New Password</label><input type="password" id="app-cp-new" placeholder="New password" style="font-family:'DM Sans',sans-serif;font-size:14px;background:var(--b0);border:1px solid var(--border);border-radius:6px;padding:8px 10px;outline:none;flex:1;text-align:right;"/></div>
-        <div class="settings-row"><label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);">Confirm Password</label><input type="password" id="app-cp-confirm" placeholder="Repeat new password" style="font-family:'DM Sans',sans-serif;font-size:14px;background:var(--b0);border:1px solid var(--border);border-radius:6px;padding:8px 10px;outline:none;flex:1;text-align:right;"/></div>
+        <div class="settings-row"><label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);">New Password</label><div style="position:relative;display:flex;align-items:center;flex:1;"><input type="password" id="app-cp-new" placeholder="New password" style="font-family:'DM Sans',sans-serif;font-size:14px;background:var(--b0);border:1px solid var(--border);border-radius:6px;padding:8px 10px;outline:none;flex:1;text-align:right;padding-right:36px;"/><button type="button" onclick="togglePwVis('app-cp-new',this)" tabindex="-1" style="position:absolute;right:8px;background:none;border:none;cursor:pointer;font-size:15px;color:#8fa3b3;padding:0;line-height:1;" title="Show/hide">👁</button></div></div>
+        <div class="settings-row"><label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);">Confirm Password</label><div style="position:relative;display:flex;align-items:center;flex:1;"><input type="password" id="app-cp-confirm" placeholder="Repeat new password" style="font-family:'DM Sans',sans-serif;font-size:14px;background:var(--b0);border:1px solid var(--border);border-radius:6px;padding:8px 10px;outline:none;flex:1;text-align:right;padding-right:36px;"/><button type="button" onclick="togglePwVis('app-cp-confirm',this)" tabindex="-1" style="position:absolute;right:8px;background:none;border:none;cursor:pointer;font-size:15px;color:#8fa3b3;padding:0;line-height:1;" title="Show/hide">👁</button></div></div>
         <div id="app-cp-msg" style="display:none;padding:8px;font-size:12px;border-radius:6px;margin-top:4px;"></div>
         <button class="btn btn-primary btn-full" onclick="doAppChangePassword()" style="margin-top:8px;">Update Password</button>
       </div>
@@ -2309,6 +2309,7 @@ function fmt$(n){if(n===null||isNaN(n))return'$0.00';return'$'+n.toLocaleString(
 function fmtN(n){if(n===null||isNaN(n))return'--';return n.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:1});}
 function fmtVP(n){if(n===null||n===undefined||isNaN(n))return'--';return Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
 
+function togglePwVis(id,btn){var el=document.getElementById(id);if(!el)return;var show=el.type==='password';el.type=show?'text':'password';btn.textContent=show?'🙈':'👁';}
 function markDirty(){
   if(_entryDirty)return;
   _entryDirty=true;
