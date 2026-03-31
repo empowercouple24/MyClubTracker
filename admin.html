@@ -343,12 +343,12 @@ if('serviceWorker' in navigator){
     </div>
   </div>
 
-  <div id="pending-orgs-banner" style="display:none;background:linear-gradient(135deg,var(--a6),var(--a4,#d97706));border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;cursor:pointer;color:white;" onclick="switchTab('orgs')">
+  <div id="pending-orgs-banner" style="display:none;background:linear-gradient(135deg,var(--a6),var(--a4,#d97706));border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;cursor:pointer;color:white;" onclick="window.location.href='organizations.html'">
     <div style="display:flex;align-items:center;gap:12px;">
       <div style="font-size:22px;">🏢</div>
       <div>
         <div style="font-size:14px;font-weight:700;" id="pending-orgs-banner-text">Organizations Pending Setup</div>
-        <div style="font-size:12px;opacity:0.85;margin-top:2px;">Click to review → go to Organizations tab</div>
+        <div style="font-size:12px;opacity:0.85;margin-top:2px;">Click to review in Organizations</div>
       </div>
       <div style="margin-left:auto;font-size:20px;opacity:0.7;">→</div>
     </div>
@@ -668,6 +668,17 @@ let allOrgsMap={};  // orgId -> org object, for tree view
 let allRequests=[];
 let approvingRequestId=null;
 let denyingRequestId=null;
+
+async function checkPendingOrgs(){
+  const{data:orgs}=await sb.from('organizations').select('id,status').eq('status','invited');
+  const count=(orgs||[]).length;
+  const banner=document.getElementById('pending-orgs-banner');
+  const bannerText=document.getElementById('pending-orgs-banner-text');
+  if(banner){
+    banner.style.display=count>0?'block':'none';
+    if(bannerText&&count>0) bannerText.textContent=`${count} Organization${count!==1?'s':''} Pending Setup`;
+  }
+}
 
 async function loadRequests(){
   const{data}=await sb.from('location_requests').select('*').eq('status','pending').order('created_at',{ascending:false});
@@ -1218,6 +1229,7 @@ async function init(){
   allLocationUsers = locUsers || [];
   renderKPIs();renderLocations();renderAlertBanner();renderCompChart();
   await loadRequests();
+  await checkPendingOrgs();
   document.getElementById('loading-overlay').style.display='none';
 }
 
