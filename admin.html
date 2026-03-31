@@ -670,20 +670,23 @@ let approvingRequestId=null;
 let denyingRequestId=null;
 
 async function checkPendingOrgs(){
-  const[{data:orgs},{data:requests}]=await Promise.all([
+  const[{data:orgs},{data:requests},{data:locRequests}]=await Promise.all([
     sb.from('organizations').select('id,status').eq('status','invited'),
+    sb.from('org_requests').select('id').eq('status','pending'),
     sb.from('location_requests').select('id').eq('status','pending')
   ]);
   const pendingOrgs=(orgs||[]).length;
-  const pendingReqs=(requests||[]).length;
-  const total=pendingOrgs+pendingReqs;
+  const pendingOrgReqs=(requests||[]).length;
+  const pendingLocReqs=(locRequests||[]).length;
+  const total=pendingOrgs+pendingOrgReqs+pendingLocReqs;
   const countEl=document.getElementById('kpi-pending-count');
   const subEl=document.getElementById('kpi-pending-sub');
   const widget=document.getElementById('kpi-pending-orgs');
   if(countEl) countEl.textContent=total>0?total:'0';
   if(subEl){
     const parts=[];
-    if(pendingReqs>0) parts.push(`${pendingReqs} access request${pendingReqs!==1?'s':''}`);
+    if(pendingOrgReqs>0) parts.push(`${pendingOrgReqs} org request${pendingOrgReqs!==1?'s':''}`);
+    if(pendingLocReqs>0) parts.push(`${pendingLocReqs} location request${pendingLocReqs!==1?'s':''}`);
     if(pendingOrgs>0) parts.push(`${pendingOrgs} org${pendingOrgs!==1?'s':''} pending setup`);
     subEl.textContent=total>0?parts.join(' · '):'All clear';
   }
