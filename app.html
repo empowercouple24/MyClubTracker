@@ -695,14 +695,14 @@ if('serviceWorker' in navigator){
 
       <!-- Estimator grid -->
       <div id="proj-estimator-grid" style="display:none;margin-bottom:12px;overflow-x:auto;">
-        <table style="width:100%;border-collapse:separate;border-spacing:4px;">
+        <table style="width:100%;border-collapse:separate;border-spacing:3px;">
           <thead>
             <tr>
-              <td style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-faint);padding:4px 6px;"></td>
-              <th id="proj-col-h0" style="font-size:12px;font-weight:800;color:var(--text);background:var(--surface);border-radius:6px;padding:7px 10px;text-align:center;border:1px solid var(--border-light);">Base</th>
-              <th id="proj-col-h1" style="font-size:12px;font-weight:800;color:var(--text);background:var(--surface);border-radius:6px;padding:7px 10px;text-align:center;border:1px solid var(--border-light);">+10%</th>
-              <th id="proj-col-h2" style="font-size:12px;font-weight:800;color:var(--text);background:var(--surface);border-radius:6px;padding:7px 10px;text-align:center;border:1px solid var(--border-light);">+20%</th>
-              <th id="proj-col-h3" style="font-size:12px;font-weight:800;color:var(--text);background:var(--surface);border-radius:6px;padding:7px 10px;text-align:center;border:1px solid var(--border-light);">+30%</th>
+              <td style="width:28%;"></td>
+              <th id="proj-col-h0" style="font-size:12px;font-weight:600;color:var(--text);background:var(--b0);border-radius:8px;padding:7px 10px;text-align:center;border:1px solid var(--border-light);">Base</th>
+              <th id="proj-col-h1" style="font-size:12px;font-weight:600;color:var(--text);background:var(--b0);border-radius:8px;padding:7px 10px;text-align:center;border:1px solid var(--border-light);">+10%</th>
+              <th id="proj-col-h2" style="font-size:12px;font-weight:600;color:var(--text);background:var(--b0);border-radius:8px;padding:7px 10px;text-align:center;border:1px solid var(--border-light);">+20%</th>
+              <th id="proj-col-h3" style="font-size:12px;font-weight:600;color:var(--text);background:var(--b0);border-radius:8px;padding:7px 10px;text-align:center;border:1px solid var(--border-light);">+30%</th>
             </tr>
           </thead>
           <tbody id="proj-estimator-body"></tbody>
@@ -2713,30 +2713,30 @@ function renderProjScenario(){
     if(el)el.textContent=pcts[i]===0?'Base':'+'+pcts[i]+'%';
   });
 
-  // App-themed navy progression — very subtle left to right
-  const bgColors=['#263d54','#2b4560','#304e6c','#365779'];
-  const rowLabelStyle='font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-muted);padding:7px 8px;white-space:nowrap;';
-  const cellBase='border-radius:6px;padding:9px 12px;text-align:right;';
+  const labelStyle='font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-muted);padding:9px 10px;white-space:nowrap;border-radius:8px;background:var(--b0);border:1px solid var(--border-light);';
+  const cellStyle='padding:9px 14px;text-align:right;border-radius:8px;background:var(--surface);border:1px solid var(--border-light);';
+  const valStyle='font-family:\'Outfit\',sans-serif;font-size:14px;font-weight:600;color:var(--text);';
+  const sectionStyle='font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);padding:8px 4px 2px;background:transparent;border:none;';
 
-  const rows=[
-    {label:'Net Sales',         vals:mults.map((m,i)=>({val:fmt$(_projBaseSales*m),   bg:bgColors[i]}))},
-    {label:'Payouts',           vals:mults.map((m,i)=>({val:fmt$(_projBasePayouts*m), bg:bgColors[i]}))},
-    {label:'DV',                vals:mults.map((m,i)=>({val:fmtN(_projBaseDv*m),      bg:bgColors[i]}))},
-    {label:'Weekly (5d)',       vals:mults.map((m,i)=>({val:fmt$(_projBaseSales*m*5), bg:bgColors[i]}))},
-    {label:`Monthly (${op}d)`,  vals:mults.map((m,i)=>({val:fmt$(_projBaseSales*m*op),bg:bgColors[i]}))},
-    {label:`Monthly DV (${op}d)`,vals:mults.map((m,i)=>({val:fmtN(_projBaseDv*m*op), bg:bgColors[i]}))},
+  const salesRows=[
+    {label:'Net Sales',      vals:mults.map(m=>fmt$(_projBaseSales*m))},
+    {label:'Payouts',        vals:mults.map(m=>fmt$(_projBasePayouts*m))},
+    {label:'Weekly (5d)',    vals:mults.map(m=>fmt$(_projBaseSales*m*5))},
+    {label:`Monthly (${op}d)`,vals:mults.map(m=>fmt$(_projBaseSales*m*op))},
   ];
+  const dvRows=[
+    {label:'Daily DV',           vals:mults.map(m=>fmtN(_projBaseDv*m))},
+    {label:`Monthly DV (${op}d)`,vals:mults.map(m=>fmtN(_projBaseDv*m*op))},
+  ];
+
+  const renderRow=r=>`<tr><td style="${labelStyle}">${r.label}</td>${r.vals.map(v=>`<td style="${cellStyle}"><span style="${valStyle}">${v}</span></td>`).join('')}</tr>`;
+  const sectionRow=label=>`<tr><td colspan="5" style="${sectionStyle}">${label}</td></tr>`;
 
   const body=document.getElementById('proj-estimator-body');
   if(body){
-    body.innerHTML=rows.map(row=>`
-      <tr>
-        <td style="${rowLabelStyle}">${row.label}</td>
-        ${row.vals.map(({val,bg})=>`
-          <td style="${cellBase}background:${bg};">
-            <span style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:#ffffff;">${val}</span>
-          </td>`).join('')}
-      </tr>`).join('');
+    body.innerHTML=
+      sectionRow('Sales')+salesRows.map(renderRow).join('')+
+      sectionRow('Documented Volume')+dvRows.map(renderRow).join('');
     document.getElementById('proj-estimator-grid').style.display='block';
   }
 
