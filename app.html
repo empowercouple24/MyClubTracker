@@ -166,20 +166,20 @@ if('serviceWorker' in navigator){
     .hcal-dow-row{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px;}
     .hcal-dow{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-faint);text-align:center;padding:3px 0;}
     .hcal-week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px;}
-    .hcal-day{border-radius:var(--radius-sm);padding:8px 8px;aspect-ratio:1/1;display:flex;flex-direction:column;cursor:pointer;transition:box-shadow 0.12s,border-color 0.12s;position:relative;}
+    .hcal-day{border-radius:var(--radius-sm);padding:7px 7px;aspect-ratio:1/1;display:flex;flex-direction:column;cursor:pointer;transition:box-shadow 0.12s,border-color 0.12s;position:relative;overflow:hidden;}
     .hcal-day.has-data{background:var(--surface);border:1px solid var(--border-light);box-shadow:var(--shadow-sm);}
     .hcal-day.has-data:hover{box-shadow:var(--shadow-md);border-color:var(--b3);}
     .hcal-day.empty-day{background:transparent;border:1px solid transparent;cursor:default;}
     .hcal-day.no-data{background:var(--b0);border:1px dashed var(--border-light);cursor:default;opacity:0.5;}
     .hcal-day.today-day{border-color:var(--b5) !important;box-shadow:0 0 0 1px var(--b5);}
-    .hcal-dn{font-size:13px;font-weight:700;color:var(--text-faint);margin-bottom:2px;}
+    .hcal-dn{font-size:12px;font-weight:700;color:var(--text-faint);margin-bottom:3px;}
     .hcal-day.has-data .hcal-dn{color:var(--text-muted);}
-    .hcal-sales-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--g6);margin-bottom:1px;}
-    .hcal-sales{font-family:'Outfit',sans-serif;font-size:clamp(13px,2vw,22px);font-weight:800;color:var(--g5);line-height:1.1;}
-    .hcal-dv-block{display:flex;flex-direction:column;align-items:flex-start;margin:auto 0;}
-    .hcal-pill-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--b4);}
-    .hcal-pill-val{font-size:clamp(12px,1.8vw,18px);font-weight:700;color:var(--text);}
-    .hcal-extras{margin-top:auto;font-size:10px;color:var(--text-faint);}
+    .hcal-sales-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--g6);white-space:nowrap;}
+    .hcal-sales{font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--g5);line-height:1.1;margin-bottom:4px;}
+    .hcal-dv-block{display:flex;flex-direction:column;margin:auto 0 0;}
+    .hcal-pill-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--b4);white-space:nowrap;}
+    .hcal-pill-val{font-size:13px;font-weight:700;color:var(--text);}
+    .hcal-extras{margin-top:3px;font-size:10px;color:var(--text-faint);}
     .hcal-week-summary{background:var(--b8);border-radius:var(--radius-sm);padding:6px 10px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
     .hcal-week-label{font-size:10px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,0.55);}
     .hcal-week-total{font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:white;}
@@ -336,11 +336,11 @@ if('serviceWorker' in navigator){
     .date-nav input[type="date"]{position:absolute;opacity:0;width:100%;height:100%;top:0;left:0;cursor:pointer;margin:0;padding:0;border:none;background:none;}
     .date-nav .btn{flex-shrink:0;}
     /* HISTORY DETAIL MODAL */
-    .detail-overlay{position:fixed;inset:0;background:rgba(30,45,61,0.45);backdrop-filter:blur(4px);z-index:200;display:none;align-items:flex-end;justify-content:center}
+    .detail-overlay{position:fixed;inset:0;background:rgba(30,45,61,0.45);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center}
     .detail-overlay.open{display:flex}
-    .detail-sheet{background:var(--surface);border-radius:18px 18px 0 0;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;padding:0 0 40px;animation:sheetUp 0.3s cubic-bezier(0.16,1,0.3,1)}
+    .detail-sheet{background:var(--surface);border-radius:18px;width:calc(100% - 32px);max-width:500px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;animation:sheetUp 0.3s cubic-bezier(0.16,1,0.3,1)}
     @keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-    .detail-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0}
+    .detail-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 8px;flex-shrink:0;}
     .detail-header{padding:14px 16px 10px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;justify-content:space-between;gap:10px}
     .detail-date{font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;color:var(--text)}
     .detail-total{font-family:'Outfit',sans-serif;font-size:20px;font-weight:800;color:var(--g5)}
@@ -357,7 +357,7 @@ if('serviceWorker' in navigator){
     .detail-summary-item-val{font-family:'Outfit',sans-serif;font-size:15px;font-weight:700;letter-spacing:-0.2px}
     .detail-summary-item-val.hl{color:#7de88a}
     .detail-notes-box{margin:0 16px;background:var(--b0);border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;color:var(--text-muted);line-height:1.5;white-space:pre-wrap}
-    .detail-footer{padding:14px 16px 0;display:flex;gap:8px}
+    .detail-footer{padding:12px 16px;display:flex;gap:8px;flex-shrink:0;border-top:1px solid var(--border-light);background:var(--surface);}
     /* Admin edit banner */
     .admin-edit-banner{background:linear-gradient(135deg,var(--a6),var(--a4));color:white;font-size:11px;font-weight:700;text-align:center;padding:5px 12px;letter-spacing:0.3px;display:none}
     .update-banner{background:var(--g5);color:white;font-size:12px;font-weight:600;text-align:center;padding:7px 12px;display:none;cursor:pointer;letter-spacing:0.2px;}
@@ -842,7 +842,7 @@ if('serviceWorker' in navigator){
 <div class="detail-overlay" id="detail-overlay" onclick="closeDetailOnBg(event)">
   <div class="detail-sheet">
     <div class="detail-handle"></div>
-    <div style="padding:0 16px 0;overflow-y:auto;flex:1;">
+    <div style="padding:0 16px;overflow-y:auto;flex:1;">
 
       <!-- Summary box — matches Enter tab style -->
       <div class="summary-box" style="margin-bottom:10px;">
@@ -2362,7 +2362,7 @@ function renderHistCal(){
           <div class="hcal-sales">${fmt$(calSales(data))}</div>
           <div class="hcal-dv-block">
             <div class="hcal-pill-label">Documented Volume</div>
-            <div class="hcal-pill-val">${fmtN(data.dv||0)}</div>
+            <div class="hcal-pill-val">${(parseFloat(data.dv)||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
           </div>
           ${(ops||noteIcon||adminIcon)?`<div class="hcal-extras">${ops}${noteIcon}${adminIcon}</div>`:''}
         </div>`;

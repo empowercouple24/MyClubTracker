@@ -182,7 +182,7 @@ if('serviceWorker' in navigator){
     </button>
     <div class="nav-drop" id="nav-drop">
       <button class="nav-drop-item" onclick="openProfileModal();toggleNavMenu()">&#9881; Profile &amp; Settings</button>
-      <div class="nav-drop-divider"></div>
+      <button class="nav-drop-item" onclick="openInviteLeaderModal();toggleNavMenu()">&#43; Invite Co-Leader</button>
       <div class="nav-drop-divider"></div>
       <button class="nav-drop-item danger" onclick="handleSignOut()">&#8618; Sign out</button>
     </div>
@@ -234,14 +234,6 @@ if('serviceWorker' in navigator){
     <div class="empty-state"><div class="ob-spinner" style="width:24px;height:24px;border-width:2px;margin:0 auto 10px;"></div><div>Loading locations…</div></div>
   </div>
 
-  <!-- CO-LEADERS -->
-  <div class="section-header" style="margin-top:28px;">
-    <div class="section-label" style="margin:0;">Co-Leaders</div>
-    <button class="btn-primary" onclick="openInviteLeaderModal()">+ Invite Co-Leader</button>
-  </div>
-  <div id="coleaders-list">
-    <div style="font-size:13px;color:var(--text-faint);padding:8px 0;">Loading…</div>
-  </div>
 
 </div><!-- /page -->
 
@@ -525,12 +517,8 @@ async function loadCoLeaders(){
 }
 
 function renderCoLeaders(){
-  const el=document.getElementById('coleaders-list');
-  if(!CO_LEADERS.length){
-    el.innerHTML=`<div style="font-size:13px;color:var(--text-faint);padding:8px 0;">No co-leaders yet. Invite one above.</div>`;
-    return;
-  }
-  el.innerHTML=CO_LEADERS.map(l=>{
+  const emptyMsg = `<div style="font-size:13px;color:var(--text-faint);">No co-leaders yet.</div>`;
+  const html = CO_LEADERS.length ? CO_LEADERS.map(l=>{
     const u=l.users||{};
     const name=u.display_name||[u.first_name,u.last_name].filter(Boolean).join(' ')||'--';
     const isPrimary=l.is_primary;
@@ -541,7 +529,9 @@ function renderCoLeaders(){
       </div>
       ${!isPrimary?`<button class="btn-danger" id="rm-${l.id}" onclick="removeCoLeader('${l.id}','${escHtml(name)}',this)">Remove</button>`:''}
     </div>`;
-  }).join('');
+  }).join('') : emptyMsg;
+  const el=document.getElementById('coleaders-list-settings');
+  if(el) el.innerHTML=html;
 }
 
 // -- ADD LOCATION --
@@ -1025,6 +1015,15 @@ fetch(window.location.href,{method:'HEAD'}).then(function(r){
           <input class="modal-input" type="password" id="pm-pw-confirm" placeholder="Re-enter password"/>
         </div>
       </div>
+    </div>
+
+    <!-- CO-LEADERS -->
+    <div style="border-top:1px solid var(--border-light);padding-top:14px;margin-bottom:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-size:13px;font-weight:700;color:var(--text);">Co-Leaders</div>
+        <button onclick="openInviteLeaderModal()" style="font-size:12px;color:var(--b6);font-weight:600;background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;">+ Invite Co-Leader</button>
+      </div>
+      <div id="coleaders-list-settings" style="font-size:13px;color:var(--text-faint);">Loading…</div>
     </div>
 
     <div class="modal-footer">
