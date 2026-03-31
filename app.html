@@ -699,7 +699,7 @@ if('serviceWorker' in navigator){
 <div class="tab-panel" id="panel-inv" style="padding:0;">
   <div id="inv-sticky-wrap">
     <div style="max-width:900px;margin:0 auto;padding:10px 12px 0;">
-      <div class="inv-header"><div class="inv-header-title">Inventory</div><div class="inv-dv-row"><div class="inv-dv-card"><div class="inv-dv-item-label">DV Have</div><div class="inv-dv-item-val" id="inv-total-vp">0</div></div><div class="inv-dv-card"><div class="inv-dv-item-label">DV Need</div><div class="inv-dv-item-val" id="inv-total-dvneed">0</div></div><div class="inv-dv-card" style="opacity:0.6;border-left:1px solid rgba(255,255,255,0.15);padding-left:14px;"><div class="inv-dv-item-label">Retail Balance</div><div class="inv-dv-item-val" id="inv-total-balance" style="font-size:18px;">0</div></div></div></div>
+      <div class="inv-header"><div class="inv-header-title">Inventory</div><div class="inv-dv-row"><div class="inv-dv-card" style="flex:1.2;"><div class="inv-dv-item-label">DV Need</div><div class="inv-dv-item-val" id="inv-total-dvneed">0</div><div style="font-size:10px;opacity:0.5;margin-top:4px;font-weight:500;">Have: <span id="inv-total-vp">0</span></div></div><div class="inv-dv-card" style="opacity:0.6;border-left:1px solid rgba(255,255,255,0.15);padding-left:14px;"><div class="inv-dv-item-label">Est. Retail Inv Balance</div><div class="inv-dv-item-val" id="inv-total-balance" style="font-size:18px;">0</div></div></div></div>
     </div>
     <div style="max-width:900px;margin:0 auto;padding:0 12px;">
       <div class="filter-row" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -773,7 +773,7 @@ if('serviceWorker' in navigator){
         <div class="inv-dv-row">
           <div class="inv-dv-card"><div class="inv-dv-item-label">DV Need</div><div class="inv-dv-item-val" id="invhist-total-dvneed">—</div></div>
           <div class="inv-dv-card"><div class="inv-dv-item-label">DV Have</div><div class="inv-dv-item-val" id="invhist-total-dvhave">—</div></div>
-          <div class="inv-dv-card" style="opacity:0.6;border-left:1px solid rgba(255,255,255,0.15);padding-left:14px;"><div class="inv-dv-item-label">Retail Balance</div><div class="inv-dv-item-val" id="invhist-total-balance" style="font-size:18px;">—</div></div>
+          <div class="inv-dv-card" style="opacity:0.6;border-left:1px solid rgba(255,255,255,0.15);padding-left:14px;"><div class="inv-dv-item-label">Est. Retail Inv Balance</div><div class="inv-dv-item-val" id="invhist-total-balance" style="font-size:18px;">—</div></div>
         </div>
       </div>
     </div>
@@ -1970,6 +1970,41 @@ function calcAll(){
   return{cashSales,cardSales,cardFees,dv,venmo,fundraiserCard,fundraiserCash,donation,fundraiserTotal,hasFundraiser,cardDeposits,totalSales,tax,overhead:overhead2,products,payouts,perDV,group1,group2,balanced,balDiff,ownerReinvest,ownerShare};
 }
 
+function calcAllFromData(d){
+  const cashSales=parseFloat(d.cashSales)||0, cardSales=parseFloat(d.cardSales)||0, cardFees=parseFloat(d.cardFees)||0;
+  const cashAppPay=parseFloat(d.cashAppPay)||0, venmo=parseFloat(d.venmo)||0;
+  const giftCardSales=parseFloat(d.giftCardSales)||0, giftCardLoadFees=parseFloat(d.giftCardLoadFees)||0;
+  const otherSales=parseFloat(d.otherSales)||0, merchSales=parseFloat(d.merchSales)||0;
+  const fundraiserCash=parseFloat(d.fundraiserCash)||0, fundraiserCard=parseFloat(d.fundraiserCard)||0, fundraiserPct=parseFloat(d.fundraiserPct)||0;
+  const dv=parseFloat(d.dv)||0;
+  const group1=cashSales>0&&cardSales>0&&cardFees>0;
+  const group2=group1&&dv>0;
+  const taxRate=SETTINGS.taxRate/100,ohRate=SETTINGS.ohRate/100,otherRate=SETTINGS.otherRate/100,merchRate=SETTINGS.merchRate/100,dvDelta=SETTINGS.dvDelta/100;
+  const cardDeposits=cardSales-cardFees+cashAppPay-giftCardLoadFees;
+  const totalSales=cashSales+venmo+cardDeposits;
+  const tax=group1?totalSales*taxRate:null;
+  const donation=group1&&fundraiserPct>0?totalSales*(fundraiserPct/100):0;
+  const overhead=group1?((totalSales-otherSales-merchSales-giftCardSales)*ohRate)+(merchSales*merchRate)+(otherSales*otherRate)+(giftCardSales*1)-donation-fundraiserCard:null;
+  const products=group2?dv*(dvDelta+1):null;
+  const payoutsRaw=group2&&tax!==null&&overhead!==null?totalSales-tax-overhead-products-fundraiserCard:null;
+  const ownerReinvest=d.ownerReinvest||false;
+  const op1Val=d.op1||'', op2Val=d.op2||'';
+  const ownerName=getOwnerOpName();
+  const ownerIsSelected=ownerName&&(op1Val===ownerName||op2Val===ownerName);
+  const opsCount=[op1Val,op2Val].filter(Boolean).length;
+  const ownerShare=(ownerReinvest&&ownerIsSelected&&payoutsRaw!==null&&opsCount>0)?payoutsRaw/opsCount:0;
+  const overhead2=overhead!==null?(overhead+ownerShare):null;
+  const payouts=payoutsRaw!==null?(payoutsRaw-ownerShare):null;
+  const fundraiserTotal=fundraiserCard+fundraiserCash+donation;
+  const perDV=group2&&overhead2!==null?(tax+overhead2+products+payouts+fundraiserTotal-fundraiserCash)/dv:null;
+  const hasFundraiser=fundraiserCard>0||fundraiserCash>0||fundraiserPct>0;
+  const balLHS=tax!==null&&overhead2!==null&&products!==null&&payouts!==null?Math.round((tax+overhead2+products+payouts+(hasFundraiser?fundraiserTotal:0))*100)/100:null;
+  const balRHS=group1?Math.round(totalSales*100)/100:null;
+  const balanced=balLHS!==null&&balRHS!==null?balLHS===balRHS:null;
+  const balDiff=balLHS!==null&&balRHS!==null?balLHS-balRHS:null;
+  return{cashSales,cardSales,cardFees,dv,venmo,fundraiserCard,fundraiserCash,donation,fundraiserTotal,hasFundraiser,cardDeposits,totalSales,tax,overhead:overhead2,products,payouts,perDV,group1,group2,balanced,balDiff,ownerReinvest,ownerShare};
+}
+
 function fmt$(n){if(n===null||isNaN(n))return'$0.00';return'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function fmtN(n){if(n===null||isNaN(n))return'--';return n.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:1});}
 function fmtVP(n){if(n===null||n===undefined||isNaN(n))return'--';return Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
@@ -2369,17 +2404,8 @@ function openDetail(date){
   document.getElementById('df-fundraiserCard').innerHTML  = sfmt(d.fundraiserCard);
   document.getElementById('df-fundraiserPct').innerHTML   = d.fundraiserPct?`${d.fundraiserPct}%`:`<span class="detail-row-val dim">--</span>`;
 
-  // Breakdown — use authoritative calcAll() on stored data
-  const _saved = {
-    cashSales: d.cashSales||0, cardSales: d.cardSales||0, cardFees: d.cardFees||0,
-    giftCardRedeemed: d.giftCardRedeemed||0, cashAppPay: d.cashAppPay||0,
-    venmo: d.venmo||0, otherSales: d.otherSales||0, merchSales: d.merchSales||0,
-    giftCardSales: d.giftCardSales||0, giftCardLoadFees: d.giftCardLoadFees||0,
-    fundraiserCash: d.fundraiserCash||0, fundraiserCard: d.fundraiserCard||0,
-    fundraiserPct: d.fundraiserPct||0, dv: d.dv||0,
-    op1: d.op1||'', op2: d.op2||'', ownerReinvest: d.ownerReinvest||false,
-  };
-  const c = calcAll(_saved);
+  // Breakdown — use calcAllFromData() so we don't read stale DOM form values
+  const c = calcAllFromData(d);
   const cardDep = c.cardDeposits;
   const totalS  = c.totalSales;
   const tax     = c.tax;
