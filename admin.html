@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-30 16:32:34 -->
+<!-- CACHE BUST: 2026-04-02 12:45:00 -->
 <html lang="en">
 <head>
 <script>
@@ -2169,7 +2169,6 @@ async function submitInviteOrg() {
       headers: await getAuthHeader(),
       body: { to: email, orgName: orgName || 'your organization', inviteLink, expiresAt }
     });
-    console.log('send-org-invite response:', JSON.stringify(fnData), 'error:', fnErr);
     const sent = fnData?.sent === true;
     if (fnErr || !sent) {
       showOrgModalAlert('io-success', `Org created but email failed (${fnErr?.message||fnData?.error||'unknown'}) — copy the link below to send manually.`);

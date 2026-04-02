@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-02 12:30:00 -->
+<!-- CACHE BUST: 2026-04-02 13:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -357,6 +357,7 @@ if('serviceWorker' in navigator){
     .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
     .toast.success{background:var(--g5)}
     .toast.error{background:#c03030}
+    .toast.info{background:var(--b6)}
     /* MISC */
     .empty-state{text-align:center;padding:40px 20px;color:var(--text-faint);font-size:13px}
     .filter-row{display:flex;gap:7px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
@@ -1518,7 +1519,6 @@ async function loadTeamMembers(){
   const primaryOwners=members.filter(m=>m.role==='owner'||m.role==='admin');
   const otherOwners=[];
   const employees=members.filter(m=>m.role!=='owner'&&m.role!=='admin');
-  console.log('loadTeamMembers — primaryOwners:', primaryOwners.map(m=>m.email+' role:'+m.role), 'employees:', employees.map(m=>m.email+' role:'+m.role));
 
   const renderPrimaryOwner=(m,badge='Primary Owner')=>{
     const name=[m.first_name,m.last_name].filter(Boolean).join(' ')||m.display_name||m.email;
@@ -1610,6 +1610,15 @@ async function saveProfileAndSettings(){
   }
   closeProfileModal();
   showToast(isOwner?'Profile & settings saved ok':'Profile saved ok','success');
+  // If no profile photo yet, nudge the operator to add one
+  const _hasAvatar=document.getElementById('prof-avatar-img')?.style.display!=='none';
+  if(!_hasAvatar){
+    setTimeout(()=>{
+      document.getElementById('profile-modal').classList.add('open');
+      showToast('Add a profile photo to personalise your account 📷','info');
+      setTimeout(()=>{document.getElementById('prof-avatar-input')?.click();},400);
+    },300);
+  }
 }
 function toggleAppCP(){
   const panel=document.getElementById('app-cp-panel');
@@ -2023,7 +2032,6 @@ async function init(){
       const primary=USER_LOCATIONS.find(l=>l.is_primary)||USER_LOCATIONS[0];
       LOCATION_ID=stored||primary?.location_id||u.location_id;
     }
-    console.log('LOCATION_ID resolved:',LOCATION_ID,'USER_LOCATIONS:',USER_LOCATIONS.length,'u.location_id:',u.location_id);
 
     // Store multi-location data for switcher
     window._USER_LOCATIONS=USER_LOCATIONS;
@@ -2068,10 +2076,8 @@ async function init(){
     return;
   }
   setLoadText('Loading club data...');
-  console.log('[app] fetching location:',LOCATION_ID);
   const{data:loc,error:locFetchErr}=await sb.from('locations').select('name,address,owner_name,owner_phone,settings').eq('id',LOCATION_ID).single();
   if(locFetchErr){console.error('[app] location fetch error:',locFetchErr.message,locFetchErr.code);}
-  console.log('[app] location data:',loc?.name);
   if(!loc){
     console.error('[app] location is null for LOCATION_ID:', LOCATION_ID);
   }
@@ -2483,7 +2489,6 @@ async function saveDay(){
 }
 
 function renderDashboardWidgets(){
-  console.log('renderDashboardWidgets called, ALL_DAYS length:', ALL_DAYS.length, 'sample:', ALL_DAYS[0]);
   if(!ALL_DAYS.length) return;
   const today = new Date();
   const todayStr = today.toISOString().slice(0,10);
