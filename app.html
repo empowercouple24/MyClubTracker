@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-30 18:49:15 -->
+<!-- CACHE BUST: 2026-04-02 11:55:00 -->
 <html lang="en">
 <head>
 <script>
@@ -2827,12 +2827,11 @@ function renderHistory(){
   const grid=document.getElementById('history-cal-grid');
   if(!grid)return;
   if(!ALL_DAYS.length){grid.innerHTML='<div class="empty-state">No entries yet.</div>';return;}
-  // Init to most recent month with data
+  // Init to current month
   if(_histCalYear===null){
-    const latest=ALL_DAYS[0];
-    const d=new Date(latest.date+'T00:00:00');
-    _histCalYear=d.getFullYear();
-    _histCalMonth=d.getMonth();
+    const now=new Date();
+    _histCalYear=now.getFullYear();
+    _histCalMonth=now.getMonth();
   }
   renderHistCal();
   updateFillDvBtn();
@@ -2871,10 +2870,12 @@ function renderHistCal(){
   // Check prev/next month availability
   const allMonths=[...new Set(ALL_DAYS.map(d=>d.date.slice(0,7)))];
   const thisMonthStr=`${yr}-${String(mo+1).padStart(2,'0')}`;
+  const now=new Date();
+  const currentMonthStr=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
   const prevBtn=document.getElementById('hist-prev-btn');
   const nextBtn=document.getElementById('hist-next-btn');
   if(prevBtn) prevBtn.disabled=!allMonths.some(m=>m<thisMonthStr);
-  if(nextBtn) nextBtn.disabled=!allMonths.some(m=>m>thisMonthStr);
+  if(nextBtn) nextBtn.disabled=thisMonthStr>=currentMonthStr;
 
   // Build calendar grid HTML
   const DOWS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
