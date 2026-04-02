@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-02 11:55:00 -->
+<!-- CACHE BUST: 2026-04-02 12:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -1679,11 +1679,11 @@ async function sendEmpInviteEmail(){
   try{
     const{data:{session:_ses}}=await sb.auth.getSession();
     const _authHdr=_ses?.access_token?{'Authorization':`Bearer ${_ses.access_token}`}:{};
+    const _signupLink=window.location.origin+'/index.html?tab=register&code='+encodeURIComponent(code)+'&email='+encodeURIComponent(email);
     const{data:fnData,error}=await sb.functions.invoke('send-org-invite',{
       headers:_authHdr,
-      body:{email,role:'employee',inviteCode:code,clubName:SETTINGS.clubName||'',locationId:LOCATION_ID}
+      body:{email,role:'employee',inviteCode:code,clubName:SETTINGS.clubName||'',locationId:LOCATION_ID,signupLink:_signupLink}
     });
-    console.log('send-org-invite result:', fnData, error);
     if(error)throw error;
     if(msg){msg.style.display='block';msg.style.background='#f0fdf4';msg.style.color='var(--g6)';msg.textContent=`Invite sent to ${email}`;}
     document.getElementById('emp-invite-email').value='';
