@@ -142,6 +142,13 @@ if('serviceWorker' in navigator){
     .summary-card-val{font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;letter-spacing:-0.5px;line-height:1;color:white}
     .summary-card-rate{font-size:11px;font-weight:700;color:rgba(255,255,255,0.4);margin-left:8px;white-space:nowrap;flex-shrink:0;}
     .summary-balance{margin-top:2px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:space-between;font-size:11px}
+    .sq-deposit-row{margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between;font-size:11px}
+    .sq-deposit-label{color:rgba(125,232,138,0.75);font-weight:700;display:flex;align-items:center;gap:5px}
+    .sq-deposit-formula{font-size:10px;color:rgba(255,255,255,0.28);margin-top:1px}
+    .sq-deposit-val{font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:#7de88a}
+    .sq-dot{width:13px;height:13px;background:#7de88a;border-radius:3px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+    .sq-dot-inner{width:5px;height:5px;background:#1a2e20;border-radius:1px}
+    .oh-badge{display:inline-block;font-size:10px;font-weight:700;padding:1px 5px;border-radius:3px;white-space:nowrap;margin-left:5px;vertical-align:middle}
     .balance-ok{color:#7de88a;font-weight:600}
     .balance-fail{color:#ff8080;font-weight:600}
     .balance-pending{color:rgba(255,255,255,0.4);font-style:italic}
@@ -597,6 +604,13 @@ if('serviceWorker' in navigator){
       <span>Balance check</span>
       <span id="sum-balance" class="balance-pending">Enter Cash Sales, Card Sales &amp; Card Fees</span>
     </div>
+    <div class="sq-deposit-row">
+      <div>
+        <div class="sq-deposit-label"><span class="sq-dot"><span class="sq-dot-inner"></span></span> Square deposit</div>
+        <div class="sq-deposit-formula">card sales − card fees − GC load fees</div>
+      </div>
+      <div class="sq-deposit-val" id="sum-sq-deposit">--</div>
+    </div>
   </div>
 
   <!-- SECTION LABEL -->
@@ -618,8 +632,8 @@ if('serviceWorker' in navigator){
       <div class="card">
         <div class="collapsible-toggle" onclick="toggleCollapse(this)" data-target="other-body">Other Sales <span class="arrow">▼</span></div>
         <div class="collapsible-body" id="other-body">
-          <div class="field-row"><div class="field-label">Other Sales (Waffles/Bowls)</div><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" type="text" inputmode="decimal" id="f-otherSales" placeholder="0.00" oninput="recalc(true)"/></div></div>
-          <div class="field-row"><div class="field-label">Merchandise</div><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" type="text" inputmode="decimal" id="f-merchSales" placeholder="0.00" oninput="recalc(true)"/></div></div>
+          <div class="field-row"><div class="field-label">Other Sales (Waffles/Bowls)<span class="oh-badge" id="badge-otherRate" style="background:#dce9f9;color:#1a4a8a;"></span></div><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" type="text" inputmode="decimal" id="f-otherSales" placeholder="0.00" oninput="recalc(true)"/></div></div>
+          <div class="field-row"><div class="field-label">Merchandise<span class="oh-badge" id="badge-merchRate" style="background:#d4eedf;color:#1a7042;"></span></div><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" type="text" inputmode="decimal" id="f-merchSales" placeholder="0.00" oninput="recalc(true)"/></div></div>
         </div>
       </div>
       <div class="card">
@@ -2398,6 +2412,13 @@ function recalc(userChanged=false){
   setText('sum-oh-rate',   SETTINGS.ohRate+'%');
   setText('sum-prod-rate', SETTINGS.dvDelta>=0?'+'+SETTINGS.dvDelta+'% DV':SETTINGS.dvDelta+'% DV');
   setText('sum-pay-rate',  '');
+  // Square deposit footer
+  setText('sum-sq-deposit', c.group1?fmt$(c.cardDeposits):'--');
+  // OH rate badges on Other Sales card
+  const badgeOther=document.getElementById('badge-otherRate');
+  const badgeMerch=document.getElementById('badge-merchRate');
+  if(badgeOther)badgeOther.textContent=SETTINGS.otherRate+'% OH';
+  if(badgeMerch)badgeMerch.textContent=SETTINGS.merchRate+'% OH';
   // Fundraiser hero
   const heroEl=document.getElementById('sum-fundraiser-hero');
   if(heroEl)heroEl.classList.toggle('visible',c.hasFundraiser);
