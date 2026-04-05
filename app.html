@@ -199,6 +199,48 @@ if('serviceWorker' in navigator){
     .hcal-month-total{background:var(--b8);border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;}
     .hcal-month-total-label{font-size:11px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,0.55);}
     .hcal-month-total-val{font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;color:white;}
+    /* ALLOCATIONS CAL */
+    .acal-dow-row{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px;}
+    .acal-dow{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-faint);text-align:center;padding:3px 0;}
+    .acal-week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px;}
+    .acal-day{border-radius:var(--radius-sm);padding:7px 7px;aspect-ratio:1/1;display:flex;flex-direction:column;cursor:pointer;transition:box-shadow 0.12s,border-color 0.12s;position:relative;overflow:hidden;}
+    .acal-day.empty-day{background:transparent;border:1px solid transparent;cursor:default;}
+    .acal-day.no-data{background:var(--b0);border:1px solid var(--border-light);cursor:default;opacity:0.55;}
+    .acal-day.none{background:var(--surface);border:1px solid var(--border-light);box-shadow:var(--shadow-sm);}
+    .acal-day.none:hover{box-shadow:var(--shadow-md);border-color:var(--b3);}
+    .acal-day.partial{background:#fef7e8;border:1px solid #f0b440;}
+    .acal-day.partial:hover{box-shadow:var(--shadow-md);border-color:var(--a4);}
+    .acal-day.full{background:#eaf6eb;border:1px solid var(--g4);}
+    .acal-day.full:hover{box-shadow:var(--shadow-md);border-color:var(--g5);}
+    .acal-day.today-day{box-shadow:0 0 0 2px var(--b5) !important;}
+    .acal-dn{font-size:12px;font-weight:700;color:var(--text-faint);margin-bottom:2px;}
+    .acal-day.none .acal-dn,.acal-day.partial .acal-dn,.acal-day.full .acal-dn{color:var(--text-muted);}
+    .acal-sales{font-family:'Outfit',sans-serif;font-size:13px;font-weight:800;color:var(--g5);line-height:1.1;margin-bottom:3px;}
+    .acal-day.partial .acal-sales{color:var(--a6);}
+    .acal-dots{display:flex;gap:3px;margin-top:auto;justify-content:center;padding-bottom:2px;}
+    .acal-dot{width:7px;height:7px;border-radius:50%;background:var(--border);flex-shrink:0;transition:background 0.15s;}
+    .acal-day.none .acal-dot.done{background:var(--g4);}
+    .acal-day.partial .acal-dot{background:var(--a2);}
+    .acal-day.partial .acal-dot.done{background:var(--a5);}
+    .acal-day.full .acal-dot.done{background:var(--g4);}
+    .acal-week-summary{background:var(--b8);border-radius:var(--radius-sm);padding:6px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+    .acal-week-label{font-size:10px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,0.55);}
+    .acal-week-val{font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:white;line-height:1.2;}
+    .acal-week-sub{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;color:rgba(255,255,255,0.45);}
+    /* ALLOC BUCKET SHEET */
+    .alloc-bucket-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:4px 0 16px;}
+    .alloc-bucket{border-radius:var(--radius);padding:14px 12px 12px;border:2px solid var(--border-light);background:var(--b0);cursor:pointer;transition:background 0.15s,border-color 0.15s;user-select:none;text-align:center;}
+    .alloc-bucket:hover{background:var(--b1);border-color:var(--b3);}
+    .alloc-bucket.transferred{background:#eaf6eb;border-color:var(--g4);}
+    .alloc-bucket.transferred:hover{background:#d4f0d8;border-color:var(--g5);}
+    .alloc-bucket-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:5px;}
+    .alloc-bucket.transferred .alloc-bucket-label{color:var(--g5);opacity:0.8;}
+    .alloc-bucket-amt{font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;color:var(--text);}
+    .alloc-bucket.transferred .alloc-bucket-amt{color:var(--g5);}
+    .alloc-bucket-check{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;margin:8px auto 0;transition:all 0.15s;}
+    .alloc-bucket.transferred .alloc-bucket-check{background:var(--g4);border-color:var(--g4);}
+    .alloc-check-svg{width:10px;height:8px;fill:none;stroke:white;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;opacity:0;transition:opacity 0.15s;}
+    .alloc-bucket.transferred .alloc-check-svg{opacity:1;}
     /* PROJ MINI CAL */
     .pcal-dow-row{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px;}
     .pcal-dow{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-faint);text-align:center;padding:3px 0;}
@@ -467,6 +509,7 @@ if('serviceWorker' in navigator){
   <button class="tab amber"  onclick="switchTab('invhist')" id="tab-invhist">Inv History</button>
   <div class="tab-divider"></div>
   <button class="tab"        onclick="switchTab('payouts')" id="tab-payouts">Payouts</button>
+  <button class="tab amber"  onclick="switchTab('alloc')"   id="tab-alloc">Allocations</button>
   <button class="tab"        onclick="switchTab('proj')"    id="tab-proj">Projections</button>
 </div>
 
@@ -746,6 +789,17 @@ if('serviceWorker' in navigator){
   </div>
 </div>
 
+<div class="tab-panel" id="panel-alloc">
+  <div style="max-width:900px;margin:0 auto;width:75%;min-width:480px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <button class="btn btn-ghost" id="alloc-prev-btn" onclick="allocCalShift(-1)" style="padding:5px 12px;font-size:16px;">&#8592;</button>
+      <span id="alloc-cal-label" style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:var(--text);"></span>
+      <button class="btn btn-ghost" id="alloc-next-btn" onclick="allocCalShift(1)" style="padding:5px 12px;font-size:16px;">&#8594;</button>
+    </div>
+    <div id="alloc-cal-grid" style="width:100%;"></div>
+  </div>
+</div>
+
 <div class="tab-panel" id="panel-proj">
   <div style="max-width:805px;margin:0 auto;padding:12px 12px 40px;">
 
@@ -1017,6 +1071,46 @@ if('serviceWorker' in navigator){
     <div style="flex-shrink:0;padding:12px 16px;display:flex;gap:8px;border-top:1px solid var(--border-light);">
       <button onclick="closeFillDvModal()" class="btn btn-ghost" style="flex:1;">Cancel</button>
       <button onclick="saveAllDv()" class="btn btn-primary" style="flex:2;">Save all</button>
+    </div>
+  </div>
+</div>
+
+<!-- ALLOC DETAIL OVERLAY -->
+<div class="detail-overlay" id="alloc-detail-overlay" onclick="closeAllocDetailOnBg(event)">
+  <div class="detail-sheet" style="max-height:92vh;">
+    <div class="detail-handle"></div>
+    <div style="padding:0 16px;overflow-y:auto;flex:1;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0 6px;">
+        <div style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;color:var(--text);" id="alloc-detail-date"></div>
+        <div style="font-size:12px;color:var(--text-faint);" id="alloc-detail-status"></div>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">Total Sales: <span style="font-weight:700;color:var(--g5);" id="alloc-detail-sales"></span></div>
+      <div style="font-size:11px;color:var(--text-faint);margin-bottom:2px;">Tap each bucket to mark it transferred in your banking app.</div>
+      <div class="alloc-bucket-grid">
+        <div class="alloc-bucket" id="alloc-b-tax" onclick="toggleAllocBucket('tax')">
+          <div class="alloc-bucket-label">Taxes</div>
+          <div class="alloc-bucket-amt" id="alloc-amt-tax">—</div>
+          <div class="alloc-bucket-check"><svg class="alloc-check-svg" viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>
+        </div>
+        <div class="alloc-bucket" id="alloc-b-overhead" onclick="toggleAllocBucket('overhead')">
+          <div class="alloc-bucket-label">Overhead</div>
+          <div class="alloc-bucket-amt" id="alloc-amt-overhead">—</div>
+          <div class="alloc-bucket-check"><svg class="alloc-check-svg" viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>
+        </div>
+        <div class="alloc-bucket" id="alloc-b-herbalife" onclick="toggleAllocBucket('herbalife')">
+          <div class="alloc-bucket-label">Herbalife</div>
+          <div class="alloc-bucket-amt" id="alloc-amt-herbalife">—</div>
+          <div class="alloc-bucket-check"><svg class="alloc-check-svg" viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>
+        </div>
+        <div class="alloc-bucket" id="alloc-b-payouts" onclick="toggleAllocBucket('payouts')">
+          <div class="alloc-bucket-label">Payouts</div>
+          <div class="alloc-bucket-amt" id="alloc-amt-payouts">—</div>
+          <div class="alloc-bucket-check"><svg class="alloc-check-svg" viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>
+        </div>
+      </div>
+    </div>
+    <div style="flex-shrink:0;padding:12px 16px;border-top:1px solid var(--border-light);">
+      <button onclick="closeAllocDetail()" class="btn btn-ghost" style="width:100%;">Done</button>
     </div>
   </div>
 </div>
@@ -2055,6 +2149,7 @@ async function init(){
       // settings merged into profile modal
       document.getElementById('tab-proj').style.display='none';
       document.getElementById('tab-payouts').style.display='none';
+      document.getElementById('tab-alloc').style.display='none';
       // hide divider before payouts tab
       document.querySelectorAll('.tab-divider')[1].style.display='none';
     }
@@ -2187,7 +2282,7 @@ function switchTab(name){
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
   document.getElementById('panel-'+name).classList.add('active');
-  if(name==='proj')renderProjections();if(name==='payouts'){renderPayoutSnapshots();}
+  if(name==='proj')renderProjections();if(name==='payouts'){renderPayoutSnapshots();}if(name==='alloc')renderAllocCal();
   if(name==='inv')recalcInvCatTop();
   if(name==='invhist'){
     setTimeout(()=>{
@@ -3928,6 +4023,233 @@ async function deletePayoutSnap(i){
   showToast('Snapshot deleted','success');
   renderPayoutSnapshots();
 }
+
+// ── ALLOCATIONS TAB ──────────────────────────────────────────────────────────
+let _allocWeekStart = null; // Monday of current week being viewed
+
+function getMonday(date) {
+  const d = new Date(date);
+  const day = d.getDay(); // 0=Sun
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  d.setHours(0,0,0,0);
+  return d;
+}
+
+function allocCalShift(dir) {
+  _allocWeekStart.setDate(_allocWeekStart.getDate() + dir * 7);
+  renderAllocCal();
+}
+
+function renderAllocCal() {
+  const grid = document.getElementById('alloc-cal-grid');
+  const label = document.getElementById('alloc-cal-label');
+  if (!grid || !label) return;
+
+  if (!_allocWeekStart) _allocWeekStart = getMonday(new Date());
+
+  const weekStart = new Date(_allocWeekStart);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekEnd.getDate() + 6);
+
+  // Label: e.g. "Mar 31 – Apr 6, 2026"
+  const fmt = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const yr = weekEnd.getFullYear();
+  label.textContent = fmt(weekStart) + ' – ' + fmt(weekEnd) + ', ' + yr;
+
+  // Prev/next button — never go past current week
+  const todayMonday = getMonday(new Date());
+  const prevBtn = document.getElementById('alloc-prev-btn');
+  const nextBtn = document.getElementById('alloc-next-btn');
+  if (prevBtn) {
+    const earliest = ALL_DAYS.length ? ALL_DAYS.map(d => d.date).sort()[0] : null;
+    prevBtn.disabled = earliest ? weekStart.toISOString().slice(0,10) <= earliest.slice(0,10) : false;
+  }
+  if (nextBtn) nextBtn.disabled = weekStart >= todayMonday;
+
+  // Build date map for this week
+  const dates = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(weekStart);
+    d.setDate(d.getDate() + i);
+    dates.push(d.toISOString().slice(0,10));
+  }
+
+  const dayMap = {};
+  ALL_DAYS.forEach(d => { if (dates.includes(d.date)) dayMap[d.date] = d; });
+
+  const todayStr = new Date().toISOString().slice(0,10);
+  const DOWS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+  // Week totals for summary bar
+  let weekOwe = 0, weekDone = 0;
+  dates.forEach(dateStr => {
+    const dayObj = dayMap[dateStr];
+    if (!dayObj) return;
+    const data = dayObj.data || {};
+    if (!calSales(data)) return;
+    const c = calcAllFromData(data);
+    const bucketVals = [c.tax||0, c.overhead||0, c.products||0, c.payouts||0];
+    const transfers = data.transfers || {};
+    const keys = ['tax','overhead','herbalife','payouts'];
+    bucketVals.forEach((v,i) => {
+      weekOwe += v;
+      if (transfers[keys[i]]) weekDone += v;
+    });
+  });
+
+  let html = '';
+
+  // DOW header
+  html += '<div class="acal-dow-row">' + DOWS.map(d => `<div class="acal-dow">${d}</div>`).join('') + '</div>';
+
+  // Single week row
+  html += '<div class="acal-week">';
+  dates.forEach(dateStr => {
+    const dayObj = dayMap[dateStr];
+    const isToday = dateStr === todayStr;
+    const isFuture = dateStr > todayStr;
+    const todayClass = isToday ? ' today-day' : '';
+
+    if (!dayObj) {
+      // No entry at all
+      if (isFuture) {
+        html += `<div class="acal-day empty-day"><div class="acal-dn">${parseInt(dateStr.slice(8))}</div></div>`;
+      } else {
+        html += `<div class="acal-day no-data"><div class="acal-dn">${parseInt(dateStr.slice(8))}</div></div>`;
+      }
+      return;
+    }
+
+    const data = dayObj.data || {};
+    const sales = calSales(data);
+    if (!sales) {
+      html += `<div class="acal-day no-data${todayClass}"><div class="acal-dn">${parseInt(dateStr.slice(8))}</div></div>`;
+      return;
+    }
+
+    const transfers = data.transfers || {};
+    const keys = ['tax','overhead','herbalife','payouts'];
+    const doneCount = keys.filter(k => transfers[k]).length;
+    const stateClass = doneCount === 0 ? 'none' : doneCount === 4 ? 'full' : 'partial';
+
+    const dots = keys.map(k => `<div class="acal-dot${transfers[k] ? ' done' : ''}"></div>`).join('');
+
+    html += `<div class="acal-day ${stateClass}${todayClass}" onclick="openAllocDetail('${dateStr}')">
+      <div class="acal-dn">${parseInt(dateStr.slice(8))}</div>
+      <div class="acal-sales">${fmt$(sales)}</div>
+      <div class="acal-dots">${dots}</div>
+    </div>`;
+  });
+  html += '</div>';
+
+  // Week summary bar
+  const hasAnyData = dates.some(d => dayMap[d] && calSales(dayMap[d].data||{}));
+  if (hasAnyData) {
+    const pct = weekOwe > 0 ? Math.round(weekDone / weekOwe * 100) : 0;
+    html += `<div class="acal-week-summary">
+      <span class="acal-week-label">Week total</span>
+      <div style="text-align:right;">
+        <div class="acal-week-val">${fmt$(weekDone)} <span style="font-size:11px;font-weight:600;opacity:0.6;">/ ${fmt$(weekOwe)}</span></div>
+        <div class="acal-week-sub">${pct}% transferred</div>
+      </div>
+    </div>`;
+  }
+
+  grid.innerHTML = html;
+}
+
+// ── ALLOC DETAIL SHEET ────────────────────────────────────────────────────────
+let _allocDetailDate = null;
+
+function openAllocDetail(dateStr) {
+  _allocDetailDate = dateStr;
+  const dayObj = ALL_DAYS.find(d => d.date === dateStr);
+  if (!dayObj) return;
+  const data = dayObj.data || {};
+  const c = calcAllFromData(data);
+  const transfers = data.transfers || {};
+
+  // Date label
+  const d = new Date(dateStr + 'T00:00:00');
+  document.getElementById('alloc-detail-date').textContent =
+    d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+
+  // Sales
+  document.getElementById('alloc-detail-sales').textContent = fmt$(calSales(data));
+
+  // Status
+  const keys = ['tax','overhead','herbalife','payouts'];
+  const doneCount = keys.filter(k => transfers[k]).length;
+  const statusEl = document.getElementById('alloc-detail-status');
+  if (doneCount === 4) statusEl.textContent = 'All transferred';
+  else if (doneCount === 0) statusEl.textContent = 'None transferred';
+  else statusEl.textContent = doneCount + ' of 4 transferred';
+
+  // Bucket amounts
+  document.getElementById('alloc-amt-tax').textContent = fmt$(c.tax || 0);
+  document.getElementById('alloc-amt-overhead').textContent = fmt$(c.overhead || 0);
+  document.getElementById('alloc-amt-herbalife').textContent = fmt$(c.products || 0);
+  document.getElementById('alloc-amt-payouts').textContent = fmt$(c.payouts || 0);
+
+  // Bucket states
+  ['tax','overhead','herbalife','payouts'].forEach(k => {
+    const el = document.getElementById('alloc-b-' + k);
+    if (el) el.classList.toggle('transferred', !!transfers[k]);
+  });
+
+  document.getElementById('alloc-detail-overlay').classList.add('open');
+}
+
+function closeAllocDetail() {
+  document.getElementById('alloc-detail-overlay').classList.remove('open');
+  _allocDetailDate = null;
+}
+
+function closeAllocDetailOnBg(e) {
+  if (e.target === document.getElementById('alloc-detail-overlay')) closeAllocDetail();
+}
+
+async function toggleAllocBucket(key) {
+  if (!_allocDetailDate) return;
+  const dayObj = ALL_DAYS.find(d => d.date === _allocDetailDate);
+  if (!dayObj) return;
+
+  // Toggle in memory
+  const data = dayObj.data || {};
+  if (!data.transfers) data.transfers = {};
+  data.transfers[key] = !data.transfers[key];
+  dayObj.data = data;
+
+  // Update bucket UI immediately
+  const el = document.getElementById('alloc-b-' + key);
+  if (el) el.classList.toggle('transferred', data.transfers[key]);
+
+  // Update status label
+  const keys = ['tax','overhead','herbalife','payouts'];
+  const doneCount = keys.filter(k => data.transfers[k]).length;
+  const statusEl = document.getElementById('alloc-detail-status');
+  if (statusEl) {
+    if (doneCount === 4) statusEl.textContent = 'All transferred';
+    else if (doneCount === 0) statusEl.textContent = 'None transferred';
+    else statusEl.textContent = doneCount + ' of 4 transferred';
+  }
+
+  // Save to Supabase
+  const { error } = await sb.from('days').update({ data: dayObj.data }).eq('id', dayObj.id);
+  if (error) {
+    showToast('Save failed: ' + error.message, 'error');
+    // Revert on failure
+    data.transfers[key] = !data.transfers[key];
+    dayObj.data = data;
+    if (el) el.classList.toggle('transferred', data.transfers[key]);
+    return;
+  }
+
+  // Re-render calendar cell live
+  renderAllocCal();
+}
+
 function resolveAlias(n){for(const op of SETTINGS.operators){if(!op.name)continue;const a=(op.aliases||'').split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);if(op.name.toLowerCase()===n.toLowerCase())return op.name;if(a.includes(n.toLowerCase()))return op.name;}return n;}
 
 function buildSettingsUI(){
