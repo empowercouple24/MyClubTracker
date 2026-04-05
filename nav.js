@@ -48,8 +48,8 @@
     } catch (e) { /* silent fail */ }
   }
 
-  setTimeout(checkForUpdate, 15000);
-  setInterval(checkForUpdate, 15000);
+  setTimeout(checkForUpdate, 300000);
+  setInterval(checkForUpdate, 300000);
 })();
 
 /* ── IDLE AUTO-LOGOUT (30 min idle, 3 min warning) ── */
