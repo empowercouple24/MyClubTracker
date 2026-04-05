@@ -4122,20 +4122,26 @@ function renderAllocCal() {
     const isFuture = dateStr > todayStr;
     const todayClass = isToday ? ' today-day' : '';
 
-    if (!dayObj) {
-      // No entry at all
-      if (isFuture) {
-        html += `<div class="acal-day empty-day"><div class="acal-dn">${parseInt(dateStr.slice(8))}</div></div>`;
-      } else {
-        html += `<div class="acal-day no-data"><div class="acal-dn">${parseInt(dateStr.slice(8))}</div></div>`;
-      }
-      return;
-    }
+    // Determine if this date is a scheduled/overridden closed day
+    const _dow = new Date(dateStr + 'T00:00:00').getDay();
+    const _opDays = SETTINGS.opDays || [false,true,true,true,true,true,true];
+    const _closedDays = SETTINGS.closedDays || {};
+    const _isClosedBySchedule = !_opDays[_dow];
+    const _isClosedOverride = !!_closedDays[dateStr];
+    const _isOpenOverride = _closedDays[dateStr] === 'open';
+    const _isClosed = (_isClosedBySchedule || _isClosedOverride) && !_isOpenOverride;
+    const dayNum = parseInt(dateStr.slice(8));
 
-    const data = dayObj.data || {};
-    const sales = calSales(data);
-    if (!sales) {
-      html += `<div class="acal-day no-data${todayClass}"><div class="acal-dn">${parseInt(dateStr.slice(8))}</div></div>`;
+    if (!dayObj || !calSales(dayObj.data || {})) {
+      if (isFuture) {
+        html += `<div class="acal-day empty-day"><div class="acal-dn">${dayNum}</div></div>`;
+      } else if (_isClosed) {
+        html += `<div class="acal-day no-data${todayClass}"><div class="acal-dn">${dayNum}</div><div style="margin-top:auto;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);text-align:center;">Closed</div></div>`;
+      } else if (isToday) {
+        html += `<div class="acal-day no-data${todayClass}"><div class="acal-dn">${dayNum}</div><div style="margin-top:auto;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--b5);text-align:center;">Enter today</div></div>`;
+      } else {
+        html += `<div class="acal-day" style="background:#fef7e8;border:1px solid #f0b440;border-radius:var(--radius-sm);padding:7px 7px;aspect-ratio:1/1;display:flex;flex-direction:column;cursor:pointer;position:relative;overflow:hidden;${todayClass?'box-shadow:0 0 0 2px var(--b5);':''}" onclick="navToDate('${dateStr}')"><div class="acal-dn" style="color:var(--a6);">${dayNum}</div><div style="margin-top:auto;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--a6);text-align:center;line-height:1.3;">Enter<br>data</div></div>`;
+      }
       return;
     }
 
