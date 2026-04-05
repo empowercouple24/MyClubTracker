@@ -4027,11 +4027,10 @@ async function deletePayoutSnap(i){
 // ── ALLOCATIONS TAB ──────────────────────────────────────────────────────────
 let _allocWeekStart = null; // Monday of current week being viewed
 
-function getMonday(date) {
+function getSunday(date) {
   const d = new Date(date);
   const day = d.getDay(); // 0=Sun
-  const diff = day === 0 ? -6 : 1 - day;
-  d.setDate(d.getDate() + diff);
+  d.setDate(d.getDate() - day);
   d.setHours(0,0,0,0);
   return d;
 }
@@ -4046,7 +4045,7 @@ function renderAllocCal() {
   const label = document.getElementById('alloc-cal-label');
   if (!grid || !label) return;
 
-  if (!_allocWeekStart) _allocWeekStart = getMonday(new Date());
+  if (!_allocWeekStart) _allocWeekStart = getSunday(new Date());
 
   const weekStart = new Date(_allocWeekStart);
   const weekEnd = new Date(weekStart);
@@ -4058,7 +4057,7 @@ function renderAllocCal() {
   label.textContent = fmt(weekStart) + ' – ' + fmt(weekEnd) + ', ' + yr;
 
   // Prev/next button — never go past current week
-  const todayMonday = getMonday(new Date());
+  const todayMonday = getSunday(new Date());
   const prevBtn = document.getElementById('alloc-prev-btn');
   const nextBtn = document.getElementById('alloc-next-btn');
   if (prevBtn) {
@@ -4079,7 +4078,7 @@ function renderAllocCal() {
   ALL_DAYS.forEach(d => { if (dates.includes(d.date)) dayMap[d.date] = d; });
 
   const todayStr = new Date().toISOString().slice(0,10);
-  const DOWS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const DOWS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
   // Week totals for summary bar + remaining items list
   let weekOwe = 0, weekDone = 0;
