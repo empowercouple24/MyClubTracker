@@ -4591,18 +4591,35 @@ function autoSizeInput(el){
     try {
       var res = await sb.from('users').select('role,location_id').eq('id', CURRENT_SESSION.user.id).single();
       var u = res.data;
-      // org_leader role is set during onboarding before location is assigned -- don't deactivate
-      if (!u || u.role === 'pending' || (!u.location_id && u.role !== 'org_leader' && u.role !== 'admin')) {
-        deactivationShown = true;
+      // No user row = session expired or network issue, not deactivation — just redirect quietly
+      if (!u) {
         await sb.auth.signOut();
-        injectDeactivationOverlay();
-      }
-      // org_leader with no location_id means onboarding incomplete -- redirect to onboard
-      if (u && u.role === 'org_leader' && !u.location_id) {
         window.location.href = 'index.html';
         return;
       }
-    } catch(e) {}
+      // Only show deactivated screen if the account is explicitly marked pending
+      if (u.role === 'pending') {
+        deactivationShown = true;
+        await sb.auth.signOut();
+        injectDeactivationOverlay();
+        return;
+      }
+      // No location assigned (and not a privileged role) = session/data issue, redirect quietly
+      if (!u.location_id && u.role !== 'org_leader' && u.role !== 'admin') {
+        await sb.auth.signOut();
+        window.location.href = 'index.html';
+        return;
+      }
+      // org_leader with no location_id means onboarding incomplete -- redirect to onboard
+      if (u.role === 'org_leader' && !u.location_id) {
+        window.location.href = 'index.html';
+        return;
+      }
+    } catch(e) {
+      // Network/auth error — session likely expired, redirect quietly
+      await sb.auth.signOut();
+      window.location.href = 'index.html';
+    }
   }
   setTimeout(function() { checkDeactivation(); setInterval(checkDeactivation, 30000); }, 10000);
 })();
