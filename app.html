@@ -4035,7 +4035,10 @@ function getWeekSunday(date) {
 }
 
 function allocCalShift(dir) {
-  _allocWeekStart.setDate(_allocWeekStart.getDate() + dir * 7);
+  if (!_allocWeekStart) _allocWeekStart = getWeekSunday(new Date());
+  const next = new Date(_allocWeekStart.getTime());
+  next.setDate(next.getDate() + dir * 7);
+  _allocWeekStart = next;
   renderAllocCal();
 }
 
