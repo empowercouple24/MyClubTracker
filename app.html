@@ -4630,8 +4630,8 @@ async function toggleAllocBucket(key) {
     return;
   }
 
-  // Re-render calendar cell live
-  renderAllocCal();
+  // Re-render history calendar and alloc list live
+  renderHistCal();
 }
 
 
@@ -4908,13 +4908,12 @@ let _histProjScenario = [0,10,20,30];
 let _histProjDate = null;
 
 function renderHistAlloc() {
-  // Mirror of renderAllocCal remaining list but reads from hist cal month
   const yr = _histCalYear, mo = _histCalMonth;
   if (yr === null || mo === null) return;
 
   const keys = ['tax','overhead','herbalife','payouts'];
   const BUCKET_LABELS = {tax:'Taxes', overhead:'Overhead', herbalife:'Herbalife', payouts:'Payouts'};
-  const remainingDays = [];
+  const allDays = []; // ALL days with sales data, sorted newest first
   let monthOwe = 0, monthDone = 0;
 
   ALL_DAYS.forEach(d => {
@@ -4926,12 +4925,22 @@ function renderHistAlloc() {
     const bv = [c.tax||0, c.overhead||0, c.products||0, c.payouts||0];
     const tr = data.transfers || {};
     bv.forEach((v,i) => { monthOwe += v; if (tr[keys[i]]) monthDone += v; });
-    const pending = keys.map((k,i) => ({key:k, label:BUCKET_LABELS[k], amt:bv[i]})).filter((_,i) => !tr[keys[i]]);
-    if (pending.length > 0) {
-      const dl = new Date(d.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-      remainingDays.push({dateStr:d.date, label:dl, items:pending, dayRemaining:pending.reduce((s,it)=>s+it.amt,0)});
-    }
+    const doneCount = keys.filter(k => tr[k]).length;
+    const allComplete = doneCount === 4;
+    const dl = new Date(d.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    const totalAmt = bv.reduce((s,v) => s+v, 0);
+    allDays.push({
+      dateStr: d.date,
+      label: dl,
+      bv, tr, keys,
+      totalAmt,
+      doneCount,
+      allComplete
+    });
   });
+
+  // Sort newest first
+  allDays.sort((a,b) => b.dateStr.localeCompare(a.dateStr));
 
   const section = document.getElementById('hist-alloc-section');
   const list = document.getElementById('hist-alloc-list');
@@ -4940,29 +4949,40 @@ function renderHistAlloc() {
 
   if (monthOwe === 0) { section.style.display = 'none'; return; }
   section.style.display = 'block';
+  if (done) done.style.display = 'none';
 
-  if (remainingDays.length === 0) {
-    list.innerHTML = '';
-    if (done) done.style.display = 'block';
-  } else {
-    if (done) done.style.display = 'none';
-    list.innerHTML = remainingDays.map(day => {
-      const buckets = day.items.map((item,idx) => {
-        const br = idx < day.items.length-1 ? 'border-right:1px solid var(--border-light);' : '';
-        return `<div style="flex:1;min-width:70px;padding:6px 10px;${br}">
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:2px;">${item.label}</div>
-          <div style="font-family:'Outfit',sans-serif;font-size:13px;font-weight:800;color:var(--text);">${fmt$(item.amt)}</div>
-        </div>`;
-      }).join('');
-      return `<div style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);margin-bottom:6px;overflow:hidden;box-shadow:var(--shadow-sm);">
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--border-light);cursor:pointer;background:var(--b0);" onclick="openAllocDetail('${day.dateStr}')">
-          <span style="font-size:13px;font-weight:700;color:var(--text);">${day.label}</span>
-          <span style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--a6);">${fmt$(day.dayRemaining)}</span>
-        </div>
-        <div style="display:flex;flex-wrap:wrap;">${buckets}</div>
+  const pendingCount = allDays.filter(d => !d.allComplete).length;
+
+  list.innerHTML = allDays.map(day => {
+    const isComplete = day.allComplete;
+    const headerBg = isComplete ? '#eaf6eb' : 'var(--b0)';
+    const headerBorder = isComplete ? '#97C459' : 'var(--border-light)';
+    const cardBorder = isComplete ? '#97C459' : 'var(--border-light)';
+    const amtColor = isComplete ? 'var(--g5)' : 'var(--a6)';
+    const amtLabel = isComplete ? fmt$(day.totalAmt) : fmt$(day.bv.reduce((s,v,i) => s + (day.tr[day.keys[i]] ? 0 : v), 0));
+    const statusIcon = isComplete ? '&#10003;' : '';
+
+    const buckets = day.keys.map((k,i) => {
+      const transferred = !!day.tr[k];
+      const br = i < day.keys.length-1 ? `border-right:1px solid ${isComplete ? '#c4e6d2' : 'var(--border-light)'};` : '';
+      const bucketBg = transferred ? '#eaf6eb' : 'var(--surface)';
+      const labelColor = transferred ? 'var(--g5)' : 'var(--text-faint)';
+      const valColor = transferred ? 'var(--g5)' : 'var(--text)';
+      const checkmark = transferred ? `<span style="font-size:9px;color:var(--g4);margin-left:3px;">&#10003;</span>` : '';
+      return `<div style="flex:1;min-width:70px;padding:6px 10px;${br}background:${bucketBg};">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:${labelColor};margin-bottom:2px;">${BUCKET_LABELS[k]}${checkmark}</div>
+        <div style="font-family:'Outfit',sans-serif;font-size:13px;font-weight:800;color:${valColor};">${fmt$(day.bv[i])}</div>
       </div>`;
     }).join('');
-  }
+
+    return `<div style="background:var(--surface);border:1px solid ${cardBorder};border-radius:var(--radius);margin-bottom:6px;overflow:hidden;box-shadow:var(--shadow-sm);">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid ${headerBorder};cursor:pointer;background:${headerBg};" onclick="openAllocDetail('${day.dateStr}')">
+        <span style="font-size:13px;font-weight:700;color:${isComplete ? 'var(--g5)' : 'var(--text)'};">${statusIcon ? statusIcon + ' ' : ''}${day.label}</span>
+        <span style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:${amtColor};">${amtLabel}</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;">${buckets}</div>
+    </div>`;
+  }).join('');
 
   // Show projections toggle once there's data
   const toggle = document.getElementById('hist-proj-toggle');
