@@ -4057,14 +4057,21 @@ function renderAllocCal() {
   label.textContent = fmt(weekStart) + ' – ' + fmt(weekEnd) + ', ' + yr;
 
   // Prev/next button — never go past current week
-  const todayMonday = getSunday(new Date());
+  const todaySunday = getSunday(new Date());
   const prevBtn = document.getElementById('alloc-prev-btn');
   const nextBtn = document.getElementById('alloc-next-btn');
   if (prevBtn) {
+    // Disable prev only when the week BEFORE current would contain no data at all
+    // i.e. weekStart is already on or before the Sunday of the week containing the earliest entry
     const earliest = ALL_DAYS.length ? ALL_DAYS.map(d => d.date).sort()[0] : null;
-    prevBtn.disabled = earliest ? weekStart.toISOString().slice(0,10) <= earliest.slice(0,10) : false;
+    if (earliest) {
+      const earliestSunday = getSunday(new Date(earliest + 'T00:00:00'));
+      prevBtn.disabled = weekStart <= earliestSunday;
+    } else {
+      prevBtn.disabled = false;
+    }
   }
-  if (nextBtn) nextBtn.disabled = weekStart >= todayMonday;
+  if (nextBtn) nextBtn.disabled = weekStart >= todaySunday;
 
   // Build date map for this week
   const dates = [];
