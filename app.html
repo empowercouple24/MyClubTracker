@@ -25,11 +25,11 @@ if('serviceWorker' in navigator){
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{
-      --b9:#1e2d3d;--b8:#2a3f56;--b7:#3a5470;--b6:#4a6a8a;--b5:#5b80a0;--b4:#7599b8;--b3:#9ab4cc;--b2:#bfd0e0;--b1:#dde7f0;--b0:#f0f4f8;
+      --b9:#354e62;--b8:#4e6e86;--b7:#607e96;--b6:#7292a8;--b5:#85a6ba;--b4:#7599b8;--b3:#9ab4cc;--b2:#bfd0e0;--b1:#dde7f0;--b0:#f0f4f8;
       --g5:#2e7a35;--g4:#3d9e46;--g3:#5ab864;--g2:#88cc90;--g1:#b8e0bc;--g0:#eaf6eb;
       --a7:#7a4800;--a6:#a06000;--a5:#c47c0a;--a4:#e09820;--a3:#f0b440;--a2:#f8cc70;--a1:#fce4b0;--a0:#fef7e8;
       --bg:#e8edf4;--surface:#fff;--border:#cdd6e0;--border-light:#e2e9f0;
-      --text:#1e2d3d;--text-muted:#5b7087;--text-faint:#8fa3b3;
+      --text:#354e62;--text-muted:#5b7087;--text-faint:#8fa3b3;
       --radius:10px;--radius-sm:7px;
       --shadow-sm:0 1px 4px rgba(30,45,61,0.07),0 2px 10px rgba(30,45,61,0.05);
       --shadow-md:0 4px 20px rgba(30,45,61,0.09);
@@ -117,7 +117,7 @@ if('serviceWorker' in navigator){
     html.dark .tab-panel{background:var(--bg);}
     html.dark .field-row{background:var(--surface);border-color:var(--border);}
     html.dark .hcard{background:var(--surface);}
-    html.dark .dv-box{background:linear-gradient(135deg,#2a3f56,#3a5470);}
+    html.dark .dv-box{background:linear-gradient(135deg,#4e6e86,#607e96);}
     html.dark .modal-sheet{background:var(--surface);}
     html.dark .settings-row{border-color:var(--border);}
     html.dark input,html.dark select,html.dark textarea{background:var(--b0)!important;color:var(--text)!important;border-color:var(--border)!important;}
@@ -4671,9 +4671,9 @@ function autoSizeInput(el){
     el.innerHTML =
       '<div style="background:#fff;border-radius:18px;width:100%;max-width:380px;padding:36px 28px 28px;text-align:center;font-family:\'DM Sans\',sans-serif;">' +
         '<div style="font-size:40px;margin-bottom:14px;">&#128274;</div>' +
-        '<div style="font-family:\'Outfit\',sans-serif;font-size:20px;font-weight:700;color:#1e2d3d;margin-bottom:10px;">Account Deactivated</div>' +
+        '<div style="font-family:\'Outfit\',sans-serif;font-size:20px;font-weight:700;color:#354e62;margin-bottom:10px;">Account Deactivated</div>' +
         '<div style="font-size:14px;color:#5b7087;line-height:1.6;margin-bottom:24px;">Your account has been removed from this location. Contact your admin to request reactivation.</div>' +
-        '<button onclick="window.location.href=\'index.html\'" style="width:100%;font-family:\'DM Sans\',sans-serif;font-size:15px;font-weight:600;background:linear-gradient(135deg,#3a5470,#5b80a0);color:white;border:none;border-radius:10px;padding:13px;cursor:pointer;">OK</button>' +
+        '<button onclick="window.location.href=\'index.html\'" style="width:100%;font-family:\'DM Sans\',sans-serif;font-size:15px;font-weight:600;background:linear-gradient(135deg,#4e6e86,#85a6ba);color:white;border:none;border-radius:10px;padding:13px;cursor:pointer;">OK</button>' +
       '</div>';
     document.body.appendChild(el);
   }
@@ -4735,10 +4735,10 @@ function autoSizeInput(el){
     el.innerHTML =
       '<div style="background:#fff;border-radius:18px;width:100%;max-width:380px;padding:32px 28px 24px;box-shadow:0 20px 60px rgba(30,45,61,0.25);text-align:center;font-family:\'DM Sans\',sans-serif;">' +
         '<div style="font-size:36px;margin-bottom:12px;">&#9201;</div>' +
-        '<div style="font-family:\'Outfit\',sans-serif;font-size:20px;font-weight:700;color:#1e2d3d;margin-bottom:8px;">Still there?</div>' +
+        '<div style="font-family:\'Outfit\',sans-serif;font-size:20px;font-weight:700;color:#354e62;margin-bottom:8px;">Still there?</div>' +
         '<div style="font-size:14px;color:#5b7087;margin-bottom:6px;line-height:1.5;">You will be signed out automatically due to inactivity in</div>' +
         '<div id="idle-countdown" style="font-family:\'Outfit\',sans-serif;font-size:36px;font-weight:800;color:#c47c0a;margin:10px 0 20px;letter-spacing:-1px;">3:00</div>' +
-        '<button id="idle-stay-btn" style="width:100%;font-family:\'DM Sans\',sans-serif;font-size:15px;font-weight:600;background:linear-gradient(135deg,#3a5470,#5b80a0);color:white;border:none;border-radius:10px;padding:13px;cursor:pointer;box-shadow:0 2px 10px rgba(58,84,112,0.25);">Keep me signed in</button>' +
+        '<button id="idle-stay-btn" style="width:100%;font-family:\'DM Sans\',sans-serif;font-size:15px;font-weight:600;background:linear-gradient(135deg,#4e6e86,#85a6ba);color:white;border:none;border-radius:10px;padding:13px;cursor:pointer;box-shadow:0 2px 10px rgba(78,110,134,0.25);">Keep me signed in</button>' +
       '</div>';
     document.body.appendChild(el);
     document.getElementById('idle-stay-btn').addEventListener('click', resetIdle);
@@ -4812,8 +4812,8 @@ async function safeInit() {
       '<details style="margin-top:8px;"><summary style="font-size:12px;color:#8fa3b3;cursor:pointer;">Stack trace</summary>' +
       '<pre style="font-size:11px;color:#8fa3b3;white-space:pre-wrap;margin-top:8px;">' + (e.stack||'') + '</pre></details>' +
       '<div style="margin-top:20px;display:flex;gap:10px;">' +
-      '<a href="admin.html" style="background:#3a5470;color:white;padding:10px 18px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">Dashboard</a>' +
-      '<a href="index.html" style="background:#e8edf4;color:#3a5470;padding:10px 18px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">Sign In</a>' +
+      '<a href="admin.html" style="background:#4e6e86;color:white;padding:10px 18px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">Dashboard</a>' +
+      '<a href="index.html" style="background:#e8edf4;color:#4e6e86;padding:10px 18px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">Sign In</a>' +
       '</div>' +
       '</div></div>';
   }
