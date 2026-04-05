@@ -188,10 +188,10 @@ if('serviceWorker' in navigator){
     .hcal-dn{font-size:12px;font-weight:700;color:var(--text-faint);margin-bottom:3px;}
     .hcal-day.has-data .hcal-dn{color:var(--text-muted);}
     .hcal-sales-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--g6);white-space:nowrap;}
-    .hcal-sales{font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--g5);line-height:1.1;margin-bottom:4px;}
-    .hcal-dv-block{display:flex;flex-direction:column;margin:auto 0 0;}
+    .hcal-sales{font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--g5);line-height:1.1;margin-bottom:2px;}
+    .hcal-dv-block{display:flex;flex-direction:column;margin:2px 0 0;}
     .hcal-pill-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--b4);white-space:nowrap;}
-    .hcal-pill-val{font-size:13px;font-weight:700;color:var(--text);}
+    .hcal-pill-val{font-size:12px;font-weight:700;color:var(--text);}
     .hcal-extras{margin-top:3px;font-size:10px;color:var(--text-faint);}
     .hcal-week-summary{background:var(--b8);border-radius:var(--radius-sm);padding:6px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
     .hcal-week-label{font-size:10px;font-weight:700;text-transform:uppercase;color:white;}
@@ -477,22 +477,26 @@ if('serviceWorker' in navigator){
       #panel-history > div {
         width: 100% !important;
         min-width: 0 !important;
-        padding: 0 6px !important;
+        padding: 0 4px !important;
       }
-      .hcal-dow { font-size: 9px; padding: 2px 0; }
+      .hcal-dow-row { gap: 2px; }
+      .hcal-dow { font-size: 8px; padding: 2px 0; }
       .hcal-week { gap: 2px; }
-      .hcal-day { padding: 4px 3px; }
-      .hcal-dn { font-size: 10px; margin-bottom: 1px; }
-      .hcal-sales-label { font-size: 8px; }
-      .hcal-sales { font-size: 11px; margin-bottom: 2px; }
-      .hcal-pill-label { font-size: 8px; }
-      .hcal-pill-val { font-size: 10px; }
+      .hcal-day { padding: 4px 3px; min-height: 0 !important; aspect-ratio: unset !important; }
+      .hcal-dn { font-size: 9px; margin-bottom: 1px; }
+      .hcal-sales-label { font-size: 7px; }
+      .hcal-sales { font-size: 9px; margin-bottom: 1px; }
+      .hcal-dv-block { margin-top: 1px; }
+      .hcal-pill-label { font-size: 7px; }
+      .hcal-pill-val { font-size: 9px; }
       .hcal-extras { display: none; }
-      .hcal-week-summary { padding: 5px 8px; }
-      .hcal-week-label { font-size: 9px; }
-      .hcal-week-total { font-size: 12px; }
-      .hcal-month-total { padding: 8px 10px; margin-bottom: 8px; }
-      .hcal-month-total-val { font-size: 15px; }
+      .hcal-week-summary { padding: 4px 8px; margin-bottom: 4px; }
+      .hcal-week-label { font-size: 8px; }
+      .hcal-week-total { font-size: 11px; }
+      .hcal-month-total { padding: 7px 10px; margin-bottom: 6px; }
+      .hcal-month-total-val { font-size: 13px; }
+      /* hide alloc dots on mobile history — too small */
+      .hcal-day .dot-row { display: none; }
 
       /* ── ALLOCATIONS CALENDAR ── */
       #panel-alloc > div {
@@ -532,11 +536,14 @@ if('serviceWorker' in navigator){
       #panel-invhist .inv-table td:nth-child(6) { display: none; }
       #panel-invhist .inv-table th:nth-child(7),
       #panel-invhist .inv-table td:nth-child(7) { display: none; }
-      #panel-invhist .inv-table th:nth-child(2) { width: 50px !important; }
-      #panel-invhist .inv-table th:nth-child(3) { display: table-cell !important; width: 40px !important; }
+      #panel-invhist .inv-table th:nth-child(2) { width: 44px !important; }
+      #panel-invhist .inv-table th:nth-child(3) { display: table-cell !important; width: 36px !important; }
       #panel-invhist .inv-table td:nth-child(3) { display: table-cell !important; }
-      #panel-invhist .inv-table th:nth-child(4) { width: 50px !important; }
-      #panel-invhist .inv-table th:nth-child(5) { width: 50px !important; }
+      #panel-invhist .inv-table th:nth-child(4) { width: 44px !important; }
+      #panel-invhist .inv-table th:nth-child(5) { width: 44px !important; }
+      #panel-invhist .inv-table td { font-size: 12px !important; padding: 4px 4px !important; }
+      #panel-invhist .inv-table th { font-size: 8px !important; padding: 5px 4px !important; }
+      #panel-invhist .inv-cat-header { font-size: 14px !important; padding: 8px 10px !important; }
 
       /* ── INVENTORY HEADER STATS ── */
       .inv-header { padding: 10px 10px !important; }
@@ -945,7 +952,10 @@ if('serviceWorker' in navigator){
 
     <!-- Allocation remaining — always visible below calendar -->
     <div id="hist-alloc-section" style="margin-top:14px;display:none;">
-      <div class="section-label">Remaining This Month</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div class="section-label" style="margin:0;">Remaining This Month</div>
+        <button onclick="toggleHistAllocList()" id="hist-alloc-toggle-btn" style="font-size:11px;font-weight:600;color:var(--b6);background:none;border:none;cursor:pointer;padding:2px 0;">Hide ▲</button>
+      </div>
       <div id="hist-alloc-list"></div>
       <div id="hist-alloc-done" style="display:none;margin-bottom:8px;padding:12px;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);text-align:center;box-shadow:var(--shadow-sm);">
         <span style="font-size:13px;font-weight:600;color:var(--g5);">&#10003; All transfers complete for this month</span>
@@ -3363,7 +3373,7 @@ function renderHistCal(){
           <div class="hcal-sales-label">Sales</div>
           <div class="hcal-sales">${fmt$(calSales(data))}</div>
           <div class="hcal-dv-block">
-            <div class="hcal-pill-label">Documented Volume</div>
+            <div class="hcal-pill-label">DV</div>
             <div class="hcal-pill-val">${(parseFloat(data.dv)||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
           </div>
           <div style="display:flex;gap:3px;margin-top:4px;justify-content:flex-start;">${_dots}</div>
@@ -4945,7 +4955,7 @@ function renderHistAlloc() {
         </div>`;
       }).join('');
       return `<div style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);margin-bottom:6px;overflow:hidden;box-shadow:var(--shadow-sm);">
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--border-light);cursor:pointer;" onclick="openAllocDetail('${day.dateStr}')">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--border-light);cursor:pointer;background:var(--b0);" onclick="openAllocDetail('${day.dateStr}')">
           <span style="font-size:13px;font-weight:700;color:var(--text);">${day.label}</span>
           <span style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--a6);">${fmt$(day.dayRemaining)}</span>
         </div>
@@ -4957,6 +4967,18 @@ function renderHistAlloc() {
   // Show projections toggle once there's data
   const toggle = document.getElementById('hist-proj-toggle');
   if (toggle) toggle.style.display = 'block';
+}
+
+
+function toggleHistAllocList() {
+  const list = document.getElementById('hist-alloc-list');
+  const done = document.getElementById('hist-alloc-done');
+  const btn = document.getElementById('hist-alloc-toggle-btn');
+  if (!list) return;
+  const hidden = list.style.display === 'none';
+  list.style.display = hidden ? '' : 'none';
+  if (done) done.style.display = hidden ? (done.dataset.shouldShow === '1' ? 'block' : 'none') : 'none';
+  if (btn) btn.textContent = hidden ? 'Hide ▲' : 'Show ▼';
 }
 
 function toggleHistProjections() {
