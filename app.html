@@ -2282,7 +2282,7 @@ function switchTab(name){
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
   document.getElementById('panel-'+name).classList.add('active');
-  if(name==='proj')renderProjections();if(name==='payouts'){renderPayoutSnapshots();}if(name==='alloc'){_allocWeekStart=null;renderAllocCal();}
+  if(name==='proj')renderProjections();if(name==='payouts'){renderPayoutSnapshots();}if(name==='alloc'){_allocWeekOffset=0;renderAllocCal();}
   if(name==='inv')recalcInvCatTop();
   if(name==='invhist'){
     setTimeout(()=>{
@@ -4025,73 +4025,55 @@ async function deletePayoutSnap(i){
 }
 
 // ── ALLOCATIONS TAB ──────────────────────────────────────────────────────────
-let _allocWeekStart = null; // Sunday of current week being viewed
+let _allocWeekOffset = 0; // weeks offset from current week (0=this week, -1=last week, etc)
 
-function getWeekSunday(date) {
-  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  const day = d.getDay(); // 0=Sun
-  d.setDate(d.getDate() - day);
-  return d;
+// Returns YYYY-MM-DD string for a date that is (baseOffset*7 + dayOffset) days from today's Sunday
+function allocDateStr(weekOffset, dayOffset) {
+  const now = new Date();
+  const todayDow = now.getDay(); // 0=Sun
+  const sunday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - todayDow);
+  sunday.setDate(sunday.getDate() + weekOffset * 7 + dayOffset);
+  const mm = String(sunday.getMonth()+1).padStart(2,'0');
+  const dd = String(sunday.getDate()).padStart(2,'0');
+  return sunday.getFullYear() + '-' + mm + '-' + dd;
 }
 
 function allocCalShift(dir) {
-  if (!_allocWeekStart) _allocWeekStart = getWeekSunday(new Date());
-  const next = new Date(_allocWeekStart.getTime());
-  next.setDate(next.getDate() + dir * 7);
-  _allocWeekStart = next;
-  console.log('[ALLOC] shift dir='+dir+' new weekStart='+_allocWeekStart.toDateString());
+  _allocWeekOffset += dir;
   renderAllocCal();
 }
 
 function renderAllocCal() {
   const grid = document.getElementById('alloc-cal-grid');
   const label = document.getElementById('alloc-cal-label');
-  console.log('[ALLOC] renderAllocCal grid='+!!grid+' label='+!!label+' _allocWeekStart='+(_allocWeekStart?_allocWeekStart.toDateString():'null'));
   if (!grid || !label) return;
 
-  if (!_allocWeekStart) _allocWeekStart = getWeekSunday(new Date());
+  // Build the 7 date strings for this week (Sun=0 through Sat=6)
+  const dates = [];
+  for (let i = 0; i < 7; i++) dates.push(allocDateStr(_allocWeekOffset, i));
 
-  const weekStart = new Date(_allocWeekStart);
-  const weekEnd = new Date(weekStart);
-  weekEnd.setDate(weekEnd.getDate() + 6);
+  // Label
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const s = new Date(dates[0] + 'T12:00:00'), e = new Date(dates[6] + 'T12:00:00');
+  label.textContent = months[s.getMonth()]+' '+s.getDate()+' – '+months[e.getMonth()]+' '+e.getDate()+', '+e.getFullYear();
 
-  // Label: e.g. "Mar 31 – Apr 6, 2026"
-  const fmt = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  const yr = weekEnd.getFullYear();
-  label.textContent = fmt(weekStart) + ' – ' + fmt(weekEnd) + ', ' + yr;
-
-  // Prev/next button — never go past current week
-  const todaySunday = getWeekSunday(new Date());
+  // Prev/next buttons
   const prevBtn = document.getElementById('alloc-prev-btn');
   const nextBtn = document.getElementById('alloc-next-btn');
+  if (nextBtn) nextBtn.disabled = _allocWeekOffset >= 0;
   if (prevBtn) {
-    // Disable prev only when the week BEFORE current would contain no data at all
-    // i.e. weekStart is already on or before the Sunday of the week containing the earliest entry
     const earliest = ALL_DAYS.length ? ALL_DAYS.map(d => d.date).sort()[0] : null;
-    if (earliest) {
-      const earliestSunday = getWeekSunday(new Date(earliest + 'T12:00:00'));
-      prevBtn.disabled = weekStart <= earliestSunday;
-    } else {
-      prevBtn.disabled = false;
-    }
-  }
-  if (nextBtn) nextBtn.disabled = weekStart >= todaySunday;
-
-  // Build date map for this week (use local date to avoid UTC offset shifting dates)
-  const dates = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(weekStart);
-    d.setDate(d.getDate() + i);
-    const mm = String(d.getMonth()+1).padStart(2,'0');
-    const dd = String(d.getDate()).padStart(2,'0');
-    dates.push(d.getFullYear()+'-'+mm+'-'+dd);
+    prevBtn.disabled = earliest ? dates[0] <= earliest : false;
   }
 
+  // Day map
   const dayMap = {};
   ALL_DAYS.forEach(d => { if (dates.includes(d.date)) dayMap[d.date] = d; });
-  console.log('[ALLOC] dates='+JSON.stringify(dates)+' ALL_DAYS.length='+ALL_DAYS.length+' dayMap keys='+JSON.stringify(Object.keys(dayMap)));
 
-  const _tn=new Date();const todayStr=_tn.getFullYear()+'-'+String(_tn.getMonth()+1).padStart(2,'0')+'-'+String(_tn.getDate()).padStart(2,'0');
+  // Today string
+  const now2 = new Date();
+  const todayStr = now2.getFullYear()+'-'+String(now2.getMonth()+1).padStart(2,'0')+'-'+String(now2.getDate()).padStart(2,'0');
+
   const DOWS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
   // Week totals for summary bar + remaining items list
