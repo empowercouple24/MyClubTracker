@@ -454,6 +454,98 @@ if('serviceWorker' in navigator){
     .admin-edit-banner{background:linear-gradient(135deg,var(--a6),var(--a4));color:white;font-size:11px;font-weight:700;text-align:center;padding:5px 12px;letter-spacing:0.3px;display:none}
     .admin-edit-banner.show{display:block}
     .admin-location-banner{background:var(--b8);color:white;font-size:11px;font-weight:600;text-align:center;padding:4px 12px;letter-spacing:0.3px}
+
+    /* ── MOBILE RESPONSIVE (iPhone 15 Pro Max and smaller) ── */
+    @media (max-width: 480px) {
+
+      /* ── NAV ── */
+      .topnav { padding: 0 8px; gap: 6px; }
+      .nav-club-name { font-size: 12px; }
+      .nav-admin-badge { display: none; }
+
+      /* ── TAB BAR ── */
+      .tab { padding: 0 10px; font-size: 11px; }
+
+      /* ── HISTORY CALENDAR ── */
+      #panel-history > div {
+        width: 100% !important;
+        min-width: 0 !important;
+        padding: 0 6px !important;
+      }
+      .hcal-dow { font-size: 9px; padding: 2px 0; }
+      .hcal-week { gap: 2px; }
+      .hcal-day { padding: 4px 3px; }
+      .hcal-dn { font-size: 10px; margin-bottom: 1px; }
+      .hcal-sales-label { font-size: 8px; }
+      .hcal-sales { font-size: 11px; margin-bottom: 2px; }
+      .hcal-pill-label { font-size: 8px; }
+      .hcal-pill-val { font-size: 10px; }
+      .hcal-extras { display: none; }
+      .hcal-week-summary { padding: 5px 8px; }
+      .hcal-week-label { font-size: 9px; }
+      .hcal-week-total { font-size: 12px; }
+      .hcal-month-total { padding: 8px 10px; margin-bottom: 8px; }
+      .hcal-month-total-val { font-size: 15px; }
+
+      /* ── ALLOCATIONS CALENDAR ── */
+      #panel-alloc > div {
+        width: 100% !important;
+        min-width: 0 !important;
+        padding: 0 6px !important;
+      }
+      .acal-dow { font-size: 9px; padding: 2px 0; }
+      .acal-week { gap: 2px; }
+      .acal-day { padding: 4px 3px; }
+      .acal-dn { font-size: 10px; margin-bottom: 1px; }
+      .acal-sales { font-size: 11px; margin-bottom: 2px; }
+      .acal-dot { width: 5px; height: 5px; }
+      .acal-week-summary { padding: 5px 8px; }
+      .acal-week-label { font-size: 9px; }
+      .acal-week-val { font-size: 12px; }
+
+      /* ── INVENTORY TABLE ── */
+      .inv-table { font-size: 13px !important; }
+      .inv-table th { padding: 6px 5px !important; font-size: 9px !important; letter-spacing: 0; }
+      .inv-table td { padding: 5px 5px !important; font-size: 13px !important; height: 28px !important; }
+      /* Hide VP and DV columns on mobile — least critical for daily use */
+      .inv-table th:nth-child(3),
+      .inv-table td:nth-child(3) { display: none; }
+      .inv-table th:nth-child(7),
+      .inv-table td:nth-child(7) { display: none; }
+      .inv-table th:nth-child(8),
+      .inv-table td:nth-child(8) { display: none; }
+      /* Tighten column widths */
+      .inv-table th:nth-child(2) { width: 28px !important; }
+      .inv-table th:nth-child(4) { width: 36px !important; }
+      .inv-table th:nth-child(5) { width: 50px !important; }
+      .inv-table th:nth-child(6) { width: 50px !important; }
+      /* Inv History — hide DV columns */
+      #panel-invhist .inv-table th:nth-child(6),
+      #panel-invhist .inv-table td:nth-child(6) { display: none; }
+      #panel-invhist .inv-table th:nth-child(7),
+      #panel-invhist .inv-table td:nth-child(7) { display: none; }
+      #panel-invhist .inv-table th:nth-child(2) { width: 50px !important; }
+      #panel-invhist .inv-table th:nth-child(3) { display: table-cell !important; width: 40px !important; }
+      #panel-invhist .inv-table td:nth-child(3) { display: table-cell !important; }
+      #panel-invhist .inv-table th:nth-child(4) { width: 50px !important; }
+      #panel-invhist .inv-table th:nth-child(5) { width: 50px !important; }
+
+      /* ── INVENTORY HEADER STATS ── */
+      .inv-header { padding: 10px 10px !important; }
+      .inv-dv-card { padding: 8px 10px !important; }
+      .inv-dv-item-val { font-size: 20px !important; }
+
+      /* ── PROJECTIONS ── */
+      #panel-proj > div {
+        padding: 10px 8px 40px !important;
+      }
+      #proj-estimator-grid { font-size: 12px; }
+      #proj-estimator-grid th, #proj-estimator-grid td { padding: 5px 6px !important; font-size: 12px !important; }
+
+      /* ── ALLOC REMAINING LIST ── */
+      .acal-week-summary + div .alloc-bucket-grid { grid-template-columns: 1fr 1fr; }
+
+    }
     
   </style>
 </head>
