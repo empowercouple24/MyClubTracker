@@ -4039,12 +4039,14 @@ function allocCalShift(dir) {
   const next = new Date(_allocWeekStart.getTime());
   next.setDate(next.getDate() + dir * 7);
   _allocWeekStart = next;
+  console.log('[ALLOC] shift dir='+dir+' new weekStart='+_allocWeekStart.toDateString());
   renderAllocCal();
 }
 
 function renderAllocCal() {
   const grid = document.getElementById('alloc-cal-grid');
   const label = document.getElementById('alloc-cal-label');
+  console.log('[ALLOC] renderAllocCal grid='+!!grid+' label='+!!label+' _allocWeekStart='+(_allocWeekStart?_allocWeekStart.toDateString():'null'));
   if (!grid || !label) return;
 
   if (!_allocWeekStart) _allocWeekStart = getWeekSunday(new Date());
@@ -4087,6 +4089,7 @@ function renderAllocCal() {
 
   const dayMap = {};
   ALL_DAYS.forEach(d => { if (dates.includes(d.date)) dayMap[d.date] = d; });
+  console.log('[ALLOC] dates='+JSON.stringify(dates)+' ALL_DAYS.length='+ALL_DAYS.length+' dayMap keys='+JSON.stringify(Object.keys(dayMap)));
 
   const _tn=new Date();const todayStr=_tn.getFullYear()+'-'+String(_tn.getMonth()+1).padStart(2,'0')+'-'+String(_tn.getDate()).padStart(2,'0');
   const DOWS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -4215,6 +4218,7 @@ function renderAllocCal() {
     }
   }
 
+  console.log('[ALLOC] html length='+html.length+' setting innerHTML');
   grid.innerHTML = html;
 }
 
