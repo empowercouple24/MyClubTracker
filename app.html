@@ -4025,20 +4025,17 @@ async function deletePayoutSnap(i){
 }
 
 // ── ALLOCATIONS TAB ──────────────────────────────────────────────────────────
-let _allocWeekStart = null; // Monday of current week being viewed
+let _allocWeekStart = null; // Sunday of current week being viewed
 
-function getSunday(date) {
-  // Use local year/month/day to avoid UTC offset shifting the day
-  const d = new Date(date);
+function getWeekSunday(date) {
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
   const day = d.getDay(); // 0=Sun
-  const out = new Date(d.getFullYear(), d.getMonth(), d.getDate() - day);
-  return out;
+  d.setDate(d.getDate() - day);
+  return d;
 }
 
 function allocCalShift(dir) {
-  // Create a fresh Date from current weekStart to avoid mutation issues
-  const d = new Date(_allocWeekStart.getFullYear(), _allocWeekStart.getMonth(), _allocWeekStart.getDate() + dir * 7);
-  _allocWeekStart = d;
+  _allocWeekStart.setDate(_allocWeekStart.getDate() + dir * 7);
   renderAllocCal();
 }
 
@@ -4047,7 +4044,7 @@ function renderAllocCal() {
   const label = document.getElementById('alloc-cal-label');
   if (!grid || !label) return;
 
-  if (!_allocWeekStart) { const now = new Date(); _allocWeekStart = getSunday(new Date(now.getFullYear(), now.getMonth(), now.getDate())); }
+  if (!_allocWeekStart) _allocWeekStart = getWeekSunday(new Date());
 
   const weekStart = new Date(_allocWeekStart);
   const weekEnd = new Date(weekStart);
@@ -4059,7 +4056,7 @@ function renderAllocCal() {
   label.textContent = fmt(weekStart) + ' – ' + fmt(weekEnd) + ', ' + yr;
 
   // Prev/next button — never go past current week
-  const todaySunday = getSunday(new Date());
+  const todaySunday = getWeekSunday(new Date());
   const prevBtn = document.getElementById('alloc-prev-btn');
   const nextBtn = document.getElementById('alloc-next-btn');
   if (prevBtn) {
@@ -4067,13 +4064,13 @@ function renderAllocCal() {
     // i.e. weekStart is already on or before the Sunday of the week containing the earliest entry
     const earliest = ALL_DAYS.length ? ALL_DAYS.map(d => d.date).sort()[0] : null;
     if (earliest) {
-      const earliestSunday = getSunday(new Date(earliest + 'T00:00:00'));
-      const wsStr = weekStart.getFullYear()+"-"+weekStart.getMonth()+"-"+weekStart.getDate(); const esStr = earliestSunday.getFullYear()+"-"+earliestSunday.getMonth()+"-"+earliestSunday.getDate(); prevBtn.disabled = wsStr === esStr || weekStart < earliestSunday;
+      const earliestSunday = getWeekSunday(new Date(earliest + 'T12:00:00'));
+      prevBtn.disabled = weekStart <= earliestSunday;
     } else {
       prevBtn.disabled = false;
     }
   }
-  if (nextBtn) nextBtn.disabled = weekStart.toDateString() === todaySunday.toDateString() || weekStart > todaySunday;
+  if (nextBtn) nextBtn.disabled = weekStart >= todaySunday;
 
   // Build date map for this week
   const dates = [];
