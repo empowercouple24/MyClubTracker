@@ -174,7 +174,7 @@ if('serviceWorker' in navigator){
     .hcal-dow-row{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px;}
     .hcal-dow{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-faint);text-align:center;padding:3px 0;}
     .hcal-week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px;}
-    .hcal-day{border-radius:var(--radius-sm);padding:7px 7px;aspect-ratio:1/1;display:flex;flex-direction:column;cursor:pointer;transition:box-shadow 0.12s,border-color 0.12s;position:relative;overflow:hidden;}
+    .hcal-day{border-radius:var(--radius-sm);padding:6px 6px 6px;min-height:72px;display:flex;flex-direction:column;cursor:pointer;transition:box-shadow 0.12s,border-color 0.12s;position:relative;overflow:hidden;}
     .hcal-day.has-data{background:var(--surface);border:1px solid var(--border-light);box-shadow:var(--shadow-sm);}
     .hcal-day.has-data:hover{box-shadow:var(--shadow-md);border-color:var(--b3);}
     .hcal-day.empty-day{background:transparent;border:1px solid transparent;cursor:default;}
@@ -3363,21 +3363,39 @@ function renderHistCal(){
         const adminIcon=data._adminEdit?'<span style="font-size:8px;color:var(--a5);">✎</span> ':'';
         const closedBadge=data.closedDay?'<div class="hcal-closed-label">Closed</div>':'';
         const _tr=data.transfers||{};
-        const _dotKeys=['tax','overhead','herbalife','payouts'];
-        const _dots=_dotKeys.map(k=>`<div style="width:6px;height:6px;border-radius:50%;background:${_tr[k]?'var(--g4)':'var(--a3)'};" ></div>`).join('');
-        html+=`<div class="hcal-day has-data${isToday?' today-day':''}" onclick="openDetail('${dateStr}');loadHistProjDay('${dateStr}')">
-          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:3px;">
+        const _tkeys=['tax','overhead','herbalife','payouts'];
+        // Quadrant circle SVG
+        const _qColors=_tkeys.map(k=>_tr[k]?'#639922':'#f0b440');
+        const _qSvg=`<svg viewBox="0 0 22 22" style="width:20px;height:20px;display:block;">
+          <path d="M11,11 L11,3 A8,8 0 0,1 19,11 Z" fill="${_qColors[0]}"/>
+          <path d="M11,11 L19,11 A8,8 0 0,1 11,19 Z" fill="${_qColors[1]}"/>
+          <path d="M11,11 L11,19 A8,8 0 0,1 3,11 Z" fill="${_qColors[2]}"/>
+          <path d="M11,11 L3,11 A8,8 0 0,1 11,3 Z" fill="${_qColors[3]}"/>
+          <line x1="11" y1="3" x2="11" y2="19" stroke="white" stroke-width="1.2"/>
+          <line x1="3" y1="11" x2="19" y2="11" stroke="white" stroke-width="1.2"/>
+          <circle cx="11" cy="11" r="4" fill="white"/>
+        </svg>`;
+        // Operator dots — assign color by position in SETTINGS.operators
+        const _opPalette=['#4e6e86','#2d6a4f','#9e7e6a','#7a5c80'];
+        const _opList=[data.op1,data.op2].filter(Boolean);
+        const _opDots=_opList.map(name=>{
+          const idx=(SETTINGS.operators||[]).findIndex(o=>o.name&&(o.name===name||(o.aliases||'').split(',').map(a=>a.trim()).includes(name)));
+          const color=_opPalette[idx>=0?idx:0];
+          const initial=(name||'?').charAt(0).toUpperCase();
+          return `<div style="width:14px;height:14px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:800;color:white;flex-shrink:0;">${initial}</div>`;
+        }).join('');
+        const _allDone=_tkeys.every(k=>_tr[k]);
+        const _salesNum=calSales(data);
+        const _dvNum=(parseFloat(data.dv)||0).toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1});
+        html+=`<div class="hcal-day has-data${isToday?' today-day':''}${_allDone?' style=\\"border-color:var(--g4);\\"':''}" onclick="openDetail('${dateStr}');loadHistProjDay('${dateStr}')" style="${_allDone?'border-color:var(--g4);':''}">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2px;">
             <div class="hcal-dn" style="margin-bottom:0;">${day}</div>
             <div style="display:flex;align-items:center;gap:2px;">${adminIcon}${noteIcon}</div>
           </div>
-          <div class="hcal-sales-label">Sales</div>
-          <div class="hcal-sales">${fmt$(calSales(data))}</div>
-          <div class="hcal-dv-block">
-            <div class="hcal-pill-label">DV</div>
-            <div class="hcal-pill-val">${(parseFloat(data.dv)||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
-          </div>
-          <div style="display:flex;gap:3px;margin-top:4px;justify-content:flex-start;">${_dots}</div>
-          ${ops?`<div class="hcal-extras">${ops}</div>`:''}
+          <div style="font-size:12px;font-weight:800;color:var(--g5);line-height:1.1;">${fmt$(_salesNum)}<span style="font-size:8px;font-weight:700;color:var(--g5);opacity:0.7;margin-left:1px;letter-spacing:0.2px;">NET</span></div>
+          <div style="font-size:12px;font-weight:800;color:var(--text);line-height:1.1;margin-top:1px;">${_dvNum}<span style="font-size:8px;font-weight:700;color:var(--text-faint);margin-left:1px;letter-spacing:0.2px;">DV</span></div>
+          <div style="display:flex;gap:3px;margin-top:3px;">${_opDots}</div>
+          <div style="position:absolute;bottom:3px;right:3px;">${_qSvg}</div>
           ${closedBadge}
         </div>`;
       } else if(isFuture){
@@ -4940,7 +4958,8 @@ function renderHistAlloc() {
   });
 
   // Sort newest first
-  allDays.sort((a,b) => b.dateStr.localeCompare(a.dateStr));
+  // Only show days with pending allocations — completed days visible via quadrant circle on calendar
+  const pendingDays = allDays.filter(d => !d.allComplete).sort((a,b) => b.dateStr.localeCompare(a.dateStr));
 
   const section = document.getElementById('hist-alloc-section');
   const list = document.getElementById('hist-alloc-list');
@@ -4949,40 +4968,29 @@ function renderHistAlloc() {
 
   if (monthOwe === 0) { section.style.display = 'none'; return; }
   section.style.display = 'block';
-  if (done) done.style.display = 'none';
 
-  const pendingCount = allDays.filter(d => !d.allComplete).length;
-
-  list.innerHTML = allDays.map(day => {
-    const isComplete = day.allComplete;
-    const headerBg = isComplete ? '#eaf6eb' : 'var(--b0)';
-    const headerBorder = isComplete ? '#97C459' : 'var(--border-light)';
-    const cardBorder = isComplete ? '#97C459' : 'var(--border-light)';
-    const amtColor = isComplete ? 'var(--g5)' : 'var(--a6)';
-    const amtLabel = isComplete ? fmt$(day.totalAmt) : fmt$(day.bv.reduce((s,v,i) => s + (day.tr[day.keys[i]] ? 0 : v), 0));
-    const statusIcon = isComplete ? '&#10003;' : '';
-
-    const buckets = day.keys.map((k,i) => {
-      const transferred = !!day.tr[k];
-      const br = i < day.keys.length-1 ? `border-right:1px solid ${isComplete ? '#c4e6d2' : 'var(--border-light)'};` : '';
-      const bucketBg = transferred ? '#eaf6eb' : 'var(--surface)';
-      const labelColor = transferred ? 'var(--g5)' : 'var(--text-faint)';
-      const valColor = transferred ? 'var(--g5)' : 'var(--text)';
-      const checkmark = transferred ? `<span style="font-size:9px;color:var(--g4);margin-left:3px;">&#10003;</span>` : '';
-      return `<div style="flex:1;min-width:70px;padding:6px 10px;${br}background:${bucketBg};">
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:${labelColor};margin-bottom:2px;">${BUCKET_LABELS[k]}${checkmark}</div>
-        <div style="font-family:'Outfit',sans-serif;font-size:13px;font-weight:800;color:${valColor};">${fmt$(day.bv[i])}</div>
+  if (pendingDays.length === 0) {
+    list.innerHTML = '';
+    if (done) { done.style.display = 'block'; done.dataset.shouldShow = '1'; }
+  } else {
+    if (done) { done.style.display = 'none'; done.dataset.shouldShow = '0'; }
+    list.innerHTML = pendingDays.map(day => {
+      const buckets = day.keys.map((k,i) => {
+        const br = i < day.keys.length-1 ? 'border-right:1px solid var(--border-light);' : '';
+        return `<div style="flex:1;min-width:70px;padding:6px 10px;${br}">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:2px;">${BUCKET_LABELS[k]}</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:13px;font-weight:800;color:var(--text);">${fmt$(day.bv[i])}</div>
+        </div>`;
+      }).join('');
+      return `<div style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);margin-bottom:6px;overflow:hidden;box-shadow:var(--shadow-sm);">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--border-light);cursor:pointer;background:var(--b0);" onclick="openAllocDetail('${day.dateStr}')">
+          <span style="font-size:13px;font-weight:700;color:var(--text);">${day.label}</span>
+          <span style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--a6);">${fmt$(day.dayRemaining)}</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;">${buckets}</div>
       </div>`;
     }).join('');
-
-    return `<div style="background:var(--surface);border:1px solid ${cardBorder};border-radius:var(--radius);margin-bottom:6px;overflow:hidden;box-shadow:var(--shadow-sm);">
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid ${headerBorder};cursor:pointer;background:${headerBg};" onclick="openAllocDetail('${day.dateStr}')">
-        <span style="font-size:13px;font-weight:700;color:${isComplete ? 'var(--g5)' : 'var(--text)'};">${statusIcon ? statusIcon + ' ' : ''}${day.label}</span>
-        <span style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:${amtColor};">${amtLabel}</span>
-      </div>
-      <div style="display:flex;flex-wrap:wrap;">${buckets}</div>
-    </div>`;
-  }).join('');
+  }
 
   // Show projections toggle once there's data
   const toggle = document.getElementById('hist-proj-toggle');
