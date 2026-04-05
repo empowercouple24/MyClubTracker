@@ -137,14 +137,14 @@ if('serviceWorker' in navigator){
     .summary-hero-right.visible{display:block}
     .summary-cards{display:flex;flex-direction:column;gap:7px;margin-bottom:10px}
     .summary-card{background:rgba(255,255,255,0.13);border-radius:9px;padding:9px 14px;display:flex;align-items:center;justify-content:space-between}
-    .summary-card-label{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.75)}
-    .summary-card-sub{font-size:11px;font-weight:500;color:rgba(255,255,255,0.45);margin-top:1px}
+    .summary-card-label{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:white}
+    .summary-card-sub{font-size:11px;font-weight:500;color:rgba(255,255,255,0.22);margin-top:1px}
     .summary-card-val{font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;letter-spacing:-0.5px;line-height:1;color:white}
-    .summary-card-rate{font-size:11px;font-weight:700;color:rgba(255,255,255,0.4);margin-left:8px;white-space:nowrap;flex-shrink:0;}
+    .summary-card-rate{font-size:11px;font-weight:700;color:rgba(255,255,255,0.2);margin-left:8px;white-space:nowrap;flex-shrink:0;}
     .summary-balance{margin-top:2px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:space-between;font-size:11px}
     .sq-deposit-row{margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between;font-size:11px}
     .sq-deposit-label{color:rgba(125,232,138,0.75);font-weight:700;display:flex;align-items:center;gap:5px}
-    .sq-deposit-formula{font-size:10px;color:rgba(255,255,255,0.28);margin-top:1px}
+    .sq-deposit-formula{font-size:10px;color:rgba(255,255,255,0.14);margin-top:1px}
     .sq-deposit-val{font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:#7de88a}
     .sq-dot{width:13px;height:13px;background:#7de88a;border-radius:3px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
     .sq-dot-inner{width:5px;height:5px;background:#1a2e20;border-radius:1px}
@@ -546,6 +546,27 @@ if('serviceWorker' in navigator){
       .acal-week-summary + div .alloc-bucket-grid { grid-template-columns: 1fr 1fr; }
 
     }
+
+    /* ── THEMES ── */
+    html[data-theme="forest"] {
+      --b9:#1e3d2e;--b8:#2d6a4f;--b7:#3d8060;--b6:#4e9470;--b5:#62a882;
+      --b4:#82be9e;--b3:#a4d4b8;--b2:#c4e6d2;--b1:#e0f4ea;--b0:#f0faf4;
+      --text:#1e3d2e;--text-muted:#3d6e52;--text-faint:#6a9e80;
+    }
+    html[data-theme="sand"] {
+      --b9:#4a3428;--b8:#9e7e6a;--b7:#b4947e;--b6:#c4a892;--b5:#d4bca8;
+      --b4:#e0cfc4;--b3:#ecddd6;--b2:#f4ebe6;--b1:#f8f2ee;--b0:#fdf9f6;
+      --text:#4a3428;--text-muted:#7a5c48;--text-faint:#a08070;
+    }
+    /* Nav theme picker */
+    .theme-picker-row{display:flex;align-items:center;gap:8px;padding:10px 16px;}
+    .theme-picker-label{font-size:13px;font-weight:500;color:var(--text);flex:1;}
+    .theme-dot{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform 0.15s,border-color 0.15s;flex-shrink:0;}
+    .theme-dot:hover{transform:scale(1.15);}
+    .theme-dot.active{border-color:var(--text);transform:scale(1.15);}
+    .theme-dot-ocean{background:linear-gradient(135deg,#4e6e86,#607e96);}
+    .theme-dot-forest{background:linear-gradient(135deg,#2d6a4f,#3d8060);}
+    .theme-dot-sand{background:linear-gradient(135deg,#9e7e6a,#b4947e);}
     
   </style>
 </head>
@@ -588,6 +609,14 @@ if('serviceWorker' in navigator){
       </div>
       <button class="nav-drop-item" id="nav-switch-loc-btn" onclick="openLocSwitcher();closeNavMenu()" style="display:none;">🏪 Switch Location</button>
       <div class="nav-drop-divider" id="nav-switch-loc-divider" style="display:none;"></div>
+      <div class="nav-drop-divider"></div>
+      <div class="theme-picker-row">
+        <span class="theme-picker-label">Theme</span>
+        <div class="theme-dot theme-dot-ocean" id="td-ocean"  onclick="setTheme('ocean')"  title="Ocean"></div>
+        <div class="theme-dot theme-dot-forest" id="td-forest" onclick="setTheme('forest')" title="Forest"></div>
+        <div class="theme-dot theme-dot-sand"   id="td-sand"   onclick="setTheme('sand')"   title="Sand"></div>
+      </div>
+      <div class="nav-drop-divider"></div>
       <button class="nav-drop-item danger" onclick="handleSignOut();closeNavMenu()">↪ Sign out</button>
     </div>
   </div>
@@ -2343,7 +2372,7 @@ async function init(){
   const now=new Date();
   const _pf=document.getElementById('payout-from');if(_pf)_pf.value=new Date(now.getFullYear(),now.getMonth(),1).toISOString().slice(0,10);
   const _pt=document.getElementById('payout-to');if(_pt)_pt.value=new Date(now.getFullYear(),now.getMonth()+1,0).toISOString().slice(0,10);
-  populateOperatorDropdowns();buildSettingsUI();loadDay();renderHistory();renderInventory();renderInventoryHistory();renderProjections();renderPayoutSnapshots();renderDashboardWidgets();
+  applyTheme(SETTINGS.theme||'ocean');populateOperatorDropdowns();buildSettingsUI();loadDay();renderHistory();renderInventory();renderInventoryHistory();renderProjections();renderPayoutSnapshots();renderDashboardWidgets();
   recalcContentTop();
   // Unconditionally set nav name after everything loads
   const _finalNcn = document.getElementById('nav-club-name');
@@ -4491,6 +4520,33 @@ function populateOperatorDropdowns(){
   });
   renderOpsEarningsPreview();
 }
+
+// ── THEME SYSTEM ─────────────────────────────────────────────────────────────
+const THEMES = {
+  ocean:  { b8:'#4e6e86', b7:'#607e96' },
+  forest: { b8:'#2d6a4f', b7:'#3d8060' },
+  sand:   { b8:'#9e7e6a', b7:'#b4947e' }
+};
+
+function applyTheme(name) {
+  const theme = THEMES[name] || THEMES.ocean;
+  const validName = THEMES[name] ? name : 'ocean';
+  document.documentElement.setAttribute('data-theme', validName === 'ocean' ? '' : validName);
+  // Update active dot
+  ['ocean','forest','sand'].forEach(t => {
+    const dot = document.getElementById('td-' + t);
+    if (dot) dot.classList.toggle('active', t === validName);
+  });
+}
+
+async function setTheme(name) {
+  applyTheme(name);
+  // Save to Supabase location settings
+  if (!SETTINGS) return;
+  SETTINGS.theme = name;
+  await sb.from('locations').update({ settings: SETTINGS }).eq('id', LOCATION_ID);
+}
+
 async function handleSignOut(){if(IS_ADMIN_VIEW){window.location.href='admin.html';return;}await sb.auth.signOut();window.location.href='index.html';}
 
 // -- LOCATION SWITCHER --
