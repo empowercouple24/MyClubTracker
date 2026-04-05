@@ -200,10 +200,10 @@ if('serviceWorker' in navigator){
     .hcal-month-total-label{font-size:11px;font-weight:700;text-transform:uppercase;color:white;}
     .hcal-month-total-val{font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;color:white;}
     /* ALLOCATIONS CAL */
-    .acal-dow-row{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px;}
+    .acal-dow-row{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px;}
     .acal-dow{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-faint);text-align:center;padding:3px 0;}
-    .acal-week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px;}
-    .acal-day{border-radius:var(--radius-sm);padding:7px 7px;aspect-ratio:1/1;display:flex;flex-direction:column;cursor:pointer;transition:box-shadow 0.12s,border-color 0.12s;position:relative;overflow:hidden;}
+    .acal-week{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px;}
+    .acal-day{border-radius:var(--radius-sm);padding:5px 5px 6px;min-height:72px;display:flex;flex-direction:column;cursor:pointer;transition:box-shadow 0.12s,border-color 0.12s;position:relative;overflow:hidden;}
     .acal-day.empty-day{background:transparent;border:1px solid transparent;cursor:default;}
     .acal-day.no-data{background:var(--b0);border:1px solid var(--border-light);cursor:default;opacity:0.55;}
     .acal-day.none{background:var(--surface);border:1px solid var(--border-light);box-shadow:var(--shadow-sm);}
@@ -215,7 +215,7 @@ if('serviceWorker' in navigator){
     .acal-day.today-day{box-shadow:0 0 0 2px var(--b5) !important;}
     .acal-dn{font-size:12px;font-weight:700;color:var(--text-faint);margin-bottom:2px;}
     .acal-day.none .acal-dn,.acal-day.partial .acal-dn,.acal-day.full .acal-dn{color:var(--text-muted);}
-    .acal-sales{font-family:'Outfit',sans-serif;font-size:13px;font-weight:800;color:var(--g5);line-height:1.1;margin-bottom:3px;}
+    .acal-sales{font-family:'Outfit',sans-serif;font-size:12px;font-weight:800;color:var(--g5);line-height:1.1;margin-bottom:2px;}
     .acal-day.partial .acal-sales{color:var(--a6);}
     .acal-dots{display:flex;gap:3px;margin-top:auto;justify-content:center;padding-bottom:2px;}
     .acal-dot{width:7px;height:7px;border-radius:50%;background:var(--border);flex-shrink:0;transition:background 0.15s;}
@@ -491,8 +491,9 @@ if('serviceWorker' in navigator){
       #panel-alloc > div {
         width: 100% !important;
         min-width: 0 !important;
-        padding: 0 6px !important;
+        padding: 0 4px !important;
       }
+      .acal-day { min-height: 56px !important; padding: 3px 3px 4px !important; }
       .acal-dow { font-size: 9px; padding: 2px 0; }
       .acal-week { gap: 2px; }
       .acal-day { padding: 4px 3px; }
@@ -4405,7 +4406,7 @@ function renderAllocCal() {
         } else if (isToday) {
           html += `<div class="acal-day no-data${todayClass}"><div class="acal-dn">${day}</div><div style="margin-top:auto;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--b5);text-align:center;">Enter today</div></div>`;
         } else {
-          html += `<div class="acal-day" style="background:#fef7e8;border:1px solid #f0b440;border-radius:var(--radius-sm);padding:7px 7px;aspect-ratio:1/1;display:flex;flex-direction:column;cursor:pointer;position:relative;overflow:hidden;" onclick="navToDate('${dateStr}')"><div class="acal-dn" style="color:var(--a6);">${day}</div><div style="margin-top:auto;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--a6);text-align:center;line-height:1.3;">Enter<br>data</div></div>`;
+          html += `<div class="acal-day" style="background:#fef7e8;border:1px solid #f0b440;border-radius:var(--radius-sm);padding:5px 5px 6px;min-height:72px;display:flex;flex-direction:column;cursor:pointer;position:relative;overflow:hidden;" onclick="navToDate('${dateStr}')"><div class="acal-dn" style="color:var(--a6);">${day}</div><div style="margin-top:auto;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--a6);text-align:center;line-height:1.3;">Enter<br>data</div></div>`;
         }
         return;
       }
