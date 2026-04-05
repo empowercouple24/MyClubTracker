@@ -94,12 +94,12 @@ if('serviceWorker' in navigator){
     /* DV prominent full-width box */
     .dv-section{margin-bottom:10px}
     .dv-box{background:linear-gradient(135deg,var(--b7),var(--b6));border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow-md)}
-    .dv-box-label{font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:rgba(255,255,255,0.85);flex:1;letter-spacing:0.3px}
+    .dv-box-label{font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:white;flex:1;letter-spacing:0.3px}
     .dv-box-label span{display:block;font-size:10px;font-weight:400;opacity:0.6;margin-top:2px}
     .dv-input{font-family:'Outfit',sans-serif;font-size:24px;font-weight:800;color:white;background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.35);border-radius:var(--radius-sm);padding:7px 12px;width:150px;text-align:right;outline:none;-moz-appearance:textfield;transition:border-color 0.15s,box-shadow 0.15s;letter-spacing:-0.5px}
     .dv-input::-webkit-inner-spin-button,.dv-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
     .dv-input:focus{border-color:rgba(255,255,255,0.7);box-shadow:0 0 0 3px rgba(255,255,255,0.15);background:rgba(255,255,255,0.22)}
-    .dv-input::placeholder{color:rgba(255,255,255,0.4)}
+    .dv-input::placeholder{color:rgba(255,255,255,0.8)}
     .field-value{font-size:14px;font-weight:600;color:var(--text);text-align:right;min-width:90px}
     .field-value.positive{color:var(--g5)}
     select.field-input{text-align:left;width:auto;min-width:90px;cursor:pointer;-moz-appearance:auto;-webkit-appearance:auto}
@@ -130,28 +130,28 @@ if('serviceWorker' in navigator){
     .summary-net-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;opacity:0.7;margin-bottom:2px}
     .summary-net-val{font-family:'Outfit',sans-serif;font-size:38px;font-weight:800;letter-spacing:-1.5px;line-height:1;color:#7de88a}
     .summary-fund-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;opacity:0.6;margin-bottom:4px}
-    .summary-fund-val{font-family:'Outfit',sans-serif;font-size:26px;font-weight:800;letter-spacing:-1px;line-height:1;color:rgba(255,255,255,0.85);margin-bottom:6px}
-    .summary-fund-breakdown{font-size:10px;color:rgba(255,255,255,0.45);line-height:1.6;text-align:right}
+    .summary-fund-val{font-family:'Outfit',sans-serif;font-size:26px;font-weight:800;letter-spacing:-1px;line-height:1;color:white;margin-bottom:6px}
+    .summary-fund-breakdown{font-size:10px;color:rgba(255,255,255,0.7);line-height:1.6;text-align:right}
     .summary-fund-breakdown span{display:block}
     .summary-hero-right{text-align:right;display:none}
     .summary-hero-right.visible{display:block}
     .summary-cards{display:flex;flex-direction:column;gap:7px;margin-bottom:10px}
     .summary-card{background:rgba(255,255,255,0.13);border-radius:9px;padding:9px 14px;display:flex;align-items:center;justify-content:space-between}
     .summary-card-label{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:white}
-    .summary-card-sub{font-size:11px;font-weight:500;color:rgba(255,255,255,0.22);margin-top:1px}
+    .summary-card-sub{font-size:11px;font-weight:500;color:rgba(255,255,255,0.65);margin-top:1px}
     .summary-card-val{font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;letter-spacing:-0.5px;line-height:1;color:white}
-    .summary-card-rate{font-size:11px;font-weight:700;color:rgba(255,255,255,0.2);margin-left:8px;white-space:nowrap;flex-shrink:0;}
+    .summary-card-rate{font-size:11px;font-weight:700;color:rgba(255,255,255,0.6);margin-left:8px;white-space:nowrap;flex-shrink:0;}
     .summary-balance{margin-top:2px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:space-between;font-size:11px}
     .sq-deposit-row{margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between;font-size:11px}
     .sq-deposit-label{color:rgba(125,232,138,0.75);font-weight:700;display:flex;align-items:center;gap:5px}
-    .sq-deposit-formula{font-size:10px;color:rgba(255,255,255,0.14);margin-top:1px}
+    .sq-deposit-formula{font-size:10px;color:rgba(255,255,255,0.75);margin-top:1px}
     .sq-deposit-val{font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:#7de88a}
     .sq-dot{width:13px;height:13px;background:#7de88a;border-radius:3px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
     .sq-dot-inner{width:5px;height:5px;background:#1a2e20;border-radius:1px}
     .oh-badge{display:inline-block;font-size:10px;font-weight:700;padding:1px 5px;border-radius:3px;white-space:nowrap;margin-left:5px;vertical-align:middle}
     .balance-ok{color:#7de88a;font-weight:600}
     .balance-fail{color:#ff8080;font-weight:600}
-    .balance-pending{color:rgba(255,255,255,0.4);font-style:italic}
+    .balance-pending{color:rgba(255,255,255,0.7);font-style:italic}
     /* BUTTONS */
     .btn{font-family:'DM Sans',sans-serif;border:none;border-radius:var(--radius-sm);cursor:pointer;font-weight:600;transition:transform 0.12s,box-shadow 0.12s,opacity 0.12s;display:inline-flex;align-items:center;justify-content:center;gap:5px}
     .btn:active{transform:scale(0.97)}
@@ -194,10 +194,10 @@ if('serviceWorker' in navigator){
     .hcal-pill-val{font-size:13px;font-weight:700;color:var(--text);}
     .hcal-extras{margin-top:3px;font-size:10px;color:var(--text-faint);}
     .hcal-week-summary{background:var(--b8);border-radius:var(--radius-sm);padding:6px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
-    .hcal-week-label{font-size:10px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,0.55);}
+    .hcal-week-label{font-size:10px;font-weight:700;text-transform:uppercase;color:white;}
     .hcal-week-total{font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:white;line-height:1.2;}
     .hcal-month-total{background:var(--b8);border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;}
-    .hcal-month-total-label{font-size:11px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,0.55);}
+    .hcal-month-total-label{font-size:11px;font-weight:700;text-transform:uppercase;color:white;}
     .hcal-month-total-val{font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;color:white;}
     /* ALLOCATIONS CAL */
     .acal-dow-row{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px;}
@@ -224,9 +224,9 @@ if('serviceWorker' in navigator){
     .acal-day.partial .acal-dot.done{background:var(--a5);}
     .acal-day.full .acal-dot.done{background:var(--g4);}
     .acal-week-summary{background:var(--b8);border-radius:var(--radius-sm);padding:6px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
-    .acal-week-label{font-size:10px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,0.55);}
+    .acal-week-label{font-size:10px;font-weight:700;text-transform:uppercase;color:white;}
     .acal-week-val{font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:white;line-height:1.2;}
-    .acal-week-sub{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;color:rgba(255,255,255,0.45);}
+    .acal-week-sub{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;color:rgba(255,255,255,0.75);}
     /* ALLOC BUCKET SHEET */
     .alloc-bucket-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:4px 0 16px;}
     .alloc-bucket{border-radius:var(--radius);padding:14px 12px 12px;border:2px solid var(--border-light);background:var(--b0);cursor:pointer;transition:background 0.15s,border-color 0.15s;user-select:none;text-align:center;}
@@ -254,13 +254,13 @@ if('serviceWorker' in navigator){
     .pcal-day.today-day{border-color:var(--b5) !important;}
     .pcal-dn{font-size:13px;font-weight:700;color:var(--text-faint);line-height:1;margin-bottom:3px;}
     .pcal-day.has-data .pcal-dn{color:var(--text-muted);}
-    .pcal-day.has-data.selected .pcal-dn{color:rgba(255,255,255,0.7);}
+    .pcal-day.has-data.selected .pcal-dn{color:white;}
     .pcal-slabel{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--g6);line-height:1;}
     .pcal-sval{font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--g5);line-height:1.2;}
     .pcal-dvlabel{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--b4);margin-top:4px;line-height:1;}
     .pcal-dvval{font-size:13px;font-weight:700;color:var(--text);line-height:1.2;}
     .pcal-day.has-data.selected .pcal-slabel,.pcal-day.has-data.selected .pcal-sval,
-    .pcal-day.has-data.selected .pcal-dvlabel,.pcal-day.has-data.selected .pcal-dvval{color:rgba(255,255,255,0.9);}
+    .pcal-day.has-data.selected .pcal-dvlabel,.pcal-day.has-data.selected .pcal-dvval{color:white;}
     /* PROJ PRESET BTNS */
     .proj-preset-btn{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;transition:all 0.15s;}
     .proj-preset-btn:hover{border-color:var(--b4);color:var(--text);}
@@ -281,7 +281,7 @@ if('serviceWorker' in navigator){
     .proj-cell-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:3px}
     .proj-cell-val{font-family:'Outfit',sans-serif;font-size:15px;font-weight:700;color:var(--text);letter-spacing:-0.3px}
     .proj-cell.highlight{background:var(--b8);border-color:var(--b7)}
-    .proj-cell.highlight .proj-cell-label{color:rgba(255,255,255,0.55)}
+    .proj-cell.highlight .proj-cell-label{color:rgba(255,255,255,0.8)}
     .proj-cell.highlight .proj-cell-val{color:white}
     .proj-mult-btn{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;padding:7px 18px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;transition:all 0.15s;flex:1;}
     .proj-mult-btn.active{background:var(--b7);color:#fff;border-color:var(--b7);}
@@ -1049,7 +1049,7 @@ if('serviceWorker' in navigator){
   <div class="modal-sheet" style="max-width:360px;width:100%;border-radius:var(--radius);padding:0;overflow:hidden;">
     <div style="background:var(--b8);padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;">
       <div style="font-family:'Outfit',sans-serif;font-size:15px;font-weight:700;color:#fff;">Crop Photo</div>
-      <div style="font-size:11px;color:rgba(255,255,255,0.6);">Drag to pan · Pinch to zoom</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.8);">Drag to pan · Pinch to zoom</div>
     </div>
     <div style="position:relative;background:#111;display:flex;align-items:center;justify-content:center;overflow:hidden;" id="crop-canvas-wrap">
       <canvas id="crop-canvas" style="display:block;touch-action:none;cursor:grab;"></canvas>
@@ -1181,7 +1181,7 @@ if('serviceWorker' in navigator){
       <div style="background:var(--b8);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;">
         <span style="font-size:13px;font-weight:700;color:#fff;">Fill missing DV</span>
         <div style="display:flex;align-items:center;gap:10px;">
-          <span id="fdv-progress" style="font-size:11px;color:rgba(255,255,255,0.6);"></span>
+          <span id="fdv-progress" style="font-size:11px;color:white;"></span>
           <button onclick="saveAllDv()" style="padding:5px 14px;border-radius:6px;background:#fff;color:var(--b8);border:none;font-size:12px;font-weight:700;cursor:pointer;">Save all</button>
         </div>
       </div>
@@ -1277,7 +1277,7 @@ if('serviceWorker' in navigator){
           </div>
         </div>
         <div class="summary-balance">
-          <span id="ds-ops-label" style="color:rgba(255,255,255,0.5);font-size:11px;">—</span>
+          <span id="ds-ops-label" style="color:rgba(255,255,255,0.75);font-size:11px;">—</span>
           <span id="ds-balance" class="balance-pending">—</span>
         </div>
       </div>
@@ -3205,11 +3205,11 @@ function renderHistCal(){
         <span class="hcal-week-label">Week ${wi+1}</span>
         <div style="display:flex;align-items:center;gap:20px;">
           <div style="text-align:right;">
-            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:rgba(255,255,255,0.55);">Sales</div>
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:white;">Sales</div>
             <div class="hcal-week-total">${fmt$(weekTotal)}</div>
           </div>
           <div style="text-align:right;">
-            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:rgba(255,255,255,0.55);">DV</div>
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:white;">DV</div>
             <div class="hcal-week-total">${fmtN(weekDvTotal)}</div>
           </div>
         </div>
