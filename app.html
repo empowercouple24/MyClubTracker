@@ -4075,18 +4075,20 @@ function renderAllocCal() {
   }
   if (nextBtn) nextBtn.disabled = weekStart >= todaySunday;
 
-  // Build date map for this week
+  // Build date map for this week (use local date to avoid UTC offset shifting dates)
   const dates = [];
   for (let i = 0; i < 7; i++) {
     const d = new Date(weekStart);
     d.setDate(d.getDate() + i);
-    dates.push(d.toISOString().slice(0,10));
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    const dd = String(d.getDate()).padStart(2,'0');
+    dates.push(d.getFullYear()+'-'+mm+'-'+dd);
   }
 
   const dayMap = {};
   ALL_DAYS.forEach(d => { if (dates.includes(d.date)) dayMap[d.date] = d; });
 
-  const todayStr = new Date().toISOString().slice(0,10);
+  const _tn=new Date();const todayStr=_tn.getFullYear()+'-'+String(_tn.getMonth()+1).padStart(2,'0')+'-'+String(_tn.getDate()).padStart(2,'0');
   const DOWS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
   // Week totals for summary bar + remaining items list
