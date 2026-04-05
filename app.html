@@ -4141,6 +4141,8 @@ function renderAllocCal() {
       return;
     }
 
+    const data = dayObj.data || {};
+    const sales = calSales(data);
     const transfers = data.transfers || {};
     const keys = ['tax','overhead','herbalife','payouts'];
     const doneCount = keys.filter(k => transfers[k]).length;
