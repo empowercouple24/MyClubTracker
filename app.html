@@ -4028,15 +4028,17 @@ async function deletePayoutSnap(i){
 let _allocWeekStart = null; // Monday of current week being viewed
 
 function getSunday(date) {
+  // Use local year/month/day to avoid UTC offset shifting the day
   const d = new Date(date);
   const day = d.getDay(); // 0=Sun
-  d.setDate(d.getDate() - day);
-  d.setHours(0,0,0,0);
-  return d;
+  const out = new Date(d.getFullYear(), d.getMonth(), d.getDate() - day);
+  return out;
 }
 
 function allocCalShift(dir) {
-  _allocWeekStart.setDate(_allocWeekStart.getDate() + dir * 7);
+  // Create a fresh Date from current weekStart to avoid mutation issues
+  const d = new Date(_allocWeekStart.getFullYear(), _allocWeekStart.getMonth(), _allocWeekStart.getDate() + dir * 7);
+  _allocWeekStart = d;
   renderAllocCal();
 }
 
@@ -4045,7 +4047,7 @@ function renderAllocCal() {
   const label = document.getElementById('alloc-cal-label');
   if (!grid || !label) return;
 
-  if (!_allocWeekStart) _allocWeekStart = getSunday(new Date());
+  if (!_allocWeekStart) { const now = new Date(); _allocWeekStart = getSunday(new Date(now.getFullYear(), now.getMonth(), now.getDate())); }
 
   const weekStart = new Date(_allocWeekStart);
   const weekEnd = new Date(weekStart);
@@ -4066,12 +4068,12 @@ function renderAllocCal() {
     const earliest = ALL_DAYS.length ? ALL_DAYS.map(d => d.date).sort()[0] : null;
     if (earliest) {
       const earliestSunday = getSunday(new Date(earliest + 'T00:00:00'));
-      prevBtn.disabled = weekStart <= earliestSunday;
+      const wsStr = weekStart.getFullYear()+"-"+weekStart.getMonth()+"-"+weekStart.getDate(); const esStr = earliestSunday.getFullYear()+"-"+earliestSunday.getMonth()+"-"+earliestSunday.getDate(); prevBtn.disabled = wsStr === esStr || weekStart < earliestSunday;
     } else {
       prevBtn.disabled = false;
     }
   }
-  if (nextBtn) nextBtn.disabled = weekStart >= todaySunday;
+  if (nextBtn) nextBtn.disabled = weekStart.toDateString() === todaySunday.toDateString() || weekStart > todaySunday;
 
   // Build date map for this week
   const dates = [];
