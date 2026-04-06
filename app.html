@@ -5246,11 +5246,13 @@ function renderHistAlloc() {
     const allComplete = doneCount === 4;
     const dl = new Date(d.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
     const totalAmt = bv.reduce((s,v) => s+v, 0);
+    const dayRemaining = keys.reduce((s,k,i) => s + (tr[k] ? 0 : bv[i]), 0);
     allDays.push({
       dateStr: d.date,
       label: dl,
       bv, tr, keys,
       totalAmt,
+      dayRemaining,
       doneCount,
       allComplete
     });
@@ -5275,16 +5277,22 @@ function renderHistAlloc() {
     if (done) { done.style.display = 'none'; done.dataset.shouldShow = '0'; }
     list.innerHTML = pendingDays.map(day => {
       const buckets = day.keys.map((k,i) => {
-        const br = i < day.keys.length-1 ? 'border-right:1px solid var(--border-light);' : '';
-        return `<div style="flex:1;min-width:70px;padding:6px 10px;${br}">
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:2px;">${BUCKET_LABELS[k]}</div>
-          <div style="font-family:'Outfit',sans-serif;font-size:13px;font-weight:800;color:var(--text);">${fmt$(day.bv[i])}</div>
+        const transferred = !!day.tr[k];
+        const br = i < day.keys.length-1 ? `border-right:1px solid ${transferred ? '#c4e6d2' : 'var(--border-light)'};` : '';
+        const bg = transferred ? '#eaf6eb' : 'var(--surface)';
+        const labelColor = transferred ? 'var(--g5)' : 'var(--text-faint)';
+        const valColor = transferred ? 'var(--g5)' : 'var(--text)';
+        const check = transferred ? '<span style="font-size:9px;margin-left:3px;color:var(--g4);">&#10003;</span>' : '';
+        return `<div style="flex:1;min-width:70px;padding:6px 10px;${br}background:${bg};">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:${labelColor};margin-bottom:2px;">${BUCKET_LABELS[k]}${check}</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:13px;font-weight:800;color:${valColor};">${fmt$(day.bv[i])}</div>
         </div>`;
       }).join('');
-      return `<div style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);margin-bottom:6px;overflow:hidden;box-shadow:var(--shadow-sm);">
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--border-light);cursor:pointer;background:var(--b0);" onclick="openAllocDetail('${day.dateStr}')">
+      const pendingAmt = day.keys.reduce((s,k,i) => s + (day.tr[k] ? 0 : day.bv[i]), 0);
+      return `<div style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);margin-bottom:6px;overflow:hidden;box-shadow:var(--shadow-sm);cursor:pointer;" onclick="openAllocDetail('${day.dateStr}')">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--border-light);background:var(--b0);">
           <span style="font-size:13px;font-weight:700;color:var(--text);">${day.label}</span>
-          <span style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--a6);">${fmt$(day.dayRemaining)}</span>
+          <span style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--a6);">${fmt$(pendingAmt)}</span>
         </div>
         <div style="display:flex;flex-wrap:wrap;">${buckets}</div>
       </div>`;
