@@ -2601,7 +2601,7 @@ async function init(){
   const now=new Date();
   const _pf=document.getElementById('payout-from');if(_pf)_pf.value=new Date(now.getFullYear(),now.getMonth(),1).toISOString().slice(0,10);
   const _pt=document.getElementById('payout-to');if(_pt)_pt.value=new Date(now.getFullYear(),now.getMonth()+1,0).toISOString().slice(0,10);
-  applyTheme(SETTINGS.theme||'ocean');populateOperatorDropdowns();buildSettingsUI();loadDay();renderHistory();renderHistAlloc();renderInventory();renderInventoryHistory();renderPayoutSnapshots();renderPaymentRegister();renderDashboardWidgets();
+  applyTheme(SETTINGS.theme||'ocean');populateOperatorDropdowns();buildSettingsUI();loadDay();renderHistory();renderHistAlloc();initUndoListeners();renderInventory();renderInventoryHistory();renderPayoutSnapshots();renderPaymentRegister();renderDashboardWidgets();
   recalcContentTop();
   // Unconditionally set nav name after everything loads
   const _finalNcn = document.getElementById('nav-club-name');
@@ -2933,6 +2933,10 @@ function loadDay(){
   }
   updateClosedDayToggle(document.getElementById('entry-date').value);
   clearDirty();
+  // Reset undo history for this day and take initial snapshot
+  clearUndoHistory();
+  _undoEnabled = true;
+  _undoStack.push(_captureFormState());
   recalc();
   _loadingDay=false;
 }
@@ -2979,6 +2983,8 @@ async function saveDay(){
   showToast(IS_ADMIN_VIEW?'Saved (Admin Edit) ok':'Day saved ok','success');
   _pendingSaveDupNote=null;
   clearDirty();
+  clearUndoHistory();
+  _undoStack.push(_captureFormState()); // baseline after save
   // Persist closedDays overrides to settings
   sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID);
   renderHistory();renderProjections();renderPayoutSnapshots();renderPaymentRegister();renderDashboardWidgets();
@@ -5200,6 +5206,116 @@ function renderHistProjScenario() {
   </table>`;
 }
 
+
+// ── ENTER TAB UNDO / REDO ────────────────────────────────────────────────────
+const _UNDO_FIELDS = [
+  'cashSales','cardSales','cardFees','giftCardRedeemed','cashAppPay','venmo',
+  'otherSales','merchSales','giftCardSales','giftCardLoadFees',
+  'fundraiserCash','fundraiserCard','fundraiserPct',
+  'dv','notes','op1','op2','op1Hrs','op2Hrs','owner-reinvest'
+];
+let _undoStack = [];   // array of state snapshots
+let _redoStack = [];   // redo stack
+let _undoEnabled = false;
+
+function _captureFormState() {
+  const state = {};
+  _UNDO_FIELDS.forEach(k => {
+    const el = document.getElementById('f-' + k);
+    if (!el) return;
+    state[k] = el.type === 'checkbox' ? el.checked : el.value;
+  });
+  return state;
+}
+
+function _applyFormState(state) {
+  _loadingDay = true; // suppress dirty flagging during restore
+  _UNDO_FIELDS.forEach(k => {
+    const el = document.getElementById('f-' + k);
+    if (!el || !(k in state)) return;
+    if (el.type === 'checkbox') el.checked = state[k];
+    else el.value = state[k];
+  });
+  formatAllCurrencyFields();
+  recalc(false);
+  _loadingDay = false;
+  markDirty();
+}
+
+function pushUndoSnapshot() {
+  if (!_undoEnabled) return;
+  const snap = _captureFormState();
+  // Avoid duplicate consecutive snapshots
+  if (_undoStack.length > 0) {
+    const last = _undoStack[_undoStack.length - 1];
+    if (JSON.stringify(last) === JSON.stringify(snap)) return;
+  }
+  _undoStack.push(snap);
+  if (_undoStack.length > 50) _undoStack.shift(); // cap at 50
+  _redoStack = []; // new action clears redo
+}
+
+function undoFormAction() {
+  if (!_undoEnabled || _undoStack.length < 2) {
+    showToast('Nothing to undo', 'info');
+    return;
+  }
+  // Push current state to redo stack
+  _redoStack.push(_captureFormState());
+  // Pop and discard the top (current state)
+  _undoStack.pop();
+  // Apply the previous state
+  _applyFormState(_undoStack[_undoStack.length - 1]);
+  showToast('Undone', 'success');
+}
+
+function redoFormAction() {
+  if (!_undoEnabled || _redoStack.length === 0) {
+    showToast('Nothing to redo', 'info');
+    return;
+  }
+  const next = _redoStack.pop();
+  _undoStack.push(next);
+  _applyFormState(next);
+  showToast('Redone', 'success');
+}
+
+function clearUndoHistory() {
+  _undoStack = [];
+  _redoStack = [];
+}
+
+function initUndoListeners() {
+  // Snapshot on blur for text/textarea inputs
+  _UNDO_FIELDS.forEach(k => {
+    const el = document.getElementById('f-' + k);
+    if (!el) return;
+    if (el.type === 'checkbox') {
+      el.addEventListener('change', () => { pushUndoSnapshot(); });
+    } else if (el.tagName === 'SELECT') {
+      el.addEventListener('change', () => { pushUndoSnapshot(); });
+    } else {
+      el.addEventListener('blur', () => { pushUndoSnapshot(); });
+    }
+  });
+}
+
+// Keyboard handler — only fires on Enter tab
+document.addEventListener('keydown', function(e) {
+  const enterPanel = document.getElementById('panel-enter');
+  if (!enterPanel || !enterPanel.classList.contains('active')) return;
+  const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+  const cmdKey = isMac ? e.metaKey : e.ctrlKey;
+  if (!cmdKey) return;
+  if (e.key === 'z' && !e.shiftKey) {
+    e.preventDefault();
+    undoFormAction();
+  } else if ((e.key === 'z' && e.shiftKey) || e.key === 'y') {
+    e.preventDefault();
+    redoFormAction();
+  }
+});
+
 function resolveAlias(n){for(const op of SETTINGS.operators){if(!op.name)continue;const a=(op.aliases||'').split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);if(op.name.toLowerCase()===n.toLowerCase())return op.name;if(a.includes(n.toLowerCase()))return op.name;}return n;}
 
 function buildPayAccountsUI() {
@@ -5470,12 +5586,13 @@ function updateDateDisplay(){
     const existing=_entryDirty?'<span class="unsaved-dot" style="font-size:11px;font-weight:600;color:#c47c0a;">· unsaved</span>':'';
     if(_entryDirty)dowEl.innerHTML+=existing;
   }
-  // Show "&#8617; Today" button only when not on today's date
-  const todayStr=new Date().toISOString().slice(0,10);
+  // Show "&#8617; Today" and → only when not on today's date
+  const todayStr=localToday();
   const todayBtn=document.getElementById('btn-go-today');
   const nextBtn=document.getElementById('btn-next-day');
-  if(todayBtn)todayBtn.style.display=(val!==todayStr)?'inline-flex':'none';
-  if(nextBtn)nextBtn.style.display=(val!==todayStr)?'inline-flex':'none';
+  const isToday=(val===todayStr);
+  if(todayBtn)todayBtn.style.display=isToday?'none':'inline-flex';
+  if(nextBtn)nextBtn.style.display=isToday?'none':'inline-flex';
   updateClosedDayToggle(val);
 }
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
