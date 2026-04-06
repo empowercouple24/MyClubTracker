@@ -855,7 +855,7 @@ if('serviceWorker' in navigator){
   <!-- Operators + Fundraiser side by side -->
   <div class="enter-ops-row">
     <div class="card">
-      <div class="collapsible-toggle" onclick="toggleCollapse(this)" data-target="ops-body">Operators <span style="display:flex;align-items:center;gap:10px;margin-left:auto;"><span id="ops-earnings-preview" style="font-family:'Outfit',sans-serif;font-size:13px;font-weight:800;color:var(--b7);display:none;"></span><span class="arrow">▼</span></span></div>
+      <div class="collapsible-toggle" onclick="toggleCollapse(this)" data-target="ops-body">Operators <span class="arrow">&#9660;</span></div>
       <div class="collapsible-body" id="ops-body" style="display:flex;flex-direction:column;gap:0;padding:8px 0;">
         <!-- Column headers -->
         <div style="display:grid;grid-template-columns:1fr 90px 90px;gap:8px;padding:0 10px 4px;align-items:center;">
@@ -875,10 +875,21 @@ if('serviceWorker' in navigator){
           <select id="f-op2-hrs" onchange="recalc(true)" style="font-family:'DM Sans',sans-serif;font-size:13px;padding:5px 6px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--b0);color:var(--text);text-align:center;"></select>
           <div id="op2-payout-pill" style="font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;color:var(--g6);border-radius:var(--radius-sm);padding:5px 8px;text-align:right;">--</div>
         </div>
-        <!-- Hourly rate -->
-        <div id="ops-hourly-rate-row" style="display:none;justify-content:space-between;align-items:center;padding:6px 10px;margin-top:2px;border-top:1px solid var(--border-light);background:var(--b0);border-radius:0 0 var(--radius) var(--radius);">
-          <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">Hourly rate <span id="ops-total-hrs-label" style="font-weight:500;text-transform:none;letter-spacing:0;"></span></span>
-          <span id="ops-hourly-rate-val" style="font-family:'Outfit',sans-serif;font-size:15px;font-weight:800;color:var(--b7);">--</span>
+        <!-- Duplicate operator warning banner -->
+        <div id="ops-dup-warning" style="display:none;align-items:flex-start;gap:8px;padding:7px 12px;background:#fef7e8;border-top:1px solid #f0b440;">
+          <span style="font-size:13px;flex-shrink:0;margin-top:1px;">&#9888;&#65039;</span>
+          <span id="ops-dup-warning-text" style="font-size:11px;font-weight:600;color:#854F0B;line-height:1.4;"></span>
+        </div>
+        <!-- Footer: colored payout pills + Clear + hourly rate -->
+        <div id="ops-footer-row" style="display:none;justify-content:space-between;align-items:center;padding:6px 10px;border-top:1px solid var(--border-light);gap:8px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+            <div id="ops-payout-pills" style="display:flex;gap:5px;flex-wrap:wrap;"></div>
+            <button onclick="clearOperators()" style="font-size:11px;font-weight:600;color:var(--r5);background:none;border:none;cursor:pointer;padding:0 2px;white-space:nowrap;margin-left:2px;">Clear</button>
+          </div>
+          <div id="ops-hourly-rate-row" style="display:flex;flex-direction:column;align-items:flex-end;">
+            <span id="ops-total-hrs-label" style="font-size:10px;font-weight:600;color:var(--text-faint);"></span>
+            <span id="ops-hourly-rate-val" style="font-family:'Outfit',sans-serif;font-size:15px;font-weight:800;color:var(--b7);">--</span>
+          </div>
         </div>
         <!-- Reinvest -->
         <div id="reinvest-row" style="display:none;padding:4px 10px 2px;border-top:1px solid var(--border-light);margin-top:2px;">
@@ -1353,6 +1364,32 @@ if('serviceWorker' in navigator){
   </div>
 </div>
 
+
+
+<!-- DUPLICATE OPERATOR CONFIRMATION MODAL -->
+<div class="modal-overlay" id="dup-op-modal" onclick="closeDupOpModal(event)" style="display:none;align-items:flex-end;justify-content:center;z-index:260;">
+  <div style="background:var(--surface);border-radius:18px 18px 0 0;width:100%;max-width:480px;animation:sheetUp 0.3s cubic-bezier(0.16,1,0.3,1);">
+    <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0;"></div>
+    <div style="padding:14px 16px 10px;border-bottom:1px solid var(--border-light);">
+      <div style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;color:var(--text);">Duplicate operator — add a note</div>
+      <div style="font-size:12px;color:var(--text-faint);margin-top:2px;" id="dup-op-date-label"></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;background:#fef7e8;border-top:1px solid #f0b440;border-bottom:1px solid #f0b440;padding:10px 16px;">
+      <span style="font-size:16px;">&#9888;&#65039;</span>
+      <span style="font-size:12px;font-weight:600;color:#854F0B;" id="dup-op-warn-text"></span>
+    </div>
+    <div style="padding:12px 16px 8px;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:6px;">Note (required)</div>
+      <textarea id="dup-op-note" rows="3" placeholder="e.g. Mary covered both open and close shifts today…"
+        oninput="document.getElementById('dup-op-save-btn').disabled=!this.value.trim();"
+        style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;padding:9px 11px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--b0);color:var(--text);resize:none;outline:none;line-height:1.4;"></textarea>
+    </div>
+    <div style="display:flex;gap:8px;padding:0 16px 16px;">
+      <button onclick="closeDupOpModal()" class="btn btn-ghost" style="flex:1;">Go back</button>
+      <button id="dup-op-save-btn" onclick="confirmDupOpSave()" class="btn btn-primary" style="flex:2;" disabled>Save with note</button>
+    </div>
+  </div>
+</div>
 
 <!-- PAYMENT REGISTER SHEET -->
 <div class="modal-overlay" id="preg-sheet-overlay" onclick="closePregSheetOnBg(event)" style="display:none;align-items:flex-end;justify-content:center;z-index:250;">
@@ -2890,12 +2927,31 @@ function loadDay(){
   _loadingDay=false;
 }
 
+let _pendingSaveDupNote = null; // note from dup-op modal
+
 async function saveDay(){
   const date=document.getElementById('entry-date').value;
   if(!date){showToast('Please set a date','error');return;}
+  // Check for duplicate operators
+  const _op1v = document.getElementById('f-op1')?.value||'';
+  const _op2v = document.getElementById('f-op2')?.value||'';
+  if(_op1v && _op2v && _op1v === _op2v && _pendingSaveDupNote === null){
+    // Show confirmation modal
+    const dateDisp = new Date(date+'T00:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+    const lbl = document.getElementById('dup-op-date-label');
+    const warn = document.getElementById('dup-op-warn-text');
+    const noteEl = document.getElementById('dup-op-note');
+    const saveBtn = document.getElementById('dup-op-save-btn');
+    if(lbl) lbl.textContent = dateDisp;
+    if(warn) warn.textContent = _op1v.split(' ')[0] + ' is selected in both operator slots.';
+    if(noteEl) noteEl.value = '';
+    if(saveBtn) saveBtn.disabled = true;
+    document.getElementById('dup-op-modal').style.display = 'flex';
+    return; // wait for modal confirmation
+  }
   const c=calcAll();
   const isClosedDay=document.getElementById('f-closed-day')?.checked||false;
-  const data={cashSales:pv('f-cashSales'),cardSales:pv('f-cardSales'),cardFees:pv('f-cardFees'),giftCardRedeemed:pv('f-giftCardRedeemed'),cashAppPay:pv('f-cashAppPay'),venmo:pv('f-venmo'),otherSales:pv('f-otherSales'),merchSales:pv('f-merchSales'),giftCardSales:pv('f-giftCardSales'),giftCardLoadFees:pv('f-giftCardLoadFees'),fundraiserCash:pv('f-fundraiserCash'),fundraiserCard:pv('f-fundraiserCard'),fundraiserPct:pv('f-fundraiserPct'),dv:pv('f-dv'),notes:document.getElementById('f-notes')?.value||'',op1:document.getElementById('f-op1')?.value||'',op2:document.getElementById('f-op2')?.value||'',op1Hrs:parseFloat(document.getElementById('f-op1-hrs')?.value)||0,op2Hrs:parseFloat(document.getElementById('f-op2-hrs')?.value)||0,closedDay:isClosedDay,totalSales:c.totalSales||0,overhead:c.overhead||0,taxes:c.tax||0,products:c.products||0,payouts:c.payouts||0,donation:c.donation||0,perDV:c.perDV||0,ownerReinvest:c.ownerReinvest||false,ownerShare:c.ownerShare||0,savedRates:{taxRate:SETTINGS.taxRate,ohRate:SETTINGS.ohRate,otherRate:SETTINGS.otherRate,merchRate:SETTINGS.merchRate,dvDelta:SETTINGS.dvDelta}};
+  const data={cashSales:pv('f-cashSales'),cardSales:pv('f-cardSales'),cardFees:pv('f-cardFees'),giftCardRedeemed:pv('f-giftCardRedeemed'),cashAppPay:pv('f-cashAppPay'),venmo:pv('f-venmo'),otherSales:pv('f-otherSales'),merchSales:pv('f-merchSales'),giftCardSales:pv('f-giftCardSales'),giftCardLoadFees:pv('f-giftCardLoadFees'),fundraiserCash:pv('f-fundraiserCash'),fundraiserCard:pv('f-fundraiserCard'),fundraiserPct:pv('f-fundraiserPct'),dv:pv('f-dv'),notes:(()=>{const base=document.getElementById('f-notes')?.value||'';const dup=_pendingSaveDupNote?'[Duplicate operator note: '+_pendingSaveDupNote+']':'';return base&&dup?base+'\n'+dup:dup||base;})(),op1:document.getElementById('f-op1')?.value||'',op2:document.getElementById('f-op2')?.value||'',op1Hrs:parseFloat(document.getElementById('f-op1-hrs')?.value)||0,op2Hrs:parseFloat(document.getElementById('f-op2-hrs')?.value)||0,closedDay:isClosedDay,totalSales:c.totalSales||0,overhead:c.overhead||0,taxes:c.tax||0,products:c.products||0,payouts:c.payouts||0,donation:c.donation||0,perDV:c.perDV||0,ownerReinvest:c.ownerReinvest||false,ownerShare:c.ownerShare||0,savedRates:{taxRate:SETTINGS.taxRate,ohRate:SETTINGS.ohRate,otherRate:SETTINGS.otherRate,merchRate:SETTINGS.merchRate,dvDelta:SETTINGS.dvDelta}};
   // Track specific closed day overrides in settings
   if(!SETTINGS.closedDays)SETTINGS.closedDays={};
   const dow=new Date(date+'T00:00:00').getDay();
@@ -2911,6 +2967,7 @@ async function saveDay(){
   else{const{data:nr,error:e}=await sb.from('days').insert({location_id:LOCATION_ID,date,data}).select().single();error=e;if(!e&&nr)ALL_DAYS.unshift(nr);}
   if(error){showToast('Save failed: '+error.message,'error');return;}
   showToast(IS_ADMIN_VIEW?'Saved (Admin Edit) ok':'Day saved ok','success');
+  _pendingSaveDupNote=null;
   clearDirty();
   // Persist closedDays overrides to settings
   sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID);
@@ -3028,9 +3085,31 @@ function renderDashboardWidgets(){
   }
 }
 
+const _OP_PALETTE = ['#4e6e86','#2d6a4f','#9e7e6a','#7a5c80','#b07d3a','#3a7a6e'];
+
+function getOpColor(name) {
+  // Stable color by name hash
+  if (!name) return _OP_PALETTE[0];
+  const ops = SETTINGS.operators || [];
+  const idx = ops.findIndex(o => o.name === name || (o.aliases||'').split(',').map(a=>a.trim()).includes(name));
+  return _OP_PALETTE[idx >= 0 ? idx % _OP_PALETTE.length : 0];
+}
+
+function clearOperators() {
+  const sel1 = document.getElementById('f-op1');
+  const sel2 = document.getElementById('f-op2');
+  if (sel1) sel1.value = '';
+  if (sel2) sel2.value = '';
+  // Reset hours to default
+  const hrs1 = document.getElementById('f-op1-hrs');
+  const hrs2 = document.getElementById('f-op2-hrs');
+  if (hrs1) hrs1.value = hrs1.options[0]?.value || '';
+  if (hrs2) hrs2.value = hrs2.options[0]?.value || '';
+  recalc(true);
+}
+
 function renderOpsEarningsPreview(){
   const c = calcAll();
-  const previewEl = document.getElementById('ops-earnings-preview');
   const reinvestRow = document.getElementById('reinvest-row');
   const op1 = document.getElementById('f-op1')?.value || '';
   const op2 = document.getElementById('f-op2')?.value || '';
@@ -3040,65 +3119,67 @@ function renderOpsEarningsPreview(){
   const ownerName = getOwnerOpName();
   const ownerIsSelected = ownerName && ops.includes(ownerName);
 
-  // Show/hide reinvest row
   if(reinvestRow) reinvestRow.style.display = ownerIsSelected ? 'block' : 'none';
 
-  // Hours-based payout split
   const totalHrs = h1 + h2;
   const payouts = c.group2 && c.payouts !== null ? c.payouts : null;
   const hourlyRate = (payouts !== null && totalHrs > 0) ? payouts / totalHrs : null;
 
-  // Op payout pills
+  // Op payout pills (in-row)
   const pill1 = document.getElementById('op1-payout-pill');
   const pill2 = document.getElementById('op2-payout-pill');
-  const rateRow = document.getElementById('ops-hourly-rate-row');
+  const pay1 = (op1 && payouts !== null) ? (hourlyRate !== null && h1 > 0 ? hourlyRate * h1 : (ops.length > 0 ? payouts / ops.length : null)) : null;
+  const pay2 = (op2 && payouts !== null) ? (hourlyRate !== null && h2 > 0 ? hourlyRate * h2 : (ops.length > 0 ? payouts / ops.length : null)) : null;
+  const isR1 = ownerName && op1 === ownerName && c.ownerReinvest;
+  const isR2 = ownerName && op2 === ownerName && c.ownerReinvest;
+
+  if(pill1){ pill1.textContent = op1 && pay1 !== null ? (isR1 ? '↩ reinvested' : fmt$(pay1)) : '--'; pill1.style.color = isR1 ? 'var(--b6)' : 'var(--g6)'; pill1.style.background = isR1 ? 'var(--b1)' : 'transparent'; }
+  if(pill2){ pill2.textContent = op2 && pay2 !== null ? (isR2 ? '↩ reinvested' : fmt$(pay2)) : '--'; pill2.style.color = isR2 ? 'var(--b6)' : 'var(--g6)'; pill2.style.background = isR2 ? 'var(--b1)' : 'transparent'; }
+
+  // Footer row — show when any operator selected
+  const footerRow = document.getElementById('ops-footer-row');
+  const pillsEl = document.getElementById('ops-payout-pills');
   const rateVal = document.getElementById('ops-hourly-rate-val');
   const totalHrsLabel = document.getElementById('ops-total-hrs-label');
 
-  if(pill1){
-    if(op1 && payouts !== null){
-      const pay = hourlyRate !== null && h1 > 0 ? hourlyRate * h1 : (ops.length > 0 ? payouts / ops.length : null);
-      const isReinvesting = ownerName && op1 === ownerName && c.ownerReinvest;
-      pill1.textContent = isReinvesting ? '↩ reinvested' : (pay !== null ? fmt$(pay) : '--');
-      pill1.style.color = isReinvesting ? 'var(--b6)' : 'var(--g6)';
-      pill1.style.background = isReinvesting ? 'var(--b1)' : 'transparent';
-    } else { pill1.textContent = '--'; pill1.style.color='var(--g6)'; pill1.style.background='transparent'; }
-  }
-  if(pill2){
-    if(op2 && payouts !== null){
-      const pay = hourlyRate !== null && h2 > 0 ? hourlyRate * h2 : (ops.length > 0 ? payouts / ops.length : null);
-      const isReinvesting = ownerName && op2 === ownerName && c.ownerReinvest;
-      pill2.textContent = isReinvesting ? '↩ reinvested' : (pay !== null ? fmt$(pay) : '--');
-      pill2.style.color = isReinvesting ? 'var(--b6)' : 'var(--g6)';
-      pill2.style.background = isReinvesting ? 'var(--b1)' : 'transparent';
-    } else { pill2.textContent = '--'; pill2.style.color='var(--g6)'; pill2.style.background='transparent'; }
-  }
+  // Duplicate operator detection
+  const warnBanner = document.getElementById('ops-dup-warning');
+  const warnText = document.getElementById('ops-dup-warning-text');
+  const isDup = op1 && op2 && op1 === op2;
+  if (warnBanner) warnBanner.style.display = isDup ? 'flex' : 'none';
+  if (warnText && isDup) warnText.textContent = op1.split(' ')[0] + ' is selected twice. You can still save — you'll be asked to add a note explaining why.';
+  // Amber highlight on both selects
+  const sel1 = document.getElementById('f-op1');
+  const sel2 = document.getElementById('f-op2');
+  if (sel1) { sel1.style.borderColor = isDup ? '#f0b440' : ''; sel1.style.background = isDup ? '#fef7e8' : ''; }
+  if (sel2) { sel2.style.borderColor = isDup ? '#f0b440' : ''; sel2.style.background = isDup ? '#fef7e8' : ''; }
 
-  // Hourly rate row
-  if(rateRow){
-    if(hourlyRate !== null && totalHrs > 0){
-      rateRow.style.display = 'flex';
-      if(rateVal) rateVal.textContent = fmt$(hourlyRate) + '/hr';
-      if(totalHrsLabel) totalHrsLabel.textContent = '· ' + totalHrs.toFixed(1) + ' total hrs';
+  if (footerRow) {
+    if (ops.length > 0) {
+      footerRow.style.display = 'flex';
+      // Colored pills
+      if (pillsEl) {
+        const pillData = [{name:op1, pay:pay1, isR:isR1, h:h1}, {name:op2, pay:pay2, isR:isR2, h:h2}].filter(p => p.name);
+        pillsEl.innerHTML = pillData.map(p => {
+          const color = getOpColor(p.name);
+          const label = p.isR ? '↩' : (p.pay !== null ? fmt$(p.pay) : '--');
+          const initial = p.name.charAt(0).toUpperCase();
+          return `<span style="display:inline-flex;align-items:center;gap:4px;background:var(--b0);border:1px solid var(--border-light);border-radius:20px;padding:2px 8px 2px 4px;font-size:11px;font-weight:700;color:var(--text);">
+            <span style="width:14px;height:14px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:800;color:white;flex-shrink:0;">${initial}</span>
+            ${label}
+          </span>`;
+        }).join('');
+      }
+      // Hourly rate
+      if (hourlyRate !== null && totalHrs > 0) {
+        if (rateVal) rateVal.textContent = fmt$(hourlyRate) + '/hr';
+        if (totalHrsLabel) totalHrsLabel.textContent = totalHrs.toFixed(1) + ' total hrs';
+      } else {
+        if (rateVal) rateVal.textContent = '--';
+        if (totalHrsLabel) totalHrsLabel.textContent = '';
+      }
     } else {
-      rateRow.style.display = 'none';
-    }
-  }
-
-  // Header preview
-  if(previewEl){
-    if(ops.length > 0 && payouts !== null){
-      const parts = ops.map((o,i) => {
-        const h = i === 0 ? h1 : h2;
-        const isReinvesting = ownerName && o === ownerName && c.ownerReinvest;
-        if(isReinvesting) return `${o.split(' ')[0]} ↩`;
-        const pay = hourlyRate !== null && h > 0 ? hourlyRate * h : payouts / ops.length;
-        return `${o.split(' ')[0]} ${fmt$(pay)}`;
-      });
-      previewEl.textContent = parts.join(' · ');
-      previewEl.style.display = 'inline';
-    } else {
-      previewEl.style.display = 'none';
+      footerRow.style.display = 'none';
     }
   }
 }
@@ -3376,11 +3457,9 @@ function renderHistCal(){
           <circle cx="11" cy="11" r="4" fill="white"/>
         </svg>`;
         // Operator dots — assign color by position in SETTINGS.operators
-        const _opPalette=['#4e6e86','#2d6a4f','#9e7e6a','#7a5c80'];
         const _opList=[data.op1,data.op2].filter(Boolean);
         const _opDots=_opList.map(name=>{
-          const idx=(SETTINGS.operators||[]).findIndex(o=>o.name&&(o.name===name||(o.aliases||'').split(',').map(a=>a.trim()).includes(name)));
-          const color=_opPalette[idx>=0?idx:0];
+          const color=getOpColor(name);
           const initial=(name||'?').charAt(0).toUpperCase();
           return `<div style="width:14px;height:14px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:800;color:white;flex-shrink:0;">${initial}</div>`;
         }).join('');
@@ -5007,6 +5086,21 @@ function toggleHistAllocList() {
   list.style.display = hidden ? '' : 'none';
   if (done) done.style.display = hidden ? (done.dataset.shouldShow === '1' ? 'block' : 'none') : 'none';
   if (btn) btn.textContent = hidden ? 'Hide ▲' : 'Show ▼';
+}
+
+
+function closeDupOpModal(e) {
+  if (e && e.target !== document.getElementById('dup-op-modal')) return;
+  document.getElementById('dup-op-modal').style.display = 'none';
+  _pendingSaveDupNote = null;
+}
+
+function confirmDupOpSave() {
+  const note = document.getElementById('dup-op-note')?.value.trim();
+  if (!note) return;
+  _pendingSaveDupNote = note;
+  document.getElementById('dup-op-modal').style.display = 'none';
+  saveDay(); // re-call saveDay, now with note set, will skip modal
 }
 
 function toggleHistProjections() {
