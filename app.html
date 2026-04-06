@@ -6016,23 +6016,34 @@ function renderMonthTable(el) {
     if (dt.getFullYear()===yr && dt.getMonth()===mo) dayMap[d.date] = d.data||{};
   });
 
-  // Key display fields for monthly table
+  // All Enter tab fields as columns — no Days column
   const cols = [
-    {key:'net',  label:'Net sales', fn:d=>calSales(d),                   fmt:'$', cls:'sm-green'},
-    {key:'cash', label:'Cash',      fn:d=>parseFloat(d.cashSales)||0,    fmt:'$', cls:''},
-    {key:'card', label:'Card',      fn:d=>parseFloat(d.cardSales)||0,    fmt:'$', cls:''},
-    {key:'fees', label:'Fees',      fn:d=>parseFloat(d.cardFees)||0,     fmt:'$', cls:'sm-amber'},
-    {key:'dv',   label:'DV',        fn:d=>parseFloat(d.dv)||0,           fmt:'n', cls:''},
-    {key:'days', label:'Days',      fn:null,                              fmt:'n', cls:''},
+    {key:'net',     label:'Net Sales',    fn:d=>calSales(d),                             fmt:'$',  cls:'sm-green'},
+    {key:'cash',    label:'Cash',         fn:d=>parseFloat(d.cashSales)||0,              fmt:'$',  cls:''},
+    {key:'card',    label:'Card',         fn:d=>parseFloat(d.cardSales)||0,              fmt:'$',  cls:''},
+    {key:'fees',    label:'Card Fees',    fn:d=>parseFloat(d.cardFees)||0,               fmt:'$',  cls:'sm-amber'},
+    {key:'gcr',     label:'GC Redeemed', fn:d=>parseFloat(d.giftCardRedeemed)||0,       fmt:'$',  cls:''},
+    {key:'cashapp', label:'CashApp POS',  fn:d=>parseFloat(d.cashAppPay)||0,             fmt:'$',  cls:''},
+    {key:'venmo',   label:'Venmo',        fn:d=>parseFloat(d.venmo)||0,                  fmt:'$',  cls:''},
+    {key:'other',   label:'Other',        fn:d=>parseFloat(d.otherSales)||0,             fmt:'$',  cls:''},
+    {key:'merch',   label:'Merch',        fn:d=>parseFloat(d.merchSales)||0,             fmt:'$',  cls:''},
+    {key:'gcs',     label:'GC Sales',     fn:d=>parseFloat(d.giftCardSales)||0,          fmt:'$',  cls:''},
+    {key:'gcf',     label:'GC Load Fees', fn:d=>parseFloat(d.giftCardLoadFees)||0,       fmt:'$',  cls:'sm-amber'},
+    {key:'fcash',   label:'Fund Cash',    fn:d=>parseFloat(d.fundraiserCash)||0,         fmt:'$',  cls:''},
+    {key:'fcard',   label:'Fund Card',    fn:d=>parseFloat(d.fundraiserCard)||0,         fmt:'$',  cls:''},
+    {key:'dv',      label:'DV',           fn:d=>parseFloat(d.dv)||0,                     fmt:'dv', cls:''},
   ];
 
   function fmtCell(val, fmt, cls) {
     if (!val) return `<td class="sm-nodata">—</td>`;
-    const s = fmt==='$' ? '$'+val.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : val.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1});
+    let s;
+    if (fmt==='$') s = '$'+val.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+    else if (fmt==='dv') s = val.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+    else s = val.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1});
     return `<td class="${cls}">${s}</td>`;
   }
 
-  const thead = `<thead><tr><th>Period</th>${cols.map(c=>`<th>${c.label}</th>`).join('')}</tr></thead>`;
+  const thead = `<thead><tr><th style="position:sticky;left:0;background:var(--b0);z-index:2;min-width:100px;">Period</th>${cols.map(c=>`<th style="white-space:nowrap;">${c.label}</th>`).join('')}</tr></thead>`;
 
   // Group days by Sun–Sat weeks
   let tbody = '<tbody>';
@@ -6066,7 +6077,7 @@ function renderMonthTable(el) {
 
       if (!data || isFuture) {
         const note = isFuture ? 'future' : 'no data';
-        dayRows += `<tr><td class="sm-nodata">${dayLabel}</td>${cols.map(()=>'<td class="sm-nodata">—</td>').join('')}</tr>`;
+        dayRows += `<tr><td class="sm-nodata" style="position:sticky;left:0;background:var(--surface);z-index:1;">${dayLabel}</td>${cols.map(()=>'<td class="sm-nodata">—</td>').join('')}</tr>`;
         continue;
       }
 
@@ -6074,14 +6085,13 @@ function renderMonthTable(el) {
       weekDays++;
       let cells = '';
       cols.forEach(c => {
-        if (c.key === 'days') { cells += '<td>1</td>'; return; }
         const val = c.fn(data);
-        weekTotals[c.key] += val;
-        monthTotals[c.key] += val;
+        weekTotals[c.key] = (weekTotals[c.key]||0) + val;
+        monthTotals[c.key] = (monthTotals[c.key]||0) + val;
         cells += fmtCell(val, c.fmt, c.cls);
       });
       monthDays++;
-      dayRows += `<tr><td>${dayLabel}</td>${cells}</tr>`;
+      dayRows += `<tr><td style="position:sticky;left:0;background:var(--surface);z-index:1;">${dayLabel}</td>${cells}</tr>`;
     }
 
     // Week label
@@ -6092,10 +6102,9 @@ function renderMonthTable(el) {
     tbody += dayRows;
     // Week subtotal
     let wCells = cols.map(c => {
-      if (c.key==='days') return `<td>${weekDays}</td>`;
-      return fmtCell(weekTotals[c.key], c.fmt, c.cls);
+      return fmtCell(weekTotals[c.key]||0, c.fmt, c.cls);
     }).join('');
-    tbody += `<tr class="sm-wk"><td>${wLabel}</td>${wCells}</tr>`;
+    tbody += `<tr class="sm-wk"><td style="position:sticky;left:0;background:var(--b0);z-index:1;">${wLabel}</td>${wCells}</tr>`;
 
     weekStart.setDate(weekStart.getDate()+7);
     if (weekStart.getFullYear() > yr && mo < 11) break;
@@ -6104,13 +6113,12 @@ function renderMonthTable(el) {
 
   // Month total
   let mCells = cols.map(c => {
-    if (c.key==='days') return `<td>${monthDays}</td>`;
-    return fmtCell(monthTotals[c.key], c.fmt, c.cls);
+    return fmtCell(monthTotals[c.key]||0, c.fmt, c.cls);
   }).join('');
-  tbody += `<tr class="sm-total"><td>${MONTH_NAMES[mo]} ${yr}</td>${mCells}</tr>`;
+  tbody += `<tr class="sm-total"><td style="position:sticky;left:0;background:var(--surface);z-index:1;">${MONTH_NAMES[mo]} ${yr}</td>${mCells}</tr>`;
   tbody += '</tbody>';
 
-  el.innerHTML = `<table class="smtbl">${thead}${tbody}</table>`;
+  el.innerHTML = `<div style="overflow-x:auto;"><table class="smtbl" style="min-width:900px;">${thead}${tbody}</table></div>`;
 }
 
 function resolveAlias(n){for(const op of SETTINGS.operators){if(!op.name)continue;const a=(op.aliases||'').split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);if(op.name.toLowerCase()===n.toLowerCase())return op.name;if(a.includes(n.toLowerCase()))return op.name;}return n;}
