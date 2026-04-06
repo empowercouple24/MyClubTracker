@@ -325,6 +325,40 @@
   .tm-danger-btn:hover{background:var(--r5);}
   .loc-edit-footer{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
   .loc-msg{font-size:12px;margin-top:6px;display:none;}
+  .lef-stat-strip{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--border-light);border-bottom:1px solid var(--border-light);margin-bottom:14px;}
+  .lef-stat-cell{padding:8px 10px;text-align:center;border-right:1px solid var(--border-light);}
+  .lef-stat-cell:last-child{border-right:none;}
+  .lef-stat-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:2px;}
+  .lef-stat-val{font-size:14px;font-weight:700;color:var(--text);}
+  .lef-stat-val.green{color:var(--g5);}
+  .lef-stat-dv{font-size:10px;color:var(--text-faint);margin-top:1px;}
+  .lef-sec-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:8px;}
+  .lef-invite-row{display:flex;gap:10px;margin-bottom:14px;}
+  .lef-invite-box{flex:1;background:var(--b0);border:1px solid var(--border-light);border-radius:8px;padding:8px 12px;}
+  .lef-invite-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);margin-bottom:4px;}
+  .lef-invite-code{font-family:monospace;font-size:15px;font-weight:800;letter-spacing:2px;color:var(--b7);display:block;margin-bottom:4px;}
+  .lef-invite-regen{width:100%;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;padding:4px 0;border-radius:5px;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;}
+  .lef-invite-regen:hover{background:var(--b1);}
+  .lef-team-box{background:var(--surface);border:1px solid var(--border-light);border-radius:8px;overflow:hidden;margin-bottom:14px;}
+  .lef-tm-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--border-light);}
+  .lef-tm-row:last-child{border-bottom:none;}
+  .lef-tm-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0;overflow:hidden;}
+  .lef-tm-name{font-size:12px;font-weight:700;color:var(--text);}
+  .lef-tm-sub{font-size:11px;color:var(--text-faint);}
+  .lef-tm-role{font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;flex-shrink:0;}
+  .lef-tm-role.owner{background:var(--g0);color:var(--g5);}
+  .lef-tm-role.employee{background:var(--b0);color:var(--b7);}
+  .lef-tm-expand{background:var(--bg);border-top:1px solid var(--border-light);padding:10px 12px;display:none;}
+  .lef-tm-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+  .lef-tm-field label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--text-faint);display:block;margin-bottom:3px;}
+  .lef-tm-field input,.lef-tm-field select{width:100%;font-family:'DM Sans',sans-serif;font-size:12px;padding:6px 8px;border:1px solid var(--border);border-radius:5px;color:var(--text);background:var(--surface);outline:none;}
+  .lef-tm-btns{display:flex;gap:6px;flex-wrap:wrap;}
+  .lef-tm-save{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;padding:5px 12px;border-radius:5px;border:none;background:var(--b7);color:white;cursor:pointer;}
+  .lef-tm-danger{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:5px 12px;border-radius:5px;border:1px solid var(--border);background:var(--surface);color:var(--r5);cursor:pointer;}
+  .lef-tm-danger:hover{background:var(--r0);}
+  .lef-tm-ghost{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:5px 12px;border-radius:5px;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;}
+  .lef-tm-ghost:hover{background:var(--b0);}
+
   @media(max-width:600px){.loc-edit-grid{grid-template-columns:1fr;}.org-loc-stats{display:none;}}
 </style>
 
@@ -593,6 +627,174 @@ function renderOrgSummary() {
 }
 
 // -- RENDER ORG LIST --
+
+function orgFmtPhone(raw) {
+  if (!raw) return '';
+  const d = String(raw).replace(/\D/g, '').slice(0, 10);
+  if (d.length < 4) return d;
+  if (d.length < 7) return '(' + d.slice(0,3) + ') ' + d.slice(3);
+  return '(' + d.slice(0,3) + ') ' + d.slice(3,6) + '-' + d.slice(6,10);
+}
+function orgPhoneMask(el) {
+  const d = el.value.replace(/\D/g,'').slice(0,10);
+  let v = '';
+  if (d.length > 0) v = '(' + d.slice(0,3);
+  if (d.length >= 4) v += ') ' + d.slice(3,6);
+  if (d.length >= 7) v += '-' + d.slice(6,10);
+  el.value = v;
+}
+function orgSumSales(locId, days, cutoffDate) {
+  const today = new Date().toISOString().slice(0,10);
+  return days
+    .filter(d => d.location_id === locId && d.date >= cutoffDate && d.date <= today)
+    .reduce((s, d) => {
+      const data = d.data || {};
+      const card = (parseFloat(data.cardSales)||0) - (parseFloat(data.cardFees)||0) + (parseFloat(data.cashAppPay)||0) - (parseFloat(data.giftCardLoadFees)||0);
+      return s + (parseFloat(data.cashSales)||0) + (parseFloat(data.venmo)||0) + card + (parseFloat(data.otherSales)||0) + (parseFloat(data.merchSales)||0);
+    }, 0);
+}
+function orgSumDV(locId, days, cutoffDate) {
+  const today = new Date().toISOString().slice(0,10);
+  return days
+    .filter(d => d.location_id === locId && d.date >= cutoffDate && d.date <= today)
+    .reduce((s, d) => s + (parseFloat((d.data||{}).dv)||0), 0);
+}
+function orgFmt$(n) { return '$' + n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function orgFmtN(n) { return n > 0 ? n.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1}) : '—'; }
+function orgDate7() { const d = new Date(); d.setDate(d.getDate()-7); return d.toISOString().slice(0,10); }
+function orgDate30() { const d = new Date(); d.setDate(d.getDate()-30); return d.toISOString().slice(0,10); }
+function toggleLocTeamMember(userId) {
+  const el = document.getElementById('lef-tm-exp-' + userId);
+  const chev = document.getElementById('lef-tm-chev-' + userId);
+  if (!el) return;
+  const open = el.style.display === 'block';
+  el.style.display = open ? 'none' : 'block';
+  if (chev) chev.textContent = open ? '▾' : '▴';
+}
+async function lefSaveTeamMember(userId, locId) {
+  const fn = document.getElementById('lef-tm-fn-'+userId)?.value.trim()||'';
+  const ln = document.getElementById('lef-tm-ln-'+userId)?.value.trim()||'';
+  const ph = document.getElementById('lef-tm-ph-'+userId)?.value.replace(/\D/g,'').slice(0,10)||null;
+  const role = document.getElementById('lef-tm-role-'+userId)?.value||'employee';
+  const {error} = await sb.from('users').update({first_name:fn,last_name:ln,phone:ph||null,role}).eq('id',userId);
+  if (error) { showOrgToast('Save failed: '+error.message); return; }
+  const u = allLocationUsers.find(x=>x.id===userId);
+  if (u){u.first_name=fn;u.last_name=ln;u.phone=ph;u.role=role;}
+  showOrgToast('Saved ✓');
+  renderOrgs();
+  setTimeout(()=>{ toggleLocEdit(locId); setTimeout(()=>toggleLocEdit(locId),50); },50);
+}
+async function lefResetPassword(email, name) {
+  if(!confirm('Send password reset email to '+name+'?')) return;
+  const {error} = await sb.auth.resetPasswordForEmail(email);
+  if (error) { showOrgToast('Failed: '+error.message); return; }
+  showOrgToast('Reset email sent to '+name);
+}
+async function lefRemoveUser(userId, name, locId) {
+  if(!confirm('Remove '+name+' from this club? They will lose access immediately.')) return;
+  const {error} = await sb.rpc('remove_user_from_location',{p_user_id:userId});
+  if (error) { showOrgToast('Remove failed: '+error.message); return; }
+  allLocationUsers = allLocationUsers.filter(u=>u.id!==userId);
+  showOrgToast(name+' removed ✓');
+  renderOrgs();
+}
+
+function orgBuildTeamHtml(locUsers, locId) {
+  if (!locUsers.length) return '<div style="font-size:12px;color:var(--text-faint);padding:10px 12px;">No team members yet.</div>';
+  return locUsers.map(function(u) {
+    var fullName = [u.first_name, u.last_name].filter(Boolean).join(' ') || u.display_name || u.email;
+    var initials = fullName.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+    var roleLbl = u.role === 'owner' ? 'Owner' : 'Operator';
+    var roleCls = u.role === 'owner' ? 'owner' : 'employee';
+    var avatarBg = u.role === 'owner' ? 'var(--g5)' : 'var(--b6)';
+    var avatarInner = u.avatar_url
+      ? '<img src="' + u.avatar_url + '" style="width:30px;height:30px;object-fit:cover;border-radius:50%;display:block;"/>'
+      : initials;
+    var fmtPh = u.phone ? ' &middot; ' + orgFmtPhone(u.phone) : '';
+    var selOwner = u.role === 'owner' ? 'selected' : '';
+    var selEmp = u.role === 'employee' ? 'selected' : '';
+    return '<div class="lef-tm-row">'
+      + '<div class="lef-tm-avatar" style="background:' + avatarBg + ';">' + avatarInner + '</div>'
+      + '<div style="flex:1;min-width:0;">'
+        + '<div class="lef-tm-name">' + escHtml(fullName) + '</div>'
+        + '<div class="lef-tm-sub">' + escHtml(u.email || '') + fmtPh + '</div>'
+      + '</div>'
+      + '<span class="lef-tm-role ' + roleCls + '">' + roleLbl + '</span>'
+      + '<button onclick="toggleLocTeamMember(\'' + u.id + '\')" style="background:none;border:1px solid var(--border);border-radius:5px;padding:3px 8px;cursor:pointer;font-size:12px;color:var(--text-muted);" id="lef-tm-chev-' + u.id + '">&#9662;</button>'
+    + '</div>'
+    + '<div class="lef-tm-expand" id="lef-tm-exp-' + u.id + '">'
+      + '<div class="lef-tm-grid">'
+        + '<div class="lef-tm-field"><label>First name</label><input id="lef-tm-fn-' + u.id + '" type="text" value="' + escHtml(u.first_name || '') + '"/></div>'
+        + '<div class="lef-tm-field"><label>Last name</label><input id="lef-tm-ln-' + u.id + '" type="text" value="' + escHtml(u.last_name || '') + '"/></div>'
+        + '<div class="lef-tm-field"><label>Phone</label><input id="lef-tm-ph-' + u.id + '" type="text" value="' + orgFmtPhone(u.phone || '') + '" maxlength="14" oninput="orgPhoneMask(this)" placeholder="(xxx) xxx-xxxx"/></div>'
+        + '<div class="lef-tm-field"><label>Role</label><select id="lef-tm-role-' + u.id + '"><option value="owner" ' + selOwner + '>Owner</option><option value="employee" ' + selEmp + '>Operator</option></select></div>'
+      + '</div>'
+      + '<div class="lef-tm-btns">'
+        + '<button class="lef-tm-save" onclick="lefSaveTeamMember(\'' + u.id + '\',\'' + locId + '\')">Save</button>'
+        + '<button class="lef-tm-ghost" onclick="lefResetPassword(\'' + escHtml(u.email || '') + '\',\'' + escHtml(fullName) + '\')">&#8634; Reset PW</button>'
+        + '<button class="lef-tm-danger" onclick="lefRemoveUser(\'' + u.id + '\',\'' + escHtml(fullName) + '\',\'' + locId + '\')">&#215; Remove</button>'
+      + '</div>'
+    + '</div>';
+  }).join('');
+}
+
+function orgBuildLocCard(l, d7, d30) {
+  var ownerEmail = (l.settings && l.settings.ownerEmail) || '';
+  var opCode = (l.settings && l.settings.employeeInviteCode) || '—';
+  var fmtPhone = orgFmtPhone(l.owner_phone || '');
+  var sales7  = orgSumSales(l.id, allOrgDays, d7);
+  var dv7     = orgSumDV(l.id, allOrgDays, d7);
+  var sales30 = orgSumSales(l.id, allOrgDays, d30);
+  var dv30    = orgSumDV(l.id, allOrgDays, d30);
+  var lastDay = allOrgDays.filter(function(d){return d.location_id===l.id;}).sort(function(a,b){return b.date.localeCompare(a.date);})[0];
+  var lastEntry = lastDay ? lastDay.date : '—';
+  var locUsers = allLocationUsers.filter(function(u){return u.location_id===l.id;});
+  var teamHtml = orgBuildTeamHtml(locUsers, l.id);
+  var salesGreen7  = sales7  > 0 ? ' green' : '';
+  var salesGreen30 = sales30 > 0 ? ' green' : '';
+
+  return '<div class="org-loc-row" id="locrow-' + l.id + '">'
+    + '<div class="org-loc-summary" onclick="toggleLocEdit(\'' + l.id + '\')" style="flex:1;cursor:pointer;display:flex;align-items:center;gap:12px;">'
+      + '<div style="flex:1;">'
+        + '<div class="org-loc-name">' + escHtml(l.name) + '</div>'
+        + '<div class="org-loc-addr">' + escHtml(l.address || '') + '</div>'
+      + '</div>'
+      + '<span style="font-size:11px;color:var(--text-faint);flex-shrink:0;" id="locchev-' + l.id + '">&#9660;</span>'
+    + '</div>'
+    + '<div class="org-loc-edit" id="locedit-' + l.id + '" style="display:none;width:100%;margin-top:12px;border-top:1px solid var(--border-light);padding-top:0;">'
+      + '<div class="lef-stat-strip">'
+        + '<div class="lef-stat-cell"><div class="lef-stat-lbl">7d sales</div><div class="lef-stat-val' + salesGreen7 + '">' + orgFmt$(sales7) + '</div><div class="lef-stat-dv">' + orgFmtN(dv7) + ' DV</div></div>'
+        + '<div class="lef-stat-cell"><div class="lef-stat-lbl">30d sales</div><div class="lef-stat-val' + salesGreen30 + '">' + orgFmt$(sales30) + '</div><div class="lef-stat-dv">' + orgFmtN(dv30) + ' DV</div></div>'
+        + '<div class="lef-stat-cell" style="grid-column:span 2;"><div class="lef-stat-lbl">Last entry</div><div class="lef-stat-val" style="font-size:13px;">' + escHtml(lastEntry) + '</div></div>'
+      + '</div>'
+      + '<div style="padding:12px;">'
+        + '<div class="lef-sec-lbl">Club details</div>'
+        + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">'
+          + '<div><label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);display:block;margin-bottom:3px;">Club Name</label><input id="lef-name-' + l.id + '" type="text" value="' + escHtml(l.name) + '" style="width:100%;font-family:\'DM Sans\',sans-serif;font-size:13px;padding:6px 9px;border:1px solid var(--border);border-radius:6px;color:var(--text);background:var(--bg);outline:none;"/></div>'
+          + '<div><label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);display:block;margin-bottom:3px;">Address</label><input id="lef-addr-' + l.id + '" type="text" value="' + escHtml(l.address || '') + '" style="width:100%;font-family:\'DM Sans\',sans-serif;font-size:13px;padding:6px 9px;border:1px solid var(--border);border-radius:6px;color:var(--text);background:var(--bg);outline:none;"/></div>'
+          + '<div><label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);display:block;margin-bottom:3px;">Owner Name</label><input id="lef-owner-' + l.id + '" type="text" value="' + escHtml(l.owner_name || '') + '" style="width:100%;font-family:\'DM Sans\',sans-serif;font-size:13px;padding:6px 9px;border:1px solid var(--border);border-radius:6px;color:var(--text);background:var(--bg);outline:none;"/></div>'
+          + '<div><label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);display:block;margin-bottom:3px;">Owner Phone</label><input id="lef-phone-' + l.id + '" type="text" value="' + escHtml(fmtPhone) + '" maxlength="14" oninput="orgPhoneMask(this)" placeholder="(xxx) xxx-xxxx" style="width:100%;font-family:\'DM Sans\',sans-serif;font-size:13px;padding:6px 9px;border:1px solid var(--border);border-radius:6px;color:var(--text);background:var(--bg);outline:none;"/></div>'
+          + '<div style="grid-column:1/-1;"><label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);display:block;margin-bottom:3px;">Owner Email</label><input id="lef-email-' + l.id + '" type="email" value="' + escHtml(ownerEmail) + '" style="width:100%;font-family:\'DM Sans\',sans-serif;font-size:13px;padding:6px 9px;border:1px solid var(--border);border-radius:6px;color:var(--text);background:var(--bg);outline:none;"/></div>'
+        + '</div>'
+        + '<div class="lef-sec-lbl">Invite codes</div>'
+        + '<div class="lef-invite-row">'
+          + '<div class="lef-invite-box"><div class="lef-invite-lbl">Owner invite</div><span class="lef-invite-code">' + escHtml(l.invite_code || '—') + '</span><button class="lef-invite-regen" onclick="orgRegenCode(\'' + l.id + '\',\'owner\')">&#8635; Regenerate</button></div>'
+          + '<div class="lef-invite-box"><div class="lef-invite-lbl">Operator invite</div><span class="lef-invite-code">' + escHtml(opCode) + '</span><button class="lef-invite-regen" onclick="orgRegenCode(\'' + l.id + '\',\'employee\')">&#8635; Regenerate</button></div>'
+        + '</div>'
+        + '<div class="lef-sec-lbl">Team (' + locUsers.length + ' member' + (locUsers.length !== 1 ? 's' : '') + ')</div>'
+        + '<div class="lef-team-box">' + teamHtml + '</div>'
+        + '<div style="display:flex;align-items:center;justify-content:space-between;">'
+          + '<button onclick="if(confirm(\'Delete this club? This cannot be undone.\')) deleteLocation(\'' + l.id + '\')" style="font-family:\'DM Sans\',sans-serif;font-size:12px;padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--r5);cursor:pointer;">&#128465; Delete</button>'
+          + '<div style="display:flex;gap:8px;">'
+            + '<a href="app.html?location_id=' + l.id + '&admin=1&from=org" style="font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:700;padding:6px 14px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);text-decoration:none;cursor:pointer;">&#8594; Manage Club</a>'
+            + '<button id="lef-save-' + l.id + '" onclick="confirmSaveLocDetails(\'' + l.id + '\',this)" style="font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:700;padding:6px 14px;border-radius:6px;border:none;background:var(--b7);color:white;cursor:pointer;">Save Changes</button>'
+          + '</div>'
+        + '</div>'
+        + '<div id="lef-msg-' + l.id + '" style="font-size:12px;margin-top:6px;display:none;"></div>'
+      + '</div>'
+    + '</div>'
+  + '</div>';
+}
 function renderOrgs() {
   const el = document.getElementById('orgs-list');
   const visible = allOrgs.filter(o => o.status !== 'deleted');
@@ -620,52 +822,9 @@ function renderOrgs() {
       ? '<span class="badge badge-billing-off">Billing Off</span>' : '';
 
     // Locations sub-list
+    const d7 = orgDate7(), d30 = orgDate30();
     const locsHtml = locs.length
-      ? locs.map(l => {
-          const ownerEmail = l.settings?.ownerEmail || '';
-          return `
-          <div class="org-loc-row" id="locrow-${l.id}">
-            <div class="org-loc-summary" onclick="toggleLocEdit('${l.id}')" style="flex:1;cursor:pointer;display:flex;align-items:center;gap:12px;">
-              <div style="flex:1;">
-                <div class="org-loc-name">${escHtml(l.name)}</div>
-                <div class="org-loc-addr">${escHtml(l.address || '')}</div>
-              </div>
-              <span style="font-size:11px;color:var(--text-faint);flex-shrink:0;transition:transform 0.2s;" id="locchev-${l.id}">&#9660;</span>
-            </div>
-            <div class="org-loc-edit" id="locedit-${l.id}" style="display:none;width:100%;margin-top:12px;border-top:1px solid var(--border-light);padding-top:12px;">
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
-                <div>
-                  <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);display:block;margin-bottom:4px;">Club Name</label>
-                  <input id="lef-name-${l.id}" type="text" value="${escHtml(l.name)}" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 10px;border:1px solid var(--border);border-radius:6px;color:var(--text);background:var(--bg);"/>
-                </div>
-                <div>
-                  <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);display:block;margin-bottom:4px;">Address</label>
-                  <input id="lef-addr-${l.id}" type="text" value="${escHtml(l.address||'')}" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 10px;border:1px solid var(--border);border-radius:6px;color:var(--text);background:var(--bg);"/>
-                </div>
-                <div>
-                  <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);display:block;margin-bottom:4px;">Owner Name</label>
-                  <input id="lef-owner-${l.id}" type="text" value="${escHtml(l.owner_name||'')}" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 10px;border:1px solid var(--border);border-radius:6px;color:var(--text);background:var(--bg);"/>
-                </div>
-                <div>
-                  <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);display:block;margin-bottom:4px;">Owner Phone</label>
-                  <input id="lef-phone-${l.id}" type="text" value="${escHtml(l.owner_phone||'')}" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 10px;border:1px solid var(--border);border-radius:6px;color:var(--text);background:var(--bg);"/>
-                </div>
-                <div style="grid-column:1/-1;">
-                  <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);display:block;margin-bottom:4px;">Owner Email</label>
-                  <input id="lef-email-${l.id}" type="email" value="${escHtml(ownerEmail)}" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 10px;border:1px solid var(--border);border-radius:6px;color:var(--text);background:var(--bg);"/>
-                </div>
-              </div>
-              <div style="display:flex;align-items:center;justify-content:space-between;">
-                <div style="font-size:11px;color:var(--text-faint);">Invite code: <strong style="font-family:monospace;letter-spacing:1px;">${escHtml(l.invite_code||'—')}</strong></div>
-                <div style="display:flex;gap:8px;align-items:center;">
-                  <a href="app.html?location_id=${l.id}&admin=1&from=org" class="btn-sm" style="font-size:12px;background:var(--b7);color:white;border-color:var(--b7);font-weight:700;">Manage Club</a>
-                  <button id="lef-save-${l.id}" onclick="confirmSaveLocDetails('${l.id}',this)" class="btn-sm" style="background:var(--b7);color:white;border-color:var(--b7);font-weight:700;">Save Changes</button>
-                </div>
-              </div>
-              <div id="lef-msg-${l.id}" style="font-size:12px;margin-top:6px;display:none;"></div>
-            </div>
-          </div>`;
-        }).join('')
+      ? locs.map(l => orgBuildLocCard(l, d7, d30)).join('')
       : '<div style="font-size:12px;color:var(--text-faint);">No locations yet.</div>';
 
     // Dates

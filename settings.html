@@ -435,7 +435,28 @@ function togglePwVis(id,btn){var el=document.getElementById(id);if(!el)return;va
   <div class="section">
     <div class="section-label">All Users</div>
     <div class="card" id="admins-card">
-      <div style="padding:16px;text-align:center;color:var(--text-faint);font-size:13px;">Loading…</div>
+      <div style="display:flex;gap:8px;padding:10px 12px;border-bottom:1px solid var(--border-light);background:var(--bg);flex-wrap:wrap;" id="users-filter-bar">
+        <input type="text" id="users-search" placeholder="Search name or email…" oninput="renderAdmins()" style="flex:1;min-width:140px;font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;"/>
+        <select id="users-filter-role" onchange="renderAdmins()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;">
+          <option value="">All roles</option>
+          <option value="owner">Owner</option>
+          <option value="employee">Operator</option>
+          <option value="admin">Admin</option>
+        </select>
+        <select id="users-filter-loc" onchange="renderAdmins()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;">
+          <option value="">All locations</option>
+        </select>
+        <select id="users-sort" onchange="renderAdmins()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;">
+          <option value="name">Sort: name A–Z</option>
+          <option value="name-desc">Sort: name Z–A</option>
+          <option value="role">Sort: role</option>
+          <option value="location">Sort: location</option>
+        </select>
+      </div>
+      <div id="admins-list-inner">
+        <div style="padding:16px;text-align:center;color:var(--text-faint);font-size:13px;">Loading…</div>
+      </div>
+      <div id="users-count-footer" style="padding:6px 12px;font-size:11px;color:var(--text-faint);border-top:1px solid var(--border-light);display:none;"></div>
     </div>
   </div>
 
@@ -1070,20 +1091,59 @@ function renderCodes() {
 
 // ── RENDER ALL USERS ──
 function renderAdmins() {
-  const el = document.getElementById('admins-card');
+  const el = document.getElementById('admins-list-inner');
+  const footer = document.getElementById('users-count-footer');
+  if (!el) return;
   if (!allAdmins.length) {
     el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-faint);font-size:14px;">No users yet.</div>';
     return;
   }
+  // Populate location filter dropdown once
+  const locSel = document.getElementById('users-filter-loc');
+  if (locSel && locSel.options.length === 1) {
+    allLocations.forEach(l => {
+      const opt = document.createElement('option');
+      opt.value = l.id;
+      opt.textContent = l.name;
+      locSel.appendChild(opt);
+    });
+  }
+  const searchQ = (document.getElementById('users-search')?.value||'').toLowerCase().trim();
+  const filterRole = document.getElementById('users-filter-role')?.value||'';
+  const filterLoc = document.getElementById('users-filter-loc')?.value||'';
+  const sortBy = document.getElementById('users-sort')?.value||'name';
+  let users = [...allAdmins];
+  // Filter
+  if (searchQ) users = users.filter(u => {
+    const hay = [u.first_name,u.last_name,u.display_name,u.email].filter(Boolean).join(' ').toLowerCase();
+    return hay.includes(searchQ);
+  });
+  if (filterRole) users = users.filter(u => u.role === filterRole);
+  if (filterLoc) users = users.filter(u => u.location_id === filterLoc);
+  // Sort
+  users.sort((a,b) => {
+    const na = [a.first_name,a.last_name].filter(Boolean).join(' ')||a.display_name||a.email||'';
+    const nb = [b.first_name,b.last_name].filter(Boolean).join(' ')||b.display_name||b.email||'';
+    if (sortBy === 'name') return na.localeCompare(nb);
+    if (sortBy === 'name-desc') return nb.localeCompare(na);
+    if (sortBy === 'role') return (a.role||'').localeCompare(b.role||'');
+    if (sortBy === 'location') {
+      const la = allLocations.find(l=>l.id===a.location_id)?.name||'';
+      const lb = allLocations.find(l=>l.id===b.location_id)?.name||'';
+      return la.localeCompare(lb);
+    }
+    return 0;
+  });
+  if (footer) { footer.style.display = 'block'; footer.textContent = users.length + ' user' + (users.length!==1?'s':'') + (searchQ||filterRole||filterLoc ? ' (filtered)' : ''); }
   const roleColors = {admin:'var(--b7)',owner:'var(--g5)',employee:'var(--text-muted)'};
   const roleBg     = {admin:'var(--b1)',owner:'var(--g0)',employee:'var(--b0)'};
-  el.innerHTML = allAdmins.map(u => {
+  el.innerHTML = users.map(u => {
     const letter   = (u.first_name||u.display_name||u.email||'?')[0].toUpperCase();
     const fullName = [u.first_name,u.last_name].filter(Boolean).join(' ') || u.display_name || '—';
     const dispTag  = u.display_name ? `<span style="font-size:11px;color:var(--text-faint);margin-left:5px;">(${escHtml(u.display_name)})</span>` : '';
     const loc      = allLocations.find(l=>l.id===u.location_id);
     const locTag   = loc
-      ? `<div style="font-size:12px;color:var(--b6);margin-top:2px;font-weight:500;">📍 ${escHtml(loc.name)}</div>`
+      ? `<div style="font-size:12px;color:var(--b6);margin-top:2px;font-weight:500;">${escHtml(loc.name)}</div>`
       : u.role==='admin' ? `<div style="font-size:11px;color:var(--text-faint);margin-top:2px;">All locations</div>`
       : `<div style="font-size:11px;color:var(--text-faint);margin-top:2px;">No location assigned</div>`;
     const avatarInner = u.avatar_url

@@ -1557,7 +1557,7 @@ function renderLocations(){
     const daysSinceLast = lastDate ? Math.floor((new Date()-new Date(lastDate+'T12:00:00'))/(1000*60*60*24)) : 999;
 
     const statusBadge = !activated
-      ? '<span class="tbl-badge setup">Pending setup</span>'
+      ? '<span class="tbl-badge setup">Pending</span>'
       : '<span class="tbl-badge active">Active</span>';
 
     const lastEntryHtml = !lastFmt
