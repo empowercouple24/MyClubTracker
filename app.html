@@ -3157,7 +3157,7 @@ function renderOpsEarningsPreview(){
   const warnText = document.getElementById('ops-dup-warning-text');
   const isDup = op1 && op2 && op1 === op2;
   if (warnBanner) warnBanner.style.display = isDup ? 'flex' : 'none';
-  if (warnText && isDup) warnText.textContent = op1.split(' ')[0] + ' is selected twice. You can still save — you'll be asked to add a note explaining why.';
+  if (warnText && isDup) warnText.textContent = op1.split(' ')[0] + ' is selected twice. You can still save — you will be asked to add a note explaining why.';
   // Amber highlight on both selects
   const sel1 = document.getElementById('f-op1');
   const sel2 = document.getElementById('f-op2');
