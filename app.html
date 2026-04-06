@@ -637,18 +637,33 @@ if('serviceWorker' in navigator){
     .cal-m-day.range-start.range-end{border-radius:5px;}
     .cal-m-day.faded{color:var(--text-faint);}
     .cal-m-day.disabled{opacity:0.25;cursor:default;pointer-events:none;}
-    /* Payment Register enhancements */
+    /* Payment Register — spreadsheet table */
     .preg-filter-row{display:flex;gap:5px;flex-wrap:wrap;padding:8px 12px;border-bottom:1px solid var(--border-light);}
     .preg-fchip{font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:var(--b0);color:var(--text-muted);cursor:pointer;white-space:nowrap;}
     .preg-fchip:hover{background:var(--b1);}
     .preg-fchip.active{background:var(--b7);color:white;border-color:var(--b7);}
-    .preg-count-row{display:flex;align-items:center;justify-content:space-between;padding:5px 12px;border-bottom:1px solid var(--border-light);background:var(--b0);}
-    .preg-count-label{font-size:11px;color:var(--text-faint);}
-    .preg-count-btns{display:flex;gap:3px;}
-    .preg-count-btn{font-size:11px;font-weight:600;padding:3px 8px;border-radius:5px;border:1px solid var(--border);background:var(--surface);cursor:pointer;color:var(--text-muted);}
-    .preg-count-btn.active{background:var(--b7);color:white;border-color:var(--b7);}
-    .preg-scroll-box{max-height:340px;overflow-y:auto;}
+    .preg-scroll-box{overflow-x:auto;max-height:420px;overflow-y:auto;}
     .preg-footer-bar{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;border-top:1px solid var(--border-light);background:var(--b0);}
+    /* Table styles */
+    .preg-tbl{width:100%;border-collapse:collapse;min-width:560px;font-size:12px;}
+    .preg-tbl thead{position:sticky;top:0;z-index:2;}
+    .preg-tbl th{padding:7px 10px;border-bottom:1px solid var(--border);text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);background:var(--b0);white-space:nowrap;cursor:pointer;user-select:none;}
+    .preg-tbl th:hover{color:var(--text-muted);}
+    .preg-tbl th.sorted{color:var(--b6);}
+    .preg-sort-arr{opacity:0.35;margin-left:2px;font-size:9px;}
+    .preg-sort-arr.on{opacity:1;color:var(--b6);}
+    .preg-tbl td{padding:7px 10px;border-bottom:1px solid var(--border-light);vertical-align:middle;color:var(--text);white-space:nowrap;}
+    .preg-tbl tr:hover td{background:var(--b0);cursor:pointer;}
+    .preg-tbl tr:last-child td{border-bottom:none;}
+    .preg-td-payee{font-weight:600;color:var(--text);}
+    .preg-td-amt{font-weight:700;font-family:'Outfit',sans-serif;color:var(--text);text-align:right;}
+    .preg-td-date{color:var(--text-muted);}
+    .preg-td-check{font-family:monospace;color:var(--text-muted);}
+    .preg-td-period{color:var(--text-muted);}
+    .preg-td-acct{font-size:11px;color:var(--text-faint);}
+    .preg-td-notes{font-size:11px;color:var(--text-faint);max-width:140px;overflow:hidden;text-overflow:ellipsis;}
+    .preg-tbl tfoot td{padding:7px 10px;font-size:11px;font-weight:700;color:var(--text-muted);background:var(--b0);border-top:1px solid var(--border);}
+    .preg-tbl tfoot .preg-td-amt{color:var(--text);}
     .preg-footer-total{font-size:11px;color:var(--text-faint);}
 
     /* ── HISTORY SUMMARY VIEW ── */
@@ -1404,16 +1419,7 @@ if('serviceWorker' in navigator){
         <div class="preg-fchip" onclick="setPregFilter('thisyear',this)">This Year</div>
         <div class="preg-fchip" onclick="setPregFilter('lastyear',this)">Last Year</div>
       </div>
-      <!-- Count preference -->
-      <div class="preg-count-row">
-        <span class="preg-count-label">Default visible</span>
-        <div class="preg-count-btns">
-          <div class="preg-count-btn" onclick="setPregCount(6,this)">6</div>
-          <div class="preg-count-btn active" onclick="setPregCount(12,this)">12</div>
-          <div class="preg-count-btn" onclick="setPregCount(18,this)">18</div>
-        </div>
-      </div>
-      <!-- Scrollable list -->
+      <!-- Spreadsheet table -->
       <div class="preg-scroll-box" id="preg-scroll-box">
         <div id="preg-list"></div>
       </div>
@@ -2809,7 +2815,7 @@ function setNavLocation(name, address, owner){
 function goBackToAdmin(){
   const from=new URLSearchParams(window.location.search).get('from');
   if(from==='org') window.location.href='org-admin.html';
-  else window.location.href='admin.html';
+  else window.location.href='locations.html';
 }
 function switchTab(name){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -4955,10 +4961,12 @@ function getPayeeList() {
   return all;
 }
 
+let _pregSortCol = 'date', _pregSortDir = -1; // newest first by default
+
 function renderPaymentRegister() {
   const el = document.getElementById('preg-list');
   if (!el) return;
-  const allLog = (SETTINGS.paymentLog || []).slice().sort((a,b) => b.date.localeCompare(a.date));
+  const allLog = (SETTINGS.paymentLog || []).slice();
 
   // Populate payee lookup dropdown
   const lookupSel = document.getElementById('preg-lookup-payee');
@@ -4973,89 +4981,89 @@ function renderPaymentRegister() {
   if (lt && !lt.value) lt.value = now.getFullYear() + '-12-31';
 
   if (!allLog.length) {
-    el.innerHTML = '<div class="preg-empty">No payments logged yet. Tap + Add Payment to get started.</div>';
-    document.getElementById('preg-footer-total').textContent = '';
+    el.innerHTML = '<div class="preg-empty" style="padding:24px;text-align:center;color:var(--text-faint);">No payments logged yet. Tap + Add Payment to get started.</div>';
+    const ft = document.getElementById('preg-footer-total'); if(ft) ft.textContent='';
     return;
   }
 
   const filtered = filterPregLog(allLog);
-  const isFiltered = _pregFilter !== 'all';
-  const scrollBox = document.getElementById('preg-scroll-box');
   const footerTotal = document.getElementById('preg-footer-total');
 
-  function rowHtml(e) {
-    const methodLabel = {check:'Check',venmo:'Venmo',cash:'Cash',direct_deposit:'Direct Deposit',other:'Other'}[e.method]||e.method||'';
-    const checkStr = e.method === 'check' && e.checkNum ? ` #${e.checkNum}` : '';
-    const noteStr = e.notes ? ` · ${e.notes}` : '';
-    const dateStr = e.date ? new Date(e.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
-    return `<div class="preg-row" onclick="openPregSheet('${e.id}')">
-      <div>
-        <div class="preg-payee">${escHtml(e.payee||'—')}</div>
-        <div class="preg-meta">
-          ${dateStr ? `<span>${dateStr}</span>` : ''}
-          ${methodLabel ? `<span>${methodLabel}${checkStr}</span>` : ''}
-          ${noteStr ? `<span style="color:var(--text-faint);">${escHtml(e.notes)}</span>` : ''}
-        </div>
-      </div>
-      <div class="preg-right">
-        <div class="preg-amt">${fmt$(parseFloat(e.amount)||0)}</div>
-        ${e.account ? `<span class="preg-acct">${escHtml(e.account)}</span>` : ''}
-      </div>
-    </div>`;
+  // Sort
+  const sorted = filtered.slice().sort((a,b) => {
+    let av, bv;
+    if (_pregSortCol === 'date')    { av=a.date||''; bv=b.date||''; return av.localeCompare(bv)*_pregSortDir; }
+    if (_pregSortCol === 'payee')   { av=a.payee||''; bv=b.payee||''; return av.localeCompare(bv)*_pregSortDir; }
+    if (_pregSortCol === 'amount')  { av=parseFloat(a.amount)||0; bv=parseFloat(b.amount)||0; return (av-bv)*_pregSortDir; }
+    if (_pregSortCol === 'check')   { av=parseInt(a.checkNum)||0; bv=parseInt(b.checkNum)||0; return (av-bv)*_pregSortDir; }
+    if (_pregSortCol === 'period')  { av=a.periodFrom||''; bv=b.periodFrom||''; return av.localeCompare(bv)*_pregSortDir; }
+    if (_pregSortCol === 'account') { av=a.account||''; bv=b.account||''; return av.localeCompare(bv)*_pregSortDir; }
+    return 0;
+  });
+
+  function sortArr(col) {
+    const on = _pregSortCol === col;
+    const dir = on ? (_pregSortDir===1?'&#8593;':'&#8595;') : '&#8597;';
+    return `<span class="preg-sort-arr${on?' on':''}">${dir}</span>`;
+  }
+  function thClick(col) { return `onclick="pregSortBy('${col}')" class="${_pregSortCol===col?'sorted':''}" `; }
+
+  function fmtDateShort(str) {
+    if (!str) return '—';
+    const d = new Date(str+'T12:00:00');
+    return (d.getMonth()+1)+'/'+d.getDate()+'/'+String(d.getFullYear()).slice(2);
+  }
+  function fmtPeriod(from, to) {
+    if (!from && !to) return '—';
+    const f = from ? fmtDateShort(from) : '';
+    const t = to   ? fmtDateShort(to)   : '';
+    if (f && t) return f+' – '+t;
+    return f || t;
   }
 
-  if (isFiltered) {
-    // Show all filtered results in scrollable box
-    if (scrollBox) scrollBox.style.maxHeight = '340px';
-    const total = filtered.reduce((s,e) => s+(parseFloat(e.amount)||0), 0);
-    el.innerHTML = filtered.length
-      ? filtered.map(rowHtml).join('')
-      : '<div class="preg-empty">No payments in this period.</div>';
-    if (footerTotal) footerTotal.textContent = filtered.length + ' entries · ' + fmt$(total) + ' total';
-  } else {
-    // Default: show _pregCount most recent, with show more
-    if (scrollBox) scrollBox.style.maxHeight = '';
-    const showing = allLog.slice(0, _pregCount);
-    const rest = allLog.length - _pregCount;
-    let html = showing.map(rowHtml).join('');
-    if (rest > 0) {
-      html += `<div class="preg-show-more" onclick="expandPregRegister()">Show ${rest} more ↓</div>`;
-    }
-    el.innerHTML = html;
-    if (footerTotal) footerTotal.textContent = allLog.length + ' total entries';
-  }
+  const total = sorted.reduce((s,e) => s+(parseFloat(e.amount)||0), 0);
+
+  const thead = `<thead><tr>
+    <th ${thClick('payee')}style="min-width:110px;">Payee${sortArr('payee')}</th>
+    <th ${thClick('amount')}style="text-align:right;min-width:80px;">Amount${sortArr('amount')}</th>
+    <th ${thClick('date')}style="min-width:80px;">Date${sortArr('date')}</th>
+    <th ${thClick('check')}style="min-width:80px;">Check #${sortArr('check')}</th>
+    <th ${thClick('period')}style="min-width:110px;">Pay Period${sortArr('period')}</th>
+    <th ${thClick('account')}style="min-width:110px;">Account${sortArr('account')}</th>
+  </tr></thead>`;
+
+  const rows = sorted.map(e => {
+    const checkDisp = e.checkNum ? '#'+e.checkNum : (e.method&&e.method!=='check'?({venmo:'Venmo',cash:'Cash',direct_deposit:'Dir. Dep.',other:'Other'}[e.method]||e.method):'—');
+    return `<tr onclick="openPregSheet('${e.id}')">
+      <td class="preg-td-payee">${escHtml(e.payee||'—')}</td>
+      <td class="preg-td-amt">${fmt$(parseFloat(e.amount)||0)}</td>
+      <td class="preg-td-date">${fmtDateShort(e.date)}</td>
+      <td class="preg-td-check">${escHtml(checkDisp)}</td>
+      <td class="preg-td-period">${fmtPeriod(e.periodFrom, e.periodTo)}</td>
+      <td class="preg-td-acct">${escHtml(e.account||'—')}</td>
+    </tr>`;
+  }).join('');
+
+  const tfoot = `<tfoot><tr>
+    <td style="font-weight:700;color:var(--text);">${sorted.length} entries</td>
+    <td class="preg-td-amt" style="font-weight:700;">${fmt$(total)}</td>
+    <td colspan="4"></td>
+  </tr></tfoot>`;
+
+  el.innerHTML = sorted.length
+    ? `<table class="preg-tbl">${thead}<tbody>${rows}</tbody>${tfoot}</table>`
+    : '<div class="preg-empty" style="padding:24px;text-align:center;color:var(--text-faint);">No payments in this period.</div>';
+
+  if (footerTotal) footerTotal.textContent = (_pregFilter!=='all') ? 'Filtered: '+sorted.length+' of '+allLog.length+' entries' : '';
 }
 
-function expandPregRegister() {
-  const el = document.getElementById('preg-list');
-  const scrollBox = document.getElementById('preg-scroll-box');
-  if (!el) return;
-  const log = filterPregLog((SETTINGS.paymentLog || []).slice().sort((a,b) => b.date.localeCompare(a.date)));
-  if (scrollBox) scrollBox.style.maxHeight = '340px';
-  function rowHtml(e) {
-    const methodLabel = {check:'Check',venmo:'Venmo',cash:'Cash',direct_deposit:'Direct Deposit',other:'Other'}[e.method]||e.method||'';
-    const checkStr = e.method === 'check' && e.checkNum ? ` #${e.checkNum}` : '';
-    const dateStr = e.date ? new Date(e.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
-    return `<div class="preg-row" onclick="openPregSheet('${e.id}')">
-      <div>
-        <div class="preg-payee">${escHtml(e.payee||'—')}</div>
-        <div class="preg-meta">
-          ${dateStr ? `<span>${dateStr}</span>` : ''}
-          ${methodLabel ? `<span>${methodLabel}${checkStr}</span>` : ''}
-          ${e.notes ? `<span style="color:var(--text-faint);">${escHtml(e.notes)}</span>` : ''}
-        </div>
-      </div>
-      <div class="preg-right">
-        <div class="preg-amt">${fmt$(parseFloat(e.amount)||0)}</div>
-        ${e.account ? `<span class="preg-acct">${escHtml(e.account)}</span>` : ''}
-      </div>
-    </div>`;
-  }
-  const total = log.reduce((s,e)=>s+(parseFloat(e.amount)||0),0);
-  el.innerHTML = log.map(rowHtml).join('') + `<div class="preg-show-more" onclick="renderPaymentRegister()">Show less ↑</div>`;
-  const footerTotal = document.getElementById('preg-footer-total');
-  if (footerTotal) footerTotal.textContent = log.length + ' entries · ' + fmt$(total) + ' total';
+function pregSortBy(col) {
+  if (_pregSortCol === col) _pregSortDir *= -1;
+  else { _pregSortCol = col; _pregSortDir = col==='date' ? -1 : 1; }
+  renderPaymentRegister();
 }
+
+function expandPregRegister() { renderPaymentRegister(); } // no longer needed separately
 
 function fmtShortDate(str) {
   if (!str) return '';
@@ -5711,7 +5719,6 @@ function applyCalPicker() {
 
 // ── PAYMENT REGISTER FILTER ───────────────────────────────────────────────────
 let _pregFilter = 'all';
-let _pregCount = 12;
 
 function setPregFilter(filter, btn) {
   _pregFilter = filter;
@@ -5732,12 +5739,6 @@ function clearPregFilter() {
   renderPaymentRegister();
 }
 
-function setPregCount(n, btn) {
-  _pregCount = n;
-  document.querySelectorAll('.preg-count-btn').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  renderPaymentRegister();
-}
 
 function filterPregLog(log) {
   const now = new Date();
