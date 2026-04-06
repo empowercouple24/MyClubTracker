@@ -5546,10 +5546,9 @@ function autoSizeInput(el){
     try {
       var res = await sb.from('users').select('role,location_id').eq('id', CURRENT_SESSION.user.id).single();
       var u = res.data;
-      // No user row = session expired or network issue, not deactivation — just redirect quietly
+      // No user row — could be a Supabase hiccup, skip silently rather than logging out
       if (!u) {
-        await sb.auth.signOut();
-        window.location.href = 'index.html';
+        console.warn('checkDeactivation: no user row returned, skipping.');
         return;
       }
       // Only show deactivated screen if the account is explicitly marked pending
@@ -5571,12 +5570,12 @@ function autoSizeInput(el){
         return;
       }
     } catch(e) {
-      // Network/auth error — session likely expired, redirect quietly
-      await sb.auth.signOut();
-      window.location.href = 'index.html';
+      // Network/transient error — do NOT sign out, just skip this check silently.
+      // Only redirect on confirmed auth issues, not connectivity blips.
+      console.warn('checkDeactivation skipped (network/auth error):', e?.message);
     }
   }
-  setTimeout(function() { checkDeactivation(); setInterval(checkDeactivation, 30000); }, 10000);
+  setTimeout(function() { checkDeactivation(); setInterval(checkDeactivation, 120000); }, 15000);
 })();
 
 // -- IDLE AUTO-LOGOUT (30 min idle, 3 min warning) --
