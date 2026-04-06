@@ -570,6 +570,7 @@ async function init() {
 async function loadOrgs() {
   const { data: orgs } = await sb.from('organizations')
     .select('*')
+    .neq('status','deleted')
     .order('created_at', { ascending: false });
   allOrgs = orgs || [];
 

@@ -1299,7 +1299,7 @@ async function init(){
   if(locsErr){console.error('Failed to load locations:',locsErr.message);}
   allLocations = locs || [];
   // Load orgs for tree view
-  const{data:orgsData}=await sb.from('organizations').select('id,name,status,monthly_rate').order('name');
+  const{data:orgsData}=await sb.from('organizations').select('id,name,status,monthly_rate').neq('status','deleted').order('name');
   allOrgsMap={};
   (orgsData||[]).forEach(o=>allOrgsMap[o.id]=o);
   const since=dateStr(daysAgo(32));
