@@ -2809,7 +2809,7 @@ function setNavLocation(name, address, owner){
 function goBackToAdmin(){
   const from=new URLSearchParams(window.location.search).get('from');
   if(from==='org') window.location.href='org-admin.html';
-  else window.location.href='locations.html';
+  else window.location.href='admin.html';
 }
 function switchTab(name){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));

@@ -360,7 +360,7 @@ if('serviceWorker' in navigator){
   <div class="nav-menu-wrap">
     <button class="nav-menu-btn" onclick="toggleNavMenu()"><div class="nav-avatar" id="nav-avatar"><span></span><img alt=""/></div><span id="nav-display-name" style="font-size:13px;font-weight:600;color:var(--text-muted);margin-right:4px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>ADMIN <span style="font-size:10px;">▾</span></button>
     <div class="nav-drop" id="nav-dropdown">
-      <button class="nav-drop-item" onclick="window.location.href='locations.html';closeNavMenu()">🏪 Locations</button>
+      <button class="nav-drop-item" onclick="window.location.href='organizations.html';closeNavMenu()">🏢 Organizations</button>
       <button class="nav-drop-item" onclick="window.location.href='settings.html';closeNavMenu()">⚙ Settings</button>
       <button class="nav-drop-item" onclick="window.location.href='organizations.html';closeNavMenu()">🏢 Organizations</button>
       <div class="nav-drop-divider"></div>
@@ -1761,7 +1761,7 @@ function renderAdminUserSection(locId){
           ${u.display_name?`<div style="font-size:12px;color:var(--text-faint);">${escHtml(u.display_name)}</div>`:''}
           <div style="font-size:12px;color:var(--text-faint);">${escHtml(u.email)}</div>
         </div>
-        <button onclick="window.location.href='locations.html'" style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;background:linear-gradient(135deg,var(--b7),var(--b5));color:white;border:none;border-radius:8px;padding:7px 14px;cursor:pointer;white-space:nowrap;flex-shrink:0;">Manage Team</button>
+        <button onclick="window.location.href='organizations.html'" style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;background:linear-gradient(135deg,var(--b7),var(--b5));color:white;border:none;border-radius:8px;padding:7px 14px;cursor:pointer;white-space:nowrap;flex-shrink:0;">Manage Team</button>
       </div>
     </div>`;
   }).join('');

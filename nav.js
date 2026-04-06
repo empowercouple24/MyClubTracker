@@ -1,7 +1,7 @@
 /* ============================================================
    nav.js — Shared navigation behavior
    MyClubTracker
-   Used by: admin.html, locations.html, settings.html
+   Used by: admin.html, organizations.html, settings.html
 
    Provides:
      - toggleNavMenu() / closeNavMenu()
