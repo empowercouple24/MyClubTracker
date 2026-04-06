@@ -747,33 +747,51 @@ if('serviceWorker' in navigator){
 
     /* ── MULTI-SELECT ALLOCATION ── */
     .msel-panel{background:#2c4254;border-radius:var(--radius);padding:12px 14px;margin-top:10px;}
-    .msel-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.5);margin-bottom:8px;}
-    .msel-pills{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;min-height:26px;}
-    .msel-pill{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.12);border-radius:20px;padding:3px 8px 3px 10px;font-size:11px;font-weight:600;color:white;}
-    .msel-pill-x{font-size:13px;color:rgba(255,255,255,0.45);cursor:pointer;line-height:1;padding:0 2px;}
-    .msel-pill-x:hover{color:white;}
-    .msel-empty{font-size:12px;color:rgba(255,255,255,0.3);font-style:italic;padding:2px 0;}
-    .msel-buckets{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
-    .msel-chip{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;border:0.5px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.45);background:rgba(255,255,255,0.05);font-size:11px;font-weight:600;cursor:pointer;transition:all 0.12s;user-select:none;}
-    .msel-chip.on{background:rgba(255,255,255,0.18);color:white;border-color:rgba(255,255,255,0.45);}
-    .msel-chip-box{width:12px;height:12px;border-radius:3px;border:1px solid rgba(255,255,255,0.3);flex-shrink:0;position:relative;}
+    .msel-hint{font-size:12px;color:rgba(255,255,255,0.4);font-style:italic;}
+    .msel-bwrap{display:none;}
+    /* chips */
+    .msel-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
+    .msel-chip{display:flex;align-items:center;gap:5px;padding:4px 11px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;user-select:none;transition:all 0.12s;}
+    .msel-chip.std{border:0.5px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.3);background:rgba(255,255,255,0.04);}
+    .msel-chip.std.on{background:rgba(255,255,255,0.18);color:white;border-color:rgba(255,255,255,0.4);}
+    .msel-chip.cash{border:0.5px solid rgba(133,166,186,0.25);color:rgba(133,166,186,0.4);background:rgba(133,166,186,0.06);}
+    .msel-chip.cash.on{background:rgba(133,166,186,0.22);color:#c5dcea;border-color:#85a6ba;}
+    .msel-chip-box{width:11px;height:11px;border-radius:2px;border:1px solid rgba(255,255,255,0.2);flex-shrink:0;position:relative;}
+    .msel-chip.cash .msel-chip-box{border-color:rgba(133,166,186,0.35);}
     .msel-chip.on .msel-chip-box{background:white;border-color:white;}
-    .msel-chip.on .msel-chip-box::after{content:'';position:absolute;left:2px;top:0px;width:5px;height:8px;border:1.5px solid #2c4254;border-top:none;border-left:none;transform:rotate(45deg);}
-    .msel-breakdown{background:rgba(0,0,0,0.18);border-radius:8px;margin-bottom:10px;overflow:hidden;}
-    .msel-brow{display:flex;align-items:flex-start;justify-content:space-between;padding:7px 12px;border-bottom:0.5px solid rgba(255,255,255,0.06);}
-    .msel-brow:last-child{border-bottom:none;}
-    .msel-brow.total-row{background:rgba(255,255,255,0.07);padding:8px 12px;}
-    .msel-brow-name{font-size:12px;color:rgba(255,255,255,0.65);}
-    .msel-brow.total-row .msel-brow-name{font-size:11px;font-weight:700;color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:0.4px;}
-    .msel-brow-amt{font-size:12px;font-weight:700;color:white;flex-shrink:0;padding-left:8px;}
-    .msel-brow.total-row .msel-brow-amt{font-size:15px;font-weight:800;}
-    .msel-brow-days{font-size:10px;color:rgba(255,255,255,0.3);margin-top:2px;line-height:1.4;}
-    .msel-actions{display:flex;gap:8px;}
+    .msel-chip.cash.on .msel-chip-box{background:#85a6ba;border-color:#85a6ba;}
+    .msel-chip.on .msel-chip-box::after,.msel-chip.cash.on .msel-chip-box::after{content:'';position:absolute;left:2px;top:-1px;width:5px;height:8px;border:1.5px solid #2c4254;border-top:none;border-left:none;transform:rotate(45deg);}
+    /* table */
+    .msel-tbl{background:rgba(0,0,0,0.18);border-radius:8px;margin-bottom:10px;overflow:hidden;}
+    .msel-hdr{padding:5px 11px 4px;display:flex;border-bottom:0.5px solid rgba(255,255,255,0.1);}
+    .msel-hdr-date{width:46px;flex-shrink:0;}
+    .msel-hdr-cells{display:flex;flex:1;}
+    .msel-hdr-cell{flex:1;text-align:right;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;transition:color 0.15s;}
+    .msel-hdr-cell.off{color:rgba(255,255,255,0.2);}
+    .msel-hdr-cell.on-std{color:rgba(255,255,255,0.65);}
+    .msel-hdr-cell.on-cash{color:#85a6ba;}
+    .msel-hdr-total{min-width:58px;text-align:right;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:rgba(255,255,255,0.3);}
+    .msel-row{padding:7px 11px;border-bottom:0.5px solid rgba(255,255,255,0.06);display:flex;align-items:center;}
+    .msel-row:last-child{border-bottom:none;}
+    .msel-row.tot{background:rgba(255,255,255,0.07);}
+    .msel-row-date{font-size:12px;font-weight:700;color:rgba(255,255,255,0.85);width:46px;flex-shrink:0;}
+    .msel-row.tot .msel-row-date{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.45);}
+    .msel-cells{display:flex;flex:1;}
+    .msel-cell{flex:1;text-align:right;font-size:11px;font-weight:600;transition:color 0.15s;}
+    .msel-cell.dim-std{color:rgba(255,255,255,0.18);font-weight:400;}
+    .msel-cell.dim-cash{color:rgba(133,166,186,0.2);font-weight:400;}
+    .msel-cell.lit-std{color:white;}
+    .msel-cell.lit-cash{color:#c5dcea;font-weight:700;}
+    .msel-row-total{min-width:58px;text-align:right;font-size:12px;font-weight:800;color:white;transition:color 0.15s;}
+    .msel-row-total.dim{color:rgba(255,255,255,0.18);font-weight:400;font-size:11px;}
+    .msel-row.tot .msel-row-total{font-size:14px;}
+    /* actions */
+    .msel-actions{display:flex;gap:8px;margin-top:10px;}
     .msel-cancel{font-size:12px;font-weight:600;padding:7px 14px;border-radius:7px;border:0.5px solid rgba(255,255,255,0.2);background:none;color:rgba(255,255,255,0.55);cursor:pointer;font-family:'DM Sans',sans-serif;}
     .msel-cancel:hover{color:white;border-color:rgba(255,255,255,0.4);}
-    .msel-run{font-size:12px;font-weight:700;padding:7px 18px;border-radius:7px;border:none;background:white;color:#2c4254;cursor:pointer;flex:1;font-family:'DM Sans',sans-serif;}
-    .msel-run:hover{background:#e8edf4;}
-    .msel-run:disabled{opacity:0.4;cursor:not-allowed;}
+    .msel-run{font-size:12px;font-weight:700;padding:7px 18px;border-radius:7px;border:none;background:white;color:#2c4254;cursor:pointer;flex:1;font-family:'DM Sans',sans-serif;opacity:0.35;transition:opacity 0.15s;}
+    .msel-run.ready{opacity:1;}
+    .msel-run:disabled{cursor:not-allowed;}
 
     /* ── BANK RECONCILIATION WIDGET ── */
 
@@ -1292,29 +1310,41 @@ if('serviceWorker' in navigator){
       </div>
     </div>
 
-    <!-- MULTI-SELECT ALLOCATION PANEL — sits above calendar in msel mode -->
-    <div id="hist-msel-section" style="display:none;margin-bottom:10px;">
+    <div id="history-cal-grid" style="width:100%;"></div>
+
+    <!-- MULTI-SELECT ALLOCATION PANEL — below calendar so calendar never shifts -->
+    <div id="hist-msel-section" style="display:none;">
       <div class="msel-panel" id="msel-bulk-panel">
-        <div class="msel-title" id="msel-panel-title">0 days selected</div>
-        <div class="msel-pills" id="msel-pills">
-          <span class="msel-empty">Tap days on the calendar below to select them</span>
-        </div>
-        <div class="msel-buckets">
-          <div class="msel-chip on" id="msel-chip-tax" onclick="toggleMselChip('tax')"><div class="msel-chip-box"></div>Taxes</div>
-          <div class="msel-chip on" id="msel-chip-overhead" onclick="toggleMselChip('overhead')"><div class="msel-chip-box"></div>Overhead</div>
-          <div class="msel-chip on" id="msel-chip-herbalife" onclick="toggleMselChip('herbalife')"><div class="msel-chip-box"></div>Herbalife</div>
-          <div class="msel-chip on" id="msel-chip-payouts" onclick="toggleMselChip('payouts')"><div class="msel-chip-box"></div>Payouts</div>
-          <div class="msel-chip on" id="msel-chip-cashdeposit" onclick="toggleMselChip('cashdeposit')"><div class="msel-chip-box"></div>Cash Deposit</div>
-        </div>
-        <div class="msel-breakdown" id="msel-breakdown"></div>
-        <div class="msel-actions">
-          <button class="msel-cancel" onclick="setHistView('cal')">Cancel</button>
-          <button class="msel-run" id="msel-run-btn" onclick="runMselMark()" disabled>&#10003; Mark complete</button>
+        <div class="msel-hint" id="msel-hint">Tap days on the calendar to make a selection</div>
+        <div class="msel-bwrap" id="msel-bwrap">
+          <div class="msel-chips">
+            <div class="msel-chip cash on" id="msel-chip-cashdeposit" onclick="toggleMselChip('cashdeposit',this)"><div class="msel-chip-box"></div>Cash Deposit</div>
+            <div class="msel-chip std" id="msel-chip-tax" onclick="toggleMselChip('tax',this)"><div class="msel-chip-box"></div>Taxes</div>
+            <div class="msel-chip std" id="msel-chip-overhead" onclick="toggleMselChip('overhead',this)"><div class="msel-chip-box"></div>Overhead</div>
+            <div class="msel-chip std" id="msel-chip-herbalife" onclick="toggleMselChip('herbalife',this)"><div class="msel-chip-box"></div>Herbalife</div>
+            <div class="msel-chip std" id="msel-chip-payouts" onclick="toggleMselChip('payouts',this)"><div class="msel-chip-box"></div>Payouts</div>
+          </div>
+          <div class="msel-tbl">
+            <div class="msel-hdr">
+              <div class="msel-hdr-date"></div>
+              <div class="msel-hdr-cells" id="msel-hdr-cells"></div>
+              <div class="msel-hdr-total">Total</div>
+            </div>
+            <div id="msel-day-rows"></div>
+            <div class="msel-row tot">
+              <div class="msel-row-date">Total</div>
+              <div class="msel-cells" id="msel-tot-cells"></div>
+              <div class="msel-row-total" id="msel-grand"></div>
+            </div>
+          </div>
+          <div class="msel-actions">
+            <button class="msel-cancel" onclick="setHistView('cal')">Cancel</button>
+            <button class="msel-run" id="msel-run-btn" onclick="runMselMark()">&#10003; Mark complete</button>
+          </div>
         </div>
       </div>
     </div>
 
-    <div id="history-cal-grid" style="width:100%;"></div>
     <!-- Summary view — hidden by default -->
     <div id="history-sum-view" style="display:none;">
       <div class="card" style="margin-bottom:10px;">
@@ -5650,86 +5680,87 @@ let _histProjDate = null;
 
 // ── MULTI-SELECT ALLOCATION ──────────────────────────────────────────────────
 
-let _mselDates = new Set();   // selected date strings
-let _mselBuckets = new Set(['tax','overhead','herbalife','payouts','cashdeposit']); // active bucket chips
+let _mselDates = new Set();
+// cashdeposit on by default, others off
+let _mselBuckets = new Set(['cashdeposit']);
 
+// Ordered: cash first, then allocation buckets
+const MSEL_BUCKET_KEYS = ['cashdeposit','tax','overhead','herbalife','payouts'];
 const MSEL_BUCKET_LABELS = {
-  cashdeposit: 'Cash Deposit',
+  cashdeposit: 'Cash Dep.',
   tax:         'Taxes',
   overhead:    'Overhead',
   herbalife:   'Herbalife',
   payouts:     'Payouts'
 };
-const MSEL_BUCKET_KEYS = ['tax','overhead','herbalife','payouts','cashdeposit'];
 
 function mselToggleDate(dateStr) {
   if (_mselDates.has(dateStr)) _mselDates.delete(dateStr);
   else _mselDates.add(dateStr);
   renderMselPanel();
-  renderHistCal(); // re-render so selection state reflects on cells
-}
-
-function mselRemoveDate(dateStr) {
-  _mselDates.delete(dateStr);
-  renderMselPanel();
   renderHistCal();
 }
 
-function toggleMselChip(key) {
+function toggleMselChip(key, el) {
   if (_mselBuckets.has(key)) _mselBuckets.delete(key);
   else _mselBuckets.add(key);
-  const chip = document.getElementById('msel-chip-' + key);
-  if (chip) chip.classList.toggle('on', _mselBuckets.has(key));
-  renderMselBreakdown();
+  if (el) el.classList.toggle('on', _mselBuckets.has(key));
+  renderMselTable();
+}
+
+function _mselCellClass(key) {
+  return _mselBuckets.has(key)
+    ? (key === 'cashdeposit' ? 'msel-cell lit-cash' : 'msel-cell lit-std')
+    : (key === 'cashdeposit' ? 'msel-cell dim-cash' : 'msel-cell dim-std');
+}
+
+function _mselHdrClass(key) {
+  if (!_mselBuckets.has(key)) return 'msel-hdr-cell off';
+  return key === 'cashdeposit' ? 'msel-hdr-cell on-cash' : 'msel-hdr-cell on-std';
 }
 
 function renderMselPanel() {
-  const pillsEl = document.getElementById('msel-pills');
-  const titleEl = document.getElementById('msel-panel-title');
-  const runBtn  = document.getElementById('msel-run-btn');
-  const count   = _mselDates.size;
+  const hint   = document.getElementById('msel-hint');
+  const bwrap  = document.getElementById('msel-bwrap');
+  const runBtn = document.getElementById('msel-run-btn');
+  const hasDays = _mselDates.size > 0;
 
-  if (titleEl) titleEl.textContent = count + ' day' + (count !== 1 ? 's' : '') + ' selected';
-
-  if (pillsEl) {
-    if (!count) {
-      pillsEl.innerHTML = '<span class="msel-empty">Tap days on the calendar above to select them</span>';
-    } else {
-      const sorted = [..._mselDates].sort();
-      pillsEl.innerHTML = sorted.map(d => {
-        const lbl = new Date(d + 'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
-        return `<div class="msel-pill">${lbl}<span class="msel-pill-x" onclick="mselRemoveDate('${d}')">&#215;</span></div>`;
-      }).join('');
-    }
+  if (hint)  hint.style.display  = hasDays ? 'none' : 'block';
+  if (bwrap) bwrap.style.display = hasDays ? 'block' : 'none';
+  if (runBtn) {
+    const ready = hasDays && _mselBuckets.size > 0;
+    runBtn.classList.toggle('ready', ready);
+    runBtn.disabled = !ready;
   }
-
-  if (runBtn) runBtn.disabled = count === 0 || _mselBuckets.size === 0;
-  renderMselBreakdown();
+  if (hasDays) renderMselTable();
 }
 
-function renderMselBreakdown() {
-  const el = document.getElementById('msel-breakdown');
+function renderMselTable() {
   const runBtn = document.getElementById('msel-run-btn');
-  if (!el) return;
-
   const sorted = [..._mselDates].sort();
-  const activeKeys = MSEL_BUCKET_KEYS.filter(k => _mselBuckets.has(k));
+  if (!sorted.length) return;
 
-  if (!sorted.length || !activeKeys.length) {
-    el.innerHTML = '';
-    if (runBtn) runBtn.disabled = true;
-    return;
+  const anyActive = _mselBuckets.size > 0;
+  if (runBtn) {
+    runBtn.classList.toggle('ready', anyActive);
+    runBtn.disabled = !anyActive;
   }
 
-  // Build per-day data
-  const dayRows = [];
-  const colTotals = {};
-  activeKeys.forEach(k => { colTotals[k] = 0; });
-  let grandTotal = 0;
+  // Header
+  const hdrEl = document.getElementById('msel-hdr-cells');
+  if (hdrEl) hdrEl.innerHTML = MSEL_BUCKET_KEYS.map(k =>
+    `<div class="${_mselHdrClass(k)}">${MSEL_BUCKET_LABELS[k]}</div>`
+  ).join('');
 
-  sorted.forEach(dateStr => {
+  // Day rows
+  const colTotals = {};
+  MSEL_BUCKET_KEYS.forEach(k => colTotals[k] = 0);
+  let grand = 0;
+
+  const rowsEl = document.getElementById('msel-day-rows');
+  if (rowsEl) rowsEl.innerHTML = sorted.map(dateStr => {
     const dayObj = ALL_DAYS.find(d => d.date === dateStr);
-    if (!dayObj) return;
+    if (!dayObj) return '';
     const data = dayObj.data || {};
     const c = calcAllFromData(data);
     const cashDep = parseFloat(data.cashSales) || 0;
@@ -5740,55 +5771,33 @@ function renderMselBreakdown() {
       herbalife:   c.products || 0,
       payouts:     c.payouts  || 0
     };
+    const rowTotal = MSEL_BUCKET_KEYS.filter(k => _mselBuckets.has(k)).reduce((s,k) => s + bvMap[k], 0);
+    grand += rowTotal;
+    MSEL_BUCKET_KEYS.forEach(k => { if (_mselBuckets.has(k)) colTotals[k] += bvMap[k]; });
     const lbl = new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
-    const rowTotal = activeKeys.reduce((s,k) => s + bvMap[k], 0);
-    activeKeys.forEach(k => { colTotals[k] += bvMap[k]; });
-    grandTotal += rowTotal;
-    dayRows.push({ lbl, bvMap, rowTotal });
-  });
-
-  // Header row
-  const headerCells = activeKeys.map(k =>
-    `<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.4);text-align:right;flex:1;min-width:0;">${MSEL_BUCKET_LABELS[k]}</div>`
-  ).join('');
-
-  // Day rows
-  const rowsHtml = dayRows.map(row => {
-    const cells = activeKeys.map(k =>
-      `<div style="font-size:11px;font-weight:600;color:white;text-align:right;flex:1;min-width:0;">${fmt$(row.bvMap[k])}</div>`
+    const cells = MSEL_BUCKET_KEYS.map(k =>
+      `<div class="${_mselCellClass(k)}">${fmt$(bvMap[k])}</div>`
     ).join('');
-    return `<div class="msel-brow" style="flex-direction:column;gap:3px;">
-      <div style="display:flex;align-items:center;gap:4px;">
-        <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.8);min-width:46px;">${row.lbl}</div>
-        ${cells}
-        <div style="font-size:12px;font-weight:800;color:white;text-align:right;min-width:56px;">${fmt$(row.rowTotal)}</div>
-      </div>
+    const rtClass = anyActive ? 'msel-row-total' : 'msel-row-total dim';
+    const rtVal   = anyActive ? fmt$(rowTotal) : '\u2014';
+    return `<div class="msel-row">
+      <div class="msel-row-date">${lbl}</div>
+      <div class="msel-cells">${cells}</div>
+      <div class="${rtClass}">${rtVal}</div>
     </div>`;
   }).join('');
 
-  // Totals row
-  const totalCells = activeKeys.map(k =>
-    `<div style="font-size:11px;font-weight:700;color:white;text-align:right;flex:1;min-width:0;">${fmt$(colTotals[k])}</div>`
+  // Total row
+  const totEl = document.getElementById('msel-tot-cells');
+  if (totEl) totEl.innerHTML = MSEL_BUCKET_KEYS.map(k =>
+    `<div class="${_mselCellClass(k)}">${fmt$(colTotals[k])}</div>`
   ).join('');
 
-  el.innerHTML = `
-    <div class="msel-brow" style="flex-direction:column;gap:3px;padding-bottom:4px;">
-      <div style="display:flex;align-items:center;gap:4px;">
-        <div style="min-width:46px;"></div>
-        ${headerCells}
-        <div style="min-width:56px;text-align:right;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.4);">Total</div>
-      </div>
-    </div>
-    ${rowsHtml}
-    <div class="msel-brow total-row" style="flex-direction:column;gap:3px;">
-      <div style="display:flex;align-items:center;gap:4px;">
-        <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.4px;min-width:46px;">Total</div>
-        ${totalCells}
-        <div style="font-size:15px;font-weight:800;color:white;text-align:right;min-width:56px;">${fmt$(grandTotal)}</div>
-      </div>
-    </div>`;
-
-  if (runBtn) runBtn.disabled = sorted.length === 0 || activeKeys.length === 0;
+  const grandEl = document.getElementById('msel-grand');
+  if (grandEl) {
+    if (anyActive) { grandEl.textContent = fmt$(grand); grandEl.className = 'msel-row-total'; }
+    else           { grandEl.textContent = '\u2014';   grandEl.className = 'msel-row-total dim'; }
+  }
 }
 
 async function runMselMark() {
@@ -5797,16 +5806,12 @@ async function runMselMark() {
   const buckets = [..._mselBuckets];
   if (!sorted.length || !buckets.length) return;
 
-  // Find which days actually need updating
   const toUpdate = sorted
     .map(dateStr => ALL_DAYS.find(d => d.date === dateStr))
     .filter(Boolean)
     .filter(dayObj => buckets.some(k => !dayObj.data?.transfers?.[k]));
 
-  if (!toUpdate.length) {
-    showToast('All selected buckets already marked for these days', 'success');
-    return;
-  }
+  if (!toUpdate.length) { showToast('Already marked for these days', 'success'); return; }
 
   if (runBtn) { runBtn.disabled = true; runBtn.textContent = 'Saving\u2026'; }
 
@@ -5816,16 +5821,13 @@ async function runMselMark() {
     if (!data.transfers) data.transfers = {};
     buckets.forEach(k => { data.transfers[k] = true; });
     const { error } = await sb.from('days').update({ data }).eq('id', dayObj.id);
-    if (error) { failed++; }
-    else { dayObj.data = data; done++; }
+    if (error) { failed++; } else { dayObj.data = data; done++; }
   }
 
-  if (runBtn) { runBtn.disabled = false; runBtn.textContent = '\u2713 Mark complete'; }
-
+  if (runBtn) { runBtn.disabled = false; runBtn.textContent = '\u2713 Mark complete'; runBtn.classList.add('ready'); }
   if (failed) showToast(done + ' marked, ' + failed + ' failed', 'error');
   else showToast('\u2713 ' + done + ' day' + (done !== 1 ? 's' : '') + ' marked complete', 'success');
 
-  // Clear selection and re-render
   _mselDates.clear();
   renderMselPanel();
   renderHistCal();
@@ -6427,9 +6429,16 @@ function setHistView(view) {
     if (mselSec) mselSec.style.display = 'block';
     if (projTog) projTog.style.display = 'none';
     mselBtn?.classList.add('active');
+    // Reset state each time we enter
     _mselDates.clear();
+    _mselBuckets = new Set(['cashdeposit']);
+    // Sync chip UI to match reset state
+    ['cashdeposit','tax','overhead','herbalife','payouts'].forEach(k => {
+      const chip = document.getElementById('msel-chip-' + k);
+      if (chip) chip.classList.toggle('on', _mselBuckets.has(k));
+    });
     renderMselPanel();
-    renderHistCal(); // re-renders in msel tap mode
+    renderHistCal();
   } else {
     // summary
     if (calGrid) calGrid.style.display = 'none';
