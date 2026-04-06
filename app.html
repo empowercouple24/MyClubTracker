@@ -745,6 +745,36 @@ if('serviceWorker' in navigator){
     .alloc-bucket.cash-deposit.transferred .alloc-bucket-amt{color:var(--b6);}
     .alloc-bucket.cash-deposit.transferred .alloc-bucket-check{background:var(--b6);border-color:var(--b6);}
 
+    /* ── MULTI-SELECT ALLOCATION ── */
+    .msel-panel{background:#2c4254;border-radius:var(--radius);padding:12px 14px;margin-top:10px;}
+    .msel-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.5);margin-bottom:8px;}
+    .msel-pills{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;min-height:26px;}
+    .msel-pill{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.12);border-radius:20px;padding:3px 8px 3px 10px;font-size:11px;font-weight:600;color:white;}
+    .msel-pill-x{font-size:13px;color:rgba(255,255,255,0.45);cursor:pointer;line-height:1;padding:0 2px;}
+    .msel-pill-x:hover{color:white;}
+    .msel-empty{font-size:12px;color:rgba(255,255,255,0.3);font-style:italic;padding:2px 0;}
+    .msel-buckets{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+    .msel-chip{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;border:0.5px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.45);background:rgba(255,255,255,0.05);font-size:11px;font-weight:600;cursor:pointer;transition:all 0.12s;user-select:none;}
+    .msel-chip.on{background:rgba(255,255,255,0.18);color:white;border-color:rgba(255,255,255,0.45);}
+    .msel-chip-box{width:12px;height:12px;border-radius:3px;border:1px solid rgba(255,255,255,0.3);flex-shrink:0;position:relative;}
+    .msel-chip.on .msel-chip-box{background:white;border-color:white;}
+    .msel-chip.on .msel-chip-box::after{content:'';position:absolute;left:2px;top:0px;width:5px;height:8px;border:1.5px solid #2c4254;border-top:none;border-left:none;transform:rotate(45deg);}
+    .msel-breakdown{background:rgba(0,0,0,0.18);border-radius:8px;margin-bottom:10px;overflow:hidden;}
+    .msel-brow{display:flex;align-items:flex-start;justify-content:space-between;padding:7px 12px;border-bottom:0.5px solid rgba(255,255,255,0.06);}
+    .msel-brow:last-child{border-bottom:none;}
+    .msel-brow.total-row{background:rgba(255,255,255,0.07);padding:8px 12px;}
+    .msel-brow-name{font-size:12px;color:rgba(255,255,255,0.65);}
+    .msel-brow.total-row .msel-brow-name{font-size:11px;font-weight:700;color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:0.4px;}
+    .msel-brow-amt{font-size:12px;font-weight:700;color:white;flex-shrink:0;padding-left:8px;}
+    .msel-brow.total-row .msel-brow-amt{font-size:15px;font-weight:800;}
+    .msel-brow-days{font-size:10px;color:rgba(255,255,255,0.3);margin-top:2px;line-height:1.4;}
+    .msel-actions{display:flex;gap:8px;}
+    .msel-cancel{font-size:12px;font-weight:600;padding:7px 14px;border-radius:7px;border:0.5px solid rgba(255,255,255,0.2);background:none;color:rgba(255,255,255,0.55);cursor:pointer;font-family:'DM Sans',sans-serif;}
+    .msel-cancel:hover{color:white;border-color:rgba(255,255,255,0.4);}
+    .msel-run{font-size:12px;font-weight:700;padding:7px 18px;border-radius:7px;border:none;background:white;color:#2c4254;cursor:pointer;flex:1;font-family:'DM Sans',sans-serif;}
+    .msel-run:hover{background:#e8edf4;}
+    .msel-run:disabled{opacity:0.4;cursor:not-allowed;}
+
     /* ── BANK RECONCILIATION WIDGET ── */
 
     #hist-sticky-header{position:fixed;left:0;right:0;z-index:35;background:var(--bg);padding:6px 0 6px;box-shadow:0 4px 8px -2px rgba(53,78,98,0.08);display:none;}
@@ -948,6 +978,27 @@ if('serviceWorker' in navigator){
     <button class="btn btn-ghost" id="btn-go-today" onclick="confirmNav(goToToday)" style="display:none;white-space:nowrap;">↩ Today</button>
     <button class="btn btn-ghost" id="btn-reset-day" onclick="confirmResetDay()" style="min-width:70px;flex-shrink:0;display:none;color:var(--r5);border-color:var(--r3);">Reset</button>
     <button class="btn btn-primary" id="btn-save-day" onclick="saveDay()" style="min-width:90px;flex-shrink:0;display:none;">Save</button>
+  </div>
+
+  <!-- DRAFT BANNER — shown when a draft is silently restored (no saved record) -->
+  <div id="draft-banner" style="display:none;align-items:center;gap:10px;background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:8px 12px;margin-bottom:6px;font-size:12px;color:#854F0B;">
+    <span style="font-weight:700;">&#128196; Draft restored</span>
+    <span id="draft-banner-time" style="flex:1;"></span>
+    <button onclick="dismissDraftBanner()" style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;background:none;border:1px solid #c47c0a;border-radius:5px;color:#854F0B;padding:2px 8px;cursor:pointer;">Dismiss</button>
+  </div>
+
+  <!-- DRAFT vs SAVED PROMPT MODAL — shown when both a save and a draft exist -->
+  <div id="draft-conflict-modal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(15,25,40,0.55);align-items:center;justify-content:center;padding:20px;">
+    <div style="background:var(--surface);border-radius:16px;padding:24px;width:100%;max-width:360px;border:1px solid var(--border-light);box-shadow:0 8px 32px rgba(0,0,0,0.18);">
+      <div style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;color:var(--text);margin-bottom:6px;">Draft found</div>
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:6px;line-height:1.55;">A saved record exists for this date, but you also have an unsaved draft from:</div>
+      <div id="draft-conflict-time" style="font-size:13px;font-weight:700;color:#854F0B;background:#fef3c7;border-radius:6px;padding:6px 10px;margin-bottom:16px;"></div>
+      <div style="font-size:12px;color:var(--text-faint);margin-bottom:16px;line-height:1.5;">Load the draft instead of the saved record?</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <button onclick="draftConflictLoadDraft()" style="width:100%;padding:11px;border-radius:10px;background:var(--b7);color:#fff;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;">Yes, load my draft</button>
+        <button onclick="draftConflictKeepSaved()" style="width:100%;padding:11px;border-radius:10px;background:var(--b0);color:var(--text);border:1px solid var(--border);font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">No, use saved record</button>
+      </div>
+    </div>
   </div>
 
   <!-- UNSAVED NAV PROMPT MODAL -->
@@ -1237,6 +1288,7 @@ if('serviceWorker' in navigator){
       <div class="hist-view-toggle">
         <button class="hvt-btn active" id="hvt-cal" onclick="setHistView('cal')">&#128197; Calendar</button>
         <button class="hvt-btn" id="hvt-sum" onclick="setHistView('sum')">&#9776; Summary</button>
+        <button class="hvt-btn" id="hvt-msel" onclick="setHistView('msel')">&#9745; Multi-select</button>
       </div>
     </div>
     <div id="history-cal-grid" style="width:100%;"></div>
@@ -1266,6 +1318,29 @@ if('serviceWorker' in navigator){
       <div id="hist-alloc-list"></div>
       <div id="hist-alloc-done" style="display:none;margin-bottom:8px;padding:12px;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);text-align:center;box-shadow:var(--shadow-sm);">
         <span style="font-size:13px;font-weight:600;color:var(--g5);">&#10003; All transfers complete for this month</span>
+      </div>
+    </div>
+
+    <!-- MULTI-SELECT ALLOCATION PANEL -->
+    <div id="hist-msel-section" style="display:none;">
+      <!-- Calendar renders here in multi-select mode (shared history-cal-grid) -->
+      <div class="msel-panel" id="msel-bulk-panel">
+        <div class="msel-title" id="msel-panel-title">0 days selected</div>
+        <div class="msel-pills" id="msel-pills">
+          <span class="msel-empty">Tap days on the calendar above to select them</span>
+        </div>
+        <div class="msel-buckets">
+          <div class="msel-chip on" id="msel-chip-tax" onclick="toggleMselChip('tax')"><div class="msel-chip-box"></div>Taxes</div>
+          <div class="msel-chip on" id="msel-chip-overhead" onclick="toggleMselChip('overhead')"><div class="msel-chip-box"></div>Overhead</div>
+          <div class="msel-chip on" id="msel-chip-herbalife" onclick="toggleMselChip('herbalife')"><div class="msel-chip-box"></div>Herbalife</div>
+          <div class="msel-chip on" id="msel-chip-payouts" onclick="toggleMselChip('payouts')"><div class="msel-chip-box"></div>Payouts</div>
+          <div class="msel-chip on" id="msel-chip-cashdeposit" onclick="toggleMselChip('cashdeposit')"><div class="msel-chip-box"></div>Cash Deposit</div>
+        </div>
+        <div class="msel-breakdown" id="msel-breakdown"></div>
+        <div class="msel-actions">
+          <button class="msel-cancel" onclick="setHistView('cal')">Cancel</button>
+          <button class="msel-run" id="msel-run-btn" onclick="runMselMark()" disabled>&#10003; Mark complete</button>
+        </div>
       </div>
     </div>
 
@@ -3219,6 +3294,7 @@ function goToToday(){
 
 function recalc(userChanged=false){
   if(!_loadingDay&&userChanged)markDirty();
+  if(!_loadingDay&&userChanged)scheduleDraftSave();
   const c=calcAll();
   setText('sum-sales',   c.group1?fmt$(c.totalSales):'--');
   setText('sum-tax',     c.group1?fmt$(c.tax):'--');
@@ -3266,14 +3342,140 @@ function recalc(userChanged=false){
   renderOpsEarningsPreview();
 }
 
+// ── DRAFT AUTO-SAVE SYSTEM ────────────────────────────────────────────────────
+// Drafts stored in localStorage keyed by location + date.
+// A draft is a snapshot of all entry fields + a timestamp.
+// On loadDay: if draft exists and is newer than saved record, prompt or silently restore.
+// On saveDay / resetDayFields: clear the draft for that date.
+
+function _draftKey(date) {
+  return 'mct_draft_' + (LOCATION_ID || 'unknown') + '_' + date;
+}
+
+function _saveDraft() {
+  if (_loadingDay) return; // never save during programmatic load
+  const date = document.getElementById('entry-date')?.value;
+  if (!date) return;
+  const state = {};
+  _UNDO_FIELDS.forEach(k => {
+    const el = document.getElementById('f-' + k);
+    if (!el) return;
+    state[k] = el.type === 'checkbox' ? el.checked : el.value;
+  });
+  const draft = { ts: Date.now(), state };
+  try { localStorage.setItem(_draftKey(date), JSON.stringify(draft)); } catch(e) {}
+}
+
+function _clearDraft(date) {
+  try { localStorage.removeItem(_draftKey(date)); } catch(e) {}
+}
+
+function _loadDraft(date) {
+  try {
+    const raw = localStorage.getItem(_draftKey(date));
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
+
+function _applyDraft(draft) {
+  _loadingDay = true;
+  _UNDO_FIELDS.forEach(k => {
+    const el = document.getElementById('f-' + k);
+    if (!el || !(k in draft.state)) return;
+    if (el.type === 'checkbox') el.checked = draft.state[k];
+    else el.value = draft.state[k];
+  });
+  formatAllCurrencyFields();
+  const dvEl = document.getElementById('f-dv');
+  if (dvEl && dvEl.value && dvEl.value !== '0') {
+    const dvN = parseFloat(String(dvEl.value).replace(/,/g,''));
+    if (!isNaN(dvN) && dvN > 0) dvEl.value = dvN.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  }
+  _loadingDay = false;
+}
+
+function _fmtDraftTime(ts) {
+  const d = new Date(ts);
+  const now = new Date();
+  const diffMin = Math.round((now - d) / 60000);
+  const timeStr = d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+  if (diffMin < 1) return 'just now (' + timeStr + ')';
+  if (diffMin < 60) return diffMin + ' min ago (' + timeStr + ')';
+  const diffHr = Math.round(diffMin / 60);
+  if (diffHr < 24) return diffHr + ' hr ago (' + timeStr + ')';
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' at ' + timeStr;
+}
+
+// Shown when draft restored silently (no saved record)
+function _showDraftBanner(ts) {
+  const banner = document.getElementById('draft-banner');
+  const timeEl = document.getElementById('draft-banner-time');
+  if (!banner) return;
+  if (timeEl) timeEl.textContent = 'from ' + _fmtDraftTime(ts);
+  banner.style.display = 'flex';
+}
+function dismissDraftBanner() {
+  const banner = document.getElementById('draft-banner');
+  if (banner) banner.style.display = 'none';
+}
+
+// Pending draft state for conflict modal
+let _pendingDraftConflict = null;
+
+function _showDraftConflictModal(draft, savedLoadFn) {
+  _pendingDraftConflict = { draft, savedLoadFn };
+  const timeEl = document.getElementById('draft-conflict-time');
+  if (timeEl) timeEl.textContent = _fmtDraftTime(draft.ts);
+  const modal = document.getElementById('draft-conflict-modal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function draftConflictLoadDraft() {
+  const modal = document.getElementById('draft-conflict-modal');
+  if (modal) modal.style.display = 'none';
+  if (!_pendingDraftConflict) return;
+  _applyDraft(_pendingDraftConflict.draft);
+  updateClosedDayToggle(document.getElementById('entry-date').value);
+  clearUndoHistory();
+  _undoEnabled = true;
+  _undoStack.push(_captureFormState());
+  recalc();
+  markDirty();
+  _pendingDraftConflict = null;
+}
+
+function draftConflictKeepSaved() {
+  const modal = document.getElementById('draft-conflict-modal');
+  if (modal) modal.style.display = 'none';
+  if (!_pendingDraftConflict) return;
+  // Discard the draft — user chose saved record
+  const date = document.getElementById('entry-date')?.value;
+  if (date) _clearDraft(date);
+  _pendingDraftConflict = null;
+}
+
+// Debounced draft save — fires 800ms after last change
+let _draftSaveTimer = null;
+function scheduleDraftSave() {
+  if (_loadingDay) return;
+  clearTimeout(_draftSaveTimer);
+  _draftSaveTimer = setTimeout(_saveDraft, 800);
+}
+
+// ── END DRAFT SYSTEM ──────────────────────────────────────────────────────────
+
 const ENTRY_FIELDS=['cashSales','cardSales','cardFees','giftCardRedeemed','cashAppPay','venmo','otherSales','merchSales','giftCardSales','giftCardLoadFees','fundraiserCash','fundraiserCard','dv','notes'];
 
 function loadDay(){
   const _dateInput=document.getElementById('entry-date');if(_dateInput)_dateInput.max=localToday();
+  dismissDraftBanner();
   _loadingDay=true;
   const date=document.getElementById('entry-date').value;
   const ex=ALL_DAYS.find(d=>d.date===date);
+  const draft=_loadDraft(date);
+
   if(ex){
+    // Saved record exists — load it first
     const d=ex.data;
     ENTRY_FIELDS.forEach(k=>{const el=document.getElementById('f-'+k);if(el)el.value=d[k]!==undefined?d[k]:'';});
     const fp=document.getElementById('f-fundraiserPct');if(fp)fp.value=d.fundraiserPct||'0';
@@ -3281,29 +3483,52 @@ function loadDay(){
     if(o1&&d.op1!==undefined)o1.value=d.op1;if(o2&&d.op2!==undefined)o2.value=d.op2;
     const h1=document.getElementById('f-op1-hrs'),h2=document.getElementById('f-op2-hrs');
     if(h1)h1.value=d.op1Hrs||'';if(h2)h2.value=d.op2Hrs||'';
-    // Restore reinvest checkbox
     const rc=document.getElementById('f-owner-reinvest');if(rc)rc.checked=d.ownerReinvest===true;
+    formatAllCurrencyFields();
+    var dvEl=document.getElementById('f-dv');
+    if(dvEl&&dvEl.value&&dvEl.value!=='0'){var dvN=parseFloat(String(dvEl.value).replace(/,/g,''));if(!isNaN(dvN)&&dvN>0)dvEl.value=dvN.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+    updateClosedDayToggle(date);
+    clearDirty();
+    clearUndoHistory();
+    _undoEnabled=true;
+    _undoStack.push(_captureFormState());
+    recalc();
+    _loadingDay=false;
+    // If a draft exists and is newer than the saved record, prompt the user
+    if(draft){
+      const savedTs=ex.data?._savedAt?new Date(ex.data._savedAt).getTime():0;
+      if(draft.ts>savedTs){
+        _showDraftConflictModal(draft,null);
+      } else {
+        _clearDraft(date); // draft is stale, silently discard
+      }
+    }
   }else{
+    // No saved record — check for draft
     ENTRY_FIELDS.forEach(k=>{const el=document.getElementById('f-'+k);if(el)el.value='';});
     const fp=document.getElementById('f-fundraiserPct');if(fp)fp.value='0';
     const rc=document.getElementById('f-owner-reinvest');if(rc)rc.checked=false;
     const h1=document.getElementById('f-op1-hrs'),h2=document.getElementById('f-op2-hrs');
     if(h1)h1.value='';if(h2)h2.value='';
+    formatAllCurrencyFields();
+    updateClosedDayToggle(date);
+    clearDirty();
+    clearUndoHistory();
+    _undoEnabled=true;
+    if(draft){
+      // Silently restore draft, show banner
+      _loadingDay=false; // allow applyDraft to work
+      _applyDraft(draft);
+      _undoStack.push(_captureFormState());
+      recalc();
+      markDirty();
+      _showDraftBanner(draft.ts);
+    }else{
+      _undoStack.push(_captureFormState());
+      recalc();
+      _loadingDay=false;
+    }
   }
-  formatAllCurrencyFields();
-  var dvEl=document.getElementById('f-dv');
-  if(dvEl&&dvEl.value&&dvEl.value!=='0'){
-    var dvN=parseFloat(String(dvEl.value).replace(/,/g,''));
-    if(!isNaN(dvN)&&dvN>0)dvEl.value=dvN.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-  }
-  updateClosedDayToggle(document.getElementById('entry-date').value);
-  clearDirty();
-  // Reset undo history for this day and take initial snapshot
-  clearUndoHistory();
-  _undoEnabled = true;
-  _undoStack.push(_captureFormState());
-  recalc();
-  _loadingDay=false;
 }
 
 let _pendingSaveDupNote = null; // note from dup-op modal
@@ -3341,10 +3566,12 @@ async function saveDay(){
   else if(!isClosedDay&&isScheduledClosed) SETTINGS.closedDays[date]='open'; // scheduled closed but worked it
   else delete SETTINGS.closedDays[date]; // open day, no override
   if(IS_ADMIN_VIEW) data._adminEdit=new Date().toISOString(); // stamp when admin last edited
+  data._savedAt=new Date().toISOString(); // timestamp for draft comparison
   const ex=ALL_DAYS.find(d=>d.date===date);let error;
   if(ex){const{error:e}=await sb.from('days').update({data}).eq('id',ex.id);error=e;if(!e)ex.data=data;}
   else{const{data:nr,error:e}=await sb.from('days').insert({location_id:LOCATION_ID,date,data}).select().single();error=e;if(!e&&nr)ALL_DAYS.unshift(nr);}
   if(error){showToast('Save failed: '+error.message,'error');return;}
+  _clearDraft(date); // draft committed — remove it
   showToast(IS_ADMIN_VIEW?'Saved (Admin Edit) ok':'Day saved ok','success');
   _pendingSaveDupNote=null;
   clearDirty();
@@ -4965,10 +5192,17 @@ function renderAllocCal() {
       const stateClass = doneCount === 0 ? 'none' : doneCount === 4 ? 'full' : 'partial';
       const dots = keys.map(k => `<div class="acal-dot${transfers[k]?' done':''}"></div>`).join('');
 
-      html += `<div class="acal-day ${stateClass}${todayClass}" onclick="openAllocDetail('${dateStr}')">
+      const isMsel = _histView === 'msel';
+      const isMselSelected = isMsel && _mselDates.has(dateStr);
+      const mselSelStyle = isMselSelected ? 'background:#e6f1fb;border:1.5px solid #378add;' : '';
+      const mselCheck = isMsel ? `<input type="checkbox" style="position:absolute;top:4px;right:4px;width:14px;height:14px;accent-color:#378add;pointer-events:none;" ${isMselSelected?'checked':''}/>` : '';
+      const dayOnclick = isMsel ? `mselToggleDate('${dateStr}')` : `openAllocDetail('${dateStr}')`;
+
+      html += `<div class="acal-day ${stateClass}${todayClass}" style="${mselSelStyle}" onclick="${dayOnclick}">
         <div class="acal-dn">${day}</div>
         <div class="acal-sales">${fmt$(sales)}</div>
         <div class="acal-dots">${dots}</div>
+        ${mselCheck}
       </div>`;
 
       // Collect remaining for this day
@@ -5413,6 +5647,166 @@ function runPayeeLookup() {
 // ── UNIFIED HISTORY: ALLOC + PROJECTIONS ─────────────────────────────────────
 let _histProjScenario = [0,10,20,30];
 let _histProjDate = null;
+
+// ── MULTI-SELECT ALLOCATION ──────────────────────────────────────────────────
+
+let _mselDates = new Set();   // selected date strings
+let _mselBuckets = new Set(['tax','overhead','herbalife','payouts','cashdeposit']); // active bucket chips
+
+const MSEL_BUCKET_LABELS = {
+  cashdeposit: 'Cash Deposit',
+  tax:         'Taxes',
+  overhead:    'Overhead',
+  herbalife:   'Herbalife',
+  payouts:     'Payouts'
+};
+const MSEL_BUCKET_KEYS = ['tax','overhead','herbalife','payouts','cashdeposit'];
+
+function mselToggleDate(dateStr) {
+  if (_mselDates.has(dateStr)) _mselDates.delete(dateStr);
+  else _mselDates.add(dateStr);
+  renderMselPanel();
+  renderHistCal(); // re-render so selection state reflects on cells
+}
+
+function mselRemoveDate(dateStr) {
+  _mselDates.delete(dateStr);
+  renderMselPanel();
+  renderHistCal();
+}
+
+function toggleMselChip(key) {
+  if (_mselBuckets.has(key)) _mselBuckets.delete(key);
+  else _mselBuckets.add(key);
+  const chip = document.getElementById('msel-chip-' + key);
+  if (chip) chip.classList.toggle('on', _mselBuckets.has(key));
+  renderMselBreakdown();
+}
+
+function renderMselPanel() {
+  const pillsEl = document.getElementById('msel-pills');
+  const titleEl = document.getElementById('msel-panel-title');
+  const runBtn  = document.getElementById('msel-run-btn');
+  const count   = _mselDates.size;
+
+  if (titleEl) titleEl.textContent = count + ' day' + (count !== 1 ? 's' : '') + ' selected';
+
+  if (pillsEl) {
+    if (!count) {
+      pillsEl.innerHTML = '<span class="msel-empty">Tap days on the calendar above to select them</span>';
+    } else {
+      const sorted = [..._mselDates].sort();
+      pillsEl.innerHTML = sorted.map(d => {
+        const lbl = new Date(d + 'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+        return `<div class="msel-pill">${lbl}<span class="msel-pill-x" onclick="mselRemoveDate('${d}')">&#215;</span></div>`;
+      }).join('');
+    }
+  }
+
+  if (runBtn) runBtn.disabled = count === 0 || _mselBuckets.size === 0;
+  renderMselBreakdown();
+}
+
+function renderMselBreakdown() {
+  const el = document.getElementById('msel-breakdown');
+  const runBtn = document.getElementById('msel-run-btn');
+  if (!el) return;
+
+  const sorted = [..._mselDates].sort();
+  if (!sorted.length || !_mselBuckets.size) {
+    el.innerHTML = '';
+    if (runBtn) runBtn.disabled = true;
+    return;
+  }
+
+  // Build per-bucket totals across selected days
+  const bucketTotals = {};
+  const bucketDayLines = {};
+  MSEL_BUCKET_KEYS.forEach(k => { bucketTotals[k] = 0; bucketDayLines[k] = []; });
+
+  sorted.forEach(dateStr => {
+    const dayObj = ALL_DAYS.find(d => d.date === dateStr);
+    if (!dayObj) return;
+    const data = dayObj.data || {};
+    const c = calcAllFromData(data);
+    const cashDep = parseFloat(data.cashSales) || 0;
+    const bvMap = {
+      cashdeposit: cashDep,
+      tax:         c.tax     || 0,
+      overhead:    c.overhead|| 0,
+      herbalife:   c.products|| 0,
+      payouts:     c.payouts || 0
+    };
+    const lbl = new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    MSEL_BUCKET_KEYS.forEach(k => {
+      bucketTotals[k] += bvMap[k];
+      bucketDayLines[k].push(lbl + ' ' + fmt$(bvMap[k]));
+    });
+  });
+
+  // Only show active bucket chips
+  const activeKeys = MSEL_BUCKET_KEYS.filter(k => _mselBuckets.has(k));
+  const grandTotal = activeKeys.reduce((s,k) => s + bucketTotals[k], 0);
+
+  el.innerHTML = activeKeys.map(k => `
+    <div class="msel-brow">
+      <div>
+        <div class="msel-brow-name">${MSEL_BUCKET_LABELS[k]}</div>
+        <div class="msel-brow-days">${bucketDayLines[k].join(' &middot; ')}</div>
+      </div>
+      <div class="msel-brow-amt">${fmt$(bucketTotals[k])}</div>
+    </div>`).join('') +
+    `<div class="msel-brow total-row">
+      <div class="msel-brow-name">Total</div>
+      <div class="msel-brow-amt">${fmt$(grandTotal)}</div>
+    </div>`;
+
+  if (runBtn) runBtn.disabled = sorted.length === 0 || activeKeys.length === 0;
+}
+
+async function runMselMark() {
+  const runBtn = document.getElementById('msel-run-btn');
+  const sorted = [..._mselDates].sort();
+  const buckets = [..._mselBuckets];
+  if (!sorted.length || !buckets.length) return;
+
+  // Find which days actually need updating
+  const toUpdate = sorted
+    .map(dateStr => ALL_DAYS.find(d => d.date === dateStr))
+    .filter(Boolean)
+    .filter(dayObj => buckets.some(k => !dayObj.data?.transfers?.[k]));
+
+  if (!toUpdate.length) {
+    showToast('All selected buckets already marked for these days', 'success');
+    return;
+  }
+
+  if (runBtn) { runBtn.disabled = true; runBtn.textContent = 'Saving\u2026'; }
+
+  let done = 0, failed = 0;
+  for (const dayObj of toUpdate) {
+    const data = { ...(dayObj.data || {}) };
+    if (!data.transfers) data.transfers = {};
+    buckets.forEach(k => { data.transfers[k] = true; });
+    const { error } = await sb.from('days').update({ data }).eq('id', dayObj.id);
+    if (error) { failed++; }
+    else { dayObj.data = data; done++; }
+  }
+
+  if (runBtn) { runBtn.disabled = false; runBtn.textContent = '\u2713 Mark complete'; }
+
+  if (failed) showToast(done + ' marked, ' + failed + ' failed', 'error');
+  else showToast('\u2713 ' + done + ' day' + (done !== 1 ? 's' : '') + ' marked complete', 'success');
+
+  // Clear selection and re-render
+  _mselDates.clear();
+  renderMselPanel();
+  renderHistCal();
+  renderHistAlloc();
+  renderReconWidget();
+}
+
+// ── END MULTI-SELECT ──────────────────────────────────────────────────────────
 
 function renderHistAlloc() {
   const yr = _histCalYear, mo = _histCalMonth;
@@ -5952,6 +6346,9 @@ function filterPregLog(log) {
 }
 
 
+// ── PAYMENT REGISTER IMPORT ───────────────────────────────────────────────────
+
+
 // ── HISTORY SUMMARY VIEW ──────────────────────────────────────────────────────
 let _histView = 'cal';       // 'cal' | 'sum'
 let _sumTab = 'week';        // 'week' | 'month'
@@ -5977,22 +6374,43 @@ function setHistView(view) {
   const calGrid  = document.getElementById('history-cal-grid');
   const sumView  = document.getElementById('history-sum-view');
   const allocSec = document.getElementById('hist-alloc-section');
+  const mselSec  = document.getElementById('hist-msel-section');
   const projTog  = document.getElementById('hist-proj-toggle');
   const calBtn   = document.getElementById('hvt-cal');
   const sumBtn   = document.getElementById('hvt-sum');
+  const mselBtn  = document.getElementById('hvt-msel');
+
+  // Reset all buttons
+  calBtn?.classList.remove('active');
+  sumBtn?.classList.remove('active');
+  mselBtn?.classList.remove('active');
 
   if (view === 'cal') {
     if (calGrid) calGrid.style.display = '';
     if (sumView) sumView.style.display = 'none';
     if (allocSec) allocSec.style.display = '';
+    if (mselSec) mselSec.style.display = 'none';
     if (projTog) projTog.style.display = '';
-    calBtn?.classList.add('active'); sumBtn?.classList.remove('active');
+    calBtn?.classList.add('active');
+    renderHistCal();
+  } else if (view === 'msel') {
+    if (calGrid) calGrid.style.display = '';
+    if (sumView) sumView.style.display = 'none';
+    if (allocSec) allocSec.style.display = 'none';
+    if (mselSec) mselSec.style.display = 'block';
+    if (projTog) projTog.style.display = 'none';
+    mselBtn?.classList.add('active');
+    _mselDates.clear();
+    renderMselPanel();
+    renderHistCal(); // re-renders in msel tap mode
   } else {
+    // summary
     if (calGrid) calGrid.style.display = 'none';
     if (sumView) sumView.style.display = 'block';
     if (allocSec) allocSec.style.display = 'none';
+    if (mselSec) mselSec.style.display = 'none';
     if (projTog) projTog.style.display = 'none';
-    sumBtn?.classList.add('active'); calBtn?.classList.remove('active');
+    sumBtn?.classList.add('active');
     renderSummaryView();
   }
 }
@@ -6481,6 +6899,10 @@ function resetDayFields() {
   if (closedCheck) closedCheck.checked = false;
   // Recalc to update display
   recalc(true);
+  // Clear the draft for this date — user explicitly reset
+  const _resetDate = document.getElementById('entry-date')?.value;
+  if (_resetDate) _clearDraft(_resetDate);
+  dismissDraftBanner();
   showToast('Fields cleared', 'success');
 }
 
