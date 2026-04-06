@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<!-- CACHE BUST: 2026-03-30 16:32:15 -->
+<html lang="en">
+<head>
+<script>
+if(location.protocol==='http:'&&location.hostname!=='localhost'){
+  location.replace('https://'+location.host+location.pathname+location.search+location.hash);
+}
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.getRegistrations().then(function(regs){regs.forEach(function(r){r.unregister();});});
+}
+</script>
+<meta charset="UTF-8"/>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+  <meta http-equiv="Pragma" content="no-cache"/>
+  <meta http-equiv="Expires" content="0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>Locations — MyClubTracker</title>
+<meta name="theme-color" content="#e8edf4"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Outfit:wght@400;600;700;800&display=block" rel="stylesheet"/>
+<link rel="stylesheet" href="shared.css?v=10"/>
+<link rel="stylesheet" href="nav.css?v=10"/>
+<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+<style>
+/* PAGE */
+.page{max-width:1050px;width:100%;margin:32px auto;padding:0 20px calc(80px + env(safe-area-inset-bottom,0px));box-sizing:border-box;}
+    .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+
+/* BUTTONS */
+.btn{font-family:'DM Sans',sans-serif;border:none;border-radius:var(--radius-sm);cursor:pointer;font-weight:600;transition:all 0.15s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn:active{transform:scale(0.97)}
+.btn:disabled{opacity:0.5;cursor:not-allowed}
+.btn-primary{background:linear-gradient(135deg,var(--b7),var(--b5));color:white;font-size:14px;padding:10px 20px;box-shadow:0 3px 12px rgba(58,84,112,0.22)}
+.btn-primary:hover:not(:disabled){box-shadow:0 6px 20px rgba(58,84,112,0.3)}
+.btn-ghost{background:var(--surface);color:var(--text-muted);border:1px solid var(--border);font-size:13px;padding:7px 14px}
+.btn-ghost:hover{background:var(--b0);color:var(--text)}
+.btn-danger{background:var(--r0);color:var(--r5);border:1px solid rgba(192,48,48,0.2);font-size:13px;padding:7px 14px}
+.btn-danger:hover{background:#ffe0e0}
+.btn-green{background:linear-gradient(135deg,var(--b7),var(--b5));color:white;font-size:14px;padding:10px 20px;box-shadow:0 3px 12px rgba(58,84,112,0.2)}
+.btn-sm{font-size:12px;padding:5px 12px}
+.btn-full{width:100%;padding:12px}
+.btn-icon{background:none;border:none;cursor:pointer;padding:4px;color:var(--text-faint);font-size:16px;transition:color 0.15s;border-radius:6px}
+.btn-icon:hover{color:var(--text);background:var(--b0)}
+
+/* PAGE HEADER */
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;}
+.page-header-title{font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;color:var(--text)}
+.page-header-sub{font-size:15px;color:var(--text-faint);margin-top:2px}
+
+/* LOCATION CARD */
+.loc-group{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:var(--shadow-sm);margin-bottom:20px;overflow:hidden;}
+.loc-group-header{display:flex;align-items:center;gap:14px;padding:18px 20px;border-bottom:1px solid var(--border-light);background:linear-gradient(135deg,var(--b0) 0%,var(--surface) 100%)}
+.loc-avatar{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--b7),var(--b4));display:flex;align-items:center;justify-content:center;font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:white;flex-shrink:0;box-shadow:0 2px 8px rgba(58,84,112,0.25)}
+.loc-header-info{flex:1;min-width:0}
+.loc-name{font-family:'Outfit',sans-serif;font-size:20px;font-weight:700;color:var(--text);line-height:1.2}
+.loc-addr{font-size:16px;color:var(--text-faint);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.loc-header-actions{display:flex;gap:6px;flex-shrink:0}
+
+/* SECTIONS WITHIN CARD */
+.loc-section{padding:16px 20px;border-bottom:1px solid var(--border-light)}
+.loc-section:last-child{border-bottom:none}
+.loc-section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-faint);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+
+/* INVITE CODES */
+.invite-codes{display:flex;gap:10px;flex-wrap:wrap;}
+.invite-code-card{flex:1;min-width:140px;background:var(--b0);border:1px solid var(--b2);border-radius:8px;padding:8px 12px;cursor:pointer;transition:background 0.15s;}
+.invite-code-card:hover{background:var(--b1);}
+.invite-code-card-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);margin-bottom:4px;display:flex;align-items:center;justify-content:space-between;}
+.invite-code-card-value{font-family:monospace;font-size:15px;font-weight:700;letter-spacing:2px;color:var(--b7);}
+.invite-code-card-sub{font-size:11px;color:var(--text-faint);margin-top:3px;}
+/* CONTACT CARDS */
+.contact-cards{display:flex;gap:10px;flex-wrap:wrap;}
+.contact-card{flex:1;min-width:150px;background:var(--b0);border:1px solid var(--border-light);border-radius:10px;padding:10px 12px;}
+.contact-card-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);margin-bottom:5px;}
+.contact-card-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;}
+.contact-card-detail{font-size:12px;color:var(--text-muted);line-height:1.7;}
+
+/* USERS GRID */
+.users-list{display:flex;flex-direction:column;gap:6px;}
+.loc-user-card{background:var(--surface);border:1px solid var(--border-light);border-radius:8px;overflow:hidden;}
+.loc-user-top{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;user-select:none;}
+.loc-user-top:hover{background:var(--b0);}
+.loc-user-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;overflow:hidden;}
+.loc-user-info{flex:1;min-width:0;}
+.loc-user-name{font-size:13px;font-weight:700;color:var(--text);}
+.loc-user-email{font-size:12px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.loc-user-actions{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.loc-user-chevron{font-size:10px;color:var(--text-faint);transition:transform 0.2s;flex-shrink:0;}
+.loc-user-card.open .loc-user-chevron{transform:rotate(180deg);}
+.loc-user-fields{display:none;padding:0 12px 12px;border-top:1px solid var(--border-light);}
+.loc-user-card.open .loc-user-fields{display:block;}
+.loc-user-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;}
+.loc-user-field label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:4px;}
+.loc-user-field input{width:100%;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:6px;padding:7px 9px;outline:none;box-sizing:border-box;}
+.loc-user-field input:focus{border-color:var(--b5);background:#fff;}
+.loc-user-save{margin-top:8px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border-radius:6px;border:none;background:var(--b6);color:white;cursor:pointer;}
+.loc-user-save:hover{background:var(--b7);}
+.loc-role-select{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;padding:3px 7px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;outline:none;}
+.loc-reset-btn{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;padding:4px 9px;border-radius:6px;border:1px solid var(--border);background:var(--b0);color:var(--b6);cursor:pointer;white-space:nowrap;}
+.loc-reset-btn:hover{background:var(--b1);}
+.role-pill{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;flex-shrink:0;text-transform:capitalize}
+.role-pill.admin{background:var(--b1);color:var(--b7)}
+.role-pill.owner{background:var(--g0);color:var(--g5)}
+.role-pill.employee{background:var(--b0);color:var(--text-faint);border:1px solid var(--border)}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:60px 24px;color:var(--text-faint)}
+.empty-state-icon{font-size:48px;margin-bottom:14px}
+.empty-state-title{font-family:'Outfit',sans-serif;font-size:17px;font-weight:700;color:var(--text-muted);margin-bottom:6px}
+.empty-state-sub{font-size:13px;margin-bottom:20px}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(30,45,61,0.4);backdrop-filter:blur(4px);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal-sheet{background:var(--surface);border-radius:18px 18px 0 0;width:100%;max-width:680px;max-height:88vh;overflow-y:auto;padding:0 0 40px;animation:sheetUp 0.28s cubic-bezier(0.16,1,0.3,1)}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0}
+.modal-title{font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--text);padding:16px 20px 0}
+.modal-body{padding:0 24px}
+.modal-field{margin-bottom:14px}
+.modal-field label{display:block;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);margin-bottom:6px}
+.modal-field input,.modal-field select,.modal-field textarea{width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;outline:none;transition:border-color 0.15s}
+.modal-field input:focus,.modal-field select:focus,.modal-field textarea:focus{border-color:var(--b5);background:#fff;box-shadow:0 0 0 3px rgba(74,106,138,0.1)}
+.modal-actions{display:flex;gap:10px;padding:16px 20px 0}
+.modal-msg{margin:0 20px;padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;line-height:1.5;display:none}
+.modal-msg.error{background:rgba(192,48,48,0.07);border:1px solid rgba(192,48,48,0.2);color:var(--r5);display:block}
+.modal-msg.success{background:var(--g0);border:1px solid rgba(46,122,53,0.2);color:var(--g5);display:block}
+
+.spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:5px}
+
+/* SECTION SEPARATORS */
+.loc-section-heading{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.9px;color:var(--text-faint);margin:28px 0 12px;}
+.loc-section-heading:first-child{margin-top:0;}
+
+/* PENDING CARD — muted style */
+.loc-group.pending-card{opacity:0.75;border-style:dashed;border-color:var(--border);}
+.loc-group.pending-card .loc-group-header{background:var(--b0);}
+.loc-group.pending-card .loc-avatar{background:linear-gradient(135deg,#8fa3b3,#b0bec8);}
+.pending-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;background:#f5f5f5;color:var(--text-faint);border:1px solid var(--border);border-radius:20px;padding:2px 8px;white-space:nowrap;}
+
+@media(max-width:600px){.loc-header-actions{flex-direction:column;}.contact-cards,.invite-codes{flex-direction:column;}}
+</style>
+</head>
+<body>
+<div id="loading-overlay" style="display:flex;"><div class="load-spinner"></div></div>
+
+<nav class="topnav">
+  <a href="admin.html" class="nav-logo" title="Dashboard"><svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
+  <g transform="rotate(-18, 16, 36)"><rect x="8" y="24" width="16" height="20" rx="2" fill="#1a5c2a"/><rect x="10" y="28" width="12" height="8" rx="1" fill="rgba(255,255,255,0.25)"/><line x1="16" y1="18" x2="14" y2="24" stroke="#1a5c2a" stroke-width="2.5" stroke-linecap="round"/></g>
+  <g transform="rotate(14, 38, 36)"><rect x="30" y="26" width="16" height="20" rx="2" fill="#1a5c2a"/><rect x="32" y="30" width="12" height="8" rx="1" fill="rgba(255,255,255,0.25)"/><line x1="38" y1="20" x2="40" y2="26" stroke="#1a5c2a" stroke-width="2.5" stroke-linecap="round"/></g>
+  <circle cx="40" cy="16" r="11" fill="#4caf60"/>
+  <path d="M34 22 L44 12 M38 12 L44 12 L44 18" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg></a>
+  <div class="nav-page-title" style="margin-left:10px;">Locations</div>
+  <div class="nav-menu-wrap">
+    <button class="nav-menu-btn" onclick="toggleNavMenu()"><div class="nav-avatar" id="nav-avatar"><span></span><img alt=""/></div><span id="nav-display-name" style="font-size:13px;font-weight:600;color:var(--text-muted);margin-right:4px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>ADMIN <span style="font-size:10px;">▾</span></button>
+    <div class="nav-drop" id="nav-dropdown">
+      <button class="nav-drop-item" onclick="window.location.href='admin.html';closeNavMenu()">🏠 Dashboard</button>
+      <button class="nav-drop-item" onclick="window.location.href='settings.html';closeNavMenu()">⚙ Settings</button>
+      <button class="nav-drop-item" onclick="window.location.href='organizations.html';closeNavMenu()">🏢 Organizations</button>
+      <div class="nav-drop-divider"></div>
+      <button class="nav-drop-item danger" onclick="handleSignOut();closeNavMenu()">↪ Sign out</button>
+    </div>
+  </div>
+</nav>
+
+<div class="page">
+
+  <div class="page-header">
+    <div>
+      <div class="page-header-title" id="locs-count">Locations</div>
+      <div class="page-header-sub">Each location's settings, invite codes, and team members</div>
+    </div>
+    <button class="btn btn-green" onclick="openAddLocation()">+ Add Location</button>
+  </div>
+
+  <div id="locations-list">
+    <div style="text-align:center;padding:40px;color:var(--text-faint);">Loading…</div>
+  </div>
+
+</div>
+
+<!-- ══ EDIT LOCATION MODAL ══ -->
+<!-- EDIT USER MODAL -->
+<div class="modal-overlay" id="modal-edituser" onclick="closeMOnBg(event,'modal-edituser')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Edit User</div>
+    <div class="modal-body">
+      <input type="hidden" id="eu-id"/>
+      <div class="modal-field"><label>First Name</label><input type="text" id="eu-firstname"/></div>
+      <div class="modal-field"><label>Last Name</label><input type="text" id="eu-lastname"/></div>
+      <div class="modal-field"><label>Display Name</label><input type="text" id="eu-displayname" placeholder="How their name appears in the app"/></div>
+      <div class="modal-field"><label>Phone</label><input type="tel" id="eu-phone" placeholder="(555) 000-0000" oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"/></div>
+    </div>
+    <div class="modal-msg" id="eu-msg"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-full" onclick="saveEditUser()" style="font-size:14px;padding:11px;">Save Changes</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-edituser')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-editloc" onclick="closeMOnBg(event,'modal-editloc')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Edit Location</div>
+    <div class="modal-body">
+      <div class="modal-field"><label>Club Name</label><input type="text" id="el-name"/></div>
+      <div class="modal-field"><label>Street Address</label><input type="text" id="el-street" placeholder="123 Main St" autocomplete="off" data-lpignore="true" data-form-type="other"/></div>
+      <div class="modal-field"><label>Address Line 2 <span style="font-size:11px;font-weight:400;color:var(--text-faint);">Suite, Unit, Apt (optional)</span></label><input type="text" id="el-street2" placeholder="e.g. Suite 100"/></div>
+      <div class="modal-field"><label>Zip Code</label><input type="text" id="el-zip" placeholder="00000" maxlength="5" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5);if(this.value.length===5)lookupZip(this.value,'el-city','el-state')"/></div>
+      <div class="modal-field" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div><label>City <span style="font-size:10px;font-weight:400;color:var(--text-faint);">auto-fills</span></label><input type="text" id="el-city" placeholder="Auto-filled" readonly style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--b6);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;outline:none;" readonly/></div>
+        <div><label>State <span style="font-size:10px;font-weight:400;color:var(--text-faint);">auto-fills</span></label><input type="text" id="el-state" placeholder="Auto" readonly style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--b6);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;outline:none;"/></div>
+      </div>
+      <div class="modal-field"><label>Owner Name</label><input type="text" id="el-owner"/></div>
+      <div class="modal-field"><label>Owner Phone</label><input type="tel" id="el-phone" placeholder="(555) 000-0000" oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"/></div>
+      <div class="modal-field"><label>Owner Email</label><input type="email" id="el-email" placeholder="owner@example.com"/></div>
+      <div class="modal-field" style="padding:10px 0 4px;">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text-muted);text-transform:none;letter-spacing:0;">
+          <input type="checkbox" id="el-second-toggle" onchange="toggleSecondContact()" style="width:16px;height:16px;accent-color:var(--b5);cursor:pointer;"/>
+          Add / edit second contact
+        </label>
+      </div>
+      <div id="el-second-fields" style="display:none;background:var(--b0);border-radius:8px;padding:12px;margin-top:4px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);margin-bottom:10px;">Second Contact</div>
+        <div class="modal-field" style="margin-bottom:10px;"><label>Name</label><input type="text" id="el-owner2" placeholder="John Smith"/></div>
+        <div class="modal-field" style="margin-bottom:10px;"><label>Phone</label><input type="tel" id="el-phone2" oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)" placeholder="(555) 000-0000"/></div>
+        <div class="modal-field" style="margin-bottom:0;"><label>Email</label><input type="email" id="el-email2" placeholder="partner@example.com"/></div>
+      </div>
+    </div>
+    <div class="modal-msg" id="el-msg"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-full" id="el-btn" onclick="submitEditLocation()">Save Changes</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-editloc')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ADD LOCATION MODAL ══ -->
+<div class="modal-overlay" id="modal-addloc" onclick="closeMOnBg(event,'modal-addloc')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Add New Location</div>
+    <div class="modal-body">
+      <div class="modal-field"><label>Club Name</label><input type="text" id="al-name" placeholder="e.g. Thrive Nutrition Hub"/></div>
+      <div class="modal-field"><label>Street Address</label><input type="text" id="al-street" placeholder="123 Main St" autocomplete="off" data-lpignore="true" data-form-type="other"/></div>
+      <div class="modal-field"><label>Address Line 2 <span style="font-size:11px;font-weight:400;color:var(--text-faint);">Suite, Unit, Apt (optional)</span></label><input type="text" id="al-street2" placeholder="e.g. Suite 100"/></div>
+      <div class="modal-field"><label>Zip Code</label><input type="text" id="al-zip" placeholder="00000" maxlength="5" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5);if(this.value.length===5)lookupZip(this.value,'al-city','al-state')"/></div>
+      <div class="modal-field" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div><label>City <span style="font-size:10px;font-weight:400;color:var(--text-faint);">auto-fills</span></label><input type="text" id="al-city" placeholder="Auto-filled" readonly style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--b6);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;outline:none;" readonly/></div>
+        <div><label>State <span style="font-size:10px;font-weight:400;color:var(--text-faint);">auto-fills</span></label><input type="text" id="al-state" placeholder="Auto" readonly style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--b6);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;outline:none;"/></div>
+      </div>
+      <div class="modal-field"><label>Owner Name</label><input type="text" id="al-owner" placeholder="Full name"/></div>
+      <div class="modal-field"><label>Owner Phone</label><input type="tel" id="al-phone" placeholder="(555) 000-0000" oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"/></div>
+      <div class="modal-field"><label>Invite Code <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-faint);">auto-generated</span></label>
+        <input type="text" id="al-code" placeholder="AUTO" style="text-transform:uppercase;font-family:monospace;font-weight:700;letter-spacing:2px;" readonly/>
+      </div>
+    </div>
+    <div class="modal-msg" id="al-msg"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-full" id="al-btn" onclick="submitAddLocation()">Add Location</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-addloc')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ REGENERATE INVITE CODE MODAL ══ -->
+<div class="modal-overlay" id="modal-recode" onclick="closeMOnBg(event,'modal-recode')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Change Owner Invite Code</div>
+    <div class="modal-body">
+      <div style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:14px;">
+        Changing the invite code will invalidate the old one. Any owner or operator who hasn't registered yet will need the new code.
+      </div>
+      <div class="modal-field"><label>New Invite Code</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="text" id="rc-code" style="text-transform:uppercase;font-family:monospace;font-weight:700;letter-spacing:2px;flex:1"/>
+          <button class="btn btn-ghost btn-sm" onclick="genCode('rc-code')">Generate</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-msg" id="rc-msg"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-full" id="rc-btn" onclick="submitRegenCode()">Save Code</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-recode')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-recode-emp" onclick="closeMOnBg(event,'modal-recode-emp')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Change Operator Invite Code</div>
+    <div class="modal-body">
+      <div style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:14px;">
+        Changing the operator code will invalidate the old one. Any operators who haven't registered yet will need the new code.
+      </div>
+      <div class="modal-field"><label>New Operator Code</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="text" id="rc-emp-code" style="text-transform:uppercase;font-family:monospace;font-weight:700;letter-spacing:2px;flex:1"/>
+          <button class="btn btn-ghost btn-sm" onclick="genCode('rc-emp-code')">Generate</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-msg" id="rc-emp-msg"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-full" id="rc-emp-btn" onclick="submitRegenEmpCode()">Save Code</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-recode-emp')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ REMOVE LOCATION MODAL ══ -->
+<div class="modal-overlay" id="modal-removeloc" onclick="closeMOnBg(event,'modal-removeloc')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" style="color:var(--r5);">⚠ Remove Location</div>
+    <div class="modal-body">
+      <div style="font-size:14px;color:var(--text-muted);line-height:1.6;margin-bottom:8px;">
+        You are about to remove <strong id="remove-loc-name" style="color:var(--text);"></strong>.
+      </div>
+      <div style="background:var(--r0);border:1px solid rgba(192,48,48,0.2);border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;color:var(--r5);line-height:1.5;">
+        This permanently deletes the location and all its sales data, inventory, and settings. <strong>This cannot be undone.</strong>
+      </div>
+    </div>
+    <div class="modal-msg" id="remove-loc-msg"></div>
+    <div class="modal-actions">
+      <button class="btn btn-danger btn-full" id="remove-loc-btn" onclick="executeRemoveLocation()" style="font-size:14px;padding:11px;">Remove Location</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-removeloc')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="nav.js?v=10"></script>
+<script>
+const SUPABASE_URL = 'https://ndaqlamzlaucigvnhgfu.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_wO6XM4pC2CcaISQ8OlbkfQ_liqKJbi_';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY,{
+  auth:{
+    storage:window.localStorage,
+    persistSession:true,
+    detectSessionInUrl:true,
+    flowType:'implicit'
+  }
+});
+
+let allLocations = [];
+let allUsers = [];
+let editingLocId = null;
+let recodingLocId = null;
+let removingLocId = null;
+
+const US_STATES=[['AL','Alabama'],['AK','Alaska'],['AZ','Arizona'],['AR','Arkansas'],['CA','California'],['CO','Colorado'],['CT','Connecticut'],['DE','Delaware'],['FL','Florida'],['GA','Georgia'],['HI','Hawaii'],['ID','Idaho'],['IL','Illinois'],['IN','Indiana'],['IA','Iowa'],['KS','Kansas'],['KY','Kentucky'],['LA','Louisiana'],['ME','Maine'],['MD','Maryland'],['MA','Massachusetts'],['MI','Michigan'],['MN','Minnesota'],['MS','Mississippi'],['MO','Missouri'],['MT','Montana'],['NE','Nebraska'],['NV','Nevada'],['NH','New Hampshire'],['NJ','New Jersey'],['NM','New Mexico'],['NY','New York'],['NC','North Carolina'],['ND','North Dakota'],['OH','Ohio'],['OK','Oklahoma'],['OR','Oregon'],['PA','Pennsylvania'],['RI','Rhode Island'],['SC','South Carolina'],['SD','South Dakota'],['TN','Tennessee'],['TX','Texas'],['UT','Utah'],['VT','Vermont'],['VA','Virginia'],['WA','Washington'],['WV','West Virginia'],['WI','Wisconsin'],['WY','Wyoming']];
+
+function fmtPhone(input){
+  var digits=input.value.replace(/\D/g,'').slice(0,10);
+  var fmt='';
+  if(digits.length>0)fmt='('+digits.slice(0,3);
+  if(digits.length>=4)fmt+=') '+digits.slice(3,6);
+  if(digits.length>=7)fmt+='-'+digits.slice(6,10);
+  input.value=fmt;
+}
+
+function parseAddress(addr){
+  if(!addr)return{street:'',city:'',state:'',zip:''};
+  var m=addr.match(/^(.*?),\s*(.*?),?\s+([A-Z]{2})\s+(\d{5})$/);
+  if(m)return{street:m[1].trim(),city:m[2].trim(),state:m[3].trim(),zip:m[4].trim()};
+  return{street:addr,city:'',state:'',zip:''};
+}
+
+function buildAddress(street,city,state,zip){
+  var parts=[];
+  if(street)parts.push(street);
+  if(city&&state)parts.push(city+', '+state+' '+zip);
+  else if(city)parts.push(city);
+  return parts.join(', ');
+}
+
+function escHtml(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function genCode(inputId){
+  var chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  var code='';for(var i=0;i<6;i++)code+=chars[Math.floor(Math.random()*chars.length)];
+  document.getElementById(inputId||'al-code').value=code;
+}
+
+// ── ZIP AUTO-FILL ──
+async function lookupZip(zip,cityId,stateId){
+  if(!zip||zip.length!==5)return;
+  try{
+    var res=await fetch('https://api.zippopotam.us/us/'+zip);
+    if(!res.ok)return;
+    var data=await res.json();
+    if(data.places&&data.places.length>0){
+      var place=data.places[0];
+      var ce=document.getElementById(cityId);var se=document.getElementById(stateId);
+      if(ce)ce.value=place['place name'];
+      if(se)se.value=place['state abbreviation'];
+    }
+  }catch(e){}
+}
+
+// ── PLACES AUTOCOMPLETE ──
+function attachPlacesAutocomplete(streetInputId, cityId, stateId, zipId) {
+  // Google Places removed — using manual entry + zip auto-fill only
+}
+
+// ── RENDER ──
+function renderLocations(){
+  var list=document.getElementById('locations-list');
+  var count=document.getElementById('locs-count');
+  count.textContent='Locations ('+allLocations.length+')';
+
+  if(!allLocations.length){
+    list.innerHTML='<div class="empty-state"><div class="empty-state-icon">🏪</div><div class="empty-state-title">No locations yet</div><div class="empty-state-sub">Add your first location to get started.</div><button class="btn btn-green" onclick="openAddLocation()">+ Add Location</button></div>';
+    return;
+  }
+
+  var roleColors={admin:'var(--b7)',owner:'var(--g5)',employee:'var(--text-muted)'};
+  var roleBg={admin:'var(--b1)',owner:'var(--g0)',employee:'var(--b0)'};
+
+  // Split: approved = has registered users, pending = no registered users
+  var approved=allLocations.filter(function(loc){
+    return allUsers.some(function(u){return u.location_id===loc.id;});
+  }).sort(function(a,b){return a.name.localeCompare(b.name);});
+  var pending=allLocations.filter(function(loc){
+    return !allUsers.some(function(u){return u.location_id===loc.id;});
+  }).sort(function(a,b){return a.name.localeCompare(b.name);});
+
+  function buildCard(loc,isPending){
+    var initials=loc.name.split(' ').slice(0,2).map(function(w){return w[0];}).join('').toUpperCase();
+    var locUsers=allUsers.filter(function(u){return u.location_id===loc.id;});
+    var roleOrder={owner:0,employee:1};
+    locUsers.sort(function(a,b){return (roleOrder[a.role]??9)-(roleOrder[b.role]??9);});
+    var sc=loc.settings&&loc.settings.secondContact;
+
+    var usersHtml=locUsers.length?locUsers.map(function(u){
+      var fn=[u.first_name,u.last_name].filter(Boolean).join(' ')||u.display_name||u.email;
+      var letter=(u.first_name||u.display_name||u.email||'?')[0].toUpperCase();
+      var dn=u.display_name?'<span style="font-size:12px;color:var(--text-faint);margin-left:4px;">('+escHtml(u.display_name)+')</span>':'';
+      var avatarInner=u.avatar_url?'<img src="'+u.avatar_url+'" style="width:32px;height:32px;object-fit:cover;border-radius:50%;display:block;"/>':letter;
+      var roleColor=u.role==='owner'?'color:var(--g5)':'color:var(--text-muted)';
+      var roleLabel=u.role==='owner'?'Owner':'Operator';
+      return '<div class="loc-user-card" id="luc-'+u.id+'">'+
+        '<div class="loc-user-top" onclick="toggleLocUser(\''+u.id+'\')">'+
+          '<div class="loc-user-avatar" style="background:'+(u.avatar_url?'transparent':roleBg[u.role]||'var(--b0)')+';color:'+(roleColors[u.role]||'var(--text-muted)')+';">'+avatarInner+'</div>'+
+          '<div class="loc-user-info">'+
+            '<div class="loc-user-name">'+escHtml(fn)+dn+'</div>'+
+            '<div class="loc-user-email">'+escHtml(u.email)+'</div>'+
+          '</div>'+
+          '<span style="font-size:13px;font-weight:700;color:var(--b7);flex-shrink:0;margin-right:6px;">'+roleLabel+'</span>'+
+          '<span class="loc-user-chevron">▼</span>'+
+        '</div>'+
+        '<div class="loc-user-fields">'+
+          '<div class="loc-user-grid">'+
+            '<div class="loc-user-field"><label>First Name</label><input type="text" id="luf-fn-'+u.id+'" value="'+escHtml(u.first_name||'')+'" placeholder="First name"/></div>'+
+            '<div class="loc-user-field"><label>Last Name</label><input type="text" id="luf-ln-'+u.id+'" value="'+escHtml(u.last_name||'')+'" placeholder="Last name"/></div>'+
+            '<div class="loc-user-field"><label>Display Name</label><input type="text" id="luf-dn-'+u.id+'" value="'+escHtml(u.display_name||'')+'" placeholder="Display name"/></div>'+
+            '<div class="loc-user-field"><label>Phone</label><input type="tel" id="luf-ph-'+u.id+'" value="'+escHtml(u.phone||'')+'" placeholder="(555) 000-0000"/></div>'+
+          '</div>'+
+          '<div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;">'+
+            '<button class="loc-user-save" onclick="locSaveUser(\''+u.id+'\')" style="margin-top:0;padding:8px 16px;">Save Changes</button>'+
+            '<div style="margin-left:auto;display:flex;gap:8px;">'+
+              '<select onchange="changeUserRole(\''+u.id+'\',this.value,this)" style="font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:700;padding:8px 10px;border-radius:6px;border:none;background:var(--b6);color:white;cursor:pointer;outline:none;">'+
+                '<option value="owner" '+(u.role==='owner'?'selected':'')+'>Owner</option>'+
+                '<option value="employee" '+(u.role==='employee'?'selected':'')+'>Operator</option>'+
+              '</select>'+
+              '<button onclick="locResetPassword(\''+escAttr(u.email)+'\',\''+escAttr(fn)+'\')" style="font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:700;padding:8px 14px;border-radius:6px;border:none;background:var(--b6);color:white;cursor:pointer;white-space:nowrap;">🔑 Reset PW</button>'+
+              '<button onclick="confirmRemoveUser(\''+u.id+'\',\''+escAttr(fn)+'\')" style="font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:700;padding:8px 14px;border-radius:6px;border:none;background:var(--b6);color:white;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background=\'var(--r5)\'" onmouseout="this.style.background=\'var(--b6)\'">🗑 Remove</button>'+
+            '</div>'+
+          '</div>'+
+        '</div>'+
+        '</div>'+
+      '</div>';
+    }).join('')
+    :'<div style="font-size:13px;color:var(--text-faint);padding:4px 0;">No registered users yet — share the invite code below.</div>';
+
+    var ownerCard=(loc.owner_name||loc.owner_phone||(loc.settings&&loc.settings.ownerEmail))?
+      '<div class="contact-card">'+
+        '<div class="contact-card-title">Primary Owner</div>'+
+        (loc.owner_name?'<div class="contact-card-name">'+escHtml(loc.owner_name)+'</div>':'')+
+        '<div class="contact-card-detail">'+
+          (loc.owner_phone?'📞 '+escHtml(loc.owner_phone)+'<br>':'')+
+          (loc.settings&&loc.settings.ownerEmail?'✉️ '+escHtml(loc.settings.ownerEmail):'')+
+        '</div>'+
+      '</div>':'';
+
+    var sc2Card=sc&&(sc.name||sc.phone||sc.email)?
+      '<div class="contact-card">'+
+        '<div class="contact-card-title">Second Contact</div>'+
+        (sc.name?'<div class="contact-card-name">'+escHtml(sc.name)+'</div>':'')+
+        '<div class="contact-card-detail">'+
+          (sc.phone?'📞 '+escHtml(sc.phone)+'<br>':'')+
+          (sc.email?'✉️ '+escHtml(sc.email):'')+
+        '</div>'+
+      '</div>':'';
+
+    var copyIcon='<svg width="12" height="12" viewBox="0 0 14 14" fill="none"><rect x="4" y="4" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M2 9.5V2h7.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
+    var empCode=loc.settings&&loc.settings.employeeInviteCode;
+    var ownerCodeCard='<div style="flex:1;min-width:140px;">'+
+      '<div class="invite-code-card" onclick="copyCode(\''+escHtml(loc.invite_code||'')+'\')\" title="Click to copy">'+
+        '<div class="invite-code-card-label">Owner '+copyIcon+'</div>'+
+        '<div class="invite-code-card-value">'+escHtml(loc.invite_code||'—')+'</div>'+
+        '<div class="invite-code-card-sub">Register as club owner</div>'+
+      '</div>'+
+      '<button onclick="openRegenCode(\''+loc.id+'\')" style="margin-top:6px;width:100%;font-family:\'DM Sans\',sans-serif;font-size:11px;font-weight:600;padding:5px 0;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;">Change Owner Code</button>'+
+    '</div>';
+    var empCodeCard=empCode?
+      '<div style="flex:1;min-width:140px;">'+
+        '<div class="invite-code-card" onclick="copyCode(\''+escHtml(empCode)+'\')\" title="Click to copy">'+
+          '<div class="invite-code-card-label">Operator '+copyIcon+'</div>'+
+          '<div class="invite-code-card-value">'+escHtml(empCode)+'</div>'+
+          '<div class="invite-code-card-sub">Register as operator</div>'+
+        '</div>'+
+        '<button onclick="openRegenEmpCode(\''+loc.id+'\')" style="margin-top:6px;width:100%;font-family:\'DM Sans\',sans-serif;font-size:11px;font-weight:600;padding:5px 0;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;">Change Operator Code</button>'+
+      '</div>':
+      '<div style="flex:1;min-width:140px;">'+
+        '<div class="invite-code-card" style="opacity:0.5;cursor:default;">'+
+          '<div class="invite-code-card-label">Operator</div>'+
+          '<div class="invite-code-card-value" style="font-size:12px;letter-spacing:0;color:var(--text-faint);">Not set</div>'+
+          '<div class="invite-code-card-sub">Set in app settings</div>'+
+        '</div>'+
+        '<button onclick="openRegenEmpCode(\''+loc.id+'\')" style="margin-top:6px;width:100%;font-family:\'DM Sans\',sans-serif;font-size:11px;font-weight:600;padding:5px 0;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;">Set Operator Code</button>'+
+      '</div>';
+
+    var cardClass='loc-group'+(isPending?' pending-card':'');
+    var pendingBadge=isPending?'<span class="pending-badge">⏳ Pending Setup</span>':'';
+
+    return '<div class="'+cardClass+'" id="locg-'+loc.id+'">'+
+      '<div class="loc-group-header">'+
+        '<div class="loc-avatar">'+initials+'</div>'+
+        '<div class="loc-header-info">'+
+          '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'+
+            '<div class="loc-name">'+escHtml(loc.name)+'</div>'+
+            pendingBadge+
+          '</div>'+
+          (loc.address?'<div class="loc-addr">📍 '+escHtml(loc.address)+'</div>':'')+
+        '</div>'+
+        '<div class="loc-header-actions">'+
+          (!isPending?'<button onclick="goToApp(\''+loc.id+'\')" style="font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:700;background:linear-gradient(135deg,var(--b7),var(--b5));color:white;border:none;border-radius:8px;padding:8px 24px;cursor:pointer;white-space:nowrap;">Enter Club View</button>':'')+
+          '<button onclick="openEditLocation(\''+loc.id+'\')" style="font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:700;background:linear-gradient(135deg,var(--b7),var(--b5));color:white;border:none;border-radius:8px;padding:8px 24px;cursor:pointer;white-space:nowrap;">Edit Club Details</button>'+
+          '<button onclick="confirmRemoveLocation(this)" data-id="'+loc.id+'" data-name="'+escHtml(loc.name)+'" title="Remove location" style="font-family:\'DM Sans\',sans-serif;font-size:14px;background:white;border:1px solid var(--border);border-radius:8px;padding:8px 10px;cursor:pointer;color:var(--text-faint);line-height:1;" onmouseover="this.style.background=\'var(--r0)\';this.style.color=\'var(--r5)\';this.style.borderColor=\'var(--r3)\'" onmouseout="this.style.background=\'white\';this.style.color=\'var(--text-faint)\';this.style.borderColor=\'var(--border)\'">🗑</button>'+
+        '</div>'+
+      '</div>'+
+      (ownerCard||sc2Card?'<div class="loc-section"><div class="loc-section-title">Contact</div><div class="contact-cards">'+ownerCard+sc2Card+'</div></div>':'')+
+      '<div class="loc-section">'+
+        '<div class="loc-section-title">Invite Codes</div>'+
+        '<div class="invite-codes">'+ownerCodeCard+empCodeCard+'</div>'+
+      '</div>'+
+      (!isPending?
+        '<div class="loc-section">'+
+          '<div class="loc-section-title">Team Members ('+locUsers.length+')</div>'+
+          '<div class="users-list">'+usersHtml+'</div>'+
+        '</div>':'')+
+    '</div>';
+  }
+
+  var html='';
+  if(approved.length){
+    html+='<div class="loc-section-heading">Active Locations ('+approved.length+')</div>';
+    html+=approved.map(function(loc){return buildCard(loc,false);}).join('');
+  }
+  if(pending.length){
+    html+='<div class="loc-section-heading">Pending Setup ('+pending.length+')</div>';
+    html+=pending.map(function(loc){return buildCard(loc,true);}).join('');
+  }
+  list.innerHTML=html;
+}
+
+
+function copyCode(code){
+  navigator.clipboard.writeText(code).then(function(){
+  var CHECK_INTERVAL = 10000;
+  function extractVersion(html){
+    var m=html.match(/CACHE BUST: ([^-]+?) -->/);
+    return m?m[1].trim():null;
+  }
+  var _initVersion=(function(){
+    var iter=document.createNodeIterator(document.documentElement,NodeFilter.SHOW_COMMENT);
+    var node;
+    while(node=iter.nextNode()){
+      var m=node.nodeValue.match(/CACHE BUST: (.+)/);
+      if(m)return m[1].trim();
+    }
+    return null;
+  })();
+  function showUpdateBanner(){
+    if(document.getElementById('update-banner'))return;
+    var b=document.createElement('div');
+    b.id='update-banner';
+    b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#1e3a5f;color:#fff;font-family:DM Sans,system-ui,sans-serif;font-size:13px;font-weight:600;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 2px 8px rgba(0,0,0,0.2);';
+    b.innerHTML='<span>&#128260; A new version is available</span><button onclick="window.location.reload()" style="background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">Refresh now</button>';
+    document.body.insertBefore(b, document.body.firstChild);
+  }
+  if(!_initVersion)return;
+  setInterval(function(){
+    fetch(window.location.href, {cache:'no-store'})
+      .then(function(r){return r.text();})
+      .then(function(html){
+        var v=extractVersion(html);
+        if(v&&v!==_initVersion)showUpdateBanner();
+      })
+      .catch(function(){});
+  }, CHECK_INTERVAL);
+})();
+</script>
+</body>
+</html>
