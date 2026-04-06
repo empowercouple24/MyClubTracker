@@ -72,7 +72,8 @@ if('serviceWorker' in navigator){
     .tab.amber.active::after{background:var(--a5)}
     .tab.amber:hover{color:var(--a6)}
     /* CONTENT */
-    .content-area{position:absolute;top:calc(var(--nav-h) + var(--tab-h) + env(safe-area-inset-top,0px));left:0;right:0;bottom:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+    .content-area{position:absolute;top:calc(var(--nav-h) + var(--tab-h) + env(safe-area-inset-top,0px));left:0;right:0;bottom:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+    .content-area::-webkit-scrollbar{display:none;}
     .tab-panel{display:none;padding:10px 12px}
     .tab-panel.active{display:block;animation:tabIn 0.18s ease}
     #panel-history.active{display:flex !important;}
@@ -302,17 +303,15 @@ if('serviceWorker' in navigator){
     .inv-dv-item-val{font-family:'Outfit',sans-serif;font-size:28px;font-weight:800;letter-spacing:-0.5px;line-height:1;}
     .inv-cat-header{font-size:18px;font-weight:700;color:white;background:linear-gradient(135deg,var(--b8),var(--b6));padding:12px 16px;border-radius:var(--radius-sm) var(--radius-sm) 0 0;margin-top:8px;position:sticky;top:var(--inv-cat-top,100px);z-index:18;}
     .inv-table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border-light);border-radius:0 0 var(--radius-sm) var(--radius-sm);overflow:hidden;margin-bottom:2px;table-layout:fixed;}
-    .inv-table th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);background:#f8fafc;padding:8px 22px;text-align:right;border-bottom:1px solid var(--border-light);vertical-align:middle;}
+    .inv-table th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);background:#f8fafc;padding:8px 16px;text-align:right;border-bottom:1px solid var(--border-light);vertical-align:middle;}
     .inv-table th:first-child{text-align:left}
     .inv-table th:nth-child(1){width:auto}
-    .inv-table th:nth-child(2){width:32px}
-    .inv-table th:nth-child(3){width:58px}
-    .inv-table th:nth-child(4){width:44px}
-    .inv-table th:nth-child(5){width:62px}
-    .inv-table th:nth-child(6){width:60px}
-    .inv-table th:nth-child(7){width:88px}
-    .inv-table th:nth-child(8){width:88px}
-    .inv-table td{padding:6px 22px;font-size:16px;font-weight:500;border-bottom:1px solid var(--border-light);vertical-align:middle;height:32px;}
+    .inv-table th:nth-child(2){width:72px}
+    .inv-table th:nth-child(3){width:56px}
+    .inv-table th:nth-child(4){width:72px}
+    .inv-table th:nth-child(5){width:72px}
+    .inv-table th:nth-child(6){width:72px}
+    .inv-table td{padding:6px 16px;font-size:16px;font-weight:500;border-bottom:1px solid var(--border-light);vertical-align:middle;height:32px;}
     .inv-table tr:last-child td{border-bottom:none}
     .inv-table td:not(:first-child){text-align:right}
     .inv-table tr.inv-row-active{background:rgba(59,130,246,0.06);}
@@ -373,12 +372,11 @@ if('serviceWorker' in navigator){
     #panel-invhist{max-width:none;margin:0;padding:0;}
     #panel-invhist .inv-cat-header{top:var(--invhist-cat-top,160px);z-index:10;}
     #panel-invhist .inv-table th:nth-child(1){width:auto}
-    #panel-invhist .inv-table th:nth-child(2){width:66px}
-    #panel-invhist .inv-table th:nth-child(3){width:50px}
-    #panel-invhist .inv-table th:nth-child(4){width:66px}
-    #panel-invhist .inv-table th:nth-child(5){width:66px}
-    #panel-invhist .inv-table th:nth-child(6){width:96px}
-    #panel-invhist .inv-table th:nth-child(7){width:96px}
+    #panel-invhist .inv-table th:nth-child(2){width:72px}
+    #panel-invhist .inv-table th:nth-child(3){width:56px}
+    #panel-invhist .inv-table th:nth-child(4){width:72px}
+    #panel-invhist .inv-table th:nth-child(5){width:72px}
+    #panel-invhist .inv-table th:nth-child(6){width:72px}
     .inv-input:focus{border-color:var(--a4);box-shadow:0 0 0 2px rgba(224,152,32,0.15);background:#fff}
     .need-badge{display:inline-block;font-size:16px;font-weight:700;padding:3px 12px;border-radius:20px;min-width:36px;text-align:center;}
     .need-badge.need{background:#bfdbfe;color:#1d4ed8;}
@@ -549,23 +547,22 @@ if('serviceWorker' in navigator){
       .inv-table th { padding: 6px 5px !important; font-size: 9px !important; letter-spacing: 0; }
       .inv-table td { padding: 5px 5px !important; font-size: 13px !important; height: 28px !important; }
       /* Hide VP and DV columns on mobile — least critical for daily use */
-      .inv-table th:nth-child(3),
-      .inv-table td:nth-child(3) { display: none; }
-      .inv-table th:nth-child(7),
-      .inv-table td:nth-child(7) { display: none; }
-      .inv-table th:nth-child(8),
-      .inv-table td:nth-child(8) { display: none; }
-      /* Tighten column widths */
-      .inv-table th:nth-child(2) { width: 28px !important; }
-      .inv-table th:nth-child(4) { width: 36px !important; }
-      .inv-table th:nth-child(5) { width: 50px !important; }
-      .inv-table th:nth-child(6) { width: 50px !important; }
+      .inv-table th:nth-child(2),
+      .inv-table td:nth-child(2) { display: none; }
+      .inv-table th:nth-child(6),
+      .inv-table td:nth-child(6) { display: none; }
+      /* Tighten remaining columns on mobile */
+      .inv-table th:nth-child(3) { width: 44px !important; }
+      .inv-table th:nth-child(4) { width: 52px !important; }
+      .inv-table th:nth-child(5) { width: 60px !important; }
       /* Inv History — hide DV columns */
-      #panel-invhist .inv-table th:nth-child(2) { width: 44px !important; }
-      #panel-invhist .inv-table th:nth-child(3) { width: 36px !important; }
-      #panel-invhist .inv-table th:nth-child(4) { width: 50px !important; }
-      #panel-invhist .inv-table th:nth-child(5) { width: 50px !important; }
-      #panel-invhist .inv-table th:nth-child(6) { width: 54px !important; }
+      #panel-invhist .inv-table th:nth-child(2),
+      #panel-invhist .inv-table td:nth-child(2) { display: none; }
+      #panel-invhist .inv-table th:nth-child(6),
+      #panel-invhist .inv-table td:nth-child(6) { display: none; }
+      #panel-invhist .inv-table th:nth-child(3) { width: 44px !important; }
+      #panel-invhist .inv-table th:nth-child(4) { width: 52px !important; }
+      #panel-invhist .inv-table th:nth-child(5) { width: 60px !important; }
       #panel-invhist .inv-table td { font-size: 12px !important; padding: 4px 4px !important; }
       #panel-invhist .inv-table th { font-size: 8px !important; padding: 5px 4px !important; }
       #panel-invhist .inv-cat-header { font-size: 14px !important; padding: 8px 10px !important; }
