@@ -987,6 +987,19 @@ async function saveLocDetails(locId) {
 }
 
 // -- BILLING TOGGLE --
+
+async function deleteLocation(locId) {
+  const loc = allOrgLocations.find(l => l.id === locId);
+  const name = loc ? loc.name : 'this club';
+  if (!confirm('Permanently delete ' + name + '?\n\nThis will remove all club data including days, inventory, and team members. This cannot be undone.')) return;
+  const { error } = await sb.from('locations').delete().eq('id', locId);
+  if (error) { showOrgToast('Delete failed: ' + error.message); return; }
+  allOrgLocations = allOrgLocations.filter(l => l.id !== locId);
+  allLocationUsers = allLocationUsers.filter(u => u.location_id !== locId);
+  allOrgDays = allOrgDays.filter(d => d.location_id !== locId);
+  showOrgToast(name + ' deleted');
+  renderOrgs();
+}
 async function deleteOrg(orgId, orgName, btn, e) {
   e && e.stopPropagation();
   if (!btn.classList.contains('confirm')) {
