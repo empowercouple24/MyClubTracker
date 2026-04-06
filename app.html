@@ -746,7 +746,9 @@ if('serviceWorker' in navigator){
     .alloc-bucket.cash-deposit.transferred .alloc-bucket-check{background:var(--b6);border-color:var(--b6);}
 
     /* ── BANK RECONCILIATION WIDGET ── */
-    .recon-widget{border-radius:var(--radius);overflow:hidden;margin-bottom:12px;}
+
+    #hist-sticky-header{position:sticky;top:0;z-index:30;background:var(--bg);padding-bottom:6px;margin-bottom:4px;box-shadow:0 4px 8px -2px rgba(53,78,98,0.08);}
+    .recon-widget{border-radius:var(--radius);overflow:hidden;margin-bottom:8px;}
     .recon-banner{background:var(--b8);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;transition:background 0.15s;}
     .recon-banner:hover{background:var(--b7);}
     .recon-banner-left{}
@@ -1140,6 +1142,7 @@ if('serviceWorker' in navigator){
 
 <div class="tab-panel" id="panel-history">
   <div style="max-width:900px;margin:0 auto;width:75%;min-width:480px;padding-bottom:40px;">
+    <div id="hist-sticky-header">
     <!-- Bank Reconciliation Widget -->
     <div class="recon-widget" id="recon-widget">
       <div class="recon-banner" onclick="toggleReconWidget()">
@@ -1224,6 +1227,7 @@ if('serviceWorker' in navigator){
         <button class="hvt-btn" id="hvt-sum" onclick="setHistView('sum')">&#9776; Summary</button>
       </div>
     </div>
+    </div><!-- /hist-sticky-header -->
     <div id="history-cal-grid" style="width:100%;"></div>
     <!-- Summary view — hidden by default -->
     <div id="history-sum-view" style="display:none;">
