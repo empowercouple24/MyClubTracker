@@ -741,7 +741,7 @@ if('serviceWorker' in navigator){
 
     #hist-sticky-header{flex-shrink:0;background:var(--bg);padding-bottom:6px;border-bottom:1px solid var(--border-light);box-shadow:0 2px 6px -2px rgba(53,78,98,0.08);z-index:10;}
     #hist-scroll-body::-webkit-scrollbar{display:none;}
-    #hist-scroll-body{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:40px;}
+    #hist-scroll-body{position:absolute;top:0;left:0;right:0;bottom:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:40px;}
     .recon-widget{border-radius:var(--radius);overflow:hidden;margin-bottom:8px;}
     .recon-banner{background:var(--b8);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;transition:background 0.15s;}
     .recon-banner:hover{background:var(--b7);}
@@ -1134,7 +1134,7 @@ if('serviceWorker' in navigator){
   </div>
 </div><!-- /panel-enter -->
 
-<div class="tab-panel" id="panel-history" style="display:none;flex-direction:column;padding:0;height:100%;">
+<div class="tab-panel" id="panel-history" style="display:none;flex-direction:column;padding:0;height:100%;position:relative;">
   <div style="max-width:900px;margin:0 auto;width:75%;min-width:480px;display:flex;flex-direction:column;height:100%;">
     <div id="hist-sticky-header">
     <!-- Bank Reconciliation Widget -->
@@ -2981,7 +2981,7 @@ function switchTab(name){
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
   document.getElementById('panel-'+name).classList.add('active');
-  if(name==='payouts'){renderPayoutSnapshots();}if(name==='payouts'){renderPaymentRegister();}if(name==='history'){renderHistAlloc();renderReconWidget();}
+  if(name==='payouts'){renderPayoutSnapshots();}if(name==='payouts'){renderPaymentRegister();}if(name==='history'){renderHistAlloc();renderReconWidget();positionHistScrollBody();}
   if(name==='inv')recalcInvCatTop();
   if(name==='invhist'){
     setTimeout(()=>{
@@ -6262,6 +6262,15 @@ function calcReconTotals() {
 
 let _reconDaysOpen = false;
 
+function positionHistScrollBody() {
+  const hdr = document.getElementById('hist-sticky-header');
+  const body = document.getElementById('hist-scroll-body');
+  if (hdr && body) {
+    const h = hdr.offsetHeight;
+    body.style.top = h + 'px';
+  }
+}
+
 function renderReconWidget() {
   const totals = calcReconTotals();
   const valEl = document.getElementById('recon-unalloc-val');
@@ -6387,6 +6396,8 @@ function updateReconMatch() {
       : 'Off by ' + fmt$(diff) + ' — ' + effectiveStr + ' vs ' + fmt$(totals.unalloc) + ' unallocated';
   }
 }
+
+window.addEventListener('resize', positionHistScrollBody);
 
 function toggleReconWidget() {
   _reconOpen = !_reconOpen;
