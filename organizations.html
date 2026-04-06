@@ -283,6 +283,49 @@
   #approve-modal input:not([readonly]){background:#fff!important;border-color:var(--b5)!important;}
   #ap-edit-btn{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:var(--b6);background:var(--b0);border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer;white-space:nowrap;}
   #ap-edit-btn.editing{color:var(--g6);background:var(--g0);border-color:var(--g4);}
+
+  /* ── ABSORBED FROM LOCATIONS.HTML ── */
+  .org-loc-stats{display:flex;gap:16px;align-items:center;flex-shrink:0;margin-right:8px;}
+  .ols-block{text-align:right;}
+  .ols-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--text-faint);}
+  .ols-val{font-size:12px;font-weight:700;color:var(--g5);}
+  .ols-dv{font-size:10px;color:var(--text-faint);}
+  .ols-none{font-size:11px;color:var(--text-faint);}
+  .loc-edit-panel{background:var(--b0);border-top:1px solid var(--border-light);padding:14px 16px;}
+  .loc-edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+  .lef-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);display:block;margin-bottom:3px;}
+  .lef-input{width:100%;font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 10px;border:1px solid var(--border);border-radius:6px;color:var(--text);background:var(--surface);outline:none;}
+  .lef-input:focus{border-color:var(--b5);}
+  .invite-codes-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+  .invite-code-box{flex:1;min-width:140px;background:var(--surface);border:1px solid var(--border-light);border-radius:8px;padding:8px 12px;}
+  .ic-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);margin-bottom:3px;}
+  .ic-val{font-family:monospace;font-size:15px;font-weight:800;letter-spacing:2px;color:var(--b7);cursor:pointer;}
+  .ic-val:hover{color:var(--b5);}
+  .ic-sub{font-size:10px;color:var(--text-faint);margin-top:2px;}
+  .ic-regen-btn{margin-top:6px;width:100%;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;padding:5px 0;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;}
+  .ic-regen-btn:hover{background:var(--b0);}
+  .team-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:8px;}
+  .team-member-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border-light);}
+  .team-member-row:last-child{border-bottom:none;}
+  .tm-avatar{width:30px;height:30px;border-radius:50%;background:var(--b6);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0;overflow:hidden;}
+  .tm-info{flex:1;min-width:0;}
+  .tm-name{font-size:12px;font-weight:700;color:var(--text);}
+  .tm-email{font-size:11px;color:var(--text-faint);}
+  .tm-role{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;}
+  .tm-role.owner{background:var(--g0);color:var(--g5);}
+  .tm-role.employee{background:var(--b0);color:var(--text-faint);}
+  .tm-fields{background:var(--surface);border:1px solid var(--border-light);border-radius:8px;padding:10px 12px;margin-top:6px;display:none;}
+  .tm-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;}
+  .tm-field label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--text-faint);display:block;margin-bottom:2px;}
+  .tm-field input{width:100%;font-family:'DM Sans',sans-serif;font-size:12px;padding:6px 8px;border:1px solid var(--border);border-radius:5px;color:var(--text);background:var(--bg,var(--surface));outline:none;}
+  .tm-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  .tm-save-btn{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;padding:6px 14px;border-radius:6px;border:none;background:var(--b7);color:white;cursor:pointer;}
+  .tm-role-sel{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;padding:6px 10px;border-radius:6px;border:none;background:var(--b6);color:white;cursor:pointer;outline:none;}
+  .tm-danger-btn{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;padding:6px 14px;border-radius:6px;border:none;background:var(--b6);color:white;cursor:pointer;}
+  .tm-danger-btn:hover{background:var(--r5);}
+  .loc-edit-footer{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+  .loc-msg{font-size:12px;margin-top:6px;display:none;}
+  @media(max-width:600px){.loc-edit-grid{grid-template-columns:1fr;}.org-loc-stats{display:none;}}
 </style>
 
 </head>
@@ -502,6 +545,26 @@ async function loadOrgs() {
       .select('id,name,address,org_id,owner_name,owner_phone,settings,invite_code')
       .in('org_id', allOrgs.map(o => o.id));
     allOrgLocations = locs || [];
+  }
+
+  // Load all location users for team management
+  if (allOrgLocations.length) {
+    const { data: users } = await sb.from('users')
+      .select('id,location_id,role,display_name,first_name,last_name,email,phone,avatar_url')
+      .in('location_id', allOrgLocations.map(l => l.id))
+      .in('role', ['owner','employee']);
+    allLocationUsers = users || [];
+  }
+
+  // Load recent days for 7d/30d stats
+  const since30 = new Date(); since30.setDate(since30.getDate()-30);
+  const since30str = since30.toISOString().slice(0,10);
+  if (allOrgLocations.length) {
+    const { data: days } = await sb.from('days')
+      .select('location_id,date,data')
+      .in('location_id', allOrgLocations.map(l => l.id))
+      .gte('date', since30str);
+    allOrgDays = days || [];
   }
 
   renderOrgSummary();
@@ -978,6 +1041,114 @@ async function submitEditRate() {
 }
 
 // -- MODAL HELPERS --
+
+// ── ABSORBED FROM LOCATIONS.HTML ─────────────────────────────────────────────
+
+function orgCopyCode(code) {
+  if (!code || code === 'Not set') return;
+  navigator.clipboard?.writeText(code).then(() => showOrgToast('Copied: ' + code))
+    .catch(() => { const t=document.createElement('textarea');t.value=code;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);showOrgToast('Copied!'); });
+}
+
+function showOrgToast(msg) {
+  let t = document.getElementById('org-toast');
+  if (!t) { t=document.createElement('div');t.id='org-toast';t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1e3a5f;color:white;font-family:DM Sans,sans-serif;font-size:13px;font-weight:600;padding:10px 20px;border-radius:20px;z-index:9999;transition:opacity 0.3s;';document.body.appendChild(t); }
+  t.textContent=msg;t.style.opacity='1';clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity='0',2000);
+}
+
+function toggleOrgTeamMember(userId) {
+  const fields = document.getElementById('tmf-' + userId);
+  const btn = document.getElementById('tmbtn-' + userId);
+  if (!fields) return;
+  const open = fields.style.display !== 'none';
+  fields.style.display = open ? 'none' : 'block';
+  if (btn) btn.textContent = open ? 'Edit ▾' : 'Close ▴';
+}
+
+async function orgSaveTeamMember(userId) {
+  const get = id => document.getElementById(id)?.value?.trim() || '';
+  const fn = get('tmfn-' + userId);
+  const ln = get('tmln-' + userId);
+  const dn = get('tmdn-' + userId);
+  const ph = get('tmph-' + userId);
+  const displayName = dn || (fn && ln ? fn+' '+ln : fn||ln||'');
+  const { error } = await sb.from('users').update({first_name:fn,last_name:ln,display_name:displayName,phone:ph||null}).eq('id', userId);
+  if (error) { showOrgToast('Save failed: ' + error.message); return; }
+  const u = allLocationUsers.find(u => u.id === userId);
+  if (u) { u.first_name=fn; u.last_name=ln; u.display_name=displayName; u.phone=ph; }
+  showOrgToast('Saved ✓');
+  toggleOrgTeamMember(userId);
+  renderOrgs();
+}
+
+async function orgChangeRole(userId, newRole, sel) {
+  const { error } = await sb.from('users').update({role: newRole}).eq('id', userId);
+  if (error) { showOrgToast('Role change failed'); return; }
+  const u = allLocationUsers.find(u => u.id === userId);
+  if (u) u.role = newRole;
+  showOrgToast('Role updated to ' + (newRole==='owner'?'Owner':'Operator') + ' ✓');
+  renderOrgs();
+}
+
+async function orgResetPassword(email, name) {
+  if (!confirm('Send password reset to ' + name + ' (' + email + ')?')) return;
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + '/index.html' });
+  if (error) { showOrgToast('Reset failed: ' + error.message); return; }
+  showOrgToast('Reset email sent to ' + email + ' ✓');
+}
+
+function orgConfirmRemoveUser(userId, name) {
+  if (!confirm('Remove ' + name + ' from their location?\n\nThey will lose access immediately but can rejoin with an invite code.')) return;
+  orgRemoveUser(userId, name);
+}
+
+async function orgRemoveUser(userId, name) {
+  const { error } = await sb.rpc('remove_user_from_location', { p_user_id: userId });
+  if (error) { showOrgToast('Remove failed: ' + error.message); return; }
+  allLocationUsers = allLocationUsers.filter(u => u.id !== userId);
+  showOrgToast(name + ' removed ✓');
+  renderOrgs();
+}
+
+function orgGenCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({length:7}, () => chars[Math.floor(Math.random()*chars.length)]).join('');
+}
+
+async function orgRegenCode(locId, type) {
+  const newCode = orgGenCode();
+  const label = type === 'owner' ? 'owner invite code' : 'operator invite code';
+  if (!confirm('Generate a new ' + label + '? The old code will stop working immediately.')) return;
+
+  let updateData;
+  if (type === 'owner') {
+    updateData = { invite_code: newCode };
+  } else {
+    const loc = allOrgLocations.find(l => l.id === locId);
+    const settings = { ...(loc?.settings || {}), employeeInviteCode: newCode };
+    updateData = { settings };
+  }
+
+  const { error } = await sb.from('locations').update(updateData).eq('id', locId);
+  if (error) { showOrgToast('Failed: ' + error.message); return; }
+
+  // Update local
+  const loc = allOrgLocations.find(l => l.id === locId);
+  if (loc) {
+    if (type === 'owner') loc.invite_code = newCode;
+    else { if (!loc.settings) loc.settings = {}; loc.settings.employeeInviteCode = newCode; }
+  }
+  showOrgToast('New code generated: ' + newCode);
+  renderOrgs();
+  // Re-open the edit panel
+  setTimeout(() => {
+    const panel = document.getElementById('locedit-' + locId);
+    if (panel) panel.style.display = 'block';
+    const chev = document.getElementById('locchev-' + locId);
+    if (chev) chev.style.transform = 'rotate(180deg)';
+  }, 50);
+}
+
 function closeOrgModal(id) { document.getElementById(id).classList.remove('show'); }
 function closeOrgModalOnBg(e, id) { if (e.target.id === id) closeOrgModal(id); }
 function showOrgModalAlert(id, msg) {

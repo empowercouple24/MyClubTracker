@@ -1565,14 +1565,18 @@ function renderLocations(){
         ? `<span class="last-ok">${lastFmt}</span>`
         : `<span class="last-warn">${lastFmt}</span>`;
 
-    const sales7Html = weekSales ? `<span style="font-weight:600;color:var(--g5);">${fmt$z(weekSales)}</span>` : '<span style="color:var(--text-faint);">—</span>';
-    const sales30Html = monthSales ? `<span style="font-weight:600;color:var(--g5);">${fmt$z(monthSales)}</span>` : '<span style="color:var(--text-faint);">—</span>';
+    const weekDV2 = sumField(ld,'dv',w0,today);
+    const monthDV2 = sumField(ld,'dv',m0,today);
+    const sales7Html = weekSales
+      ? `<div style="font-weight:600;color:var(--g5);font-size:12px;">${fmt$z(weekSales)}</div><div style="font-size:10px;color:var(--text-faint);">${weekDV2?weekDV2.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1})+' DV':''}</div>`
+      : '<span style="color:var(--text-faint);">—</span>';
+    const sales30Html = monthSales
+      ? `<div style="font-weight:600;color:var(--g5);font-size:12px;">${fmt$z(monthSales)}</div><div style="font-size:10px;color:var(--text-faint);">${monthDV2?monthDV2.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1})+' DV':''}</div>`
+      : '<span style="color:var(--text-faint);">—</span>';
 
-    const isExp = _expandedRow === loc.id;
-
-    const dataRow = `<tr class="data-row${isExp?' row-expanded':''}" id="tbl-row-${loc.id}" onclick="toggleTableRow('${loc.id}')">
+    const dataRow = `<tr class="data-row" id="tbl-row-${loc.id}">
       <td style="padding-left:18px;">
-        <div class="club-cell-name">${isExp?'&#9660; ':'&#9658; '}${escHtml(loc.name)}</div>
+        <div class="club-cell-name">${escHtml(loc.name)}</div>
         <div class="club-cell-addr">${escHtml(loc.address||'')}</div>
       </td>
       <td>${statusBadge}</td>
@@ -1667,13 +1671,13 @@ function renderLocations(){
   }
 
   const colDefs = [
-    {col:'name',label:'Club',w:'30%'},
-    {col:'status',label:'Status',w:'10%'},
-    {col:'owner',label:'Owner',w:'18%'},
-    {col:'lastentry',label:'Last entry',w:'10%'},
-    {col:'sales7',label:'7d sales',w:'10%'},
-    {col:'sales30',label:'30d sales',w:'10%'},
-    {col:'',label:'',w:'12%'},
+    {col:'name',    label:'Club',       w:'28%'},
+    {col:'status',  label:'Status',     w:'8%'},
+    {col:'owner',   label:'Owner',      w:'16%'},
+    {col:'lastentry',label:'Last entry',w:'9%'},
+    {col:'sales7',  label:'7d Sales / DV', w:'13%'},
+    {col:'sales30', label:'30d Sales / DV',w:'13%'},
+    {col:'',        label:'',           w:'13%'},
   ];
 
   const thead = `<thead><tr>${colDefs.map((c,i) =>
@@ -1703,7 +1707,6 @@ function renderLocations(){
 }
 
 let _tblSortCol = 'name', _tblSortDir = 1;
-let _expandedRow = null;
 
 function sortTable(col) {
   if (_tblSortCol === col) _tblSortDir *= -1;
@@ -1711,10 +1714,7 @@ function sortTable(col) {
   renderLocations();
 }
 
-function toggleTableRow(locId) {
-  _expandedRow = (_expandedRow === locId) ? null : locId;
-  renderLocations();
-}
+
 
 function toggleOrgPin(orgId) {
   const pinned = JSON.parse(localStorage.getItem('mct_pinned_orgs')||'[]');
