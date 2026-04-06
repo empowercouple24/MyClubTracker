@@ -191,6 +191,10 @@ if('serviceWorker' in navigator){
     .hcal-sales-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--g6);white-space:nowrap;}
     .hcal-sales{font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--g5);line-height:1.1;margin-bottom:4px;}
     .hcal-dv-block{display:flex;flex-direction:column;margin:auto 0 0;}
+    .hcal-net-suffix{font-size:8px;font-weight:700;color:var(--g5);opacity:0.7;margin-left:1px;letter-spacing:0.2px;}
+    .hcal-dv-suffix{font-size:8px;font-weight:700;color:var(--text-faint);margin-left:1px;letter-spacing:0.2px;}
+    .hcal-val-sales{font-size:12px;font-weight:800;color:var(--g5);line-height:1.1;}
+    .hcal-val-dv{font-size:12px;font-weight:800;color:var(--text);line-height:1.1;margin-top:1px;}
     .hcal-pill-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--b4);white-space:nowrap;}
     .hcal-pill-val{font-size:13px;font-weight:700;color:var(--text);}
     .hcal-extras{margin-top:3px;font-size:10px;color:var(--text-faint);}
@@ -458,7 +462,39 @@ if('serviceWorker' in navigator){
     .admin-edit-banner.show{display:block}
     .admin-location-banner{background:var(--b8);color:white;font-size:11px;font-weight:600;text-align:center;padding:4px 12px;letter-spacing:0.3px}
     
-  </style>
+  
+    /* ── MULTI-SELECT ── */
+    .hcal-day.ms-selected{background:var(--b1) !important;border:2px solid var(--b5) !important;}
+    .ms-day-check{position:absolute;top:3px;right:3px;width:14px;height:14px;display:none;appearance:none;-webkit-appearance:none;border:1.5px solid var(--b4);border-radius:3px;background:var(--surface);cursor:pointer;z-index:5;}
+    .ms-day-check:checked{background:var(--b6);border-color:var(--b6);}
+    .ms-day-check:checked::after{content:'';position:absolute;left:3px;top:0;width:5px;height:8px;border:2px solid white;border-top:none;border-left:none;transform:rotate(45deg);}
+    body.ms-mode .ms-day-check{display:block;}
+    body.ms-mode .hcal-day.has-data{cursor:pointer;}
+    .ms-bulk-panel{background:var(--b9);border-radius:var(--radius);overflow:hidden;margin-bottom:12px;display:none;}
+    .ms-bulk-panel.open{display:block;}
+    .ms-bulk-header{padding:10px 14px 0;display:flex;align-items:center;justify-content:space-between;}
+    .ms-bulk-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.5);}
+    .ms-bulk-clear{font-size:11px;font-weight:600;color:rgba(255,255,255,0.4);background:none;border:none;cursor:pointer;}
+    .ms-bulk-selected{display:flex;flex-wrap:wrap;gap:5px;padding:8px 14px;}
+    .ms-sel-pill{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,0.12);border-radius:20px;padding:3px 8px;font-size:11px;font-weight:600;color:white;}
+    .ms-sel-x{font-size:12px;color:rgba(255,255,255,0.45);cursor:pointer;line-height:1;background:none;border:none;}
+    .ms-bulk-chips{display:flex;flex-wrap:wrap;gap:5px;padding:0 14px 10px;}
+    .ms-bkt-chip{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;border:0.5px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.06);font-size:11px;font-weight:600;cursor:pointer;}
+    .ms-bkt-chip.on{background:rgba(255,255,255,0.18);color:white;border-color:rgba(255,255,255,0.4);}
+    .ms-bkt-box{width:12px;height:12px;border-radius:3px;border:1px solid rgba(255,255,255,0.3);flex-shrink:0;position:relative;}
+    .ms-bkt-chip.on .ms-bkt-box{background:white;border-color:white;}
+    .ms-bkt-chip.on .ms-bkt-box::after{content:'';position:absolute;left:2px;top:0;width:5px;height:8px;border:1.5px solid var(--b8);border-top:none;border-left:none;transform:rotate(45deg);}
+    .ms-breakdown{background:rgba(0,0,0,0.15);margin:0 14px 10px;}
+    .ms-bkt-row{display:flex;align-items:flex-start;justify-content:space-between;padding:6px 10px;border-bottom:0.5px solid rgba(255,255,255,0.06);}
+    .ms-bkt-row:last-child{border-bottom:none;background:rgba(255,255,255,0.07);}
+    .ms-bkt-row-name{font-size:12px;color:rgba(255,255,255,0.7);}
+    .ms-bkt-row-days{font-size:10px;color:rgba(255,255,255,0.35);margin-top:1px;}
+    .ms-bkt-row-amt{font-size:12px;font-weight:700;color:white;flex-shrink:0;margin-left:8px;}
+    .ms-bkt-row:last-child .ms-bkt-row-name{font-size:11px;font-weight:700;color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:0.4px;}
+    .ms-bkt-row:last-child .ms-bkt-row-amt{font-size:14px;font-weight:800;}
+    .ms-bulk-actions{display:flex;gap:8px;padding:0 14px 12px;}
+    .ms-run-btn{font-size:12px;font-weight:700;padding:7px 0;border-radius:7px;border:none;background:white;color:var(--b8);cursor:pointer;flex:1;font-family:'DM Sans',sans-serif;}
+</style>
 </head>
 <body>
 
@@ -781,18 +817,92 @@ if('serviceWorker' in navigator){
 <div class="tab-panel" id="panel-history">
   <div id="hist-sticky-header">
     <div class="hist-inner">
+    <!-- Bank Reconciliation Widget -->
+    <div class="recon-widget" id="recon-widget">
+      <div class="recon-banner" onclick="toggleReconWidget()">
+        <div class="recon-banner-left">
+          <div class="recon-banner-lbl">Unallocated Balance</div>
+          <div class="recon-banner-val" id="recon-unalloc-val">—</div>
+          <div class="recon-banner-sub">card + cash &#8722; transfers</div>
+        </div>
+        <div class="recon-banner-right">
+          <div class="recon-bank-pill" onclick="event.stopPropagation()">
+            <span class="recon-bank-lbl">Bank</span>
+            <div class="recon-bank-div"></div>
+            <input class="recon-bank-input" id="recon-bank-input" placeholder="$0.00" oninput="updateReconMatch()" onfocus="reconBankFocus()" onblur="reconBankBlur()" type="text" inputmode="decimal"/>
+          </div>
+          <div class="recon-bank-pill" onclick="event.stopPropagation()" title="Pending Square deposits not yet in bank">
+            <span class="recon-bank-lbl">Pending</span>
+            <div class="recon-bank-div"></div>
+            <input class="recon-bank-input" id="recon-pending-input" placeholder="$0.00" oninput="updateReconMatch()" onfocus="reconPendingFocus()" onblur="reconPendingBlur()" type="text" inputmode="decimal"/>
+          </div>
+          <span class="recon-match-badge none" id="recon-match-badge">&#8212;</span>
+          <span class="recon-chev" id="recon-chev">&#9662;</span>
+        </div>
+      </div>
+      <div class="recon-body" id="recon-body">
+        <div class="recon-breakdown" id="recon-breakdown">
+          <div class="recon-brow">
+            <span class="recon-brow-lbl">Pending Square deposits</span>
+            <span class="recon-brow-val" id="recon-brow-pending">—</span>
+          </div>
+          <div class="recon-brow">
+            <span class="recon-brow-lbl">Cash deposits (month)</span>
+            <span class="recon-brow-val" id="recon-brow-cash">—</span>
+          </div>
+          <div class="recon-brow">
+            <span class="recon-brow-lbl">Transfers out (month)</span>
+            <span class="recon-brow-val" id="recon-brow-transfers">—</span>
+          </div>
+          <div class="recon-brow" style="border-top:0.5px solid rgba(255,255,255,0.12);margin-top:4px;padding-top:8px;">
+            <span class="recon-brow-lbl" style="font-weight:700;color:rgba(255,255,255,0.8);">Unallocated</span>
+            <span class="recon-brow-val" style="font-weight:800;" id="recon-brow-unalloc">—</span>
+          </div>
+        </div>
+        <div id="recon-unalloc-days" style="border-top:0.5px solid rgba(255,255,255,0.08);max-height:220px;overflow-y:auto;display:none;"></div>
+        <div class="recon-bulk-panel" id="recon-bulk-panel" style="display:none;">
+          <div style="padding:10px 14px 6px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.5);">Mark complete through</div>
+          <div style="padding:0 14px 10px;display:flex;align-items:center;gap:8px;">
+            <select id="recon-bulk-date" style="flex:1;font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 8px;border-radius:6px;border:none;background:rgba(255,255,255,0.12);color:white;outline:none;"></select>
+            <button onclick="reconBulkRun()" style="font-size:12px;font-weight:700;padding:6px 14px;border-radius:6px;border:none;background:white;color:var(--b8);cursor:pointer;font-family:'DM Sans',sans-serif;">Mark all</button>
+          </div>
+        </div>
+      </div>
+    </div>
     <div id="history-cal-nav" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <button class="btn btn-ghost" id="hist-prev-btn" onclick="histCalShift(-1)" style="padding:5px 12px;font-size:16px;">&#8592;</button>
       <span id="hist-cal-label" style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:var(--text);"></span>
       <div style="display:flex;align-items:center;gap:8px;">
         <button id="fill-dv-btn" onclick="openFillDvModal()" style="display:none;font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;background:#854F0B;color:#fff;border:none;cursor:pointer;">&#9679; Fill missing DV</button>
         <button class="btn btn-ghost" id="hist-next-btn" onclick="histCalShift(1)" style="padding:5px 12px;font-size:16px;">&#8594;</button>
+        <div style="display:flex;background:var(--b0);border-radius:20px;padding:2px;border:1px solid var(--border-light);">
+          <button id="ms-single-btn" onclick="setMultiSelect(false)" style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:16px;border:none;background:var(--b7);color:white;cursor:pointer;font-family:'DM Sans',sans-serif;">Single</button>
+          <button id="ms-multi-btn" onclick="setMultiSelect(true)" style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:16px;border:none;background:none;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;">Multi</button>
+        </div>
       </div>
     </div>
     </div><!-- /hist-inner -->
   </div><!-- /hist-sticky-header -->
   <div id="hist-scroll-body">
     <div class="hist-inner" style="padding:8px 0 40px;">
+    <div class="ms-bulk-panel" id="ms-bulk-panel">
+      <div class="ms-bulk-header">
+        <span class="ms-bulk-title">Mark complete — <span id="ms-day-count">0</span> days selected</span>
+        <button class="ms-bulk-clear" onclick="msClearAll()">Clear all</button>
+      </div>
+      <div class="ms-bulk-selected" id="ms-bulk-selected"></div>
+      <div class="ms-bulk-chips">
+        <div class="ms-bkt-chip on" data-key="tax" onclick="msBktToggle(this)"><div class="ms-bkt-box"></div>Taxes</div>
+        <div class="ms-bkt-chip on" data-key="overhead" onclick="msBktToggle(this)"><div class="ms-bkt-box"></div>Overhead</div>
+        <div class="ms-bkt-chip on" data-key="herbalife" onclick="msBktToggle(this)"><div class="ms-bkt-box"></div>Herbalife</div>
+        <div class="ms-bkt-chip on" data-key="payouts" onclick="msBktToggle(this)"><div class="ms-bkt-box"></div>Payouts</div>
+        <div class="ms-bkt-chip" data-key="cashdeposit" onclick="msBktToggle(this)"><div class="ms-bkt-box"></div>Cash Deposit</div>
+      </div>
+      <div class="ms-breakdown" id="ms-breakdown"></div>
+      <div class="ms-bulk-actions">
+        <button class="ms-run-btn" id="ms-run-btn" onclick="msRunBulk()">&#10003; Mark complete</button>
+      </div>
+    </div>
     <div id="history-cal-grid" style="width:100%;"></div>
     </div><!-- /hist-inner -->
   </div><!-- /hist-scroll-body -->
@@ -2967,6 +3077,130 @@ function renderHistory(){
   updateFillDvBtn();
 }
 
+
+// ── MULTI-SELECT ─────────────────────────────────────────────────────────────
+let _msMode = false;
+let _msSelected = {};
+
+function setMultiSelect(on) {
+  _msMode = on;
+  document.body.classList.toggle('ms-mode', on);
+  const sBtn = document.getElementById('ms-single-btn');
+  const mBtn = document.getElementById('ms-multi-btn');
+  if (sBtn) { sBtn.style.background = on ? 'none' : 'var(--b7)'; sBtn.style.color = on ? 'var(--text-muted)' : 'white'; }
+  if (mBtn) { mBtn.style.background = on ? 'var(--b7)' : 'none'; mBtn.style.color = on ? 'white' : 'var(--text-muted)'; }
+  if (!on) msClearAll();
+}
+
+function hcalDayClick(event, dateStr) {
+  if (_msMode) {
+    const cb = event.currentTarget.querySelector('.ms-day-check');
+    if (cb) { cb.checked = !cb.checked; msDayToggle(dateStr, cb.checked); }
+  } else {
+    openDetail(dateStr);
+    loadHistProjDay(dateStr);
+  }
+}
+
+function msDayToggle(dateStr, checked) {
+  const day = ALL_DAYS.find(d => d.date === dateStr);
+  if (!day) return;
+  const cell = document.querySelector('.hcal-day[data-date="' + dateStr + '"]');
+  if (checked) {
+    _msSelected[dateStr] = day;
+    if (cell) cell.classList.add('ms-selected');
+  } else {
+    delete _msSelected[dateStr];
+    if (cell) cell.classList.remove('ms-selected');
+  }
+  msUpdatePanel();
+}
+
+function msClearAll() {
+  _msSelected = {};
+  document.querySelectorAll('.ms-day-check').forEach(cb => { cb.checked = false; });
+  document.querySelectorAll('.hcal-day.ms-selected').forEach(el => el.classList.remove('ms-selected'));
+  msUpdatePanel();
+}
+
+function msBktToggle(el) {
+  el.classList.toggle('on');
+  msUpdatePanel();
+}
+
+function msUpdatePanel() {
+  const panel = document.getElementById('ms-bulk-panel');
+  const days = Object.values(_msSelected).sort((a,b) => a.date.localeCompare(b.date));
+  if (!panel) return;
+  panel.classList.toggle('open', days.length > 0);
+  const countEl = document.getElementById('ms-day-count');
+  if (countEl) countEl.textContent = days.length;
+  const pillsEl = document.getElementById('ms-bulk-selected');
+  if (pillsEl) {
+    pillsEl.innerHTML = days.map(d => {
+      const lbl = new Date(d.date + 'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      return '<div class="ms-sel-pill">' + lbl + '<button class="ms-sel-x" onclick="msDayToggle(\'' + d.date + '\',false);var cb=document.querySelector(\'.ms-day-check[data-date=\\\"' + d.date + '\\\"\');if(cb)cb.checked=false;">&#215;</button></div>';
+    }).join('');
+  }
+  const BKTS = {
+    tax:{label:'Taxes',fn:c=>c.tax||0},
+    overhead:{label:'Overhead',fn:c=>c.overhead||0},
+    herbalife:{label:'Herbalife',fn:c=>c.products||0},
+    payouts:{label:'Payouts',fn:c=>c.payouts||0},
+    cashdeposit:{label:'Cash Deposit',fn:(c,d)=>parseFloat(d.cashSales)||0}
+  };
+  const activeBkts = Array.from(document.querySelectorAll('.ms-bkt-chip.on')).map(el=>el.dataset.key);
+  const bdEl = document.getElementById('ms-breakdown');
+  if (bdEl && days.length) {
+    let grand = 0;
+    const rows = activeBkts.map(key => {
+      const bkt = BKTS[key]; if(!bkt) return '';
+      let tot = 0;
+      const dayAmts = days.map(d => {
+        const c = calcAllFromData(d.data||{});
+        const amt = bkt.fn(c, d.data||{});
+        tot += amt;
+        return new Date(d.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' ' + fmt$(amt);
+      }).join(' · ');
+      grand += tot;
+      return '<div class="ms-bkt-row"><div><div class="ms-bkt-row-name">' + bkt.label + '</div><div class="ms-bkt-row-days">' + dayAmts + '</div></div><div class="ms-bkt-row-amt">' + fmt$(tot) + '</div></div>';
+    }).join('');
+    bdEl.innerHTML = rows + '<div class="ms-bkt-row"><div class="ms-bkt-row-name">Total</div><div class="ms-bkt-row-amt">' + fmt$(grand) + '</div></div>';
+  } else if (bdEl) { bdEl.innerHTML = ''; }
+}
+
+async function msRunBulk() {
+  const days = Object.values(_msSelected);
+  if (!days.length) return;
+  const activeBkts = Array.from(document.querySelectorAll('.ms-bkt-chip.on')).map(el=>el.dataset.key);
+  if (!activeBkts.length) { showToast('Select at least one bucket','error'); return; }
+  const dayLabels = days.map(d=>new Date(d.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})).join(', ');
+  if (!confirm('Mark ' + activeBkts.join(', ') + ' complete for: ' + dayLabels + '?')) return;
+  const btn = document.getElementById('ms-run-btn');
+  if (btn) { btn.disabled=true; btn.textContent='Saving…'; }
+  let done=0, failed=0;
+  for (const d of days) {
+    const data = {...(d.data||{})};
+    if (!data.transfers) data.transfers = {};
+    activeBkts.forEach(k => { data.transfers[k] = true; });
+    const {error} = await sb.from('days').update({data}).eq('id', d.id);
+    if (error) failed++; else { d.data=data; done++; }
+  }
+  if (btn) { btn.disabled=false; btn.textContent='✓ Mark complete'; }
+  if (failed) showToast(done+' saved, '+failed+' failed','error');
+  else showToast('✓ '+done+' day'+(done!==1?'s':'')+' marked complete','success');
+  msClearAll();
+  renderHistCal();
+  renderHistAlloc();
+  renderReconWidget();
+}
+function positionHistScrollBody() {
+  const hdr = document.getElementById('hist-sticky-header');
+  const body = document.getElementById('hist-scroll-body');
+  if (hdr && body) body.style.paddingTop = hdr.offsetHeight + 'px';
+}
+window.addEventListener('resize', positionHistScrollBody);
+
 function histCalShift(dir){
   _histCalMonth+=dir;
   if(_histCalMonth>11){_histCalMonth=0;_histCalYear++;}
@@ -3058,7 +3292,7 @@ function renderHistCal(){
         const noteIcon=data.notes?'<span style="font-size:12px;line-height:1;">&#128221;</span>':'';
         const adminIcon=data._adminEdit?'<span style="font-size:8px;color:var(--a5);">✎</span> ':'';
         const closedBadge=data.closedDay?'<div class="hcal-closed-label">Closed</div>':'';
-        html+=`<div class="hcal-day has-data${isToday?' today-day':''}" onclick="openDetail('${dateStr}')">
+        html+=`<div class="hcal-day has-data${isToday?' today-day':''}" onclick="hcalDayClick(event,'${dateStr}')" data-date="${dateStr}"><input type="checkbox" class="ms-day-check" data-date="${dateStr}" onclick="event.stopPropagation()" onchange="msDayToggle('${dateStr}',this.checked)">
           <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:3px;">
             <div class="hcal-dn" style="margin-bottom:0;">${day}</div>
             <div style="display:flex;align-items:center;gap:2px;">${adminIcon}${noteIcon}</div>
