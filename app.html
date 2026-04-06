@@ -769,7 +769,9 @@ if('serviceWorker' in navigator){
     .ms-bkt-row:last-child{border-bottom:none;background:rgba(255,255,255,0.07);}
     .ms-bkt-row-name{font-size:12px;color:rgba(255,255,255,0.7);}
     .ms-bkt-row-days{font-size:10px;color:rgba(255,255,255,0.35);margin-top:1px;}
-    .ms-bkt-row-amt{font-size:12px;font-weight:700;color:white;flex-shrink:0;margin-left:8px;}
+    .ms-bkt-row-amt{font-size:12px;font-weight:700;color:white;flex-shrink:0;margin-left:8px;cursor:pointer;border-bottom:1px dashed rgba(255,255,255,0.25);transition:opacity 0.15s;}
+    .ms-bkt-row-amt:hover{opacity:0.75;}
+    .ms-bkt-row-amt:active{opacity:0.5;}
     .ms-bkt-row:last-child .ms-bkt-row-name{font-size:11px;font-weight:700;color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:0.4px;}
     .ms-bkt-row:last-child .ms-bkt-row-amt{font-size:14px;font-weight:800;}
     .ms-bulk-actions{display:flex;gap:8px;padding:0 14px 12px;}
@@ -6648,14 +6650,47 @@ function msUpdatePanel() {
         return `${lbl} ${fmt$(amt)}`;
       }).join(' · ');
       grandTotal += bktTotal;
-      return `<div class="ms-bkt-row"><div><div class="ms-bkt-row-name">${bkt.label}</div><div class="ms-bkt-row-days">${dayAmts}</div></div><div class="ms-bkt-row-amt">${fmt$(bktTotal)}</div></div>`;
+      return `<div class="ms-bkt-row"><div><div class="ms-bkt-row-name">${bkt.label}</div><div class="ms-bkt-row-days">${dayAmts}</div></div><div class="ms-bkt-row-amt" onclick="msCopyAmt(this,${bktTotal})" title="Click to copy">${fmt$(bktTotal)}</div></div>`;
     }).join('');
-    bdEl.innerHTML = rows + `<div class="ms-bkt-row"><div class="ms-bkt-row-name">Total</div><div class="ms-bkt-row-amt">${fmt$(grandTotal)}</div></div>`;
+    bdEl.innerHTML = rows + `<div class="ms-bkt-row"><div class="ms-bkt-row-name">Total</div><div class="ms-bkt-row-amt" onclick="msCopyAmt(this,${grandTotal})" title="Click to copy">${fmt$(grandTotal)}</div></div>`;
   } else if (bdEl) {
     bdEl.innerHTML = '';
   }
 }
 
+
+function msCopyAmt(el, rawAmt) {
+  const str = rawAmt.toFixed(2);
+  navigator.clipboard.writeText(str).then(() => {
+    const orig = el.textContent;
+    el.textContent = 'Copied!';
+    setTimeout(() => { el.textContent = orig; }, 1200);
+  }).catch(() => {
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = str;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    const orig = el.textContent;
+    el.textContent = 'Copied!';
+    setTimeout(() => { el.textContent = orig; }, 1200);
+  });
+}
+async 
+function msCopyAmt(num, el) {
+  const str = num.toFixed(2);
+  navigator.clipboard.writeText(str).then(() => {
+    const orig = el.textContent;
+    el.textContent = '✓ Copied';
+    el.style.background = 'rgba(88,192,120,0.25)';
+    setTimeout(() => { el.textContent = orig; el.style.background = ''; }, 1400);
+  }).catch(() => {
+    // Fallback for browsers that block clipboard
+    showToast('Copy: ' + str, 'success');
+  });
+}
 async function msRunBulk() {
   const days = Object.values(_msSelected);
   if (!days.length) return;
