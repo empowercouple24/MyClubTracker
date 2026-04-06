@@ -1291,6 +1291,29 @@ if('serviceWorker' in navigator){
         <button class="hvt-btn" id="hvt-msel" onclick="setHistView('msel')">&#9745; Multi-select</button>
       </div>
     </div>
+
+    <!-- MULTI-SELECT ALLOCATION PANEL — sits above calendar in msel mode -->
+    <div id="hist-msel-section" style="display:none;margin-bottom:10px;">
+      <div class="msel-panel" id="msel-bulk-panel">
+        <div class="msel-title" id="msel-panel-title">0 days selected</div>
+        <div class="msel-pills" id="msel-pills">
+          <span class="msel-empty">Tap days on the calendar below to select them</span>
+        </div>
+        <div class="msel-buckets">
+          <div class="msel-chip on" id="msel-chip-tax" onclick="toggleMselChip('tax')"><div class="msel-chip-box"></div>Taxes</div>
+          <div class="msel-chip on" id="msel-chip-overhead" onclick="toggleMselChip('overhead')"><div class="msel-chip-box"></div>Overhead</div>
+          <div class="msel-chip on" id="msel-chip-herbalife" onclick="toggleMselChip('herbalife')"><div class="msel-chip-box"></div>Herbalife</div>
+          <div class="msel-chip on" id="msel-chip-payouts" onclick="toggleMselChip('payouts')"><div class="msel-chip-box"></div>Payouts</div>
+          <div class="msel-chip on" id="msel-chip-cashdeposit" onclick="toggleMselChip('cashdeposit')"><div class="msel-chip-box"></div>Cash Deposit</div>
+        </div>
+        <div class="msel-breakdown" id="msel-breakdown"></div>
+        <div class="msel-actions">
+          <button class="msel-cancel" onclick="setHistView('cal')">Cancel</button>
+          <button class="msel-run" id="msel-run-btn" onclick="runMselMark()" disabled>&#10003; Mark complete</button>
+        </div>
+      </div>
+    </div>
+
     <div id="history-cal-grid" style="width:100%;"></div>
     <!-- Summary view — hidden by default -->
     <div id="history-sum-view" style="display:none;">
@@ -1318,29 +1341,6 @@ if('serviceWorker' in navigator){
       <div id="hist-alloc-list"></div>
       <div id="hist-alloc-done" style="display:none;margin-bottom:8px;padding:12px;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);text-align:center;box-shadow:var(--shadow-sm);">
         <span style="font-size:13px;font-weight:600;color:var(--g5);">&#10003; All transfers complete for this month</span>
-      </div>
-    </div>
-
-    <!-- MULTI-SELECT ALLOCATION PANEL -->
-    <div id="hist-msel-section" style="display:none;">
-      <!-- Calendar renders here in multi-select mode (shared history-cal-grid) -->
-      <div class="msel-panel" id="msel-bulk-panel">
-        <div class="msel-title" id="msel-panel-title">0 days selected</div>
-        <div class="msel-pills" id="msel-pills">
-          <span class="msel-empty">Tap days on the calendar above to select them</span>
-        </div>
-        <div class="msel-buckets">
-          <div class="msel-chip on" id="msel-chip-tax" onclick="toggleMselChip('tax')"><div class="msel-chip-box"></div>Taxes</div>
-          <div class="msel-chip on" id="msel-chip-overhead" onclick="toggleMselChip('overhead')"><div class="msel-chip-box"></div>Overhead</div>
-          <div class="msel-chip on" id="msel-chip-herbalife" onclick="toggleMselChip('herbalife')"><div class="msel-chip-box"></div>Herbalife</div>
-          <div class="msel-chip on" id="msel-chip-payouts" onclick="toggleMselChip('payouts')"><div class="msel-chip-box"></div>Payouts</div>
-          <div class="msel-chip on" id="msel-chip-cashdeposit" onclick="toggleMselChip('cashdeposit')"><div class="msel-chip-box"></div>Cash Deposit</div>
-        </div>
-        <div class="msel-breakdown" id="msel-breakdown"></div>
-        <div class="msel-actions">
-          <button class="msel-cancel" onclick="setHistView('cal')">Cancel</button>
-          <button class="msel-run" id="msel-run-btn" onclick="runMselMark()" disabled>&#10003; Mark complete</button>
-        </div>
       </div>
     </div>
 
@@ -5713,16 +5713,19 @@ function renderMselBreakdown() {
   if (!el) return;
 
   const sorted = [..._mselDates].sort();
-  if (!sorted.length || !_mselBuckets.size) {
+  const activeKeys = MSEL_BUCKET_KEYS.filter(k => _mselBuckets.has(k));
+
+  if (!sorted.length || !activeKeys.length) {
     el.innerHTML = '';
     if (runBtn) runBtn.disabled = true;
     return;
   }
 
-  // Build per-bucket totals across selected days
-  const bucketTotals = {};
-  const bucketDayLines = {};
-  MSEL_BUCKET_KEYS.forEach(k => { bucketTotals[k] = 0; bucketDayLines[k] = []; });
+  // Build per-day data
+  const dayRows = [];
+  const colTotals = {};
+  activeKeys.forEach(k => { colTotals[k] = 0; });
+  let grandTotal = 0;
 
   sorted.forEach(dateStr => {
     const dayObj = ALL_DAYS.find(d => d.date === dateStr);
@@ -5732,33 +5735,57 @@ function renderMselBreakdown() {
     const cashDep = parseFloat(data.cashSales) || 0;
     const bvMap = {
       cashdeposit: cashDep,
-      tax:         c.tax     || 0,
-      overhead:    c.overhead|| 0,
-      herbalife:   c.products|| 0,
-      payouts:     c.payouts || 0
+      tax:         c.tax      || 0,
+      overhead:    c.overhead || 0,
+      herbalife:   c.products || 0,
+      payouts:     c.payouts  || 0
     };
     const lbl = new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
-    MSEL_BUCKET_KEYS.forEach(k => {
-      bucketTotals[k] += bvMap[k];
-      bucketDayLines[k].push(lbl + ' ' + fmt$(bvMap[k]));
-    });
+    const rowTotal = activeKeys.reduce((s,k) => s + bvMap[k], 0);
+    activeKeys.forEach(k => { colTotals[k] += bvMap[k]; });
+    grandTotal += rowTotal;
+    dayRows.push({ lbl, bvMap, rowTotal });
   });
 
-  // Only show active bucket chips
-  const activeKeys = MSEL_BUCKET_KEYS.filter(k => _mselBuckets.has(k));
-  const grandTotal = activeKeys.reduce((s,k) => s + bucketTotals[k], 0);
+  // Header row
+  const headerCells = activeKeys.map(k =>
+    `<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.4);text-align:right;flex:1;min-width:0;">${MSEL_BUCKET_LABELS[k]}</div>`
+  ).join('');
 
-  el.innerHTML = activeKeys.map(k => `
-    <div class="msel-brow">
-      <div>
-        <div class="msel-brow-name">${MSEL_BUCKET_LABELS[k]}</div>
-        <div class="msel-brow-days">${bucketDayLines[k].join(' &middot; ')}</div>
+  // Day rows
+  const rowsHtml = dayRows.map(row => {
+    const cells = activeKeys.map(k =>
+      `<div style="font-size:11px;font-weight:600;color:white;text-align:right;flex:1;min-width:0;">${fmt$(row.bvMap[k])}</div>`
+    ).join('');
+    return `<div class="msel-brow" style="flex-direction:column;gap:3px;">
+      <div style="display:flex;align-items:center;gap:4px;">
+        <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.8);min-width:46px;">${row.lbl}</div>
+        ${cells}
+        <div style="font-size:12px;font-weight:800;color:white;text-align:right;min-width:56px;">${fmt$(row.rowTotal)}</div>
       </div>
-      <div class="msel-brow-amt">${fmt$(bucketTotals[k])}</div>
-    </div>`).join('') +
-    `<div class="msel-brow total-row">
-      <div class="msel-brow-name">Total</div>
-      <div class="msel-brow-amt">${fmt$(grandTotal)}</div>
+    </div>`;
+  }).join('');
+
+  // Totals row
+  const totalCells = activeKeys.map(k =>
+    `<div style="font-size:11px;font-weight:700;color:white;text-align:right;flex:1;min-width:0;">${fmt$(colTotals[k])}</div>`
+  ).join('');
+
+  el.innerHTML = `
+    <div class="msel-brow" style="flex-direction:column;gap:3px;padding-bottom:4px;">
+      <div style="display:flex;align-items:center;gap:4px;">
+        <div style="min-width:46px;"></div>
+        ${headerCells}
+        <div style="min-width:56px;text-align:right;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.4);">Total</div>
+      </div>
+    </div>
+    ${rowsHtml}
+    <div class="msel-brow total-row" style="flex-direction:column;gap:3px;">
+      <div style="display:flex;align-items:center;gap:4px;">
+        <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.4px;min-width:46px;">Total</div>
+        ${totalCells}
+        <div style="font-size:15px;font-weight:800;color:white;text-align:right;min-width:56px;">${fmt$(grandTotal)}</div>
+      </div>
     </div>`;
 
   if (runBtn) runBtn.disabled = sorted.length === 0 || activeKeys.length === 0;
