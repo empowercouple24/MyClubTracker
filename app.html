@@ -1178,9 +1178,9 @@ if('serviceWorker' in navigator){
 </div><!-- /panel-enter -->
 
 <div class="tab-panel" id="panel-history" style="display:none;flex-direction:column;padding:0;height:100%;position:relative;">
-  <div style="max-width:900px;margin:0 auto;width:75%;min-width:480px;display:flex;flex-direction:column;height:100%;">
     <div id="hist-sticky-header">
-    <!-- Bank Reconciliation Widget -->
+      <div style="max-width:900px;margin:0 auto;padding:10px 12px 6px;">
+<!-- Bank Reconciliation Widget -->
     <div class="recon-widget" id="recon-widget">
       <div class="recon-banner" onclick="toggleReconWidget()">
         <div class="recon-banner-left">
@@ -1271,9 +1271,10 @@ if('serviceWorker' in navigator){
       </div>
     </div>
     </div><!-- /hist-content-wrap-header -->
+      </div>
     </div><!-- /hist-sticky-header -->
     <div id="hist-scroll-body">
-    <div class="hist-content-wrap">
+      <div style="max-width:900px;margin:0 auto;padding:8px 12px;">
     <div class="ms-bulk-panel" id="ms-bulk-panel">
       <div class="ms-bulk-header">
         <span class="ms-bulk-title">Mark complete — <span id="ms-day-count">0</span> days selected</span>
@@ -1353,8 +1354,7 @@ if('serviceWorker' in navigator){
       </div>
     </div>
 
-    </div>
-    </div><!-- /hist-content-wrap -->
+      </div>
     </div><!-- /hist-scroll-body -->
 </div>
 
