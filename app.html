@@ -650,6 +650,45 @@ if('serviceWorker' in navigator){
     .preg-scroll-box{max-height:340px;overflow-y:auto;}
     .preg-footer-bar{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;border-top:1px solid var(--border-light);background:var(--b0);}
     .preg-footer-total{font-size:11px;color:var(--text-faint);}
+
+    /* ── HISTORY SUMMARY VIEW ── */
+    .hist-view-toggle{display:flex;background:var(--b0);border-radius:20px;padding:2px;gap:2px;border:1px solid var(--border-light);}
+    .hvt-btn{font-size:11px;font-weight:700;padding:4px 12px;border-radius:16px;border:none;background:none;cursor:pointer;color:var(--text-muted);white-space:nowrap;transition:background 0.15s,color 0.15s;}
+    .hvt-btn.active{background:var(--b7);color:white;}
+    .sum-sub-tabs{display:flex;border-bottom:1px solid var(--border-light);}
+    .sum-sub-tab{flex:1;text-align:center;padding:8px;font-size:12px;font-weight:700;color:var(--text-faint);cursor:pointer;border-bottom:2px solid transparent;transition:color 0.15s;}
+    .sum-sub-tab.active{color:var(--b6);border-bottom-color:var(--b6);}
+    .sum-week-nav{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;border-bottom:1px solid var(--border-light);background:var(--b0);}
+    .sum-week-label{font-size:12px;font-weight:700;color:var(--text);}
+    /* Grid table */
+    .sgrid-wrap{overflow-x:auto;}
+    .sgrid{width:100%;border-collapse:collapse;min-width:520px;}
+    .sgrid th{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);padding:6px 7px;border-bottom:1px solid var(--border-light);text-align:right;background:var(--b0);white-space:nowrap;}
+    .sgrid th:first-child{text-align:left;width:90px;position:sticky;left:0;background:var(--b0);z-index:2;}
+    .sgrid th.s-today{color:var(--b6);}
+    .sgrid th.s-total{color:var(--text-muted);font-weight:700;border-left:1px solid var(--border-light);}
+    .sgrid td{font-size:11px;padding:5px 7px;border-bottom:1px solid var(--border-light);text-align:right;color:var(--text);}
+    .sgrid td:first-child{text-align:left;font-size:10px;font-weight:700;color:var(--text-muted);position:sticky;left:0;background:var(--surface);z-index:1;}
+    .sgrid td.s-closed{color:var(--text-faint);font-style:italic;font-size:9px;}
+    .sgrid td.s-empty{color:var(--text-faint);}
+    .sgrid td.s-total{font-weight:700;background:var(--b0);border-left:1px solid var(--border-light);}
+    .sgrid td.s-green{color:var(--g5);}
+    .sgrid td.s-amber{color:var(--a6);}
+    .sgrid tr.s-section td{background:var(--b0);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);padding:4px 7px;border-top:1px solid var(--border);}
+    .sgrid tr.s-section td:first-child{background:var(--b0);}
+    /* Monthly table */
+    .smtbl{width:100%;border-collapse:collapse;}
+    .smtbl th{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);padding:6px 10px;border-bottom:1px solid var(--border-light);text-align:right;background:var(--b0);}
+    .smtbl th:first-child{text-align:left;}
+    .smtbl td{font-size:11px;padding:5px 10px;border-bottom:1px solid var(--border-light);text-align:right;color:var(--text);}
+    .smtbl td:first-child{text-align:left;color:var(--text-muted);font-size:11px;}
+    .smtbl tr.sm-wk td{background:var(--b0);font-weight:700;font-size:11px;}
+    .smtbl tr.sm-wk td:first-child{color:var(--text);}
+    .smtbl tr.sm-total td{font-weight:700;font-size:12px;border-top:1px solid var(--border);}
+    .smtbl tr.sm-total td:first-child{color:var(--text);}
+    .smtbl td.sm-nodata{color:var(--text-faint);}
+    .smtbl td.sm-green{color:var(--g5);}
+    .smtbl td.sm-amber{color:var(--a6);}
     
   </style>
 </head>
@@ -991,14 +1030,34 @@ if('serviceWorker' in navigator){
 <div class="tab-panel" id="panel-history">
   <div style="max-width:900px;margin:0 auto;width:75%;min-width:480px;padding-bottom:40px;">
     <div id="history-cal-nav" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-      <button class="btn btn-ghost" id="hist-prev-btn" onclick="histCalShift(-1)" style="padding:5px 12px;font-size:16px;">&#8592;</button>
-      <span id="hist-cal-label" style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:var(--text);"></span>
-      <div style="display:flex;align-items:center;gap:8px;">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <button class="btn btn-ghost" id="hist-prev-btn" onclick="histCalShift(-1)" style="padding:5px 12px;font-size:16px;">&#8592;</button>
+        <span id="hist-cal-label" style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:var(--text);"></span>
         <button id="fill-dv-btn" onclick="openFillDvModal()" style="display:none;font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;background:#854F0B;color:#fff;border:none;cursor:pointer;">&#9679; Fill missing DV</button>
         <button class="btn btn-ghost" id="hist-next-btn" onclick="histCalShift(1)" style="padding:5px 12px;font-size:16px;">&#8594;</button>
       </div>
+      <div class="hist-view-toggle">
+        <button class="hvt-btn active" id="hvt-cal" onclick="setHistView('cal')">&#128197; Calendar</button>
+        <button class="hvt-btn" id="hvt-sum" onclick="setHistView('sum')">&#9776; Summary</button>
+      </div>
     </div>
     <div id="history-cal-grid" style="width:100%;"></div>
+    <!-- Summary view — hidden by default -->
+    <div id="history-sum-view" style="display:none;">
+      <div class="card" style="margin-bottom:10px;">
+        <div class="sum-sub-tabs">
+          <div class="sum-sub-tab active" id="sum-tab-week" onclick="setSumTab('week')">Weekly grid</div>
+          <div class="sum-sub-tab" id="sum-tab-month" onclick="setSumTab('month')">Monthly table</div>
+        </div>
+        <!-- Week sub-nav (only shown in weekly grid mode) -->
+        <div id="sum-week-nav" class="sum-week-nav">
+          <button class="btn btn-ghost" onclick="sumWeekShift(-1)" style="padding:3px 10px;font-size:14px;">&#8592;</button>
+          <span id="sum-week-label" class="sum-week-label"></span>
+          <button class="btn btn-ghost" onclick="sumWeekShift(1)" style="padding:3px 10px;font-size:14px;">&#8594;</button>
+        </div>
+        <div id="sum-content"></div>
+      </div>
+    </div>
 
     <!-- Allocation remaining — always visible below calendar -->
     <div id="hist-alloc-section" style="margin-top:14px;display:none;">
@@ -3653,6 +3712,7 @@ function renderHistCal(){
 
   grid.innerHTML=html;
   renderHistAlloc();
+  if(_histView==='sum')renderSummaryView();
 }
 function onClosedDayToggle(){
   const checked=document.getElementById('f-closed-day')?.checked;
@@ -5769,6 +5829,280 @@ async function clearPaymentLog() {
   const statusEl = document.getElementById('import-status');
   if (statusEl) { statusEl.style.display = 'block'; statusEl.textContent = 'Payment log cleared.'; statusEl.style.color = 'var(--r5)'; }
   showToast('Payment log cleared', 'success');
+}
+
+
+// ── HISTORY SUMMARY VIEW ──────────────────────────────────────────────────────
+let _histView = 'cal';       // 'cal' | 'sum'
+let _sumTab = 'week';        // 'week' | 'month'
+let _sumWeekOffset = 0;      // 0 = current week (Mon-Sun), -1 = last week, etc.
+
+const SUM_FIELDS = [
+  {key:'net',    label:'Net sales',    section:'Sales',   fn:(d)=>calSales(d),                 fmt:'$', color:'green'},
+  {key:'cash',   label:'Cash sales',   section:null,      fn:(d)=>parseFloat(d.cashSales)||0,  fmt:'$'},
+  {key:'card',   label:'Card sales',   section:null,      fn:(d)=>parseFloat(d.cardSales)||0,  fmt:'$'},
+  {key:'fees',   label:'Card fees',    section:null,      fn:(d)=>parseFloat(d.cardFees)||0,   fmt:'$', color:'amber'},
+  {key:'venmo',  label:'Venmo/CashApp',section:null,      fn:(d)=>parseFloat(d.venmo)||0,      fmt:'$'},
+  {key:'cashapp',label:'CashApp (POS)',section:null,      fn:(d)=>parseFloat(d.cashAppPay)||0, fmt:'$'},
+  {key:'other',  label:'Other sales',  section:null,      fn:(d)=>parseFloat(d.otherSales)||0, fmt:'$'},
+  {key:'merch',  label:'Merch',        section:null,      fn:(d)=>parseFloat(d.merchSales)||0, fmt:'$'},
+  {key:'gc',     label:'Gift cards',   section:null,      fn:(d)=>parseFloat(d.giftCardSales)||0, fmt:'$'},
+  {key:'gcr',    label:'GC redeemed',  section:null,      fn:(d)=>parseFloat(d.giftCardRedeemed)||0, fmt:'$'},
+  {key:'dv',     label:'DV',           section:'Volume',  fn:(d)=>parseFloat(d.dv)||0,         fmt:'n'},
+  {key:'fcash',  label:'Fundraiser $', section:'Fundraiser', fn:(d)=>(parseFloat(d.fundraiserCash)||0)+(parseFloat(d.fundraiserCard)||0), fmt:'$'},
+];
+
+function setHistView(view) {
+  _histView = view;
+  const calGrid  = document.getElementById('history-cal-grid');
+  const sumView  = document.getElementById('history-sum-view');
+  const allocSec = document.getElementById('hist-alloc-section');
+  const projTog  = document.getElementById('hist-proj-toggle');
+  const calBtn   = document.getElementById('hvt-cal');
+  const sumBtn   = document.getElementById('hvt-sum');
+
+  if (view === 'cal') {
+    if (calGrid) calGrid.style.display = '';
+    if (sumView) sumView.style.display = 'none';
+    if (allocSec) allocSec.style.display = '';
+    if (projTog) projTog.style.display = '';
+    calBtn?.classList.add('active'); sumBtn?.classList.remove('active');
+  } else {
+    if (calGrid) calGrid.style.display = 'none';
+    if (sumView) sumView.style.display = 'block';
+    if (allocSec) allocSec.style.display = 'none';
+    if (projTog) projTog.style.display = 'none';
+    sumBtn?.classList.add('active'); calBtn?.classList.remove('active');
+    renderSummaryView();
+  }
+}
+
+function setSumTab(tab) {
+  _sumTab = tab;
+  document.getElementById('sum-tab-week')?.classList.toggle('active', tab==='week');
+  document.getElementById('sum-tab-month')?.classList.toggle('active', tab==='month');
+  document.getElementById('sum-week-nav').style.display = tab==='week' ? 'flex' : 'none';
+  renderSummaryView();
+}
+
+function sumWeekShift(dir) {
+  _sumWeekOffset += dir;
+  // Don't go past current week
+  if (_sumWeekOffset > 0) _sumWeekOffset = 0;
+  renderSummaryView();
+}
+
+function getSumWeekDates() {
+  // Sun–Sat week, _sumWeekOffset weeks from current
+  const now = new Date();
+  const dow = now.getDay(); // 0=Sun
+  const thisSun = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dow);
+  thisSun.setDate(thisSun.getDate() + _sumWeekOffset * 7);
+  const dates = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(thisSun);
+    d.setDate(thisSun.getDate() + i);
+    dates.push(fmtDateStr2(d));
+  }
+  return dates;
+}
+
+function fmtDateStr2(d) {
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+function fmtSumVal(val, fmt, color) {
+  if (!val) return '<td class="s-empty">—</td>';
+  const formatted = fmt==='$' ? ('$'+val.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})) : val.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1});
+  const cls = color==='green'?'s-green':color==='amber'?'s-amber':'';
+  return `<td class="${cls}">${formatted}</td>`;
+}
+
+function renderSummaryView() {
+  const content = document.getElementById('sum-content');
+  if (!content) return;
+  if (_sumTab === 'week') renderWeekGrid(content);
+  else renderMonthTable(content);
+}
+
+function renderWeekGrid(el) {
+  const dates = getSumWeekDates();
+  const todayStr = localToday();
+  const DOWS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  // Week label
+  const s = new Date(dates[0]+'T12:00:00'), e = new Date(dates[6]+'T12:00:00');
+  const lbl = document.getElementById('sum-week-label');
+  if (lbl) lbl.textContent = months[s.getMonth()]+' '+s.getDate()+' – '+months[e.getMonth()]+' '+e.getDate()+', '+e.getFullYear();
+
+  // Build day map
+  const dayMap = {};
+  ALL_DAYS.forEach(d => { if (dates.includes(d.date)) dayMap[d.date] = d.data||{}; });
+
+  // Column headers
+  let thead = '<thead><tr><th>Field</th>';
+  dates.forEach((ds, i) => {
+    const d = new Date(ds+'T12:00:00');
+    const isToday = ds === todayStr;
+    const cls = isToday ? 's-today' : '';
+    thead += `<th class="${cls}">${DOWS[i]}<br><span style="font-weight:400;">${d.getDate()}</span></th>`;
+  });
+  thead += '<th class="s-total">Total</th></tr></thead>';
+
+  // Rows
+  let lastSection = null;
+  let tbody = '<tbody>';
+  SUM_FIELDS.forEach(f => {
+    // Only show fields that have any data this week, OR are key fields
+    const keyFields = ['net','cash','card','fees','dv'];
+    const hasAnyData = dates.some(ds => dayMap[ds] && f.fn(dayMap[ds]) > 0);
+    if (!hasAnyData && !keyFields.includes(f.key)) return;
+
+    if (f.section && f.section !== lastSection) {
+      tbody += `<tr class="s-section"><td colspan="${dates.length+2}">${f.section}</td></tr>`;
+      lastSection = f.section;
+    }
+
+    let total = 0;
+    let row = `<tr><td>${f.label}</td>`;
+    dates.forEach(ds => {
+      const d = new Date(ds+'T12:00:00');
+      const dow = d.getDay();
+      const opDays = SETTINGS.opDays||[false,true,true,true,true,true,true];
+      const closedDays = SETTINGS.closedDays||{};
+      const isClosed = (!opDays[dow]||!!closedDays[ds])&&closedDays[ds]!=='open';
+      const isFuture = ds > todayStr;
+
+      if (isFuture) { row += '<td class="s-empty">—</td>'; return; }
+      if (isClosed && !dayMap[ds]) { row += '<td class="s-closed">closed</td>'; return; }
+      if (!dayMap[ds]) { row += '<td class="s-empty">—</td>'; return; }
+
+      const val = f.fn(dayMap[ds]);
+      total += val;
+      row += fmtSumVal(val, f.fmt, f.color);
+    });
+    // Total column
+    row += fmtSumVal(total, f.fmt, f.color).replace('<td ', '<td class="s-total ').replace('s-total s-', 's-total s-');
+    row += '</tr>';
+    tbody += row;
+  });
+  tbody += '</tbody>';
+
+  el.innerHTML = `<div class="sgrid-wrap"><table class="sgrid">${thead}${tbody}</table></div>`;
+}
+
+function renderMonthTable(el) {
+  const yr = _histCalYear, mo = _histCalMonth;
+  if (yr === null || mo === null) return;
+
+  const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const todayStr = localToday();
+  const daysInMonth = new Date(yr, mo+1, 0).getDate();
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  // Build day map for this month
+  const dayMap = {};
+  ALL_DAYS.forEach(d => {
+    const dt = new Date(d.date+'T00:00:00');
+    if (dt.getFullYear()===yr && dt.getMonth()===mo) dayMap[d.date] = d.data||{};
+  });
+
+  // Key display fields for monthly table
+  const cols = [
+    {key:'net',  label:'Net sales', fn:d=>calSales(d),                   fmt:'$', cls:'sm-green'},
+    {key:'cash', label:'Cash',      fn:d=>parseFloat(d.cashSales)||0,    fmt:'$', cls:''},
+    {key:'card', label:'Card',      fn:d=>parseFloat(d.cardSales)||0,    fmt:'$', cls:''},
+    {key:'fees', label:'Fees',      fn:d=>parseFloat(d.cardFees)||0,     fmt:'$', cls:'sm-amber'},
+    {key:'dv',   label:'DV',        fn:d=>parseFloat(d.dv)||0,           fmt:'n', cls:''},
+    {key:'days', label:'Days',      fn:null,                              fmt:'n', cls:''},
+  ];
+
+  function fmtCell(val, fmt, cls) {
+    if (!val) return `<td class="sm-nodata">—</td>`;
+    const s = fmt==='$' ? '$'+val.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : val.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1});
+    return `<td class="${cls}">${s}</td>`;
+  }
+
+  const thead = `<thead><tr><th>Period</th>${cols.map(c=>`<th>${c.label}</th>`).join('')}</tr></thead>`;
+
+  // Group days by Sun–Sat weeks
+  let tbody = '<tbody>';
+  let monthTotals = {};
+  cols.forEach(c => monthTotals[c.key] = 0);
+  let monthDays = 0;
+
+  // Find first Sunday on or before the 1st of month
+  let weekStart = new Date(yr, mo, 1);
+  while (weekStart.getDay() !== 0) weekStart.setDate(weekStart.getDate()-1);
+
+  while (weekStart.getMonth() <= mo || weekStart.getFullYear() < yr) {
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate()+6);
+    if (weekStart > new Date(yr, mo, daysInMonth)) break;
+
+    let weekTotals = {}; cols.forEach(c => weekTotals[c.key] = 0);
+    let weekDays = 0;
+    let hasWeekData = false;
+    let dayRows = '';
+
+    for (let d = new Date(weekStart); d <= weekEnd; d.setDate(d.getDate()+1)) {
+      if (d.getMonth() !== mo && !(d <= weekEnd && d.getMonth() !== mo)) continue;
+      if (d.getMonth() !== mo) continue;
+      const ds = fmtDateStr2(d);
+      const isFuture = ds > todayStr;
+      const data = dayMap[ds];
+      const dayNum = d.getDate();
+      const dayName = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
+      const dayLabel = `${dayName} ${months[d.getMonth()]} ${dayNum}`;
+
+      if (!data || isFuture) {
+        const note = isFuture ? 'future' : 'no data';
+        dayRows += `<tr><td class="sm-nodata">${dayLabel}</td>${cols.map(()=>'<td class="sm-nodata">—</td>').join('')}</tr>`;
+        continue;
+      }
+
+      hasWeekData = true;
+      weekDays++;
+      let cells = '';
+      cols.forEach(c => {
+        if (c.key === 'days') { cells += '<td>1</td>'; return; }
+        const val = c.fn(data);
+        weekTotals[c.key] += val;
+        monthTotals[c.key] += val;
+        cells += fmtCell(val, c.fmt, c.cls);
+      });
+      monthDays++;
+      dayRows += `<tr><td>${dayLabel}</td>${cells}</tr>`;
+    }
+
+    // Week label
+    const ws = weekStart.getMonth()===mo ? weekStart : new Date(yr,mo,1);
+    const we = weekEnd.getMonth()===mo ? weekEnd : new Date(yr,mo,daysInMonth);
+    const wLabel = `${months[ws.getMonth()]} ${ws.getDate()}–${we.getDate()}`;
+
+    tbody += dayRows;
+    // Week subtotal
+    let wCells = cols.map(c => {
+      if (c.key==='days') return `<td>${weekDays}</td>`;
+      return fmtCell(weekTotals[c.key], c.fmt, c.cls);
+    }).join('');
+    tbody += `<tr class="sm-wk"><td>${wLabel}</td>${wCells}</tr>`;
+
+    weekStart.setDate(weekStart.getDate()+7);
+    if (weekStart.getFullYear() > yr && mo < 11) break;
+    if (weekStart.getMonth() > mo && weekStart.getFullYear() >= yr) break;
+  }
+
+  // Month total
+  let mCells = cols.map(c => {
+    if (c.key==='days') return `<td>${monthDays}</td>`;
+    return fmtCell(monthTotals[c.key], c.fmt, c.cls);
+  }).join('');
+  tbody += `<tr class="sm-total"><td>${MONTH_NAMES[mo]} ${yr}</td>${mCells}</tr>`;
+  tbody += '</tbody>';
+
+  el.innerHTML = `<table class="smtbl">${thead}${tbody}</table>`;
 }
 
 function resolveAlias(n){for(const op of SETTINGS.operators){if(!op.name)continue;const a=(op.aliases||'').split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);if(op.name.toLowerCase()===n.toLowerCase())return op.name;if(a.includes(n.toLowerCase()))return op.name;}return n;}
