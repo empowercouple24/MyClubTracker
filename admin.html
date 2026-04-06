@@ -1547,6 +1547,7 @@ function renderLocations(){
   }
 
   function rowHtml(loc) {
+    const isExp = false; // expand rows not used in table view
     const ld = allDays.filter(d => d.location_id === loc.id);
     const activated = isActivated(loc);
     const weekSales = sumField(ld,'totalSales',w0,today);
