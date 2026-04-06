@@ -295,6 +295,54 @@ if('serviceWorker' in navigator){
   #approve-modal input:not([readonly]){background:#fff!important;border-color:var(--b5)!important;}
   #ap-edit-btn{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:var(--b6);background:var(--b0);border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer;white-space:nowrap;}
   #ap-edit-btn.editing{color:var(--g6);background:var(--g0);border-color:var(--g4);}
+    /* ── LOCATIONS TABLE VIEW ── */
+    .locs-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+    .locs-search-wrap{position:relative;flex:1;min-width:180px;}
+    .locs-search-wrap input{width:100%;padding:6px 10px 6px 30px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif;outline:none;}
+    .locs-search-icon{position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--text-faint);}
+    .locs-filter-select{padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif;outline:none;cursor:pointer;}
+    .locs-tbl-wrap{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm);}
+    .locs-tbl{width:100%;border-collapse:collapse;table-layout:fixed;}
+    .locs-tbl th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);padding:8px 10px;border-bottom:1px solid var(--border-light);text-align:left;cursor:pointer;white-space:nowrap;user-select:none;background:var(--b0);}
+    .locs-tbl th:hover{color:var(--text-muted);}
+    .locs-tbl th.sorted{color:var(--b6);}
+    .sort-arr{opacity:0.35;margin-left:3px;font-size:9px;}
+    .sort-arr.on{opacity:1;color:var(--b6);}
+    .locs-tbl td{padding:8px 10px;border-bottom:1px solid var(--border-light);vertical-align:middle;font-size:12px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .locs-tbl tr.data-row:hover td{background:var(--b0);cursor:pointer;}
+    .locs-tbl tr.data-row.row-expanded td{background:var(--b1);}
+    .locs-org-row td{background:var(--b1);padding:5px 10px;border-bottom:1px solid var(--border);border-top:1px solid var(--border);}
+    .org-row-inner{display:flex;align-items:center;gap:8px;}
+    .org-tbl-avatar{width:22px;height:22px;border-radius:5px;background:var(--b7);color:white;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;}
+    .org-tbl-name{font-size:12px;font-weight:700;color:var(--text);}
+    .org-tbl-meta{font-size:11px;color:var(--text-faint);}
+    .org-pin-btn{font-size:13px;cursor:pointer;opacity:0.35;padding:0 4px;background:none;border:none;line-height:1;}
+    .org-pin-btn.pinned{opacity:1;color:#c47c0a;}
+    .org-collapse-btn{font-size:10px;color:var(--text-faint);background:var(--surface);border:1px solid var(--border-light);border-radius:4px;padding:2px 7px;cursor:pointer;margin-left:auto;}
+    .club-cell-name{font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;}
+    .club-cell-addr{font-size:11px;color:var(--text-faint);overflow:hidden;text-overflow:ellipsis;}
+    .tbl-badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px;}
+    .tbl-badge.active{background:#eaf6eb;color:#2d6a2d;}
+    .tbl-badge.pending{background:#fef7e8;color:#854F0B;}
+    .tbl-badge.setup{background:var(--b1);color:var(--b7);}
+    .last-ok{color:#2d6a2d;font-size:11px;}
+    .last-warn{color:#854F0B;font-size:11px;}
+    .last-none{color:var(--text-faint);font-size:11px;}
+    .tbl-action-btn{font-size:11px;padding:3px 8px;border-radius:5px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;white-space:nowrap;}
+    .tbl-action-btn.primary{background:var(--b7);color:white;border-color:var(--b7);}
+    .tbl-expand-row td{padding:0;background:var(--b0);border-bottom:1px solid var(--border);}
+    .tbl-expand-inner{padding:10px 10px 10px 24px;display:grid;grid-template-columns:repeat(3,1fr) 190px;gap:8px;}
+    .tbl-stat-card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:8px 10px;}
+    .tbl-stat-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:5px;}
+    .tbl-stat-row{display:flex;justify-content:space-between;padding:2px 0;font-size:11px;}
+    .tbl-stat-key{color:var(--text-muted);}
+    .tbl-stat-val{font-weight:600;color:var(--text);}
+    .tbl-stat-val.green{color:#2d6a2d;}
+    .tbl-team-card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:8px 10px;grid-column:4;}
+    .tbl-expand-actions{grid-column:1/-1;display:flex;gap:6px;padding-top:4px;flex-wrap:wrap;}
+    .tbl-footer{display:flex;justify-content:space-between;padding:7px 10px;font-size:11px;color:var(--text-faint);background:var(--b0);border-top:1px solid var(--border-light);}
+    @media(max-width:900px){.locs-tbl th:nth-child(n+5),.locs-tbl td:nth-child(n+5){display:none;}.tbl-expand-inner{grid-template-columns:1fr 1fr;}}
+
 </style>
 
 </head>
@@ -397,12 +445,26 @@ if('serviceWorker' in navigator){
         <div id="requests-list" style="display:flex;flex-direction:column;gap:10px;"></div>
       </div>
 
-      <!-- LOCATIONS HEADER + LIST -->
+      <!-- LOCATIONS TABLE -->
       <div class="section-header locs-header" style="margin-top:0;">
-        <div class="section-label" id="locs-label">Locations</div>
+        <div class="section-label" id="locs-label">Organizations</div>
         <button class="btn-add-loc" onclick="openAddLocation()">+ Add Location</button>
       </div>
-      <div class="locations-list" id="locations-list"></div>
+      <div class="locs-toolbar">
+        <div class="locs-search-wrap">
+          <span class="locs-search-icon">&#128269;</span>
+          <input type="text" id="locs-search" placeholder="Search clubs, owners, cities..." oninput="renderLocations()"/>
+        </div>
+        <select class="locs-filter-select" id="locs-filter-org" onchange="renderLocations()">
+          <option value="">All orgs</option>
+        </select>
+        <select class="locs-filter-select" id="locs-filter-status" onchange="renderLocations()">
+          <option value="">All statuses</option>
+          <option value="active">Active</option>
+          <option value="pending">Pending setup</option>
+        </select>
+      </div>
+      <div id="locations-list"></div>
     </div>
 
     <!-- RIGHT / BOTTOM: KPIs + chart (moves to sidebar in split mode) -->
@@ -1389,203 +1451,290 @@ function restoreAlertBanner(){}
 function goToLocation(locId){window.location.href=`app.html?location_id=${locId}&admin=1`;}
 
 function renderLocations(){
-  const list=document.getElementById('locations-list');
-  const yday=yesterday(),w0=last7Start(),m0=last30Start(),today=todayStr();
-  document.getElementById('locs-label').textContent=`Organizations`;
-  if(!allLocations.length){
-    list.innerHTML=`<div style="text-align:center;padding:48px 24px;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:var(--shadow-sm);">
-      <div style="font-size:36px;margin-bottom:12px;">🏪</div>
+  const list = document.getElementById('locations-list');
+  const yday = yesterday(), w0 = last7Start(), m0 = last30Start(), today = todayStr();
+  document.getElementById('locs-label').textContent = 'Organizations';
+
+  if (!allLocations.length) {
+    list.innerHTML = `<div style="text-align:center;padding:48px 24px;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:var(--shadow-sm);">
+      <div style="font-size:36px;margin-bottom:12px;">&#127978;</div>
       <div style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px;">No locations added yet</div>
-      <div style="font-size:13px;color:var(--text-faint);margin-bottom:18px;">Add your first location to start tracking club sales and data.</div>
-      <button onclick="openAddLocation()" style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;background:linear-gradient(135deg,var(--b7),var(--b5));color:white;border:none;border-radius:6px;padding:9px 18px;cursor:pointer;">+ Add Your First Location</button>
+      <button onclick="openAddLocation()" style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;background:var(--b7);color:white;border:none;border-radius:6px;padding:9px 18px;cursor:pointer;">+ Add Your First Location</button>
     </div>`;
     return;
   }
-  // Group locations by org for tree view
-  const orgGroups={};
-  const unassigned=[];
-  allLocations.forEach(loc=>{
-    if(loc.org_id&&allOrgsMap[loc.org_id]){
-      if(!orgGroups[loc.org_id])orgGroups[loc.org_id]=[];
+
+  // Populate org filter dropdown
+  const orgSel = document.getElementById('locs-filter-org');
+  if (orgSel) {
+    const currentOrg = orgSel.value;
+    orgSel.innerHTML = '<option value="">All orgs</option>' +
+      Object.values(allOrgsMap).sort((a,b)=>a.name.localeCompare(b.name))
+        .map(o => `<option value="${o.id}"${currentOrg===o.id?' selected':''}>${escHtml(o.name)}</option>`).join('');
+  }
+
+  // Filters
+  const searchQ = (document.getElementById('locs-search')?.value||'').toLowerCase();
+  const filterOrg = document.getElementById('locs-filter-org')?.value||'';
+  const filterStatus = document.getElementById('locs-filter-status')?.value||'';
+
+  // Group by org
+  const orgGroups = {};
+  const unassigned = [];
+  allLocations.forEach(loc => {
+    if (loc.org_id && allOrgsMap[loc.org_id]) {
+      if (!orgGroups[loc.org_id]) orgGroups[loc.org_id] = [];
       orgGroups[loc.org_id].push(loc);
-    } else {
-      unassigned.push(loc);
-    }
-  });
-  // Sort orgs alphabetically, locations within each org alphabetically
-  const orgIds=Object.keys(orgGroups).sort((a,b)=>allOrgsMap[a].name.localeCompare(allOrgsMap[b].name));
-  orgIds.forEach(oid=>orgGroups[oid].sort((a,b)=>a.name.localeCompare(b.name)));
-  unassigned.sort((a,b)=>a.name.localeCompare(b.name));
-
-  // Build HTML: org header + nested location cards
-  const renderOrgTree=(locs)=>locs.map(loc=>{
-    const ld=allDays.filter(d=>d.location_id===loc.id);
-    const initials=loc.name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
-    const activated=isActivated(loc);
-    const grace=inGracePeriod(loc);
-
-    // Pending = no registered owner yet
-    if(!activated){
-      const codeDisplay=loc.invite_code||'—';
-      return`<div class="loc-card pending" id="lc-${loc.id}">
-        <div class="loc-card-header" onclick="toggleCard('${loc.id}')">
-          <div class="loc-avatar">${initials}</div>
-          <div class="loc-meta">
-            <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">
-              <div class="loc-name">${escHtml(loc.name)}</div>
-              ${loc.owner_name?`<div style="font-size:12px;color:var(--text-muted);font-weight:500;white-space:nowrap;">👤 ${escHtml(loc.owner_name)}</div>`:''}
-            </div>
-            ${loc.address?`<div class="loc-addr">📍 ${escHtml(loc.address)}</div>`:''}
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
-            <span class="badge badge-pending">⏳ Pending Setup</span>
-            <div style="display:flex;align-items:center;gap:6px;">
-              <span style="font-size:11px;color:var(--text-faint);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Invite Code</span>
-              ${loc.invite_code
-                ? `<span onclick="event.stopPropagation();navigator.clipboard&&navigator.clipboard.writeText('${escHtml(loc.invite_code)}').then(()=>showToast('Invite code copied ✓','success'))" title="Click to copy" style="font-family:monospace;font-size:15px;font-weight:800;letter-spacing:3px;color:white;background:var(--b7);border-radius:7px;padding:4px 10px;cursor:pointer;">${escHtml(loc.invite_code)}</span>`
-                : `<button onclick="event.stopPropagation();assignCode('${loc.id}')" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:white;background:var(--a5);border:none;border-radius:7px;padding:4px 10px;cursor:pointer;">+ Assign Code</button>`
-              }
-            </div>
-          </div>
-          <div class="loc-chevron">▼</div>
-        </div>
-        <div class="loc-expanded">
-          <div style="padding:4px 0 10px;font-size:13px;color:var(--text-muted);line-height:1.6;">
-            Waiting for the club owner to register at <strong>myclubtracker.com</strong> using the invite code above.
-          </div>
-          <div class="expanded-footer">
-            <a class="btn-view-app" href="organizations.html?loc=${loc.id}">Manage Club</a>
-          </div>
-        </div>
-      </div>`;
-    }
-
-    const ydaySales=sumField(ld,'totalSales',yday,yday),ydayDV=sumField(ld,'dv',yday,yday);
-    const weekSales=sumField(ld,'totalSales',w0,today),weekDV=sumField(ld,'dv',w0,today),weekDays=countDays(ld,w0,today);
-    const monthSales=sumField(ld,'totalSales',m0,today),monthDV=sumField(ld,'dv',m0,today),monthDays=countDays(ld,m0,today);
-    const missing=(!grace)?getMissingDays(loc,7):[];
-    const lastDate=ld.sort((a,b)=>b.date.localeCompare(a.date))[0]?.date||null;
-    const lastFmt=lastDate?new Date(lastDate+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}):null;
-
-    let badge='';
-    if(grace) badge=`<span class="badge badge-nodata">🕐 Grace Period</span>`;
-    else if(missing.length>0) badge=`<span class="badge badge-missing">⚠ ${missing.length} missing</span>`;
-    else if(lastDate) badge=`<span class="badge badge-active">✓ Current</span>`;
-    else badge=`<span class="badge badge-nodata">No data</span>`;
-
-    const missingBox=missing.length>0?`<div class="missing-box"><div class="missing-box-title">Missing Submissions (last 7 days)</div>${missing.map(d=>`<div class="missing-box-day">${new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}</div>`).join('')}</div>`:'';
-    const ownerPhone=loc.owner_phone?`<div class="owner-strip-item">📞 <a href="tel:${escHtml(loc.owner_phone)}">${escHtml(loc.owner_phone)}</a></div>`:'';
-    const ownerEmail=loc.settings?.ownerEmail?`<div class="owner-strip-item">✉️ <a href="mailto:${escHtml(loc.settings.ownerEmail)}">${escHtml(loc.settings.ownerEmail)}</a></div>`:'';
-    const sc=loc.settings?.secondContact;
-    const secondContactStrip=sc?(
-      `<div style="width:100%;border-top:1px dashed var(--border-light);margin:6px 0 2px;"></div>`+
-      (sc.name?`<div class="owner-strip-item">👤 <strong>${escHtml(sc.name)}</strong> <span style="font-size:11px;color:var(--text-faint);margin-left:4px;">2nd contact</span></div>`:'')+
-      (sc.phone?`<div class="owner-strip-item">📞 <a href="tel:${escHtml(sc.phone)}">${escHtml(sc.phone)}</a></div>`:'')+
-      (sc.email?`<div class="owner-strip-item">✉️ <a href="mailto:${escHtml(sc.email)}">${escHtml(sc.email)}</a></div>`:'')
-    ):'';
-    const ownerStrip=(loc.owner_name||loc.owner_phone||loc.settings?.ownerEmail||loc.address||sc)?`
-      <div class="owner-strip">
-        ${loc.owner_name?`<div class="owner-strip-item">👤 <strong>${escHtml(loc.owner_name)}</strong></div>`:''}
-        ${ownerPhone}
-        ${ownerEmail}
-        ${loc.address?`<div class="owner-strip-item">📍 ${escHtml(loc.address)}</div>`:''}
-        ${secondContactStrip}
-      </div>`:'';
-
-    return`<div class="loc-card" id="lc-${loc.id}">
-      <div class="loc-card-header" onclick="toggleCard('${loc.id}')">
-        <div class="loc-avatar">${initials}</div>
-        <div class="loc-meta">
-          <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">
-            <div class="loc-name">${escHtml(loc.name)}</div>
-            ${loc.owner_name?`<div style="font-size:12px;color:var(--text-muted);font-weight:500;white-space:nowrap;">👤 ${escHtml(loc.owner_name)}</div>`:''}
-            ${loc.settings?.secondContact?.name?`<div style="font-size:12px;color:var(--text-faint);white-space:nowrap;">· 👤 ${escHtml(loc.settings.secondContact.name)}</div>`:''}
-          </div>
-          ${loc.address?`<div class="loc-addr">📍 ${escHtml(loc.address)}</div>`:''}
-        </div>
-        <div class="loc-badges">${badge}</div>
-        <div class="loc-chevron">▼</div>
-      </div>
-      <div class="loc-stat-strip">
-        <div class="loc-stat-cell"><div class="loc-stat-period">Yesterday</div><div class="loc-stat-val ${!ydaySales?'dim':''}">${ydaySales?fmt$z(ydaySales):'—'}</div><div class="loc-stat-dv">${ydayDV?'DV '+fmtN(ydayDV):''}</div></div>
-        <div class="loc-stat-cell"><div class="loc-stat-period">Last 7 Days</div><div class="loc-stat-val ${!weekSales?'dim':''}">${weekSales?fmt$z(weekSales):'—'}</div><div class="loc-stat-dv">${weekDays?weekDays+' days':''}</div></div>
-        <div class="loc-stat-cell"><div class="loc-stat-period">Last 30 Days</div><div class="loc-stat-val ${!monthSales?'dim':''}">${monthSales?fmt$z(monthSales):'—'}</div><div class="loc-stat-dv">${monthDays?monthDays+' days':''}</div></div>
-      </div>
-      <div class="loc-expanded">
-        ${missingBox}
-        ${ownerStrip}
-        <div class="expanded-grid">
-          <div class="expanded-period"><div class="exp-period-label yday">Yesterday</div><div class="exp-row"><span class="exp-label">Sales</span><span class="exp-val">${fmt$z(ydaySales)}</span></div><div class="exp-row"><span class="exp-label">DV</span><span class="exp-val">${fmtN(ydayDV)||'—'}</span></div></div>
-          <div class="expanded-period"><div class="exp-period-label week">Last 7 Days</div><div class="exp-row"><span class="exp-label">Sales</span><span class="exp-val">${fmt$z(weekSales)}</span></div><div class="exp-row"><span class="exp-label">DV</span><span class="exp-val">${fmtN(weekDV)||'—'}</span></div><div class="exp-row"><span class="exp-label">Days</span><span class="exp-val">${weekDays||'—'}</span></div></div>
-          <div class="expanded-period"><div class="exp-period-label month">Last 30 Days</div><div class="exp-row"><span class="exp-label">Sales</span><span class="exp-val">${fmt$z(monthSales)}</span></div><div class="exp-row"><span class="exp-label">DV</span><span class="exp-val">${fmtN(monthDV)||'—'}</span></div><div class="exp-row"><span class="exp-label">Days</span><span class="exp-val">${monthDays||'—'}</span></div></div>
-        </div>
-        <div class="expanded-footer">
-          ${lastFmt?`<div class="last-entry-note">Last entry: ${lastFmt}</div>`:'<div></div>'}
-          <a class="btn-view-app" href="organizations.html?loc=${loc.id}">Manage Club</a>
-        </div>
-        ${renderAdminUserSection(loc.id)}
-      </div>
-    </div>`;
+    } else { unassigned.push(loc); }
   });
 
-  // Wrap each org group
-  const orgSections=orgIds.map(oid=>{
-    const org=allOrgsMap[oid];
-    const locs=orgGroups[oid];
-    const orgInitials=(org.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    const statusBadge=org.status==='active'
-      ? '<span class="badge badge-active" style="font-size:10px;">Active</span>'
-      : org.status==='suspended'
-        ? '<span class="badge badge-missing" style="font-size:10px;">Suspended</span>'
-        : '<span class="badge badge-pending" style="font-size:10px;">Pending</span>';
-    const totalLocs=locs.length;
-    const activeLocs=locs.filter(l=>isActivated(l)).length;
-    return `<div class="org-tree-group" id="otg-${org.id}">
-      <div class="org-tree-header" onclick="toggleOrgTree('${org.id}')">
-        <div class="org-tree-avatar">${orgInitials}</div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-family:'Outfit',sans-serif;font-size:15px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(org.name)}</div>
-          <div style="font-size:11px;color:var(--text-faint);margin-top:1px;">${totalLocs} location${totalLocs!==1?'s':''} &middot; ${activeLocs} active</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
-          ${statusBadge}
-          <button onclick="event.stopPropagation();window.location.href='organizations.html?org=${org.id}'" style="font-size:11px;font-weight:600;color:var(--b6);background:var(--b0);border:1px solid var(--b2);border-radius:6px;padding:4px 10px;cursor:pointer;">Manage Org</button>
-          <span class="org-tree-chevron" id="otg-chev-${org.id}">▼</span>
-        </div>
-      </div>
-      <div class="org-tree-locations" id="otg-locs-${org.id}">
-        ${renderOrgTree(locs).join('')}
-      </div>
-    </div>`;
-  }).join('');
+  // Pinned orgs stored in localStorage
+  const pinned = JSON.parse(localStorage.getItem('mct_pinned_orgs')||'[]');
 
-  // Unassigned locations (no org)
-  const unassignedSection=unassigned.length
-    ? `<div class="org-tree-group">
-        <div class="org-tree-header" onclick="toggleOrgTree('_unassigned')" style="background:var(--b0);">
-          <div class="org-tree-avatar" style="background:var(--text-faint);">?</div>
-          <div style="flex:1;"><div style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:var(--text-muted);">Unassigned Locations</div></div>
-          <span class="org-tree-chevron" id="otg-chev-_unassigned">▼</span>
-        </div>
-        <div class="org-tree-locations" id="otg-locs-_unassigned">
-          ${renderOrgTree(unassigned).join('')}
-        </div>
-      </div>`
-    : '';
+  // Sort org IDs: pinned first, then alphabetical
+  let orgIds = Object.keys(orgGroups);
+  if (filterOrg) orgIds = orgIds.filter(id => id === filterOrg);
+  orgIds.sort((a,b) => {
+    const ap = pinned.includes(a), bp = pinned.includes(b);
+    if (ap !== bp) return ap ? -1 : 1;
+    return allOrgsMap[a].name.localeCompare(allOrgsMap[b].name);
+  });
 
-  list.innerHTML = orgSections + unassignedSection;
+  // Collapsed org state
+  const collapsed = JSON.parse(localStorage.getItem('mct_collapsed_orgs')||'[]');
+
+  // Sort state
+  const sortCol = _tblSortCol || 'name';
+  const sortDir = _tblSortDir || 1;
+
+  function sortLocs(locs) {
+    return [...locs].sort((a,b) => {
+      const ald = allDays.filter(d=>d.location_id===a.id);
+      const bld = allDays.filter(d=>d.location_id===b.id);
+      let av, bv;
+      if (sortCol === 'name') { av = a.name||''; bv = b.name||''; return av.localeCompare(bv)*sortDir; }
+      if (sortCol === 'owner') { av = a.owner_name||''; bv = b.owner_name||''; return av.localeCompare(bv)*sortDir; }
+      if (sortCol === 'status') { av = isActivated(a)?1:0; bv = isActivated(b)?1:0; return (av-bv)*sortDir; }
+      if (sortCol === 'lastentry') {
+        av = ald.map(d=>d.date).sort().pop()||''; bv = bld.map(d=>d.date).sort().pop()||'';
+        return av.localeCompare(bv)*sortDir;
+      }
+      if (sortCol === 'sales7') { av = sumField(ald,'totalSales',w0,today); bv = sumField(bld,'totalSales',w0,today); return (av-bv)*sortDir; }
+      if (sortCol === 'sales30') { av = sumField(ald,'totalSales',m0,today); bv = sumField(bld,'totalSales',m0,today); return (av-bv)*sortDir; }
+      return 0;
+    });
+  }
+
+  function filterLocs(locs) {
+    return locs.filter(loc => {
+      const activated = isActivated(loc);
+      if (filterStatus === 'active' && !activated) return false;
+      if (filterStatus === 'pending' && activated) return false;
+      if (searchQ) {
+        const hay = [loc.name, loc.owner_name, loc.address, loc.settings?.ownerEmail].filter(Boolean).join(' ').toLowerCase();
+        if (!hay.includes(searchQ)) return false;
+      }
+      return true;
+    });
+  }
+
+  function sortArrow(col) {
+    if (_tblSortCol !== col) return `<span class="sort-arr">&#8597;</span>`;
+    return `<span class="sort-arr on">${_tblSortDir===1?'&#8593;':'&#8595;'}</span>`;
+  }
+
+  function rowHtml(loc) {
+    const ld = allDays.filter(d => d.location_id === loc.id);
+    const activated = isActivated(loc);
+    const weekSales = sumField(ld,'totalSales',w0,today);
+    const monthSales = sumField(ld,'totalSales',m0,today);
+    const lastDate = [...ld].sort((a,b)=>b.date.localeCompare(a.date))[0]?.date||null;
+    const lastFmt = lastDate ? new Date(lastDate+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) : null;
+    const daysSinceLast = lastDate ? Math.floor((new Date()-new Date(lastDate+'T12:00:00'))/(1000*60*60*24)) : 999;
+
+    const statusBadge = !activated
+      ? '<span class="tbl-badge setup">Pending setup</span>'
+      : '<span class="tbl-badge active">Active</span>';
+
+    const lastEntryHtml = !lastFmt
+      ? '<span class="last-none">Never</span>'
+      : daysSinceLast <= 2
+        ? `<span class="last-ok">${lastFmt}</span>`
+        : `<span class="last-warn">${lastFmt}</span>`;
+
+    const sales7Html = weekSales ? `<span style="font-weight:600;color:var(--g5);">${fmt$z(weekSales)}</span>` : '<span style="color:var(--text-faint);">—</span>';
+    const sales30Html = monthSales ? `<span style="font-weight:600;color:var(--g5);">${fmt$z(monthSales)}</span>` : '<span style="color:var(--text-faint);">—</span>';
+
+    const isExp = _expandedRow === loc.id;
+
+    const dataRow = `<tr class="data-row${isExp?' row-expanded':''}" id="tbl-row-${loc.id}" onclick="toggleTableRow('${loc.id}')">
+      <td style="padding-left:18px;">
+        <div class="club-cell-name">${isExp?'&#9660; ':'&#9658; '}${escHtml(loc.name)}</div>
+        <div class="club-cell-addr">${escHtml(loc.address||'')}</div>
+      </td>
+      <td>${statusBadge}</td>
+      <td>
+        ${loc.owner_name?`<div style="font-size:12px;font-weight:500;">${escHtml(loc.owner_name)}</div>`:''}
+        ${loc.settings?.ownerEmail?`<div style="font-size:10px;color:var(--text-faint);">${escHtml(loc.settings.ownerEmail)}</div>`:''}
+      </td>
+      <td>${lastEntryHtml}</td>
+      <td>${sales7Html}</td>
+      <td>${sales30Html}</td>
+      <td onclick="event.stopPropagation();" style="text-align:right;white-space:nowrap;">
+        <button class="tbl-action-btn" onclick="openEditLocModal('${loc.id}')">&#9998; Edit</button>
+        &nbsp;
+        <button class="tbl-action-btn primary" onclick="goToLocation('${loc.id}')">&#8594; Open</button>
+      </td>
+    </tr>`;
+
+    if (!isExp) return dataRow;
+
+    // Expanded detail
+    const ydaySales = sumField(ld,'totalSales',yday,yday);
+    const ydayDV = sumField(ld,'dv',yday,yday);
+    const weekDV = sumField(ld,'dv',w0,today);
+    const weekDays = countDays(ld,w0,today);
+    const monthDV = sumField(ld,'dv',m0,today);
+    const monthDays = countDays(ld,m0,today);
+
+    // Team members
+    const teamHtml = renderAdminUserSection(loc.id);
+
+    const expandRow = `<tr class="tbl-expand-row" id="tbl-expand-${loc.id}">
+      <td colspan="7">
+        <div class="tbl-expand-inner">
+          <div class="tbl-stat-card">
+            <div class="tbl-stat-label">Yesterday</div>
+            <div class="tbl-stat-row"><span class="tbl-stat-key">Sales</span><span class="tbl-stat-val">${fmt$z(ydaySales)}</span></div>
+            <div class="tbl-stat-row"><span class="tbl-stat-key">DV</span><span class="tbl-stat-val">${fmtN(ydayDV)||'—'}</span></div>
+          </div>
+          <div class="tbl-stat-card">
+            <div class="tbl-stat-label">Last 7 days</div>
+            <div class="tbl-stat-row"><span class="tbl-stat-key">Sales</span><span class="tbl-stat-val green">${fmt$z(weekSales)}</span></div>
+            <div class="tbl-stat-row"><span class="tbl-stat-key">DV</span><span class="tbl-stat-val">${fmtN(weekDV)||'—'}</span></div>
+            <div class="tbl-stat-row"><span class="tbl-stat-key">Days</span><span class="tbl-stat-val">${weekDays||'—'}</span></div>
+          </div>
+          <div class="tbl-stat-card">
+            <div class="tbl-stat-label">Last 30 days</div>
+            <div class="tbl-stat-row"><span class="tbl-stat-key">Sales</span><span class="tbl-stat-val green">${fmt$z(monthSales)}</span></div>
+            <div class="tbl-stat-row"><span class="tbl-stat-key">DV</span><span class="tbl-stat-val">${fmtN(monthDV)||'—'}</span></div>
+            <div class="tbl-stat-row"><span class="tbl-stat-key">Days</span><span class="tbl-stat-val">${monthDays||'—'}</span></div>
+          </div>
+          <div class="tbl-team-card">
+            <div class="tbl-stat-label">Team</div>
+            <div id="tbl-team-${loc.id}">${teamHtml}</div>
+          </div>
+          <div class="tbl-expand-actions">
+            <button class="tbl-action-btn primary" onclick="goToLocation('${loc.id}')">&#8594; Open club app</button>
+            <button class="tbl-action-btn" onclick="openEditLocModal('${loc.id}')">&#9998; Edit club &amp; org</button>
+            <button class="tbl-action-btn" onclick="window.location.href='organizations.html?loc=${loc.id}'">&#128101; Manage team</button>
+          </div>
+        </div>
+      </td>
+    </tr>`;
+
+    return dataRow + expandRow;
+  }
+
+  function orgSection(orgId, locs, org) {
+    const isPinned = pinned.includes(orgId);
+    const isCollapsed = collapsed.includes(orgId);
+    const orgInitials = (org.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const filtered = filterLocs(sortLocs(locs));
+    if (filterOrg && orgId !== filterOrg) return '';
+    if (!filtered.length && searchQ) return ''; // hide empty orgs when searching
+
+    const activeCnt = locs.filter(l=>isActivated(l)).length;
+
+    return `<tr class="locs-org-row">
+      <td colspan="7">
+        <div class="org-row-inner">
+          <div class="org-tbl-avatar">${orgInitials}</div>
+          <span class="org-tbl-name">${escHtml(org.name)}</span>
+          <span class="org-tbl-meta">${locs.length} location${locs.length!==1?'s':''} &middot; ${activeCnt} active</span>
+          <button class="org-pin-btn${isPinned?' pinned':''}" onclick="toggleOrgPin('${orgId}')" title="${isPinned?'Unpin':'Pin to top'}">&#9733;</button>
+          <button class="org-collapse-btn" onclick="toggleOrgCollapse('${orgId}')">${isCollapsed?'&#9656; Expand':'&#9662; Collapse'}</button>
+        </div>
+      </td>
+    </tr>
+    ${isCollapsed ? '' : filtered.map(rowHtml).join('')}`;
+  }
+
+  const colDefs = [
+    {col:'name',label:'Club',w:'30%'},
+    {col:'status',label:'Status',w:'10%'},
+    {col:'owner',label:'Owner',w:'18%'},
+    {col:'lastentry',label:'Last entry',w:'10%'},
+    {col:'sales7',label:'7d sales',w:'10%'},
+    {col:'sales30',label:'30d sales',w:'10%'},
+    {col:'',label:'',w:'12%'},
+  ];
+
+  const thead = `<thead><tr>${colDefs.map((c,i) =>
+    c.col
+      ? `<th style="width:${c.w};" onclick="sortTable('${c.col}')" class="${_tblSortCol===c.col?'sorted':''}">${c.label}${sortArrow(c.col)}</th>`
+      : `<th style="width:${c.w};"></th>`
+  ).join('')}</tr></thead>`;
+
+  const orgRows = orgIds.map(oid => orgSection(oid, orgGroups[oid], allOrgsMap[oid])).join('');
+  const unassRows = !filterOrg && unassigned.length ? orgSection('_unassigned', unassigned, {name:'Unassigned', id:'_unassigned'}) : '';
+
+  const totalFiltered = allLocations.filter(l => {
+    if (filterOrg && l.org_id !== filterOrg) return false;
+    if (filterStatus === 'active' && !isActivated(l)) return false;
+    if (filterStatus === 'pending' && isActivated(l)) return false;
+    if (searchQ) { const hay=[l.name,l.owner_name,l.address].filter(Boolean).join(' ').toLowerCase(); if(!hay.includes(searchQ))return false; }
+    return true;
+  }).length;
+
+  list.innerHTML = `<div class="locs-tbl-wrap">
+    <table class="locs-tbl">${thead}<tbody>${orgRows}${unassRows}</tbody></table>
+    <div class="tbl-footer">
+      <span>${totalFiltered} location${totalFiltered!==1?'s':''} &middot; ${Object.keys(allOrgsMap).length} org${Object.keys(allOrgsMap).length!==1?'s':''}</span>
+      <span>${_tblSortCol?'Sorted by '+_tblSortCol+' '+(+_tblSortDir===1?'&#8593;':'&#8595;'):''}</span>
+    </div>
+  </div>`;
 }
 
-function toggleOrgTree(id){
-  const locsEl=document.getElementById('otg-locs-'+id);
-  const chevEl=document.getElementById('otg-chev-'+id);
-  if(!locsEl)return;
-  const isOpen=locsEl.style.display!=='none';
-  locsEl.style.display=isOpen?'none':'block';
-  if(chevEl)chevEl.style.transform=isOpen?'rotate(-90deg)':'rotate(0deg)';
+let _tblSortCol = 'name', _tblSortDir = 1;
+let _expandedRow = null;
+
+function sortTable(col) {
+  if (_tblSortCol === col) _tblSortDir *= -1;
+  else { _tblSortCol = col; _tblSortDir = 1; }
+  renderLocations();
 }
 
-function toggleCard(id){document.getElementById('lc-'+id).classList.toggle('expanded');}
+function toggleTableRow(locId) {
+  _expandedRow = (_expandedRow === locId) ? null : locId;
+  renderLocations();
+}
+
+function toggleOrgPin(orgId) {
+  const pinned = JSON.parse(localStorage.getItem('mct_pinned_orgs')||'[]');
+  const idx = pinned.indexOf(orgId);
+  if (idx >= 0) pinned.splice(idx,1); else pinned.push(orgId);
+  localStorage.setItem('mct_pinned_orgs', JSON.stringify(pinned));
+  renderLocations();
+}
+
+function toggleOrgCollapse(orgId) {
+  const collapsed = JSON.parse(localStorage.getItem('mct_collapsed_orgs')||'[]');
+  const idx = collapsed.indexOf(orgId);
+  if (idx >= 0) collapsed.splice(idx,1); else collapsed.push(orgId);
+  localStorage.setItem('mct_collapsed_orgs', JSON.stringify(collapsed));
+  renderLocations();
+}
+
+function openEditLocModal(locId) {
+  // TODO: build full edit modal — for now open manage page
+  window.location.href = 'organizations.html?loc=' + locId;
+}
+
+
+function toggleOrgTree(id){ toggleOrgCollapse(id); }
+
+}
 
 function renderAdminUserSection(locId){
   const users=allLocationUsers.filter(u=>u.location_id===locId);
