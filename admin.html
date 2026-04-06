@@ -1309,10 +1309,13 @@ async function init(){
   const{data:locUsers,error:luErr}=await sb.from('users').select('id,email,first_name,last_name,display_name,phone,role,location_id').in('role',['owner','employee']);
   if(luErr){console.warn('Could not load location users:',luErr.message);}
   allLocationUsers = locUsers || [];
-  renderKPIs();renderLocations();renderAlertBanner();renderCompChart();
+  try { renderKPIs(); } catch(e) { console.error('renderKPIs error:',e); }
+  try { renderLocations(); } catch(e) { console.error('renderLocations error:',e); }
+  try { renderAlertBanner(); } catch(e) { console.error('renderAlertBanner error:',e); }
+  try { renderCompChart(); } catch(e) { console.error('renderCompChart error:',e); }
+  document.getElementById('loading-overlay').style.display='none';
   await loadRequests();
   await checkPendingOrgs();
-  document.getElementById('loading-overlay').style.display='none';
 }
 
 // ── DUPLICATE DETECTION (Levenshtein distance) ──
@@ -1597,9 +1600,7 @@ function renderLocations(){
     const monthDV = sumField(ld,'dv',m0,today);
     const monthDays = countDays(ld,m0,today);
 
-    // Team members
-    const teamHtml = renderAdminUserSection(loc.id);
-
+    // Team members — use placeholder, fill after render to avoid backtick conflicts
     const expandRow = `<tr class="tbl-expand-row" id="tbl-expand-${loc.id}">
       <td colspan="7">
         <div class="tbl-expand-inner">
@@ -1622,7 +1623,7 @@ function renderLocations(){
           </div>
           <div class="tbl-team-card">
             <div class="tbl-stat-label">Team</div>
-            <div id="tbl-team-${loc.id}">${teamHtml}</div>
+            <div id="tbl-team-${loc.id}"></div>
           </div>
           <div class="tbl-expand-actions">
             <button class="tbl-action-btn primary" onclick="goToLocation('${loc.id}')">&#8594; Open club app</button>
@@ -1632,6 +1633,11 @@ function renderLocations(){
         </div>
       </td>
     </tr>`;
+    // Fill team section after DOM insert to avoid backtick conflicts in template literal
+    setTimeout(() => {
+      const teamEl = document.getElementById('tbl-team-' + loc.id);
+      if (teamEl) teamEl.innerHTML = renderAdminUserSection(loc.id);
+    }, 0);
 
     return dataRow + expandRow;
   }
@@ -1733,8 +1739,6 @@ function openEditLocModal(locId) {
 
 
 function toggleOrgTree(id){ toggleOrgCollapse(id); }
-
-}
 
 function renderAdminUserSection(locId){
   const users=allLocationUsers.filter(u=>u.location_id===locId);
