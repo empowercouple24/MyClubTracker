@@ -435,26 +435,26 @@ function togglePwVis(id,btn){var el=document.getElementById(id);if(!el)return;va
   <div class="section">
     <div class="section-label">All Users</div>
     <div class="card" id="admins-card">
-      <div style="display:flex;gap:8px;padding:10px 12px;border-bottom:1px solid var(--border-light);background:var(--bg);flex-wrap:wrap;" id="users-filter-bar">
-        <input type="text" id="users-search" placeholder="Search name or email…" oninput="renderAdmins()" style="flex:1;min-width:140px;font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;"/>
-        <select id="users-filter-role" onchange="renderAdmins()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;">
+      <div style="display:flex;gap:6px;padding:8px 10px;border-bottom:1px solid var(--border-light);background:var(--bg);flex-wrap:nowrap;align-items:center;" id="users-filter-bar">
+        <input type="text" id="users-search" placeholder="Search…" oninput="renderAdmins()" style="flex:1;min-width:0;font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;"/>
+        <select id="users-filter-role" onchange="renderAdmins()" style="flex-shrink:0;font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 6px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;">
           <option value="">All roles</option>
           <option value="owner">Owner</option>
           <option value="employee">Operator</option>
           <option value="admin">Admin</option>
         </select>
-        <select id="users-filter-org" onchange="onOrgFilterChange()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;">
+        <select id="users-filter-org" onchange="onOrgFilterChange()" style="flex-shrink:0;font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 6px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;">
           <option value="">All orgs</option>
         </select>
-        <select id="users-filter-loc" onchange="renderAdmins()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;">
+        <select id="users-filter-loc" onchange="renderAdmins()" style="flex-shrink:0;font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 6px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;">
           <option value="">All locations</option>
         </select>
-        <select id="users-sort" onchange="renderAdmins()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;">
-          <option value="name">Sort: name A–Z</option>
-          <option value="name-desc">Sort: name Z–A</option>
-          <option value="role">Sort: role</option>
-          <option value="location">Sort: location</option>
-          <option value="org">Sort: org</option>
+        <select id="users-sort" onchange="renderAdmins()" style="flex-shrink:0;font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 6px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;">
+          <option value="name">Name A–Z</option>
+          <option value="name-desc">Name Z–A</option>
+          <option value="role">Role</option>
+          <option value="location">Location</option>
+          <option value="org">Org</option>
         </select>
       </div>
       <div id="admins-list-inner">
