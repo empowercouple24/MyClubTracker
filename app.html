@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-02 13:00:00 -->
+<!-- CACHE BUST: 2026-04-06 01:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -1115,7 +1115,7 @@ if('serviceWorker' in navigator){
         <div class="recon-banner-left">
           <div class="recon-banner-lbl">Unallocated Balance</div>
           <div class="recon-banner-val" id="recon-unalloc-val">—</div>
-          <div class="recon-banner-sub">Card deposits + cash deposits &#8722; transfers</div>
+          <div class="recon-banner-sub">Square deposits + cash deposits &#8722; transfers</div>
         </div>
         <div class="recon-banner-right">
           <div class="recon-bank-pill" onclick="event.stopPropagation()">
@@ -1130,7 +1130,7 @@ if('serviceWorker' in navigator){
       <div class="recon-body" id="recon-body">
         <div class="recon-breakdown" id="recon-breakdown">
           <div class="recon-brow">
-            <span class="recon-brow-lbl">Card + Venmo deposits (all time)</span>
+            <span class="recon-brow-lbl">Square card deposits (all time)</span>
             <span class="recon-brow-val in" id="recon-card-val">—</span>
           </div>
           <div class="recon-brow">
@@ -1140,6 +1140,12 @@ if('serviceWorker' in navigator){
           <div class="recon-brow">
             <span class="recon-brow-lbl">Transfers marked &#10003;</span>
             <span class="recon-brow-val out" id="recon-xfer-val">—</span>
+          </div>
+          <div style="margin-top:8px;padding:7px 10px;background:rgba(255,255,255,0.06);border-radius:6px;font-size:10px;line-height:1.6;color:rgba(255,255,255,0.45);">
+            <span style="color:rgba(255,255,255,0.65);font-weight:700;">Scope: main Square/cash account only.</span>
+            Includes Square card sweeps (card sales minus fees + CashApp POS) and cash you have marked deposited.
+            Venmo is excluded as it deposits to a separate account and is not tracked here.
+            Allocation buckets are calculated off total sales including Venmo, so a small variance is expected on days with Venmo entries.
           </div>
         </div>
         <!-- Unallocated days list -->
@@ -6274,39 +6280,37 @@ function renderMonthTable(el) {
 let _reconOpen = false;
 
 function calcReconTotals() {
-  let cardDeposits = 0, cashDeposits = 0, transfers = 0;
+  // Unallocated = sum of pending bucket amounts on days NOT fully allocated.
+  // Fully-allocated days (all 5 buckets done) net to zero and are excluded.
+  let unalloc = 0;
+  let cardDepositsTotal = 0, cashDepositsTotal = 0, transfersTotal = 0;
   const unallocDays = [];
   ALL_DAYS.forEach(d => {
     const data = d.data || {};
     if (!calSales(data)) return;
     const c = calcAllFromData(data);
     const tr = data.transfers || {};
-    // Use calcAllFromData.cardDeposits — already correct (cardSales - cardFees + cashAppPay - giftCardLoadFees)
-    // Venmo is separate — NOT a card deposit, it's a direct bank transfer, count separately
-    cardDeposits += (c.cardDeposits||0) + (parseFloat(data.venmo)||0);
-    // Cash deposit only if marked ✓
-    if (tr.cashdeposit) cashDeposits += parseFloat(data.cashSales)||0;
-    // Transfers — sum the 4 buckets that are marked done
-    if (tr.tax)       transfers += c.tax||0;
-    if (tr.overhead)  transfers += c.overhead||0;
-    if (tr.herbalife) transfers += c.products||0;
-    if (tr.payouts)   transfers += c.payouts||0;
-    // Track days with any unmarked buckets for the unallocated list
     const allKeys = ['cashdeposit','tax','overhead','herbalife','payouts'];
-    const anyUnmarked = allKeys.some(k => !tr[k]);
-    if (anyUnmarked) {
-      const dt = new Date(d.date+'T00:00:00');
-      const label = dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
-      const cashDep = parseFloat(data.cashSales)||0;
-      const bvMap = {cashdeposit:cashDep, tax:c.tax||0, overhead:c.overhead||0, herbalife:c.products||0, payouts:c.payouts||0};
-      const pending = allKeys.filter(k => !tr[k]).map(k => ({key:k, amt:bvMap[k]}));
-      const pendingTotal = pending.reduce((s,p) => s+p.amt, 0);
-      unallocDays.push({date:d.date, label, pending, pendingTotal});
-    }
+    const allDone = allKeys.every(k => tr[k]);
+    const cardDep = (c.cardDeposits||0); // Square sweep only: cardSales - fees + cashAppPay - gcLoadFees
+    const cashDep = parseFloat(data.cashSales)||0;
+    cardDepositsTotal += cardDep;
+    if (tr.cashdeposit) cashDepositsTotal += cashDep;
+    if (tr.tax)       transfersTotal += c.tax||0;
+    if (tr.overhead)  transfersTotal += c.overhead||0;
+    if (tr.herbalife) transfersTotal += c.products||0;
+    if (tr.payouts)   transfersTotal += c.payouts||0;
+    if (allDone) return; // fully allocated days contribute zero
+    const bvMap = {cashdeposit:cashDep, tax:c.tax||0, overhead:c.overhead||0, herbalife:c.products||0, payouts:c.payouts||0};
+    const pending = allKeys.filter(k => !tr[k]).map(k => ({key:k, amt:bvMap[k]}));
+    const pendingTotal = pending.reduce((s,p) => s+p.amt, 0);
+    unalloc += pendingTotal;
+    const dt = new Date(d.date+'T00:00:00');
+    const label = dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+    unallocDays.push({date:d.date, label, pending, pendingTotal});
   });
-  // Sort unallocDays newest first
   unallocDays.sort((a,b) => b.date.localeCompare(a.date));
-  return { cardDeposits, cashDeposits, transfers, unalloc: cardDeposits + cashDeposits - transfers, unallocDays };
+  return { cardDeposits:cardDepositsTotal, cashDeposits:cashDepositsTotal, transfers:transfersTotal, unalloc, unallocDays };
 }
 
 let _reconDaysOpen = false;
