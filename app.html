@@ -207,7 +207,7 @@ if('serviceWorker' in navigator){
     .acal-dow-row{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px;}
     .acal-dow{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-faint);text-align:center;padding:3px 0;}
     .acal-week{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px;}
-    .acal-day{border-radius:var(--radius-sm);padding:5px 5px 6px;min-height:72px;display:flex;flex-direction:column;cursor:pointer;transition:box-shadow 0.12s,border-color 0.12s;position:relative;overflow:hidden;}
+    .acal-day{border-radius:var(--radius-sm);padding:5px 5px 6px;min-height:72px;display:flex;flex-direction:column;cursor:pointer;transition:box-shadow 0.12s,border-color 0.12s;position:relative;}
     .acal-day.empty-day{background:transparent;border:1px solid transparent;cursor:default;}
     .acal-day.no-data{background:var(--b0);border:1px solid var(--border-light);cursor:default;opacity:0.55;}
     .acal-day.none{background:var(--surface);border:1px solid var(--border-light);box-shadow:var(--shadow-sm);}
@@ -752,10 +752,11 @@ if('serviceWorker' in navigator){
     .msel-pill{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.12);border-radius:20px;padding:3px 8px 3px 10px;font-size:11px;font-weight:600;color:white;}
     .msel-pill-x{font-size:13px;color:rgba(255,255,255,0.45);cursor:pointer;line-height:1;padding:0 2px;}
     .msel-pill-x:hover{color:white;}
-    .msel-empty{font-size:12px;color:rgba(255,255,255,0.3);font-style:italic;padding:2px 0;}
+    .msel-empty{font-size:12px;color:rgba(255,255,255,0.35);font-style:italic;padding:2px 0;}
     .msel-buckets{display:flex;flex-wrap:wrap;gap:6px;}
-    .msel-chip{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);font-size:12px;font-weight:600;color:white;cursor:pointer;user-select:none;}
-    .msel-chip input[type=checkbox]{width:14px;height:14px;accent-color:#378add;cursor:pointer;flex-shrink:0;}
+    .msel-chip{display:flex;align-items:center;gap:6px;padding:5px 13px;border-radius:20px;border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.07);font-size:12px;font-weight:600;color:rgba(255,255,255,0.65);cursor:pointer;user-select:none;transition:background 0.12s,border-color 0.12s,color 0.12s;}
+    .msel-chip:has(input:checked){background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.35);color:white;}
+    .msel-chip input[type=checkbox]{width:14px;height:14px;accent-color:var(--b5);cursor:pointer;flex-shrink:0;}
     .msel-breakdown{background:rgba(0,0,0,0.18);border-radius:8px;margin-top:10px;overflow:hidden;}
     .msel-brow{display:flex;align-items:flex-start;justify-content:space-between;padding:8px 12px;border-bottom:0.5px solid rgba(255,255,255,0.06);}
     .msel-brow:last-child{border-bottom:none;}
@@ -1307,11 +1308,11 @@ if('serviceWorker' in navigator){
           <span class="msel-empty">Tap days on the calendar below to select them</span>
         </div>
         <div class="msel-buckets" style="margin-top:8px;">
-          <label class="msel-chip"><input type="checkbox" id="msel-chk-tax" checked onchange="toggleMselChip('tax')"/><span>Taxes</span></label>
-          <label class="msel-chip"><input type="checkbox" id="msel-chk-overhead" checked onchange="toggleMselChip('overhead')"/><span>Overhead</span></label>
-          <label class="msel-chip"><input type="checkbox" id="msel-chk-herbalife" checked onchange="toggleMselChip('herbalife')"/><span>Herbalife</span></label>
-          <label class="msel-chip"><input type="checkbox" id="msel-chk-payouts" checked onchange="toggleMselChip('payouts')"/><span>Payouts</span></label>
-          <label class="msel-chip"><input type="checkbox" id="msel-chk-cashdeposit" onchange="toggleMselChip('cashdeposit')"/><span>Cash Deposit</span></label>
+          <label class="msel-chip"><input type="checkbox" id="msel-chk-cashdeposit" checked onchange="toggleMselChip('cashdeposit')"/><span>Cash Deposit</span></label>
+          <label class="msel-chip"><input type="checkbox" id="msel-chk-tax" onchange="toggleMselChip('tax')"/><span>Taxes</span></label>
+          <label class="msel-chip"><input type="checkbox" id="msel-chk-overhead" onchange="toggleMselChip('overhead')"/><span>Overhead</span></label>
+          <label class="msel-chip"><input type="checkbox" id="msel-chk-herbalife" onchange="toggleMselChip('herbalife')"/><span>Herbalife</span></label>
+          <label class="msel-chip"><input type="checkbox" id="msel-chk-payouts" onchange="toggleMselChip('payouts')"/><span>Payouts</span></label>
         </div>
         <div class="msel-breakdown" id="msel-breakdown"></div>
         <button class="msel-run" id="msel-run-btn" onclick="runMselMark()" disabled style="width:100%;margin-top:10px;">&#10003; Mark complete</button>
@@ -5664,10 +5665,10 @@ let _histProjDate = null;
 // ── MULTI-SELECT ALLOCATION ──────────────────────────────────────────────────
 
 let _mselDates = new Set();
-// Taxes/Overhead/Herbalife/Payouts on by default, Cash Deposit off
-let _mselBuckets = new Set(['tax','overhead','herbalife','payouts']);
+// Cash Deposit on by default, others off
+let _mselBuckets = new Set(['cashdeposit']);
 
-const MSEL_BUCKET_KEYS   = ['tax','overhead','herbalife','payouts','cashdeposit'];
+const MSEL_BUCKET_KEYS   = ['cashdeposit','tax','overhead','herbalife','payouts'];
 const MSEL_BUCKET_LABELS = {
   tax:'Taxes', overhead:'Overhead', herbalife:'Herbalife',
   payouts:'Payouts', cashdeposit:'Cash Deposit'
@@ -6422,9 +6423,9 @@ function setHistView(mode) {
     const sumView = document.getElementById('history-sum-view');
     if (calGrid) calGrid.style.display = '';
     if (sumView) sumView.style.display = 'none';
-    // Reset bucket checkboxes to default (tax/oh/herb/pay on, cash off)
+    // Reset bucket checkboxes to default (cash deposit on, others off)
     _mselDates.clear();
-    _mselBuckets = new Set(['tax','overhead','herbalife','payouts']);
+    _mselBuckets = new Set(['cashdeposit']);
     ['tax','overhead','herbalife','payouts','cashdeposit'].forEach(k => {
       const chk = document.getElementById('msel-chk-' + k);
       if (chk) chk.checked = _mselBuckets.has(k);
