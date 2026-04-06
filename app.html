@@ -704,6 +704,16 @@ if('serviceWorker' in navigator){
     .smtbl td.sm-nodata{color:var(--text-faint);}
     .smtbl td.sm-green{color:var(--g5);}
     .smtbl td.sm-amber{color:var(--a6);}
+
+    .alloc-bucket.cash-deposit{border-color:var(--b3);background:var(--b0);grid-column:1/-1;}
+    .alloc-bucket.cash-deposit:hover{background:var(--b1);border-color:var(--b5);}
+    .alloc-bucket.cash-deposit.transferred{background:#e6f1fb;border-color:var(--b5);}
+    .alloc-bucket.cash-deposit.transferred:hover{background:#d5e8f7;border-color:var(--b6);}
+    .alloc-bucket.cash-deposit .alloc-bucket-label{color:var(--b5);}
+    .alloc-bucket.cash-deposit.transferred .alloc-bucket-label{color:var(--b6);}
+    .alloc-bucket.cash-deposit .alloc-bucket-amt{color:var(--text);}
+    .alloc-bucket.cash-deposit.transferred .alloc-bucket-amt{color:var(--b6);}
+    .alloc-bucket.cash-deposit.transferred .alloc-bucket-check{background:var(--b6);border-color:var(--b6);}
     
   </style>
 </head>
@@ -1480,8 +1490,13 @@ if('serviceWorker' in navigator){
         <div style="font-size:12px;color:var(--text-faint);" id="alloc-detail-status"></div>
       </div>
       <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">Total Sales: <span style="font-weight:700;color:var(--g5);" id="alloc-detail-sales"></span></div>
-      <div style="font-size:11px;color:var(--text-faint);margin-bottom:2px;">Tap each bucket to mark it transferred in your banking app.</div>
+      <div style="font-size:11px;color:var(--text-faint);margin-bottom:2px;">Tap to mark complete. Cash Deposit = cash taken to the bank.</div>
       <div class="alloc-bucket-grid">
+        <div class="alloc-bucket cash-deposit" id="alloc-b-cashdeposit" onclick="toggleAllocBucket('cashdeposit')">
+          <div class="alloc-bucket-label">Cash Deposit</div>
+          <div class="alloc-bucket-amt" id="alloc-amt-cashdeposit">—</div>
+          <div class="alloc-bucket-check"><svg class="alloc-check-svg" viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>
+        </div>
         <div class="alloc-bucket" id="alloc-b-tax" onclick="toggleAllocBucket('tax')">
           <div class="alloc-bucket-label">Taxes</div>
           <div class="alloc-bucket-amt" id="alloc-amt-tax">—</div>
@@ -3653,6 +3668,8 @@ function renderHistCal(){
         const _tkeys=['tax','overhead','herbalife','payouts'];
         // Quadrant circle SVG
         const _qColors=_tkeys.map(k=>_tr[k]?'#639922':'#f0b440');
+        const _cashDeposited=!!_tr['cashdeposit'];
+        const _centerFill=_cashDeposited?'#378ADD':'white';
         const _qSvg=`<svg viewBox="0 0 22 22" style="width:20px;height:20px;display:block;">
           <path d="M11,11 L11,3 A8,8 0 0,1 19,11 Z" fill="${_qColors[0]}"/>
           <path d="M11,11 L19,11 A8,8 0 0,1 11,19 Z" fill="${_qColors[1]}"/>
@@ -3660,7 +3677,8 @@ function renderHistCal(){
           <path d="M11,11 L3,11 A8,8 0 0,1 11,3 Z" fill="${_qColors[3]}"/>
           <line x1="11" y1="3" x2="11" y2="19" stroke="white" stroke-width="1.2"/>
           <line x1="3" y1="11" x2="19" y2="11" stroke="white" stroke-width="1.2"/>
-          <circle cx="11" cy="11" r="4" fill="white"/>
+          <circle cx="11" cy="11" r="4" fill="${_centerFill}"/>
+          ${_cashDeposited?'<circle cx="11" cy="11" r="4" fill="none" stroke="white" stroke-width="1"/>':''}
         </svg>`;
         // Operator dots — assign color by position in SETTINGS.operators
         const _opList=[data.op1,data.op2].filter(Boolean);
@@ -4708,7 +4726,8 @@ function renderAllocCal() {
     const data = dayObj.data || {};
     if (!calSales(data)) return;
     const c = calcAllFromData(data);
-    const bv = [c.tax||0, c.overhead||0, c.products||0, c.payouts||0];
+    const cashDep = parseFloat(data.cashSales)||0;
+    const bv = [cashDep, c.tax||0, c.overhead||0, c.products||0, c.payouts||0];
     const tr = data.transfers || {};
     bv.forEach((v,i) => { monthOwe += v; if (tr[keys[i]]) monthDone += v; });
   });
@@ -4866,13 +4885,18 @@ function openAllocDetail(dateStr) {
   // Sales
   document.getElementById('alloc-detail-sales').textContent = fmt$(calSales(data));
 
-  // Status
+  // Status — includes cashdeposit
   const keys = ['tax','overhead','herbalife','payouts'];
-  const doneCount = keys.filter(k => transfers[k]).length;
+  const allKeys = ['cashdeposit',...keys];
+  const doneCount = allKeys.filter(k => transfers[k]).length;
   const statusEl = document.getElementById('alloc-detail-status');
-  if (doneCount === 4) statusEl.textContent = 'All transferred';
-  else if (doneCount === 0) statusEl.textContent = 'None transferred';
-  else statusEl.textContent = doneCount + ' of 4 transferred';
+  if (doneCount === 5) statusEl.textContent = 'All complete';
+  else if (doneCount === 0) statusEl.textContent = 'Nothing marked yet';
+  else statusEl.textContent = doneCount + ' of 5 complete';
+
+  // Cash deposit amount = cashSales for that day
+  const cashDeposit = parseFloat(data.cashSales) || 0;
+  document.getElementById('alloc-amt-cashdeposit').textContent = fmt$(cashDeposit);
 
   // Bucket amounts
   document.getElementById('alloc-amt-tax').textContent = fmt$(c.tax || 0);
@@ -4881,7 +4905,7 @@ function openAllocDetail(dateStr) {
   document.getElementById('alloc-amt-payouts').textContent = fmt$(c.payouts || 0);
 
   // Bucket states
-  ['tax','overhead','herbalife','payouts'].forEach(k => {
+  allKeys.forEach(k => {
     const el = document.getElementById('alloc-b-' + k);
     if (el) el.classList.toggle('transferred', !!transfers[k]);
   });
@@ -4913,14 +4937,14 @@ async function toggleAllocBucket(key) {
   const el = document.getElementById('alloc-b-' + key);
   if (el) el.classList.toggle('transferred', data.transfers[key]);
 
-  // Update status label
-  const keys = ['tax','overhead','herbalife','payouts'];
-  const doneCount = keys.filter(k => data.transfers[k]).length;
+  // Update status label — includes cashdeposit
+  const allKeys = ['cashdeposit','tax','overhead','herbalife','payouts'];
+  const doneCount = allKeys.filter(k => data.transfers[k]).length;
   const statusEl = document.getElementById('alloc-detail-status');
   if (statusEl) {
-    if (doneCount === 4) statusEl.textContent = 'All transferred';
-    else if (doneCount === 0) statusEl.textContent = 'None transferred';
-    else statusEl.textContent = doneCount + ' of 4 transferred';
+    if (doneCount === 5) statusEl.textContent = 'All complete';
+    else if (doneCount === 0) statusEl.textContent = 'Nothing marked yet';
+    else statusEl.textContent = doneCount + ' of 5 complete';
   }
 
   // Save to Supabase
@@ -5236,8 +5260,8 @@ function renderHistAlloc() {
   const yr = _histCalYear, mo = _histCalMonth;
   if (yr === null || mo === null) return;
 
-  const keys = ['tax','overhead','herbalife','payouts'];
-  const BUCKET_LABELS = {tax:'Taxes', overhead:'Overhead', herbalife:'Herbalife', payouts:'Payouts'};
+  const keys = ['cashdeposit','tax','overhead','herbalife','payouts'];
+  const BUCKET_LABELS = {cashdeposit:'Cash Deposit', tax:'Taxes', overhead:'Overhead', herbalife:'Herbalife', payouts:'Payouts'};
   const allDays = []; // ALL days with sales data, sorted newest first
   let monthOwe = 0, monthDone = 0;
 
@@ -5251,7 +5275,8 @@ function renderHistAlloc() {
     const tr = data.transfers || {};
     bv.forEach((v,i) => { monthOwe += v; if (tr[keys[i]]) monthDone += v; });
     const doneCount = keys.filter(k => tr[k]).length;
-    const allComplete = doneCount === 4;
+    const allComplete = doneCount === 5; // all 5 including cashdeposit
+    const allComplete5 = allComplete;
     const dl = new Date(d.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
     const totalAmt = bv.reduce((s,v) => s+v, 0);
     const dayRemaining = keys.reduce((s,k,i) => s + (tr[k] ? 0 : bv[i]), 0);
@@ -5262,13 +5287,14 @@ function renderHistAlloc() {
       totalAmt,
       dayRemaining,
       doneCount,
-      allComplete
+      allComplete,
+      allComplete5
     });
   });
 
   // Sort newest first
   // Only show days with pending allocations — completed days visible via quadrant circle on calendar
-  const pendingDays = allDays.filter(d => !d.allComplete).sort((a,b) => b.dateStr.localeCompare(a.dateStr));
+  const pendingDays = allDays.filter(d => !d.allComplete5).sort((a,b) => b.dateStr.localeCompare(a.dateStr));
 
   const section = document.getElementById('hist-alloc-section');
   const list = document.getElementById('hist-alloc-list');
@@ -5286,14 +5312,17 @@ function renderHistAlloc() {
     list.innerHTML = pendingDays.map(day => {
       const buckets = day.keys.map((k,i) => {
         const transferred = !!day.tr[k];
-        const br = i < day.keys.length-1 ? `border-right:1px solid ${transferred ? '#c4e6d2' : 'var(--border-light)'};` : '';
-        const bg = transferred ? '#eaf6eb' : 'var(--surface)';
-        const labelColor = transferred ? 'var(--g5)' : 'var(--text-faint)';
-        const valColor = transferred ? 'var(--g5)' : 'var(--text)';
-        const check = transferred ? '<span style="font-size:9px;margin-left:3px;color:var(--g4);">&#10003;</span>' : '';
-        return `<div style="flex:1;min-width:70px;padding:6px 10px;${br}background:${bg};">
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:${labelColor};margin-bottom:2px;">${BUCKET_LABELS[k]}${check}</div>
-          <div style="font-family:'Outfit',sans-serif;font-size:13px;font-weight:800;color:${valColor};">${fmt$(day.bv[i])}</div>
+        const isCash = k === 'cashdeposit';
+        const greenBdr = '#c4e6d2', blueBdr = '#8ab4d8';
+        const br = i < day.keys.length-1 ? `border-right:1px solid ${transferred ? (isCash?blueBdr:greenBdr) : 'var(--border-light)'};` : '';
+        const bg = transferred ? (isCash?'#e6f1fb':'#eaf6eb') : 'var(--surface)';
+        const labelColor = transferred ? (isCash?'var(--b6)':'var(--g5)') : 'var(--text-faint)';
+        const valColor = transferred ? (isCash?'var(--b6)':'var(--g5)') : 'var(--text)';
+        const check = transferred ? '<span style="font-size:9px;margin-left:3px;">&#10003;</span>' : '';
+        const flex = isCash ? 'flex:1.6;' : 'flex:1;';
+        return `<div style="${flex}min-width:60px;padding:6px 8px;${br}background:${bg};">
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:${labelColor};margin-bottom:2px;">${BUCKET_LABELS[k]}${check}</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:12px;font-weight:800;color:${valColor};">${fmt$(day.bv[i])}</div>
         </div>`;
       }).join('');
       const pendingAmt = day.keys.reduce((s,k,i) => s + (day.tr[k] ? 0 : day.bv[i]), 0);
