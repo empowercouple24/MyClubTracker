@@ -21,7 +21,7 @@ if('serviceWorker' in navigator){
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Outfit:wght@400;600;700;800&display=block" rel="stylesheet"/>
-  <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js">
+  <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{
@@ -494,6 +494,7 @@ if('serviceWorker' in navigator){
     .ms-bkt-row:last-child .ms-bkt-row-amt{font-size:14px;font-weight:800;}
     .ms-bulk-actions{display:flex;gap:8px;padding:0 14px 12px;}
     .ms-run-btn{font-size:12px;font-weight:700;padding:7px 0;border-radius:7px;border:none;background:white;color:var(--b8);cursor:pointer;flex:1;font-family:'DM Sans',sans-serif;}
+
     /* ── BANK RECONCILIATION WIDGET ── */
 
     #hist-sticky-header{position:fixed;left:0;right:0;z-index:35;background:var(--bg);padding:6px 0 6px;box-shadow:0 4px 8px -2px rgba(53,78,98,0.08);display:none;}
@@ -553,8 +554,7 @@ if('serviceWorker' in navigator){
     .recon-result-bar{margin:8px 14px 10px;padding:7px 12px;border-radius:7px;font-size:12px;font-weight:700;display:none;}
     .recon-result-bar.ok{background:var(--g0);color:var(--g5);}
     .recon-result-bar.off{background:var(--a0);color:var(--a6);}
-    
-  </style>
+</style>
 </head>
 <body>
 
@@ -589,45 +589,29 @@ if('serviceWorker' in navigator){
       <button class="nav-drop-item" id="nav-profile-btn" onclick="openProfileModal();closeNavMenu()">⚙ Profile &amp; Settings</button>
       <div class="nav-drop-divider"></div>
       <div id="admin-nav-items" style="display:none;">
-        <button class="nav-drop-item" onclick="goBackToAdmin();closeNavMenu()">&#8592; Club Profile</button>
+        <button class="nav-drop-item" onclick="goBackToAdmin();closeNavMenu()">🏪 Locations</button>
         <button class="nav-drop-item" onclick="window.location.href='admin.html';closeNavMenu()">🏠 Admin Dashboard</button>
         <div class="nav-drop-divider"></div>
       </div>
       <button class="nav-drop-item" id="nav-switch-loc-btn" onclick="openLocSwitcher();closeNavMenu()" style="display:none;">🏪 Switch Location</button>
       <div class="nav-drop-divider" id="nav-switch-loc-divider" style="display:none;"></div>
-      <div class="nav-drop-divider"></div>
-      <div class="theme-picker-row">
-        <span class="theme-picker-label">Theme</span>
-        <div class="theme-dot theme-dot-ocean" id="td-ocean"  onclick="setTheme('ocean')"  title="Ocean"></div>
-        <div class="theme-dot theme-dot-forest" id="td-forest" onclick="setTheme('forest')" title="Forest"></div>
-        <div class="theme-dot theme-dot-sand"   id="td-sand"   onclick="setTheme('sand')"   title="Sand"></div>
-      </div>
-      <div class="nav-drop-divider"></div>
       <button class="nav-drop-item danger" onclick="handleSignOut();closeNavMenu()">↪ Sign out</button>
     </div>
   </div>
 </nav>
 
 <div class="tabbar">
-  <button class="tab active" onclick="switchTab('enter')"   id="tab-enter" data-short="Enter">Enter</button>
-  <button class="tab"        onclick="switchTab('history')" id="tab-history" data-short="History">History</button>
+  <button class="tab active" onclick="switchTab('enter')"   id="tab-enter">Enter</button>
+  <button class="tab"        onclick="switchTab('history')" id="tab-history">History</button>
   <div class="tab-divider"></div>
-  <button class="tab amber"  onclick="switchTab('inv')"     id="tab-inv" data-short="Inventory">Inventory</button>
-  <button class="tab amber"  onclick="switchTab('invhist')" id="tab-invhist" data-short="Inv Hist">Inv History</button>
+  <button class="tab amber"  onclick="switchTab('inv')"     id="tab-inv">Inventory</button>
+  <button class="tab amber"  onclick="switchTab('invhist')" id="tab-invhist">Inv History</button>
   <div class="tab-divider"></div>
-  <button class="tab"        onclick="switchTab('payouts')" id="tab-payouts" data-short="Payouts">Payouts</button>
+  <button class="tab"        onclick="switchTab('payouts')" id="tab-payouts">Payouts</button>
+  <button class="tab amber"  onclick="switchTab('alloc')"   id="tab-alloc">Allocations</button>
+  <button class="tab"        onclick="switchTab('proj')"    id="tab-proj">Projections</button>
 </div>
 
-<div id="hist-sticky-header">
-  <div style="max-width:900px;margin:0 auto;width:75%;min-width:480px;padding:0 12px;">
-    <div class="recon-widget" id="recon-widget-fixed">
-      <!-- populated by JS -->
-    </div>
-    <div id="history-cal-nav-fixed" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0;">
-      <!-- populated by JS -->
-    </div>
-  </div>
-</div>
 <div class="content-area">
 <div class="tab-panel active" id="panel-enter">
 
@@ -695,7 +679,6 @@ if('serviceWorker' in navigator){
     <button class="btn btn-ghost" onclick="shiftDay(1)" id="btn-next-day" style="padding:5px 10px;font-size:16px;flex-shrink:0;display:none;">→</button>
     <span id="unsaved-badge" style="display:none;align-items:center;gap:5px;font-size:12px;font-weight:700;color:#854F0B;background:#fef3c7;border:0.5px solid #fde68a;border-radius:20px;padding:3px 10px;flex-shrink:0;white-space:nowrap;"><span style="width:6px;height:6px;border-radius:50%;background:#c47c0a;display:inline-block;flex-shrink:0;"></span>Unsaved</span>
     <button class="btn btn-ghost" id="btn-go-today" onclick="confirmNav(goToToday)" style="display:none;white-space:nowrap;">↩ Today</button>
-    <button class="btn btn-ghost" id="btn-reset-day" onclick="confirmResetDay()" style="min-width:70px;flex-shrink:0;display:none;color:var(--r5);border-color:var(--r3);">Reset</button>
     <button class="btn btn-primary" id="btn-save-day" onclick="saveDay()" style="min-width:90px;flex-shrink:0;display:none;">Save</button>
   </div>
 
@@ -808,7 +791,7 @@ if('serviceWorker' in navigator){
   <!-- Operators + Fundraiser side by side -->
   <div class="enter-ops-row">
     <div class="card">
-      <div class="collapsible-toggle" onclick="toggleCollapse(this)" data-target="ops-body">Operators <span class="arrow">&#9660;</span></div>
+      <div class="collapsible-toggle" onclick="toggleCollapse(this)" data-target="ops-body">Operators <span style="display:flex;align-items:center;gap:10px;margin-left:auto;"><span id="ops-earnings-preview" style="font-family:'Outfit',sans-serif;font-size:13px;font-weight:800;color:var(--b7);display:none;"></span><span class="arrow">▼</span></span></div>
       <div class="collapsible-body" id="ops-body" style="display:flex;flex-direction:column;gap:0;padding:8px 0;">
         <!-- Column headers -->
         <div style="display:grid;grid-template-columns:1fr 90px 90px;gap:8px;padding:0 10px 4px;align-items:center;">
@@ -828,21 +811,10 @@ if('serviceWorker' in navigator){
           <select id="f-op2-hrs" onchange="recalc(true)" style="font-family:'DM Sans',sans-serif;font-size:13px;padding:5px 6px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--b0);color:var(--text);text-align:center;"></select>
           <div id="op2-payout-pill" style="font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;color:var(--g6);border-radius:var(--radius-sm);padding:5px 8px;text-align:right;">--</div>
         </div>
-        <!-- Duplicate operator warning banner -->
-        <div id="ops-dup-warning" style="display:none;align-items:flex-start;gap:8px;padding:7px 12px;background:#fef7e8;border-top:1px solid #f0b440;">
-          <span style="font-size:13px;flex-shrink:0;margin-top:1px;">&#9888;&#65039;</span>
-          <span id="ops-dup-warning-text" style="font-size:11px;font-weight:600;color:#854F0B;line-height:1.4;"></span>
-        </div>
-        <!-- Footer: colored payout pills + Clear + hourly rate -->
-        <div id="ops-footer-row" style="display:none;justify-content:space-between;align-items:center;padding:6px 10px;border-top:1px solid var(--border-light);gap:8px;flex-wrap:wrap;">
-          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-            <div id="ops-payout-pills" style="display:flex;gap:5px;flex-wrap:wrap;"></div>
-            <button onclick="clearOperators()" style="font-size:11px;font-weight:600;color:var(--r5);background:none;border:none;cursor:pointer;padding:0 2px;white-space:nowrap;margin-left:2px;">Clear</button>
-          </div>
-          <div id="ops-hourly-rate-row" style="display:flex;flex-direction:column;align-items:flex-end;">
-            <span id="ops-total-hrs-label" style="font-size:10px;font-weight:600;color:var(--text-faint);"></span>
-            <span id="ops-hourly-rate-val" style="font-family:'Outfit',sans-serif;font-size:15px;font-weight:800;color:var(--b7);">--</span>
-          </div>
+        <!-- Hourly rate -->
+        <div id="ops-hourly-rate-row" style="display:none;justify-content:space-between;align-items:center;padding:6px 10px;margin-top:2px;border-top:1px solid var(--border-light);background:var(--b0);border-radius:0 0 var(--radius) var(--radius);">
+          <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">Hourly rate <span id="ops-total-hrs-label" style="font-weight:500;text-transform:none;letter-spacing:0;"></span></span>
+          <span id="ops-hourly-rate-val" style="font-family:'Outfit',sans-serif;font-size:15px;font-weight:800;color:var(--b7);">--</span>
         </div>
         <!-- Reinvest -->
         <div id="reinvest-row" style="display:none;padding:4px 10px 2px;border-top:1px solid var(--border-light);margin-top:2px;">
@@ -903,9 +875,10 @@ if('serviceWorker' in navigator){
 </div><!-- /panel-enter -->
 
 <div class="tab-panel" id="panel-history">
-  <div style="max-width:900px;margin:0 auto;width:75%;min-width:480px;padding-bottom:40px;">
-    <!-- Bank Reconciliation Widget (rendered via #hist-sticky-header outside scroll) -->
-    <div class="recon-widget" id="recon-widget" style="display:none;">
+  <div id="hist-sticky-header">
+    <div class="hist-inner">
+    <!-- Bank Reconciliation Widget -->
+    <div class="recon-widget" id="recon-widget">
       <div class="recon-banner" onclick="toggleReconWidget()">
         <div class="recon-banner-left">
           <div class="recon-banner-lbl">Unallocated Balance</div>
@@ -930,131 +903,74 @@ if('serviceWorker' in navigator){
       <div class="recon-body" id="recon-body">
         <div class="recon-breakdown" id="recon-breakdown">
           <div class="recon-brow">
-            <span class="recon-brow-lbl">Square card deposits (all time)</span>
-            <span class="recon-brow-val in" id="recon-card-val">—</span>
-          </div>
-          <div class="recon-brow">
-            <span class="recon-brow-lbl">Cash deposits marked &#10003;</span>
-            <span class="recon-brow-val in" id="recon-cash-val">—</span>
-          </div>
-          <div class="recon-brow">
-            <span class="recon-brow-lbl">Transfers marked &#10003;</span>
-            <span class="recon-brow-val out" id="recon-xfer-val">—</span>
-          </div>
-          <div class="recon-brow" id="recon-pending-brow" style="display:none;">
             <span class="recon-brow-lbl">Pending Square deposits</span>
-            <span class="recon-brow-val in" id="recon-pending-brow-val">—</span>
+            <span class="recon-brow-val" id="recon-brow-pending">—</span>
           </div>
-          <div style="margin-top:8px;padding:7px 10px;background:rgba(255,255,255,0.06);border-radius:6px;font-size:10px;line-height:1.6;color:rgba(255,255,255,0.45);">
-            <span style="color:rgba(255,255,255,0.65);font-weight:700;">Scope: main Square/cash account only.</span>
-            Includes Square card sweeps (card sales minus fees + CashApp POS) and cash you have marked deposited.
-            Venmo is excluded as it deposits to a separate account and is not tracked here.
-            Allocation buckets are calculated off total sales including Venmo, so a small variance is expected on days with Venmo entries.
+          <div class="recon-brow">
+            <span class="recon-brow-lbl">Cash deposits (month)</span>
+            <span class="recon-brow-val" id="recon-brow-cash">—</span>
+          </div>
+          <div class="recon-brow">
+            <span class="recon-brow-lbl">Transfers out (month)</span>
+            <span class="recon-brow-val" id="recon-brow-transfers">—</span>
+          </div>
+          <div class="recon-brow" style="border-top:0.5px solid rgba(255,255,255,0.12);margin-top:4px;padding-top:8px;">
+            <span class="recon-brow-lbl" style="font-weight:700;color:rgba(255,255,255,0.8);">Unallocated</span>
+            <span class="recon-brow-val" style="font-weight:800;" id="recon-brow-unalloc">—</span>
           </div>
         </div>
-        <!-- Unallocated days list -->
         <div id="recon-unalloc-days" style="border-top:0.5px solid rgba(255,255,255,0.08);max-height:220px;overflow-y:auto;display:none;"></div>
-        <div style="padding:4px 14px 6px;border-top:0.5px solid rgba(255,255,255,0.08);">
-          <button onclick="toggleReconDaysList()" id="recon-days-toggle-btn" style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.55);background:none;border:none;cursor:pointer;padding:2px 0;">&#9660; Show unallocated days</button>
-        </div>
-        <div class="recon-result-bar" id="recon-result-bar"></div>
-        <div class="recon-bulk">
-          <div class="recon-bulk-title">Bulk mark complete &#8212; on or before date</div>
-          <div class="recon-chips" id="recon-chips">
-            <div class="recon-chip on" data-key="cashdeposit" onclick="toggleReconChip(this)"><div class="recon-chip-box"></div>Cash Deposit</div>
-            <div class="recon-chip on" data-key="tax" onclick="toggleReconChip(this)"><div class="recon-chip-box"></div>Taxes</div>
-            <div class="recon-chip on" data-key="overhead" onclick="toggleReconChip(this)"><div class="recon-chip-box"></div>Overhead</div>
-            <div class="recon-chip on" data-key="herbalife" onclick="toggleReconChip(this)"><div class="recon-chip-box"></div>Herbalife</div>
-            <div class="recon-chip on" data-key="payouts" onclick="toggleReconChip(this)"><div class="recon-chip-box"></div>Payouts</div>
-          </div>
-          <div class="recon-date-row">
-            <span class="recon-date-lbl">On or before</span>
-            <input class="recon-date-input" type="date" id="recon-bulk-date"/>
-            <button class="recon-run-btn" id="recon-run-btn" onclick="runBulkMark()">&#9889; Run</button>
+        <div class="recon-bulk-panel" id="recon-bulk-panel" style="display:none;">
+          <div style="padding:10px 14px 6px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.5);">Mark complete through</div>
+          <div style="padding:0 14px 10px;display:flex;align-items:center;gap:8px;">
+            <select id="recon-bulk-date" style="flex:1;font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 8px;border-radius:6px;border:none;background:rgba(255,255,255,0.12);color:white;outline:none;"></select>
+            <button onclick="reconBulkRun()" style="font-size:12px;font-weight:700;padding:6px 14px;border-radius:6px;border:none;background:white;color:var(--b8);cursor:pointer;font-family:'DM Sans',sans-serif;">Mark all</button>
           </div>
         </div>
       </div>
     </div>
-
     <div id="history-cal-nav" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-      <div style="display:flex;align-items:center;gap:6px;">
-        <button class="btn btn-ghost" id="hist-prev-btn" onclick="histCalShift(-1)" style="padding:5px 12px;font-size:16px;">&#8592;</button>
-        <span id="hist-cal-label" style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:var(--text);"></span>
+      <button class="btn btn-ghost" id="hist-prev-btn" onclick="histCalShift(-1)" style="padding:5px 12px;font-size:16px;">&#8592;</button>
+      <span id="hist-cal-label" style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:var(--text);"></span>
+      <div style="display:flex;align-items:center;gap:8px;">
         <button id="fill-dv-btn" onclick="openFillDvModal()" style="display:none;font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;background:#854F0B;color:#fff;border:none;cursor:pointer;">&#9679; Fill missing DV</button>
         <button class="btn btn-ghost" id="hist-next-btn" onclick="histCalShift(1)" style="padding:5px 12px;font-size:16px;">&#8594;</button>
+        <div style="display:flex;background:var(--b0);border-radius:20px;padding:2px;border:1px solid var(--border-light);">
+          <button id="ms-single-btn" onclick="setMultiSelect(false)" style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:16px;border:none;background:var(--b7);color:white;cursor:pointer;font-family:'DM Sans',sans-serif;">Single</button>
+          <button id="ms-multi-btn" onclick="setMultiSelect(true)" style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:16px;border:none;background:none;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;">Multi</button>
+        </div>
       </div>
-      <div class="hist-view-toggle">
-        <button class="hvt-btn active" id="hvt-cal" onclick="setHistView('cal')">&#128197; Calendar</button>
-        <button class="hvt-btn" id="hvt-sum" onclick="setHistView('sum')">&#9776; Summary</button>
+    </div>
+    </div><!-- /hist-inner -->
+  </div><!-- /hist-sticky-header -->
+  <div id="hist-scroll-body">
+    <div class="hist-inner" style="padding:8px 0 40px;">
+    <div class="ms-bulk-panel" id="ms-bulk-panel">
+      <div class="ms-bulk-header">
+        <span class="ms-bulk-title">Mark complete — <span id="ms-day-count">0</span> days selected</span>
+        <button class="ms-bulk-clear" onclick="msClearAll()">Clear all</button>
+      </div>
+      <div class="ms-bulk-selected" id="ms-bulk-selected"></div>
+      <div class="ms-bulk-chips">
+        <div class="ms-bkt-chip on" data-key="tax" onclick="msBktToggle(this)"><div class="ms-bkt-box"></div>Taxes</div>
+        <div class="ms-bkt-chip on" data-key="overhead" onclick="msBktToggle(this)"><div class="ms-bkt-box"></div>Overhead</div>
+        <div class="ms-bkt-chip on" data-key="herbalife" onclick="msBktToggle(this)"><div class="ms-bkt-box"></div>Herbalife</div>
+        <div class="ms-bkt-chip on" data-key="payouts" onclick="msBktToggle(this)"><div class="ms-bkt-box"></div>Payouts</div>
+        <div class="ms-bkt-chip" data-key="cashdeposit" onclick="msBktToggle(this)"><div class="ms-bkt-box"></div>Cash Deposit</div>
+      </div>
+      <div class="ms-breakdown" id="ms-breakdown"></div>
+      <div class="ms-bulk-actions">
+        <button class="ms-run-btn" id="ms-run-btn" onclick="msRunBulk()">&#10003; Mark complete</button>
       </div>
     </div>
     <div id="history-cal-grid" style="width:100%;"></div>
-    <!-- Summary view — hidden by default -->
-    <div id="history-sum-view" style="display:none;">
-      <div class="card" style="margin-bottom:10px;">
-        <div class="sum-sub-tabs">
-          <div class="sum-sub-tab active" id="sum-tab-week" onclick="setSumTab('week')">Weekly grid</div>
-          <div class="sum-sub-tab" id="sum-tab-month" onclick="setSumTab('month')">Monthly table</div>
-        </div>
-        <!-- Week sub-nav (only shown in weekly grid mode) -->
-        <div id="sum-week-nav" class="sum-week-nav">
-          <button class="btn btn-ghost" onclick="sumWeekShift(-1)" style="padding:3px 10px;font-size:14px;">&#8592;</button>
-          <span id="sum-week-label" class="sum-week-label"></span>
-          <button class="btn btn-ghost" onclick="sumWeekShift(1)" style="padding:3px 10px;font-size:14px;">&#8594;</button>
-        </div>
-        <div id="sum-content"></div>
-      </div>
-    </div>
-
-    <!-- Allocation remaining — always visible below calendar -->
-    <div id="hist-alloc-section" style="margin-top:14px;display:none;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-        <div class="section-label" style="margin:0;">Remaining This Month</div>
-        <button onclick="toggleHistAllocList()" id="hist-alloc-toggle-btn" style="font-size:11px;font-weight:600;color:var(--b6);background:none;border:none;cursor:pointer;padding:2px 0;">Hide ▲</button>
-      </div>
-      <div id="hist-alloc-list"></div>
-      <div id="hist-alloc-done" style="display:none;margin-bottom:8px;padding:12px;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);text-align:center;box-shadow:var(--shadow-sm);">
-        <span style="font-size:13px;font-weight:600;color:var(--g5);">&#10003; All transfers complete for this month</span>
-      </div>
-    </div>
-
-    <!-- Projections toggle -->
-    <div id="hist-proj-toggle" style="display:none;margin-top:10px;">
-      <div onclick="toggleHistProjections()" style="display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);cursor:pointer;box-shadow:var(--shadow-sm);">
-        <div>
-          <div style="font-size:13px;font-weight:700;color:var(--text);">Projections</div>
-          <div style="font-size:11px;color:var(--text-faint);margin-top:1px;" id="hist-proj-base-label">Select a day from the calendar above</div>
-        </div>
-        <span id="hist-proj-arrow" style="font-size:12px;color:var(--text-faint);">&#9656;</span>
-      </div>
-      <div id="hist-proj-body" style="display:none;margin-top:6px;">
-        <div class="card" style="margin-bottom:0;padding:10px 12px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
-            <div style="display:flex;gap:6px;" id="hist-proj-preset-btns">
-              <button class="proj-preset-btn active" onclick="setHistScenario(this,[0,10,20,30])">Conservative</button>
-              <button class="proj-preset-btn" onclick="setHistScenario(this,[0,30,50,100])">Aggressive</button>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
-              <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">Days/mo</span>
-              <button onclick="adjustHistOpDays(-1)" style="width:26px;height:26px;border-radius:50%;border:1px solid var(--border);background:var(--b0);font-size:15px;font-weight:700;cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center;line-height:1;">&#8722;</button>
-              <span id="hist-proj-opdays-display" style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:var(--text);min-width:24px;text-align:center;">26</span>
-              <button onclick="adjustHistOpDays(1)" style="width:26px;height:26px;border-radius:50%;border:1px solid var(--border);background:var(--b0);font-size:15px;font-weight:700;cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center;line-height:1;">+</button>
-            </div>
-          </div>
-          <input type="hidden" id="hist-proj-opdays" value="26"/>
-          <div id="hist-proj-estimator" style="overflow-x:auto;">
-            <div style="padding:20px;text-align:center;font-size:13px;color:var(--text-faint);">Select a day from the calendar to load projections.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </div>
+    </div><!-- /hist-inner -->
+  </div><!-- /hist-scroll-body -->
 </div>
 
-<div class="tab-panel" id="panel-alloc" style="display:none!important;">
+<div class="tab-panel" id="panel-alloc">
   <div style="max-width:900px;margin:0 auto;width:75%;min-width:480px;">
-    <div id="alloc-cal-nav" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <button class="btn btn-ghost" id="alloc-prev-btn" onclick="allocCalShift(-1)" style="padding:5px 12px;font-size:16px;">&#8592;</button>
       <span id="alloc-cal-label" style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:var(--text);"></span>
       <button class="btn btn-ghost" id="alloc-next-btn" onclick="allocCalShift(1)" style="padding:5px 12px;font-size:16px;">&#8594;</button>
@@ -1063,7 +979,7 @@ if('serviceWorker' in navigator){
   </div>
 </div>
 
-<div class="tab-panel" id="panel-proj" style="display:none!important;">
+<div class="tab-panel" id="panel-proj">
   <div style="max-width:805px;margin:0 auto;padding:12px 12px 40px;">
 
     <!-- Page heading -->
@@ -1191,7 +1107,7 @@ if('serviceWorker' in navigator){
   <div class="modal-sheet" style="max-width:360px;width:100%;border-radius:var(--radius);padding:0;overflow:hidden;">
     <div style="background:var(--b8);padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;">
       <div style="font-family:'Outfit',sans-serif;font-size:15px;font-weight:700;color:#fff;">Crop Photo</div>
-      <div style="font-size:11px;color:rgba(255,255,255,0.8);">Drag to pan · Pinch to zoom</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.6);">Drag to pan · Pinch to zoom</div>
     </div>
     <div style="position:relative;background:#111;display:flex;align-items:center;justify-content:center;overflow:hidden;" id="crop-canvas-wrap">
       <canvas id="crop-canvas" style="display:block;touch-action:none;cursor:grab;"></canvas>
@@ -1262,34 +1178,17 @@ if('serviceWorker' in navigator){
 </div>
 
 <div class="tab-panel" id="panel-payouts">
-  <div style="max-width:960px;margin:0 auto;padding:12px 12px 40px;">
+  <div style="max-width:620px;margin:0 auto;padding:12px 12px 40px;">
 
-    <!-- Payout Calculator -->
-    <div class="section-label">Payout Calculator</div>
+    <!-- Date range selector -->
+    <div class="section-label">Date Range</div>
     <div class="card" style="margin-bottom:12px;">
-      <!-- Preset chips -->
-      <div class="payout-preset-row">
-        <div class="payout-preset-chip" onclick="setPayoutPreset('lastweek',this)">Last Week</div>
-        <div class="payout-preset-chip" onclick="setPayoutPreset('last2weeks',this)">Last 2 Weeks</div>
-        <div class="payout-preset-chip" onclick="setPayoutPreset('lastmonth',this)">Last Month</div>
-        <div class="payout-preset-chip" onclick="setPayoutPreset('thismonth',this)">This Month</div>
-        <div class="payout-preset-chip reset-chip" onclick="resetPayouts()">&#10005; Reset</div>
+      <div class="field-row" style="gap:8px;align-items:center;flex-wrap:wrap;">
+        <input type="date" id="payout-from" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;background:var(--surface);color:var(--text);outline:none;flex:1;min-width:130px;"/>
+        <span style="color:var(--text-faint);font-size:13px;flex-shrink:0;">to</span>
+        <input type="date" id="payout-to" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;background:var(--surface);color:var(--text);outline:none;flex:1;min-width:130px;"/>
+        <button class="btn btn-primary" onclick="renderPayouts()" style="flex-shrink:0;">Load</button>
       </div>
-      <!-- Range bar — tap to open picker -->
-      <div class="payout-range-bar" onclick="openCalPicker()">
-        <div style="flex:1;display:flex;align-items:center;gap:6px;">
-          <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">From</span>
-          <span class="payout-range-val" id="payout-range-from-lbl">—</span>
-          <span style="font-size:12px;color:var(--text-faint);">&#8594;</span>
-          <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">To</span>
-          <span class="payout-range-val" id="payout-range-to-lbl">—</span>
-        </div>
-        <span style="font-size:11px;color:var(--b5);">&#9998; Edit</span>
-        <button class="btn btn-primary" style="font-size:12px;padding:5px 14px;margin-left:6px;" onclick="event.stopPropagation();renderPayouts();">Load</button>
-      </div>
-      <!-- Hidden date inputs kept for renderPayouts() compatibility -->
-      <input type="hidden" id="payout-from"/>
-      <input type="hidden" id="payout-to"/>
     </div>
 
     <!-- Results -->
@@ -1313,53 +1212,6 @@ if('serviceWorker' in navigator){
         <span>Saved Snapshots</span>
       </div>
       <div id="payout-snaps-list"></div>
-    </div>
-
-    <!-- Payee Lookup -->
-    <div class="section-label" style="margin-top:18px;">Payee Lookup</div>
-    <div class="card" style="margin-bottom:12px;">
-      <div class="preg-lookup-row">
-        <select id="preg-lookup-payee" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 8px;background:var(--surface);color:var(--text);outline:none;flex:1;min-width:120px;"></select>
-        <input type="date" id="preg-lookup-from" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 8px;background:var(--surface);color:var(--text);outline:none;flex:1;min-width:120px;"/>
-        <span style="font-size:12px;color:var(--text-faint);flex-shrink:0;">to</span>
-        <input type="date" id="preg-lookup-to" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 8px;background:var(--surface);color:var(--text);outline:none;flex:1;min-width:120px;"/>
-        <button class="btn btn-primary" onclick="runPayeeLookup()" style="flex-shrink:0;">Look up</button>
-      </div>
-      <div id="preg-lookup-result" style="display:none;" class="preg-lookup-result">
-        <div>
-          <div class="preg-lookup-name" id="preg-lookup-label"></div>
-          <div class="preg-lookup-sub" id="preg-lookup-count"></div>
-        </div>
-        <div style="text-align:right;">
-          <div class="preg-lookup-amt" id="preg-lookup-total"></div>
-          <div class="preg-lookup-sub">total paid</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Payment Register -->
-    <div class="section-label" style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
-      <span>Payment Register</span>
-      <button class="btn btn-primary" onclick="openPregSheet()" style="font-size:12px;padding:4px 12px;">+ Add Payment</button>
-    </div>
-    <div class="card" style="margin-bottom:40px;">
-      <!-- Filter chips -->
-      <div class="preg-filter-row">
-        <div class="preg-fchip active" onclick="setPregFilter('all',this)">All</div>
-        <div class="preg-fchip" onclick="setPregFilter('thismonth',this)">This Month</div>
-        <div class="preg-fchip" onclick="setPregFilter('lastmonth',this)">Last Month</div>
-        <div class="preg-fchip" onclick="setPregFilter('thisyear',this)">This Year</div>
-        <div class="preg-fchip" onclick="setPregFilter('lastyear',this)">Last Year</div>
-      </div>
-      <!-- Spreadsheet table -->
-      <div class="preg-scroll-box" id="preg-scroll-box">
-        <div id="preg-list"></div>
-      </div>
-      <!-- Footer -->
-      <div class="preg-footer-bar">
-        <span class="preg-footer-total" id="preg-footer-total"></span>
-        <button onclick="clearPregFilter()" id="preg-clear-filter-btn" style="display:none;font-size:11px;font-weight:600;color:var(--r5);background:none;border:none;cursor:pointer;">Clear filter</button>
-      </div>
     </div>
 
   </div>
@@ -1387,7 +1239,7 @@ if('serviceWorker' in navigator){
       <div style="background:var(--b8);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;">
         <span style="font-size:13px;font-weight:700;color:#fff;">Fill missing DV</span>
         <div style="display:flex;align-items:center;gap:10px;">
-          <span id="fdv-progress" style="font-size:11px;color:white;"></span>
+          <span id="fdv-progress" style="font-size:11px;color:rgba(255,255,255,0.6);"></span>
           <button onclick="saveAllDv()" style="padding:5px 14px;border-radius:6px;background:#fff;color:var(--b8);border:none;font-size:12px;font-weight:700;cursor:pointer;">Save all</button>
         </div>
       </div>
@@ -1412,13 +1264,8 @@ if('serviceWorker' in navigator){
         <div style="font-size:12px;color:var(--text-faint);" id="alloc-detail-status"></div>
       </div>
       <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">Total Sales: <span style="font-weight:700;color:var(--g5);" id="alloc-detail-sales"></span></div>
-      <div style="font-size:11px;color:var(--text-faint);margin-bottom:2px;">Tap to mark complete. Cash Deposit = cash taken to the bank.</div>
+      <div style="font-size:11px;color:var(--text-faint);margin-bottom:2px;">Tap each bucket to mark it transferred in your banking app.</div>
       <div class="alloc-bucket-grid">
-        <div class="alloc-bucket cash-deposit" id="alloc-b-cashdeposit" onclick="toggleAllocBucket('cashdeposit')">
-          <div class="alloc-bucket-label">Cash Deposit</div>
-          <div class="alloc-bucket-amt" id="alloc-amt-cashdeposit">—</div>
-          <div class="alloc-bucket-check"><svg class="alloc-check-svg" viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>
-        </div>
         <div class="alloc-bucket" id="alloc-b-tax" onclick="toggleAllocBucket('tax')">
           <div class="alloc-bucket-label">Taxes</div>
           <div class="alloc-bucket-amt" id="alloc-amt-tax">—</div>
@@ -1443,132 +1290,6 @@ if('serviceWorker' in navigator){
     </div>
     <div style="flex-shrink:0;padding:12px 16px;border-top:1px solid var(--border-light);">
       <button onclick="closeAllocDetail()" class="btn btn-ghost" style="width:100%;">Done</button>
-    </div>
-  </div>
-</div>
-
-
-
-<!-- DUPLICATE OPERATOR CONFIRMATION MODAL -->
-<div class="modal-overlay" id="dup-op-modal" onclick="closeDupOpModal(event)" style="display:none;align-items:flex-end;justify-content:center;z-index:260;">
-  <div style="background:var(--surface);border-radius:18px 18px 0 0;width:100%;max-width:480px;animation:sheetUp 0.3s cubic-bezier(0.16,1,0.3,1);">
-    <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0;"></div>
-    <div style="padding:14px 16px 10px;border-bottom:1px solid var(--border-light);">
-      <div style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;color:var(--text);">Duplicate operator — add a note</div>
-      <div style="font-size:12px;color:var(--text-faint);margin-top:2px;" id="dup-op-date-label"></div>
-    </div>
-    <div style="display:flex;align-items:center;gap:8px;background:#fef7e8;border-top:1px solid #f0b440;border-bottom:1px solid #f0b440;padding:10px 16px;">
-      <span style="font-size:16px;">&#9888;&#65039;</span>
-      <span style="font-size:12px;font-weight:600;color:#854F0B;" id="dup-op-warn-text"></span>
-    </div>
-    <div style="padding:12px 16px 8px;">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:6px;">Note (required)</div>
-      <textarea id="dup-op-note" rows="3" placeholder="e.g. Mary covered both open and close shifts today…"
-        oninput="document.getElementById('dup-op-save-btn').disabled=!this.value.trim();"
-        style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;padding:9px 11px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--b0);color:var(--text);resize:none;outline:none;line-height:1.4;"></textarea>
-    </div>
-    <div style="display:flex;gap:8px;padding:0 16px 16px;">
-      <button onclick="closeDupOpModal()" class="btn btn-ghost" style="flex:1;">Go back</button>
-      <button id="dup-op-save-btn" onclick="confirmDupOpSave()" class="btn btn-primary" style="flex:2;" disabled>Save with note</button>
-    </div>
-  </div>
-</div>
-
-
-<!-- CALENDAR DATE RANGE PICKER -->
-<div class="cal-picker-overlay" id="cal-picker-overlay" onclick="closeCalPickerOnBg(event)">
-  <div class="cal-picker-sheet">
-    <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 14px;"></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-      <div>
-        <div style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;color:var(--text);">Select Date Range</div>
-        <div style="font-size:12px;color:var(--text-faint);margin-top:2px;" id="cal-picker-hint">Tap a start date</div>
-      </div>
-      <button onclick="closeCalPicker()" style="background:none;border:none;font-size:20px;color:var(--text-faint);cursor:pointer;">&#10005;</button>
-    </div>
-    <!-- Nav -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-      <button onclick="shiftCalPicker(-1)" style="background:var(--b0);border:1px solid var(--border);border-radius:8px;padding:5px 12px;cursor:pointer;font-size:14px;color:var(--text);">&#8592;</button>
-      <span id="cal-picker-month-label" style="font-size:14px;font-weight:700;color:var(--text);"></span>
-      <button onclick="shiftCalPicker(1)" style="background:var(--b0);border:1px solid var(--border);border-radius:8px;padding:5px 12px;cursor:pointer;font-size:14px;color:var(--text);">&#8594;</button>
-    </div>
-    <div class="cal-picker-months">
-      <div id="cal-picker-month-0"></div>
-      <div id="cal-picker-month-1"></div>
-    </div>
-    <div style="display:flex;gap:8px;margin-top:14px;">
-      <button onclick="applyCalPicker()" id="cal-picker-apply" class="btn btn-primary" style="flex:2;" disabled>Apply &amp; Load</button>
-      <button onclick="closeCalPicker()" class="btn btn-ghost" style="flex:1;">Cancel</button>
-    </div>
-  </div>
-</div>
-
-<!-- PAYMENT REGISTER SHEET -->
-<div class="modal-overlay" id="preg-sheet-overlay" onclick="closePregSheetOnBg(event)" style="display:none;align-items:flex-end;justify-content:center;z-index:250;">
-  <div style="background:var(--surface);border-radius:18px 18px 0 0;width:100%;max-width:560px;max-height:92vh;display:flex;flex-direction:column;animation:sheetUp 0.3s cubic-bezier(0.16,1,0.3,1);">
-    <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0;flex-shrink:0;"></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px 10px;flex-shrink:0;border-bottom:1px solid var(--border-light);">
-      <span style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;color:var(--text);" id="preg-sheet-title">Add Payment</span>
-      <button id="preg-delete-btn" onclick="deletePregEntry()" style="display:none;font-size:12px;color:var(--r5);background:var(--r0);border:1px solid var(--r5);border-radius:6px;padding:4px 10px;cursor:pointer;font-family:'DM Sans',sans-serif;">Delete</button>
-    </div>
-    <div style="overflow-y:auto;flex:1;">
-      <div class="preg-sheet-field">
-        <span class="preg-sheet-label">Payee</span>
-        <div style="flex:1;display:flex;justify-content:flex-end;gap:6px;align-items:center;">
-          <select id="preg-f-payee" class="preg-sheet-select" onchange="onPregPayeeChange(this)">
-            <option value="">Select payee...</option>
-          </select>
-        </div>
-      </div>
-      <div id="preg-custom-payee-row" class="preg-sheet-field" style="display:none;">
-        <span class="preg-sheet-label">Name</span>
-        <input type="text" id="preg-f-custom-payee" class="preg-sheet-input" placeholder="Enter name..."/>
-      </div>
-      <div class="preg-sheet-field">
-        <span class="preg-sheet-label">Amount</span>
-        <div style="display:flex;align-items:center;gap:4px;flex:1;justify-content:flex-end;">
-          <span style="font-size:14px;font-weight:600;color:var(--text-muted);">$</span>
-          <input type="text" inputmode="decimal" id="preg-f-amount" class="preg-sheet-input" placeholder="0.00" style="width:100px;"/>
-        </div>
-      </div>
-      <div class="preg-sheet-field">
-        <span class="preg-sheet-label">Date</span>
-        <input type="date" id="preg-f-date" class="preg-sheet-input" style="width:auto;text-align:right;"/>
-      </div>
-      <div class="preg-sheet-field">
-        <span class="preg-sheet-label">Pay Period</span>
-        <div class="preg-period-wrap">
-          <input type="date" id="preg-f-period-from" class="preg-period-input"/>
-          <span style="font-size:12px;color:var(--text-faint);">–</span>
-          <input type="date" id="preg-f-period-to" class="preg-period-input"/>
-        </div>
-      </div>
-      <div class="preg-sheet-field">
-        <span class="preg-sheet-label">Method</span>
-        <select id="preg-f-method" class="preg-sheet-select" onchange="onPregMethodChange()">
-          <option value="check">Check</option>
-          <option value="venmo">Venmo</option>
-          <option value="cash">Cash</option>
-          <option value="direct_deposit">Direct Deposit</option>
-          <option value="other">Other</option>
-        </select>
-      </div>
-      <div id="preg-checknum-row" class="preg-sheet-field">
-        <span class="preg-sheet-label">Check #</span>
-        <input type="text" inputmode="numeric" id="preg-f-checknum" class="preg-sheet-input" placeholder="Auto" style="width:100px;"/>
-      </div>
-      <div class="preg-sheet-field">
-        <span class="preg-sheet-label">Account</span>
-        <select id="preg-f-account" class="preg-sheet-select"></select>
-      </div>
-      <div class="preg-sheet-field" style="border-bottom:none;">
-        <span class="preg-sheet-label">Notes</span>
-        <input type="text" id="preg-f-notes" class="preg-sheet-input" placeholder="Optional..."/>
-      </div>
-    </div>
-    <div style="flex-shrink:0;padding:12px 16px;display:flex;gap:8px;border-top:1px solid var(--border-light);">
-      <button onclick="closePregSheet()" class="btn btn-ghost" style="flex:1;">Cancel</button>
-      <button onclick="savePregEntry()" class="btn btn-primary" style="flex:2;">Save Payment</button>
     </div>
   </div>
 </div>
@@ -1614,7 +1335,7 @@ if('serviceWorker' in navigator){
           </div>
         </div>
         <div class="summary-balance">
-          <span id="ds-ops-label" style="color:rgba(255,255,255,0.75);font-size:11px;">—</span>
+          <span id="ds-ops-label" style="color:rgba(255,255,255,0.5);font-size:11px;">—</span>
           <span id="ds-balance" class="balance-pending">—</span>
         </div>
       </div>
@@ -1762,12 +1483,6 @@ if('serviceWorker' in navigator){
         <div class="settings-row"><label>Other Sales Rate</label><select id="s-otherrate"></select></div>
         <div class="settings-row"><label>Merchandise Rate</label><select id="s-merchrate"></select></div>
         <div class="settings-row"><label>DV △ Rate</label><select id="s-dvdelta"></select></div>
-      </div>
-      <!-- Pay Accounts -->
-      <div class="settings-group">
-        <div class="settings-group-title">Pay Accounts</div>
-        <div id="s-pay-accounts"></div>
-        <button class="btn btn-ghost" onclick="addPayAccount()" style="margin-top:8px;font-size:12px;width:100%;">+ Add Account</button>
       </div>
       <!-- Operators -->
       <div class="settings-group">
@@ -2611,7 +2326,9 @@ async function init(){
     // Employee: restricted tabs, no settings
     if(USER_ROLE==='employee'){
       // settings merged into profile modal
+      document.getElementById('tab-proj').style.display='none';
       document.getElementById('tab-payouts').style.display='none';
+      document.getElementById('tab-alloc').style.display='none';
       // hide divider before payouts tab
       document.querySelectorAll('.tab-divider')[1].style.display='none';
     }
@@ -2669,23 +2386,23 @@ async function init(){
     // Store owner contact for use in profile modal
     SETTINGS._ownerName  = loc.owner_name||'';
     SETTINGS._ownerPhone = loc.owner_phone||'';
-    // settings.ownerEmail is authoritative (set by admin); fall back to owner user email
+    // Pull owner email live from users table (not stale settings JSON)
     const{data:ownerUser}=await sb.from('users').select('email').eq('location_id',LOCATION_ID).eq('role','owner').limit(1).single();
-    SETTINGS._ownerEmail = (loc.settings&&loc.settings.ownerEmail)||ownerUser?.email||'';
+    SETTINGS._ownerEmail = ownerUser?.email||(loc.settings&&loc.settings.ownerEmail)||'';
   }
   if(IS_ADMIN_VIEW){
     const _nab=document.getElementById('nav-admin-badge');if(_nab)_nab.style.display='block';
     const _nbb=document.getElementById('nav-back-btn');if(_nbb){
       _nbb.style.display='block';
       const _fromParam=new URLSearchParams(window.location.search).get('from');
-      _nbb.innerHTML='&#8592; Club Profile';
+      _nbb.innerHTML=_fromParam==='org'?'&#8592; Dashboard':'&#8592; Locations';
     }
     const _so=document.getElementById('nav-signout-btn');if(_so)_so.style.display='none';
     const bn=document.getElementById('admin-banner');if(bn){bn.style.display='block';bn.textContent='Admin View: '+(loc?.name||LOCATION_ID);}
     const _aeb=document.getElementById('admin-edit-banner');if(_aeb){
       _aeb.classList.add('show');
       const _fromParam2=new URLSearchParams(window.location.search).get('from');
-      _aeb.innerHTML='&#9888; Admin View &#8212; click to return to Club Profile';
+      _aeb.innerHTML=(_fromParam2==='org'?'&#9888; Admin View -- click to return to Dashboard':'&#9888; Admin Edit Mode -- click to return to Locations');
     }
     recalcContentTop();
     // settings merged into profile modal
@@ -2708,16 +2425,12 @@ async function init(){
   const today=new Date().toISOString().slice(0,10);
   const _savedDate=localStorage.getItem('mct_entry_date_'+CURRENT_SESSION.user.id);
   const _startDate=(_savedDate&&_savedDate<=today)?_savedDate:today;
-  const _ed=document.getElementById('entry-date');if(_ed){_ed.value=_startDate;_ed.max=localToday();}
+  const _ed=document.getElementById('entry-date');if(_ed)_ed.value=_startDate;
   updateDateDisplay();
   const now=new Date();
-  // Init payout date range to this month
-  const _pfrom=fmtDateStr(new Date(now.getFullYear(),now.getMonth(),1));
-  const _pto=localToday();
-  applyPayoutDates(_pfrom,_pto);
-  // Mark This Month chip active
-  setTimeout(()=>{ const _tc=document.querySelector('.payout-preset-chip:nth-child(4)');if(_tc)_tc.classList.add('active'); },100);
-  applyTheme(SETTINGS.theme||'ocean');populateOperatorDropdowns();buildSettingsUI();loadDay();renderHistory();renderHistAlloc();initUndoListeners();renderInventory();renderInventoryHistory();renderPayoutSnapshots();renderPaymentRegister();renderDashboardWidgets();
+  const _pf=document.getElementById('payout-from');if(_pf)_pf.value=new Date(now.getFullYear(),now.getMonth(),1).toISOString().slice(0,10);
+  const _pt=document.getElementById('payout-to');if(_pt)_pt.value=new Date(now.getFullYear(),now.getMonth()+1,0).toISOString().slice(0,10);
+  populateOperatorDropdowns();buildSettingsUI();loadDay();renderHistory();renderInventory();renderInventoryHistory();renderProjections();renderPayoutSnapshots();renderDashboardWidgets();
   recalcContentTop();
   // Unconditionally set nav name after everything loads
   const _finalNcn = document.getElementById('nav-club-name');
@@ -2739,14 +2452,16 @@ function setNavLocation(name, address, owner){
   }
 }
 function goBackToAdmin(){
-  window.location.href='organizations.html?loc='+LOCATION_ID;
+  const from=new URLSearchParams(window.location.search).get('from');
+  if(from==='org') window.location.href='org-admin.html';
+  else window.location.href='locations.html';
 }
 function switchTab(name){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
   document.getElementById('panel-'+name).classList.add('active');
-  if(name==='payouts'){renderPayoutSnapshots();}if(name==='payouts'){renderPaymentRegister();}if(name==='history'){renderHistAlloc();renderReconWidget();}
+  if(name==='proj')renderProjections();if(name==='payouts'){renderPayoutSnapshots();}if(name==='alloc'){_allocWeekOffset=0;renderAllocCal();}
   if(name==='inv')recalcInvCatTop();
   if(name==='invhist'){
     setTimeout(()=>{
@@ -2936,28 +2651,19 @@ function unsavedNavCancel(){
   _pendingNavFn=null;
 }
 
-
-function localToday() {
-  // Returns YYYY-MM-DD in the user's local timezone (not UTC)
-  const d = new Date();
-  return d.getFullYear() + '-' +
-    String(d.getMonth()+1).padStart(2,'0') + '-' +
-    String(d.getDate()).padStart(2,'0');
-}
-
 function shiftDay(dir){
   const el=document.getElementById('entry-date');
   if(!el||!el.value)return;
   const d=new Date(el.value+'T00:00:00');
   d.setDate(d.getDate()+dir);
-  const newDate=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-  const todayStr=localToday();
+  const newDate=d.toISOString().slice(0,10);
+  const todayStr=new Date().toISOString().slice(0,10);
   if(newDate>todayStr)return;
   confirmNav(()=>{el.value=newDate;updateDateDisplay();loadDay();});
 }
 
 function goToToday(){
-  const todayStr=localToday();
+  const todayStr=new Date().toISOString().slice(0,10);
   confirmNav(()=>{
     const dateEl=document.getElementById('entry-date');
     if(dateEl)dateEl.value=todayStr;
@@ -3018,7 +2724,6 @@ function recalc(userChanged=false){
 const ENTRY_FIELDS=['cashSales','cardSales','cardFees','giftCardRedeemed','cashAppPay','venmo','otherSales','merchSales','giftCardSales','giftCardLoadFees','fundraiserCash','fundraiserCard','dv','notes'];
 
 function loadDay(){
-  const _dateInput=document.getElementById('entry-date');if(_dateInput)_dateInput.max=localToday();
   _loadingDay=true;
   const date=document.getElementById('entry-date').value;
   const ex=ALL_DAYS.find(d=>d.date===date);
@@ -3047,39 +2752,16 @@ function loadDay(){
   }
   updateClosedDayToggle(document.getElementById('entry-date').value);
   clearDirty();
-  // Reset undo history for this day and take initial snapshot
-  clearUndoHistory();
-  _undoEnabled = true;
-  _undoStack.push(_captureFormState());
   recalc();
   _loadingDay=false;
 }
 
-let _pendingSaveDupNote = null; // note from dup-op modal
-
 async function saveDay(){
   const date=document.getElementById('entry-date').value;
   if(!date){showToast('Please set a date','error');return;}
-  // Check for duplicate operators
-  const _op1v = document.getElementById('f-op1')?.value||'';
-  const _op2v = document.getElementById('f-op2')?.value||'';
-  if(_op1v && _op2v && _op1v === _op2v && _pendingSaveDupNote === null){
-    // Show confirmation modal
-    const dateDisp = new Date(date+'T00:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
-    const lbl = document.getElementById('dup-op-date-label');
-    const warn = document.getElementById('dup-op-warn-text');
-    const noteEl = document.getElementById('dup-op-note');
-    const saveBtn = document.getElementById('dup-op-save-btn');
-    if(lbl) lbl.textContent = dateDisp;
-    if(warn) warn.textContent = _op1v.split(' ')[0] + ' is selected in both operator slots.';
-    if(noteEl) noteEl.value = '';
-    if(saveBtn) saveBtn.disabled = true;
-    document.getElementById('dup-op-modal').style.display = 'flex';
-    return; // wait for modal confirmation
-  }
   const c=calcAll();
   const isClosedDay=document.getElementById('f-closed-day')?.checked||false;
-  const data={cashSales:pv('f-cashSales'),cardSales:pv('f-cardSales'),cardFees:pv('f-cardFees'),giftCardRedeemed:pv('f-giftCardRedeemed'),cashAppPay:pv('f-cashAppPay'),venmo:pv('f-venmo'),otherSales:pv('f-otherSales'),merchSales:pv('f-merchSales'),giftCardSales:pv('f-giftCardSales'),giftCardLoadFees:pv('f-giftCardLoadFees'),fundraiserCash:pv('f-fundraiserCash'),fundraiserCard:pv('f-fundraiserCard'),fundraiserPct:pv('f-fundraiserPct'),dv:pv('f-dv'),notes:(()=>{const base=document.getElementById('f-notes')?.value||'';const dup=_pendingSaveDupNote?'[Duplicate operator note: '+_pendingSaveDupNote+']':'';return base&&dup?base+'\n'+dup:dup||base;})(),op1:document.getElementById('f-op1')?.value||'',op2:document.getElementById('f-op2')?.value||'',op1Hrs:parseFloat(document.getElementById('f-op1-hrs')?.value)||0,op2Hrs:parseFloat(document.getElementById('f-op2-hrs')?.value)||0,closedDay:isClosedDay,totalSales:c.totalSales||0,overhead:c.overhead||0,taxes:c.tax||0,products:c.products||0,payouts:c.payouts||0,donation:c.donation||0,perDV:c.perDV||0,ownerReinvest:c.ownerReinvest||false,ownerShare:c.ownerShare||0,savedRates:{taxRate:SETTINGS.taxRate,ohRate:SETTINGS.ohRate,otherRate:SETTINGS.otherRate,merchRate:SETTINGS.merchRate,dvDelta:SETTINGS.dvDelta}};
+  const data={cashSales:pv('f-cashSales'),cardSales:pv('f-cardSales'),cardFees:pv('f-cardFees'),giftCardRedeemed:pv('f-giftCardRedeemed'),cashAppPay:pv('f-cashAppPay'),venmo:pv('f-venmo'),otherSales:pv('f-otherSales'),merchSales:pv('f-merchSales'),giftCardSales:pv('f-giftCardSales'),giftCardLoadFees:pv('f-giftCardLoadFees'),fundraiserCash:pv('f-fundraiserCash'),fundraiserCard:pv('f-fundraiserCard'),fundraiserPct:pv('f-fundraiserPct'),dv:pv('f-dv'),notes:document.getElementById('f-notes')?.value||'',op1:document.getElementById('f-op1')?.value||'',op2:document.getElementById('f-op2')?.value||'',op1Hrs:parseFloat(document.getElementById('f-op1-hrs')?.value)||0,op2Hrs:parseFloat(document.getElementById('f-op2-hrs')?.value)||0,closedDay:isClosedDay,totalSales:c.totalSales||0,overhead:c.overhead||0,taxes:c.tax||0,products:c.products||0,payouts:c.payouts||0,donation:c.donation||0,perDV:c.perDV||0,ownerReinvest:c.ownerReinvest||false,ownerShare:c.ownerShare||0,savedRates:{taxRate:SETTINGS.taxRate,ohRate:SETTINGS.ohRate,otherRate:SETTINGS.otherRate,merchRate:SETTINGS.merchRate,dvDelta:SETTINGS.dvDelta}};
   // Track specific closed day overrides in settings
   if(!SETTINGS.closedDays)SETTINGS.closedDays={};
   const dow=new Date(date+'T00:00:00').getDay();
@@ -3095,13 +2777,10 @@ async function saveDay(){
   else{const{data:nr,error:e}=await sb.from('days').insert({location_id:LOCATION_ID,date,data}).select().single();error=e;if(!e&&nr)ALL_DAYS.unshift(nr);}
   if(error){showToast('Save failed: '+error.message,'error');return;}
   showToast(IS_ADMIN_VIEW?'Saved (Admin Edit) ok':'Day saved ok','success');
-  _pendingSaveDupNote=null;
   clearDirty();
-  clearUndoHistory();
-  _undoStack.push(_captureFormState()); // baseline after save
   // Persist closedDays overrides to settings
   sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID);
-  renderHistory();renderProjections();renderPayoutSnapshots();renderPaymentRegister();renderDashboardWidgets();
+  renderHistory();renderProjections();renderPayoutSnapshots();renderDashboardWidgets();
 }
 
 function renderDashboardWidgets(){
@@ -3215,31 +2894,9 @@ function renderDashboardWidgets(){
   }
 }
 
-const _OP_PALETTE = ['#4e6e86','#2d6a4f','#9e7e6a','#7a5c80','#b07d3a','#3a7a6e'];
-
-function getOpColor(name) {
-  // Stable color by name hash
-  if (!name) return _OP_PALETTE[0];
-  const ops = SETTINGS.operators || [];
-  const idx = ops.findIndex(o => o.name === name || (o.aliases||'').split(',').map(a=>a.trim()).includes(name));
-  return _OP_PALETTE[idx >= 0 ? idx % _OP_PALETTE.length : 0];
-}
-
-function clearOperators() {
-  const sel1 = document.getElementById('f-op1');
-  const sel2 = document.getElementById('f-op2');
-  if (sel1) sel1.value = '';
-  if (sel2) sel2.value = '';
-  // Reset hours to default
-  const hrs1 = document.getElementById('f-op1-hrs');
-  const hrs2 = document.getElementById('f-op2-hrs');
-  if (hrs1) hrs1.value = hrs1.options[0]?.value || '';
-  if (hrs2) hrs2.value = hrs2.options[0]?.value || '';
-  recalc(true);
-}
-
 function renderOpsEarningsPreview(){
   const c = calcAll();
+  const previewEl = document.getElementById('ops-earnings-preview');
   const reinvestRow = document.getElementById('reinvest-row');
   const op1 = document.getElementById('f-op1')?.value || '';
   const op2 = document.getElementById('f-op2')?.value || '';
@@ -3249,67 +2906,65 @@ function renderOpsEarningsPreview(){
   const ownerName = getOwnerOpName();
   const ownerIsSelected = ownerName && ops.includes(ownerName);
 
+  // Show/hide reinvest row
   if(reinvestRow) reinvestRow.style.display = ownerIsSelected ? 'block' : 'none';
 
+  // Hours-based payout split
   const totalHrs = h1 + h2;
   const payouts = c.group2 && c.payouts !== null ? c.payouts : null;
   const hourlyRate = (payouts !== null && totalHrs > 0) ? payouts / totalHrs : null;
 
-  // Op payout pills (in-row)
+  // Op payout pills
   const pill1 = document.getElementById('op1-payout-pill');
   const pill2 = document.getElementById('op2-payout-pill');
-  const pay1 = (op1 && payouts !== null) ? (hourlyRate !== null && h1 > 0 ? hourlyRate * h1 : (ops.length > 0 ? payouts / ops.length : null)) : null;
-  const pay2 = (op2 && payouts !== null) ? (hourlyRate !== null && h2 > 0 ? hourlyRate * h2 : (ops.length > 0 ? payouts / ops.length : null)) : null;
-  const isR1 = ownerName && op1 === ownerName && c.ownerReinvest;
-  const isR2 = ownerName && op2 === ownerName && c.ownerReinvest;
-
-  if(pill1){ pill1.textContent = op1 && pay1 !== null ? (isR1 ? '↩ reinvested' : fmt$(pay1)) : '--'; pill1.style.color = isR1 ? 'var(--b6)' : 'var(--g6)'; pill1.style.background = isR1 ? 'var(--b1)' : 'transparent'; }
-  if(pill2){ pill2.textContent = op2 && pay2 !== null ? (isR2 ? '↩ reinvested' : fmt$(pay2)) : '--'; pill2.style.color = isR2 ? 'var(--b6)' : 'var(--g6)'; pill2.style.background = isR2 ? 'var(--b1)' : 'transparent'; }
-
-  // Footer row — show when any operator selected
-  const footerRow = document.getElementById('ops-footer-row');
-  const pillsEl = document.getElementById('ops-payout-pills');
+  const rateRow = document.getElementById('ops-hourly-rate-row');
   const rateVal = document.getElementById('ops-hourly-rate-val');
   const totalHrsLabel = document.getElementById('ops-total-hrs-label');
 
-  // Duplicate operator detection
-  const warnBanner = document.getElementById('ops-dup-warning');
-  const warnText = document.getElementById('ops-dup-warning-text');
-  const isDup = op1 && op2 && op1 === op2;
-  if (warnBanner) warnBanner.style.display = isDup ? 'flex' : 'none';
-  if (warnText && isDup) warnText.textContent = op1.split(' ')[0] + ' is selected twice. You can still save — you will be asked to add a note explaining why.';
-  // Amber highlight on both selects
-  const sel1 = document.getElementById('f-op1');
-  const sel2 = document.getElementById('f-op2');
-  if (sel1) { sel1.style.borderColor = isDup ? '#f0b440' : ''; sel1.style.background = isDup ? '#fef7e8' : ''; }
-  if (sel2) { sel2.style.borderColor = isDup ? '#f0b440' : ''; sel2.style.background = isDup ? '#fef7e8' : ''; }
+  if(pill1){
+    if(op1 && payouts !== null){
+      const pay = hourlyRate !== null && h1 > 0 ? hourlyRate * h1 : (ops.length > 0 ? payouts / ops.length : null);
+      const isReinvesting = ownerName && op1 === ownerName && c.ownerReinvest;
+      pill1.textContent = isReinvesting ? '↩ reinvested' : (pay !== null ? fmt$(pay) : '--');
+      pill1.style.color = isReinvesting ? 'var(--b6)' : 'var(--g6)';
+      pill1.style.background = isReinvesting ? 'var(--b1)' : 'transparent';
+    } else { pill1.textContent = '--'; pill1.style.color='var(--g6)'; pill1.style.background='transparent'; }
+  }
+  if(pill2){
+    if(op2 && payouts !== null){
+      const pay = hourlyRate !== null && h2 > 0 ? hourlyRate * h2 : (ops.length > 0 ? payouts / ops.length : null);
+      const isReinvesting = ownerName && op2 === ownerName && c.ownerReinvest;
+      pill2.textContent = isReinvesting ? '↩ reinvested' : (pay !== null ? fmt$(pay) : '--');
+      pill2.style.color = isReinvesting ? 'var(--b6)' : 'var(--g6)';
+      pill2.style.background = isReinvesting ? 'var(--b1)' : 'transparent';
+    } else { pill2.textContent = '--'; pill2.style.color='var(--g6)'; pill2.style.background='transparent'; }
+  }
 
-  if (footerRow) {
-    if (ops.length > 0) {
-      footerRow.style.display = 'flex';
-      // Colored pills
-      if (pillsEl) {
-        const pillData = [{name:op1, pay:pay1, isR:isR1, h:h1}, {name:op2, pay:pay2, isR:isR2, h:h2}].filter(p => p.name);
-        pillsEl.innerHTML = pillData.map(p => {
-          const color = getOpColor(p.name);
-          const label = p.isR ? '↩' : (p.pay !== null ? fmt$(p.pay) : '--');
-          const initial = p.name.charAt(0).toUpperCase();
-          return `<span style="display:inline-flex;align-items:center;gap:4px;background:var(--b0);border:1px solid var(--border-light);border-radius:20px;padding:2px 8px 2px 4px;font-size:11px;font-weight:700;color:var(--text);">
-            <span style="width:14px;height:14px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:800;color:white;flex-shrink:0;">${initial}</span>
-            ${label}
-          </span>`;
-        }).join('');
-      }
-      // Hourly rate
-      if (hourlyRate !== null && totalHrs > 0) {
-        if (rateVal) rateVal.textContent = fmt$(hourlyRate) + '/hr';
-        if (totalHrsLabel) totalHrsLabel.textContent = totalHrs.toFixed(1) + ' total hrs';
-      } else {
-        if (rateVal) rateVal.textContent = '--';
-        if (totalHrsLabel) totalHrsLabel.textContent = '';
-      }
+  // Hourly rate row
+  if(rateRow){
+    if(hourlyRate !== null && totalHrs > 0){
+      rateRow.style.display = 'flex';
+      if(rateVal) rateVal.textContent = fmt$(hourlyRate) + '/hr';
+      if(totalHrsLabel) totalHrsLabel.textContent = '· ' + totalHrs.toFixed(1) + ' total hrs';
     } else {
-      footerRow.style.display = 'none';
+      rateRow.style.display = 'none';
+    }
+  }
+
+  // Header preview
+  if(previewEl){
+    if(ops.length > 0 && payouts !== null){
+      const parts = ops.map((o,i) => {
+        const h = i === 0 ? h1 : h2;
+        const isReinvesting = ownerName && o === ownerName && c.ownerReinvest;
+        if(isReinvesting) return `${o.split(' ')[0]} ↩`;
+        const pay = hourlyRate !== null && h > 0 ? hourlyRate * h : payouts / ops.length;
+        return `${o.split(' ')[0]} ${fmt$(pay)}`;
+      });
+      previewEl.textContent = parts.join(' · ');
+      previewEl.style.display = 'inline';
+    } else {
+      previewEl.style.display = 'none';
     }
   }
 }
@@ -3482,6 +3137,305 @@ function renderHistory(){
   updateFillDvBtn();
 }
 
+
+// ── MULTI-SELECT ─────────────────────────────────────────────────────────────
+let _msMode = false;
+let _msSelected = {};
+
+function setMultiSelect(on) {
+  _msMode = on;
+  document.body.classList.toggle('ms-mode', on);
+  const sBtn = document.getElementById('ms-single-btn');
+  const mBtn = document.getElementById('ms-multi-btn');
+  if (sBtn) { sBtn.style.background = on ? 'none' : 'var(--b7)'; sBtn.style.color = on ? 'var(--text-muted)' : 'white'; }
+  if (mBtn) { mBtn.style.background = on ? 'var(--b7)' : 'none'; mBtn.style.color = on ? 'white' : 'var(--text-muted)'; }
+  if (!on) msClearAll();
+}
+
+function hcalDayClick(event, dateStr) {
+  if (_msMode) {
+    const cb = event.currentTarget.querySelector('.ms-day-check');
+    if (cb) { cb.checked = !cb.checked; msDayToggle(dateStr, cb.checked); }
+  } else {
+    openDetail(dateStr);
+    loadHistProjDay(dateStr);
+  }
+}
+
+function msDayToggle(dateStr, checked) {
+  const day = ALL_DAYS.find(d => d.date === dateStr);
+  if (!day) return;
+  const cell = document.querySelector('.hcal-day[data-date="' + dateStr + '"]');
+  if (checked) {
+    _msSelected[dateStr] = day;
+    if (cell) cell.classList.add('ms-selected');
+  } else {
+    delete _msSelected[dateStr];
+    if (cell) cell.classList.remove('ms-selected');
+  }
+  msUpdatePanel();
+}
+
+function msClearAll() {
+  _msSelected = {};
+  document.querySelectorAll('.ms-day-check').forEach(cb => { cb.checked = false; });
+  document.querySelectorAll('.hcal-day.ms-selected').forEach(el => el.classList.remove('ms-selected'));
+  msUpdatePanel();
+}
+
+function msBktToggle(el) {
+  el.classList.toggle('on');
+  msUpdatePanel();
+}
+
+function msUpdatePanel() {
+  const panel = document.getElementById('ms-bulk-panel');
+  const days = Object.values(_msSelected).sort((a,b) => a.date.localeCompare(b.date));
+  if (!panel) return;
+  panel.classList.toggle('open', days.length > 0);
+  const countEl = document.getElementById('ms-day-count');
+  if (countEl) countEl.textContent = days.length;
+  const pillsEl = document.getElementById('ms-bulk-selected');
+  if (pillsEl) {
+    pillsEl.innerHTML = days.map(d => {
+      const lbl = new Date(d.date + 'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      return '<div class="ms-sel-pill">' + lbl + '<button class="ms-sel-x" onclick="msDayToggle(\'' + d.date + '\',false);var cb=document.querySelector(\'.ms-day-check[data-date=\\\"' + d.date + '\\\"\');if(cb)cb.checked=false;">&#215;</button></div>';
+    }).join('');
+  }
+  const BKTS = {
+    tax:{label:'Taxes',fn:c=>c.tax||0},
+    overhead:{label:'Overhead',fn:c=>c.overhead||0},
+    herbalife:{label:'Herbalife',fn:c=>c.products||0},
+    payouts:{label:'Payouts',fn:c=>c.payouts||0},
+    cashdeposit:{label:'Cash Deposit',fn:(c,d)=>parseFloat(d.cashSales)||0}
+  };
+  const activeBkts = Array.from(document.querySelectorAll('.ms-bkt-chip.on')).map(el=>el.dataset.key);
+  const bdEl = document.getElementById('ms-breakdown');
+  if (bdEl && days.length) {
+    let grand = 0;
+    const rows = activeBkts.map(key => {
+      const bkt = BKTS[key]; if(!bkt) return '';
+      let tot = 0;
+      const dayAmts = days.map(d => {
+        const c = calcAllFromData(d.data||{});
+        const amt = bkt.fn(c, d.data||{});
+        tot += amt;
+        return new Date(d.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' ' + fmt$(amt);
+      }).join(' · ');
+      grand += tot;
+      return '<div class="ms-bkt-row"><div><div class="ms-bkt-row-name">' + bkt.label + '</div><div class="ms-bkt-row-days">' + dayAmts + '</div></div><div class="ms-bkt-row-amt">' + fmt$(tot) + '</div></div>';
+    }).join('');
+    bdEl.innerHTML = rows + '<div class="ms-bkt-row"><div class="ms-bkt-row-name">Total</div><div class="ms-bkt-row-amt">' + fmt$(grand) + '</div></div>';
+  } else if (bdEl) { bdEl.innerHTML = ''; }
+}
+
+async function msRunBulk() {
+  const days = Object.values(_msSelected);
+  if (!days.length) return;
+  const activeBkts = Array.from(document.querySelectorAll('.ms-bkt-chip.on')).map(el=>el.dataset.key);
+  if (!activeBkts.length) { showToast('Select at least one bucket','error'); return; }
+  const dayLabels = days.map(d=>new Date(d.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})).join(', ');
+  if (!confirm('Mark ' + activeBkts.join(', ') + ' complete for: ' + dayLabels + '?')) return;
+  const btn = document.getElementById('ms-run-btn');
+  if (btn) { btn.disabled=true; btn.textContent='Saving…'; }
+  let done=0, failed=0;
+  for (const d of days) {
+    const data = {...(d.data||{})};
+    if (!data.transfers) data.transfers = {};
+    activeBkts.forEach(k => { data.transfers[k] = true; });
+    const {error} = await sb.from('days').update({data}).eq('id', d.id);
+    if (error) failed++; else { d.data=data; done++; }
+  }
+  if (btn) { btn.disabled=false; btn.textContent='✓ Mark complete'; }
+  if (failed) showToast(done+' saved, '+failed+' failed','error');
+  else showToast('✓ '+done+' day'+(done!==1?'s':'')+' marked complete','success');
+  msClearAll();
+  renderHistCal();
+  renderHistAlloc();
+  renderReconWidget();
+}
+function renderReconWidget() {
+  const totals = calcReconTotals();
+  const valEl = document.getElementById('recon-unalloc-val');
+  if (valEl) valEl.textContent = fmt$(totals.unalloc);
+  const cardEl = document.getElementById('recon-card-val');
+  if (cardEl) cardEl.textContent = '+' + fmt$(totals.cardDeposits);
+  const cashEl = document.getElementById('recon-cash-val');
+  if (cashEl) cashEl.textContent = '+' + fmt$(totals.cashDeposits);
+  const xferEl = document.getElementById('recon-xfer-val');
+  if (xferEl) xferEl.textContent = '−' + fmt$(totals.transfers);
+  // Set bulk date default to end of last month
+  const bulkDate = document.getElementById('recon-bulk-date');
+  if (bulkDate && !bulkDate.value) {
+    const now = new Date();
+    const lastMo = new Date(now.getFullYear(), now.getMonth(), 0);
+    bulkDate.value = lastMo.getFullYear()+'-'+String(lastMo.getMonth()+1).padStart(2,'0')+'-'+String(lastMo.getDate()).padStart(2,'0');
+  }
+  // Update toggle button count
+  const toggleBtn = document.getElementById('recon-days-toggle-btn');
+  const cnt = totals.unallocDays.length;
+  if (toggleBtn) toggleBtn.innerHTML = (_reconDaysOpen ? '&#9650;' : '&#9660;') + ' ' + cnt + ' unallocated day' + (cnt!==1?'s':'') + ' — click to ' + (_reconDaysOpen?'hide':'show');
+  // Render unallocated days list
+  const listEl = document.getElementById('recon-unalloc-days');
+  if (listEl) {
+    const BUCKET_NAMES = {cashdeposit:'Cash', tax:'Tax', overhead:'OH', herbalife:'Herb.', payouts:'Payouts'};
+    listEl.innerHTML = totals.unallocDays.map(day => {
+      const bucketStr = day.pending.map(p => BUCKET_NAMES[p.key]||p.key).join(', ');
+      return `<div class="recon-day-row" onclick="openAllocDetail('${day.date}')">
+        <div>
+          <div class="recon-day-lbl">${day.label}</div>
+          <div class="recon-day-buckets">Pending: ${bucketStr}</div>
+        </div>
+        <div class="recon-day-amt">${fmt$(day.pendingTotal)}</div>
+      </div>`;
+    }).join('') || '<div style="padding:8px 14px;font-size:11px;color:rgba(255,255,255,0.4);">All days fully allocated</div>';
+    listEl.style.display = _reconDaysOpen ? 'block' : 'none';
+  }
+  updateReconMatch();
+}
+
+function toggleReconDaysList() {
+  _reconDaysOpen = !_reconDaysOpen;
+  renderReconWidget();
+}
+
+
+function reconPendingFocus() {
+  const el = document.getElementById('recon-pending-input');
+  if (!el) return;
+  const raw = el.value.replace(/[$,]/g, '').trim();
+  if (raw && !isNaN(parseFloat(raw))) el.value = raw;
+  el.select();
+}
+
+function reconPendingBlur() {
+  const el = document.getElementById('recon-pending-input');
+  if (!el) return;
+  const raw = el.value.replace(/[$,]/g, '').trim();
+  const val = parseFloat(raw);
+  if (!raw || isNaN(val)) { el.value = ''; updateReconMatch(); return; }
+  el.value = '$' + val.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  updateReconMatch();
+}
+
+function reconBankFocus() {
+  const el = document.getElementById('recon-bank-input');
+  if (!el) return;
+  // Strip formatting so user can type cleanly
+  const raw = el.value.replace(/[$,]/g, '').trim();
+  if (raw && !isNaN(parseFloat(raw))) el.value = raw;
+  el.select();
+}
+
+function reconBankBlur() {
+  const el = document.getElementById('recon-bank-input');
+  if (!el) return;
+  const raw = el.value.replace(/[$,]/g, '').trim();
+  const val = parseFloat(raw);
+  if (!raw || isNaN(val)) { el.value = ''; return; }
+  // Format as $X,XXX.XX
+  el.value = '$' + val.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  updateReconMatch();
+}
+
+function updateReconMatch() {
+  const totals = calcReconTotals();
+  const inputEl = document.getElementById('recon-bank-input');
+  const pendingEl = document.getElementById('recon-pending-input');
+  const badge = document.getElementById('recon-match-badge');
+  const resultBar = document.getElementById('recon-result-bar');
+  const pendingBrow = document.getElementById('recon-pending-brow');
+  const pendingBrowVal = document.getElementById('recon-pending-brow-val');
+  if (!inputEl || !badge) return;
+
+  const rawBank = inputEl.value.replace(/[$,]/g, '').trim();
+  const bankVal = parseFloat(rawBank);
+  const rawPending = pendingEl ? pendingEl.value.replace(/[$,]/g, '').trim() : '';
+  const pendingVal = parseFloat(rawPending) || 0;
+
+  // Show/hide pending row in breakdown
+  if (pendingBrow) pendingBrow.style.display = pendingVal > 0 ? 'flex' : 'none';
+  if (pendingBrowVal) pendingBrowVal.textContent = pendingVal > 0 ? '+' + fmt$(pendingVal) : '—';
+
+  if (!rawBank || isNaN(bankVal)) {
+    badge.className = 'recon-match-badge none';
+    badge.textContent = '—';
+    if (resultBar) resultBar.style.display = 'none';
+    return;
+  }
+
+  // Effective balance = what's in bank + what's pending
+  const effectiveBalance = bankVal + pendingVal;
+  const diff = Math.abs(effectiveBalance - totals.unalloc);
+  const isMatch = diff < 0.02;
+  badge.className = 'recon-match-badge ' + (isMatch ? 'ok' : 'off');
+  badge.textContent = isMatch ? '✓ Match' : 'Off ' + fmt$(diff);
+  if (resultBar && _reconOpen) {
+    resultBar.style.display = 'block';
+    resultBar.className = 'recon-result-bar ' + (isMatch ? 'ok' : 'off');
+    const effectiveStr = pendingVal > 0 ? fmt$(bankVal) + ' + ' + fmt$(pendingVal) + ' pending = ' + fmt$(effectiveBalance) : fmt$(effectiveBalance);
+    resultBar.textContent = isMatch
+      ? '✓ ' + effectiveStr + ' matches unallocated balance'
+      : 'Off by ' + fmt$(diff) + ' — ' + effectiveStr + ' vs ' + fmt$(totals.unalloc) + ' unallocated';
+  }
+}
+
+function toggleReconWidget() {
+  _reconOpen = !_reconOpen;
+  const body = document.getElementById('recon-body');
+  const chev = document.getElementById('recon-chev');
+  if (body) body.classList.toggle('open', _reconOpen);
+  if (chev) chev.classList.toggle('open', _reconOpen);
+  if (_reconOpen) updateReconMatch();
+}
+
+function toggleReconChip(el) {
+  el.classList.toggle('on');
+}
+
+async function runBulkMark() {
+  const dateEl = document.getElementById('recon-bulk-date');
+  const runBtn = document.getElementById('recon-run-btn');
+  if (!dateEl || !dateEl.value) { showToast('Pick a date first', 'error'); return; }
+  const cutoff = dateEl.value;
+  // Get selected buckets
+  const chips = document.querySelectorAll('#recon-chips .recon-chip.on');
+  const buckets = Array.from(chips).map(c => c.dataset.key);
+  if (!buckets.length) { showToast('Select at least one bucket', 'error'); return; }
+  const eligible = ALL_DAYS.filter(d => d.date <= cutoff && calSales(d.data||{}));
+  if (!eligible.length) { showToast('No days with data on or before that date', 'error'); return; }
+  const needsUpdate = eligible.filter(d => {
+    const tr = d.data?.transfers || {};
+    return buckets.some(k => !tr[k]);
+  });
+  if (!needsUpdate.length) { showToast('All selected buckets already marked for that range', 'success'); return; }
+  if (!confirm('Mark ' + buckets.join(', ') + ' as complete for ' + needsUpdate.length + ' day' + (needsUpdate.length !== 1 ? 's' : '') + ' on or before ' + cutoff + '?')) return;
+  if (runBtn) { runBtn.disabled = true; runBtn.textContent = 'Running…'; }
+  let done = 0, failed = 0;
+  for (const d of needsUpdate) {
+    const data = { ...(d.data || {}) };
+    if (!data.transfers) data.transfers = {};
+    buckets.forEach(k => { data.transfers[k] = true; });
+    const { error } = await sb.from('days').update({ data }).eq('id', d.id);
+    if (error) { failed++; }
+    else { d.data = data; done++; }
+  }
+  if (runBtn) { runBtn.disabled = false; runBtn.textContent = '⚡ Run'; }
+  if (failed) showToast(done + ' marked, ' + failed + ' failed', 'error');
+  else showToast('✓ ' + done + ' day' + (done !== 1 ? 's' : '') + ' marked complete', 'success');
+  renderReconWidget();
+  renderHistCal();
+  renderHistAlloc();
+}
+
+
+function positionHistScrollBody() {
+  const hdr = document.getElementById('hist-sticky-header');
+  const body = document.getElementById('hist-scroll-body');
+  if (hdr && body) body.style.paddingTop = hdr.offsetHeight + 'px';
+}
+window.addEventListener('resize', positionHistScrollBody);
+
 function histCalShift(dir){
   _histCalMonth+=dir;
   if(_histCalMonth>11){_histCalMonth=0;_histCalYear++;}
@@ -3573,41 +3527,18 @@ function renderHistCal(){
         const noteIcon=data.notes?'<span style="font-size:12px;line-height:1;">&#128221;</span>':'';
         const adminIcon=data._adminEdit?'<span style="font-size:8px;color:var(--a5);">✎</span> ':'';
         const closedBadge=data.closedDay?'<div class="hcal-closed-label">Closed</div>':'';
-        const _tr=data.transfers||{};
-        const _tkeys=['tax','overhead','herbalife','payouts'];
-        // Quadrant circle SVG
-        const _qColors=_tkeys.map(k=>_tr[k]?'#639922':'#f0b440');
-        const _cashDeposited=!!_tr['cashdeposit'];
-        const _centerFill=_cashDeposited?'#378ADD':'white';
-        const _qSvg=`<svg viewBox="0 0 22 22" style="width:20px;height:20px;display:block;">
-          <path d="M11,11 L11,3 A8,8 0 0,1 19,11 Z" fill="${_qColors[0]}"/>
-          <path d="M11,11 L19,11 A8,8 0 0,1 11,19 Z" fill="${_qColors[1]}"/>
-          <path d="M11,11 L11,19 A8,8 0 0,1 3,11 Z" fill="${_qColors[2]}"/>
-          <path d="M11,11 L3,11 A8,8 0 0,1 11,3 Z" fill="${_qColors[3]}"/>
-          <line x1="11" y1="3" x2="11" y2="19" stroke="white" stroke-width="1.2"/>
-          <line x1="3" y1="11" x2="19" y2="11" stroke="white" stroke-width="1.2"/>
-          <circle cx="11" cy="11" r="4" fill="${_centerFill}"/>
-          ${_cashDeposited?'<circle cx="11" cy="11" r="4" fill="none" stroke="white" stroke-width="1"/>':''}
-        </svg>`;
-        // Operator dots — assign color by position in SETTINGS.operators
-        const _opList=[data.op1,data.op2].filter(Boolean);
-        const _opDots=_opList.map(name=>{
-          const color=getOpColor(name);
-          const initial=(name||'?').charAt(0).toUpperCase();
-          return `<div style="width:14px;height:14px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:800;color:white;flex-shrink:0;">${initial}</div>`;
-        }).join('');
-        const _allDone=_tkeys.every(k=>_tr[k]);
-        const _salesNum=calSales(data);
-        const _dvNum=(parseFloat(data.dv)||0).toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1});
-        html+=`<div class="hcal-day has-data${isToday?' today-day':''}${_allDone?' style=\\"border-color:var(--g4);\\"':''}" onclick="openDetail('${dateStr}');loadHistProjDay('${dateStr}')" style="${_allDone?'border-color:var(--g4);':''}">
-          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2px;">
+        html+=`<div class="hcal-day has-data${isToday?' today-day':''}" onclick="hcalDayClick(event,'${dateStr}')" data-date="${dateStr}"><input type="checkbox" class="ms-day-check" data-date="${dateStr}" onclick="event.stopPropagation()" onchange="msDayToggle('${dateStr}',this.checked)">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:3px;">
             <div class="hcal-dn" style="margin-bottom:0;">${day}</div>
             <div style="display:flex;align-items:center;gap:2px;">${adminIcon}${noteIcon}</div>
           </div>
-          <div class="hcal-val-sales">${fmt$(_salesNum)}<span class="hcal-net-suffix">NET</span></div>
-          <div class="hcal-val-dv">${_dvNum}<span class="hcal-dv-suffix">DV</span></div>
-          <div style="display:flex;gap:3px;margin-top:3px;">${_opDots}</div>
-          <div style="position:absolute;bottom:3px;right:3px;">${_qSvg}</div>
+          <div class="hcal-sales-label">Sales</div>
+          <div class="hcal-sales">${fmt$(calSales(data))}</div>
+          <div class="hcal-dv-block">
+            <div class="hcal-pill-label">Documented Volume</div>
+            <div class="hcal-pill-val">${(parseFloat(data.dv)||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+          </div>
+          ${ops?`<div class="hcal-extras">${ops}</div>`:''}
           ${closedBadge}
         </div>`;
       } else if(isFuture){
@@ -3631,11 +3562,11 @@ function renderHistCal(){
         <span class="hcal-week-label">Week ${wi+1}</span>
         <div style="display:flex;align-items:center;gap:20px;">
           <div style="text-align:right;">
-            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:white;">Sales</div>
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:rgba(255,255,255,0.55);">Sales</div>
             <div class="hcal-week-total">${fmt$(weekTotal)}</div>
           </div>
           <div style="text-align:right;">
-            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:white;">DV</div>
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:rgba(255,255,255,0.55);">DV</div>
             <div class="hcal-week-total">${fmtN(weekDvTotal)}</div>
           </div>
         </div>
@@ -3644,9 +3575,6 @@ function renderHistCal(){
   });
 
   grid.innerHTML=html;
-  renderHistAlloc();
-  renderReconWidget();
-  if(_histView==='sum')renderSummaryView();
 }
 function onClosedDayToggle(){
   const checked=document.getElementById('f-closed-day')?.checked;
@@ -3676,7 +3604,7 @@ function updateClosedDayToggle(date){
   if(sub) sub.textContent=isOpenOverride?'Overridden — working a scheduled closed day':isScheduledClosed?'Scheduled closed day (from operating hours)':'Scheduled open day';
   if(label){label.textContent=isMarkedClosed?'Closed':'Open';label.style.color=isMarkedClosed?'var(--r5)':'var(--text-faint)';}
   if(wrap){wrap.style.background=isMarkedClosed?'rgba(220,38,38,0.06)':'var(--b0)';wrap.style.borderColor=isMarkedClosed?'rgba(220,38,38,0.2)':'var(--border-light)';}
-  const future=date>localToday();
+  const future=date>new Date().toISOString().slice(0,10);
   if(wrap) wrap.style.display=future?'none':'flex';
 }
 
@@ -3844,7 +3772,7 @@ function renderProjCal(){
 
   const firstDay=new Date(yr,mo,1).getDay();
   const daysInMonth=new Date(yr,mo+1,0).getDate();
-  const _tnow=new Date();const todayStr=_tnow.getFullYear()+'-'+String(_tnow.getMonth()+1).padStart(2,'0')+'-'+String(_tnow.getDate()).padStart(2,'0');
+  const todayStr=new Date().toISOString().slice(0,10);
   const allMonths=[...new Set(ALL_DAYS.map(d=>d.date.slice(0,7)))];
   const thisMonthStr=`${yr}-${String(mo+1).padStart(2,'0')}`;
   const prevBtn=document.querySelector('[onclick="projCalShift(-1)"]');
@@ -3883,17 +3811,7 @@ function renderProjCal(){
       } else if(isFuture){
         html+=`<div class="pcal-day empty-day"><div class="pcal-dn">${day}</div></div>`;
       } else {
-        const _pdow=new Date(dateStr+'T00:00:00').getDay();
-        const _opDays=SETTINGS.opDays||[false,true,true,true,true,true,true];
-        const _closedDays=SETTINGS.closedDays||{};
-        const _isClosed=(!_opDays[_pdow]||!!_closedDays[dateStr])&&_closedDays[dateStr]!=='open';
-        if(_isClosed){
-          html+=`<div class="pcal-day closed-day"><div class="pcal-dn">${day}</div><div style="margin-top:auto;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);text-align:center;">Closed</div></div>`;
-        } else if(isToday){
-          html+=`<div class="pcal-day no-data today-day"><div class="pcal-dn">${day}</div><div style="margin-top:auto;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--b5);text-align:center;">Enter today</div></div>`;
-        } else {
-          html+=`<div class="pcal-day missing-data" onclick="navToDate('${dateStr}')"><div class="pcal-dn" style="color:var(--a6);">${day}</div><div style="margin-top:auto;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--a6);text-align:center;line-height:1.3;">Enter<br>data</div></div>`;
-        }
+        html+=`<div class="pcal-day no-data"><div class="pcal-dn">${day}</div></div>`;
       }
     });
     html+=`</div>`;
@@ -4420,6 +4338,7 @@ function renderInvHistSnapshot(snapId){
       const dvNeedStr=haveEntered?fmtVP(dvNeed):'--';
       return`<tr class="${needClass}">
         <td><div class="inv-name-cell"><span class="inv-name">${p.name}</span>${p.sku?`<span class="inv-sku">${p.sku}</span>`:''}</div></td>
+        <td style="color:var(--text-faint);font-size:12px;">${p.vp!=null?fmtVP(p.vp):'—'}</td>
         <td style="color:var(--text-muted);font-size:12px;">${p.par}</td>
         <td><span class="need-badge ${bc}">${bt}</span></td>
         <td style="text-align:right;font-size:14px;font-weight:700;">${haveEntered?have:'--'}</td>
@@ -4429,13 +4348,13 @@ function renderInvHistSnapshot(snapId){
     html+=`<div class="inv-cat-header">${cat}</div>
       <table class="inv-table">
         <thead><tr>
-          <th style="text-align:left">Product</th><th>PAR</th><th>Need</th><th>Have</th><th>DV</th>
+          <th style="text-align:left">Product</th><th>VP/unit</th><th>PAR</th><th>Need</th><th>Have</th><th>DV</th>
         </tr></thead>
         <tbody>
           ${rows.join('')}
           <tr class="inv-cat-subtotal">
             <td style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">${cat} Total</td>
-            <td></td><td></td><td></td>
+            <td></td><td></td><td></td><td></td>
             <td style="font-size:13px;font-weight:700;color:var(--b6);">${catAnyFilled?fmtVP(catDvHave):'--'}</td>
           </tr>
         </tbody>
@@ -4579,198 +4498,182 @@ async function deletePayoutSnap(i){
 }
 
 // ── ALLOCATIONS TAB ──────────────────────────────────────────────────────────
-let _allocCalYear = null, _allocCalMonth = null;
+let _allocWeekOffset = 0; // weeks offset from current week (0=this week, -1=last week, etc)
+
+// Returns YYYY-MM-DD string for a date that is (baseOffset*7 + dayOffset) days from today's Sunday
+function allocDateStr(weekOffset, dayOffset) {
+  const now = new Date();
+  const todayDow = now.getDay(); // 0=Sun
+  const sunday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - todayDow);
+  sunday.setDate(sunday.getDate() + weekOffset * 7 + dayOffset);
+  const mm = String(sunday.getMonth()+1).padStart(2,'0');
+  const dd = String(sunday.getDate()).padStart(2,'0');
+  return sunday.getFullYear() + '-' + mm + '-' + dd;
+}
 
 function allocCalShift(dir) {
-  _allocCalMonth += dir;
-  if (_allocCalMonth > 11) { _allocCalMonth = 0; _allocCalYear++; }
-  if (_allocCalMonth < 0)  { _allocCalMonth = 11; _allocCalYear--; }
+  _allocWeekOffset += dir;
   renderAllocCal();
 }
 
 function renderAllocCal() {
-  const grid  = document.getElementById('alloc-cal-grid');
+  const grid = document.getElementById('alloc-cal-grid');
   const label = document.getElementById('alloc-cal-label');
   if (!grid || !label) return;
 
-  const now = new Date();
-  if (_allocCalYear === null) { _allocCalYear = now.getFullYear(); _allocCalMonth = now.getMonth(); }
+  // Build the 7 date strings for this week (Sun=0 through Sat=6)
+  const dates = [];
+  for (let i = 0; i < 7; i++) dates.push(allocDateStr(_allocWeekOffset, i));
 
-  const yr = _allocCalYear, mo = _allocCalMonth;
-  label.textContent = new Date(yr, mo, 1).toLocaleDateString('en-US', {month:'long', year:'numeric'});
+  // Label
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const s = new Date(dates[0] + 'T12:00:00'), e = new Date(dates[6] + 'T12:00:00');
+  label.textContent = months[s.getMonth()]+' '+s.getDate()+' – '+months[e.getMonth()]+' '+e.getDate()+', '+e.getFullYear();
 
-  // Prev / next buttons
-  const allMonths = [...new Set(ALL_DAYS.map(d => d.date.slice(0,7)))];
-  const thisMonthStr = yr + '-' + String(mo+1).padStart(2,'0');
-  const nowMonthStr  = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  // Prev/next buttons
   const prevBtn = document.getElementById('alloc-prev-btn');
   const nextBtn = document.getElementById('alloc-next-btn');
-  if (prevBtn) prevBtn.disabled = !allMonths.some(m => m < thisMonthStr);
-  if (nextBtn) nextBtn.disabled = thisMonthStr >= nowMonthStr;
+  if (nextBtn) nextBtn.disabled = _allocWeekOffset >= 0;
+  if (prevBtn) {
+    const earliest = ALL_DAYS.length ? ALL_DAYS.map(d => d.date).sort()[0] : null;
+    prevBtn.disabled = earliest ? dates[0] <= earliest : false;
+  }
 
-  // Today string (local)
-  const todayStr = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
-
-  // Build date→dayObj map for this month
+  // Day map
   const dayMap = {};
-  ALL_DAYS.forEach(d => {
-    const dt = new Date(d.date + 'T00:00:00');
-    if (dt.getFullYear()===yr && dt.getMonth()===mo) dayMap[d.date] = d;
-  });
+  ALL_DAYS.forEach(d => { if (dates.includes(d.date)) dayMap[d.date] = d; });
 
-  const firstDow   = new Date(yr, mo, 1).getDay(); // 0=Sun
-  const daysInMonth = new Date(yr, mo+1, 0).getDate();
+  // Today string
+  const now2 = new Date();
+  const todayStr = now2.getFullYear()+'-'+String(now2.getMonth()+1).padStart(2,'0')+'-'+String(now2.getDate()).padStart(2,'0');
+
   const DOWS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const BUCKET_LABELS = {cashdeposit:'Cash Deposit', tax:'Taxes', overhead:'Overhead', herbalife:'Herbalife', payouts:'Payouts'};
-  const keys = ['cashdeposit','tax','overhead','herbalife','payouts'];
 
-  // Month totals
-  let monthOwe = 0, monthDone = 0;
-  Object.values(dayMap).forEach(dayObj => {
+  // Week totals for summary bar + remaining items list
+  let weekOwe = 0, weekDone = 0;
+  const remainingDays = []; // [{dateStr, label, items:[{key,label,amt}], dayRemaining}]
+  const BUCKET_LABELS = {tax:'Taxes', overhead:'Overhead', herbalife:'Herbalife', payouts:'Payouts'};
+  dates.forEach(dateStr => {
+    const dayObj = dayMap[dateStr];
+    if (!dayObj) return;
     const data = dayObj.data || {};
     if (!calSales(data)) return;
     const c = calcAllFromData(data);
-    const cashDep = parseFloat(data.cashSales)||0;
-    const bv = [cashDep, c.tax||0, c.overhead||0, c.products||0, c.payouts||0];
-    const tr = data.transfers || {};
-    bv.forEach((v,i) => { monthOwe += v; if (tr[keys[i]]) monthDone += v; });
+    const bucketVals = [c.tax||0, c.overhead||0, c.products||0, c.payouts||0];
+    const transfers = data.transfers || {};
+    const keys = ['tax','overhead','herbalife','payouts'];
+    bucketVals.forEach((v,i) => {
+      weekOwe += v;
+      if (transfers[keys[i]]) weekDone += v;
+    });
+    // Build remaining items for this day
+    const pendingItems = keys
+      .map((k,i) => ({key:k, label:BUCKET_LABELS[k], amt:bucketVals[i]}))
+      .filter((_,i) => !transfers[keys[i]]);
+    if (pendingItems.length > 0) {
+      const d = new Date(dateStr + 'T00:00:00');
+      const dayLabel = d.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'});
+      const dayRemaining = pendingItems.reduce((s,it) => s + it.amt, 0);
+      remainingDays.push({dateStr, label:dayLabel, items:pendingItems, dayRemaining});
+    }
   });
-  const monthPct = monthOwe > 0 ? Math.round(monthDone/monthOwe*100) : 0;
-  const activeDays = Object.keys(dayMap).filter(d => calSales(dayMap[d].data||{})).length;
-
-  // Build cells array
-  const cells = [];
-  for (let i = 0; i < firstDow; i++) cells.push(null);
-  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
-  while (cells.length % 7 !== 0) cells.push(null);
-  const weeks = [];
-  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i+7));
-
-  // Remaining days across whole month
-  const remainingDays = [];
 
   let html = '';
-
-  // Month total bar
-  html += `<div class="hcal-month-total">
-    <span class="hcal-month-total-label">${activeDays} day${activeDays!==1?'s':''} entered</span>
-    <div style="text-align:right;">
-      <div class="hcal-month-total-val">${fmt$(monthDone)} <span style="font-size:12px;font-weight:600;opacity:0.6;">/ ${fmt$(monthOwe)}</span></div>
-      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;color:rgba(255,255,255,0.65);margin-top:1px;">${monthPct}% transferred</div>
-    </div>
-  </div>`;
 
   // DOW header
   html += '<div class="acal-dow-row">' + DOWS.map(d => `<div class="acal-dow">${d}</div>`).join('') + '</div>';
 
-  weeks.forEach((week, wi) => {
-    // Per-week totals
-    let weekOwe = 0, weekDone = 0;
-    week.forEach(day => {
-      if (!day) return;
-      const dateStr = yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
-      const dayObj = dayMap[dateStr];
-      if (!dayObj) return;
-      const data = dayObj.data || {};
-      if (!calSales(data)) return;
-      const c = calcAllFromData(data);
-      const cashDep2 = parseFloat(data.cashSales)||0;
-      const bv = [cashDep2, c.tax||0, c.overhead||0, c.products||0, c.payouts||0];
-      const tr = data.transfers || {};
-      bv.forEach((v,i) => { weekOwe += v; if (tr[keys[i]]) weekDone += v; });
-    });
+  // Single week row
+  html += '<div class="acal-week">';
+  dates.forEach(dateStr => {
+    const dayObj = dayMap[dateStr];
+    const isToday = dateStr === todayStr;
+    const isFuture = dateStr > todayStr;
+    const todayClass = isToday ? ' today-day' : '';
 
-    html += '<div class="acal-week">';
-    week.forEach(day => {
-      if (day === null) { html += '<div class="acal-day empty-day"></div>'; return; }
+    // Determine if this date is a scheduled/overridden closed day
+    const _dow = new Date(dateStr + 'T00:00:00').getDay();
+    const _opDays = SETTINGS.opDays || [false,true,true,true,true,true,true];
+    const _closedDays = SETTINGS.closedDays || {};
+    const _isClosedBySchedule = !_opDays[_dow];
+    const _isClosedOverride = !!_closedDays[dateStr];
+    const _isOpenOverride = _closedDays[dateStr] === 'open';
+    const _isClosed = (_isClosedBySchedule || _isClosedOverride) && !_isOpenOverride;
+    const dayNum = parseInt(dateStr.slice(8));
 
-      const dateStr = yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
-      const dayObj  = dayMap[dateStr];
-      const isToday = dateStr === todayStr;
-      const isFuture = dateStr > todayStr;
-      const todayClass = isToday ? ' today-day' : '';
-
-      const _dow = new Date(dateStr + 'T00:00:00').getDay();
-      const _opDays = SETTINGS.opDays || [false,true,true,true,true,true,true];
-      const _closedDays = SETTINGS.closedDays || {};
-      const _isClosed = (!_opDays[_dow] || !!_closedDays[dateStr]) && _closedDays[dateStr] !== 'open';
-
-      if (!dayObj || !calSales(dayObj.data||{})) {
-        if (isFuture) {
-          html += `<div class="acal-day empty-day"><div class="acal-dn">${day}</div></div>`;
-        } else if (_isClosed) {
-          html += `<div class="acal-day no-data${todayClass}"><div class="acal-dn">${day}</div><div style="margin-top:auto;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);text-align:center;">Closed</div></div>`;
-        } else if (isToday) {
-          html += `<div class="acal-day no-data${todayClass}"><div class="acal-dn">${day}</div><div style="margin-top:auto;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--b5);text-align:center;">Enter today</div></div>`;
-        } else {
-          html += `<div class="acal-day" style="background:#fef7e8;border:1px solid #f0b440;border-radius:var(--radius-sm);padding:5px 5px 6px;min-height:72px;display:flex;flex-direction:column;cursor:pointer;position:relative;overflow:hidden;" onclick="navToDate('${dateStr}')"><div class="acal-dn" style="color:var(--a6);">${day}</div><div style="margin-top:auto;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--a6);text-align:center;line-height:1.3;">Enter<br>data</div></div>`;
-        }
-        return;
+    if (!dayObj || !calSales(dayObj.data || {})) {
+      if (isFuture) {
+        html += `<div class="acal-day empty-day"><div class="acal-dn">${dayNum}</div></div>`;
+      } else if (_isClosed) {
+        html += `<div class="acal-day no-data${todayClass}"><div class="acal-dn">${dayNum}</div><div style="margin-top:auto;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);text-align:center;">Closed</div></div>`;
+      } else if (isToday) {
+        html += `<div class="acal-day no-data${todayClass}"><div class="acal-dn">${dayNum}</div><div style="margin-top:auto;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--b5);text-align:center;">Enter today</div></div>`;
+      } else {
+        html += `<div class="acal-day" style="background:#fef7e8;border:1px solid #f0b440;border-radius:var(--radius-sm);padding:7px 7px;aspect-ratio:1/1;display:flex;flex-direction:column;cursor:pointer;position:relative;overflow:hidden;${todayClass?'box-shadow:0 0 0 2px var(--b5);':''}" onclick="navToDate('${dateStr}')"><div class="acal-dn" style="color:var(--a6);">${dayNum}</div><div style="margin-top:auto;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--a6);text-align:center;line-height:1.3;">Enter<br>data</div></div>`;
       }
-
-      const data = dayObj.data || {};
-      const sales = calSales(data);
-      const transfers = data.transfers || {};
-      const doneCount = ['tax','overhead','herbalife','payouts'].filter(k => transfers[k]).length;
-      const stateClass = doneCount === 0 ? 'none' : doneCount === 4 ? 'full' : 'partial';
-      const dots = keys.map(k => `<div class="acal-dot${transfers[k]?' done':''}"></div>`).join('');
-
-      html += `<div class="acal-day ${stateClass}${todayClass}" onclick="openAllocDetail('${dateStr}')">
-        <div class="acal-dn">${day}</div>
-        <div class="acal-sales">${fmt$(sales)}</div>
-        <div class="acal-dots">${dots}</div>
-      </div>`;
-
-      // Collect remaining for this day
-      const _c2 = calcAllFromData(data);
-      const _cashDep3 = parseFloat(data.cashSales)||0;
-      const _bvMap = {cashdeposit:_cashDep3, tax:_c2.tax||0, overhead:_c2.overhead||0, herbalife:_c2.products||0, payouts:_c2.payouts||0};
-      const pendingItems = keys.map(k => ({key:k, label:BUCKET_LABELS[k], amt:_bvMap[k]})).filter(k => !transfers[k.key]);
-      if (pendingItems.length > 0) {
-        const d2 = new Date(dateStr+'T00:00:00');
-        const dayLabel = d2.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-        remainingDays.push({dateStr, label:dayLabel, items:pendingItems, dayRemaining:pendingItems.reduce((s,it)=>s+it.amt,0)});
-      }
-    });
-    html += '</div>';
-
-    // Week summary bar
-    const weekHasData = week.some(d => { if(!d) return false; const ds=yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'); return dayMap[ds]&&calSales(dayMap[ds].data||{}); });
-    if (weekHasData) {
-      const wPct = weekOwe > 0 ? Math.round(weekDone/weekOwe*100) : 0;
-      html += `<div class="acal-week-summary">
-        <span class="acal-week-label">Week ${wi+1}</span>
-        <div style="text-align:right;">
-          <div class="acal-week-val">${fmt$(weekDone)} <span style="font-size:11px;font-weight:600;opacity:0.6;">/ ${fmt$(weekOwe)}</span></div>
-          <div class="acal-week-sub">${wPct}% transferred</div>
-        </div>
-      </div>`;
+      return;
     }
-  });
 
-  // Remaining this month list
-  if (remainingDays.length > 0) {
-    html += `<div style="margin-top:12px;">`;
-    html += `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);margin-bottom:6px;">Remaining this month</div>`;
-    remainingDays.forEach(day => {
-      html += `<div style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);margin-bottom:6px;overflow:hidden;box-shadow:var(--shadow-sm);">`;
-      html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--border-light);cursor:pointer;" onclick="openAllocDetail('${day.dateStr}')">`;
-      html += `<span style="font-size:13px;font-weight:700;color:var(--text);">${day.label}</span>`;
-      html += `<span style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--text);">${fmt$(day.dayRemaining)}</span>`;
-      html += `</div><div style="display:flex;flex-wrap:wrap;gap:0;">`;
-      day.items.forEach((item,idx) => {
-        const br = idx < day.items.length-1 ? 'border-right:1px solid var(--border-light);' : '';
-        html += `<div style="flex:1;min-width:80px;padding:7px 12px;${br}"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:2px;">${item.label}</div><div style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--text);">${fmt$(item.amt)}</div></div>`;
+    const transfers = data.transfers || {};
+    const keys = ['tax','overhead','herbalife','payouts'];
+    const doneCount = keys.filter(k => transfers[k]).length;
+    const stateClass = doneCount === 0 ? 'none' : doneCount === 4 ? 'full' : 'partial';
+
+    const dots = keys.map(k => `<div class="acal-dot${transfers[k] ? ' done' : ''}"></div>`).join('');
+
+    html += `<div class="acal-day ${stateClass}${todayClass}" onclick="openAllocDetail('${dateStr}')">
+      <div class="acal-dn">${parseInt(dateStr.slice(8))}</div>
+      <div class="acal-sales">${fmt$(sales)}</div>
+      <div class="acal-dots">${dots}</div>
+    </div>`;
+  });
+  html += '</div>';
+
+  // Week summary bar
+  const hasAnyData = dates.some(d => dayMap[d] && calSales(dayMap[d].data||{}));
+  if (hasAnyData) {
+    const pct = weekOwe > 0 ? Math.round(weekDone / weekOwe * 100) : 0;
+    html += `<div class="acal-week-summary">
+      <span class="acal-week-label">Week total</span>
+      <div style="text-align:right;">
+        <div class="acal-week-val">${fmt$(weekDone)} <span style="font-size:11px;font-weight:600;opacity:0.6;">/ ${fmt$(weekOwe)}</span></div>
+        <div class="acal-week-sub">${pct}% transferred</div>
+      </div>
+    </div>`;
+
+    // Remaining items list
+    if (remainingDays.length > 0) {
+      html += `<div style="margin-top:10px;">`;
+      html += `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);margin-bottom:6px;">Remaining this week</div>`;
+      remainingDays.forEach(day => {
+        html += `<div style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);margin-bottom:6px;overflow:hidden;box-shadow:var(--shadow-sm);">`;
+        // Day header row
+        html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--border-light);cursor:pointer;" onclick="openAllocDetail('${day.dateStr}')">`;
+        html += `<span style="font-size:13px;font-weight:700;color:var(--text);">${day.label}</span>`;
+        html += `<span style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--a6);">${fmt$(day.dayRemaining)}</span>`;
+        html += `</div>`;
+        // Bucket rows
+        html += `<div style="display:flex;flex-wrap:wrap;gap:0;">`;
+        day.items.forEach((item, idx) => {
+          const isLast = idx === day.items.length - 1;
+          const borderR = isLast ? '' : 'border-right:1px solid var(--border-light);';
+          html += `<div style="flex:1;min-width:80px;padding:7px 12px;${borderR}">`;
+          html += `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:2px;">${item.label}</div>`;
+          html += `<div style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--text);">${fmt$(item.amt)}</div>`;
+          html += `</div>`;
+        });
+        html += `</div>`;
+        html += `</div>`;
       });
-      html += `</div></div>`;
-    });
-    html += `</div>`;
-  } else if (activeDays > 0) {
-    html += `<div style="margin-top:12px;padding:14px;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);text-align:center;box-shadow:var(--shadow-sm);">`;
-    html += `<div style="font-size:13px;font-weight:600;color:var(--g5);">&#10003; All transfers complete for this month</div>`;
-    html += `</div>`;
+      html += `</div>`;
+    } else {
+      html += `<div style="margin-top:10px;padding:14px;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);text-align:center;box-shadow:var(--shadow-sm);">`;
+      html += `<div style="font-size:13px;font-weight:600;color:var(--g5);">&#10003; All transfers complete for this week</div>`;
+      html += `</div>`;
+    }
   }
 
+  console.log('[ALLOC] html length='+html.length+' setting innerHTML');
   grid.innerHTML = html;
 }
 
@@ -4793,18 +4696,13 @@ function openAllocDetail(dateStr) {
   // Sales
   document.getElementById('alloc-detail-sales').textContent = fmt$(calSales(data));
 
-  // Status — includes cashdeposit
+  // Status
   const keys = ['tax','overhead','herbalife','payouts'];
-  const allKeys = ['cashdeposit',...keys];
-  const doneCount = allKeys.filter(k => transfers[k]).length;
+  const doneCount = keys.filter(k => transfers[k]).length;
   const statusEl = document.getElementById('alloc-detail-status');
-  if (doneCount === 5) statusEl.textContent = 'All complete';
-  else if (doneCount === 0) statusEl.textContent = 'Nothing marked yet';
-  else statusEl.textContent = doneCount + ' of 5 complete';
-
-  // Cash deposit amount = cashSales for that day
-  const cashDeposit = parseFloat(data.cashSales) || 0;
-  document.getElementById('alloc-amt-cashdeposit').textContent = fmt$(cashDeposit);
+  if (doneCount === 4) statusEl.textContent = 'All transferred';
+  else if (doneCount === 0) statusEl.textContent = 'None transferred';
+  else statusEl.textContent = doneCount + ' of 4 transferred';
 
   // Bucket amounts
   document.getElementById('alloc-amt-tax').textContent = fmt$(c.tax || 0);
@@ -4813,7 +4711,7 @@ function openAllocDetail(dateStr) {
   document.getElementById('alloc-amt-payouts').textContent = fmt$(c.payouts || 0);
 
   // Bucket states
-  allKeys.forEach(k => {
+  ['tax','overhead','herbalife','payouts'].forEach(k => {
     const el = document.getElementById('alloc-b-' + k);
     if (el) el.classList.toggle('transferred', !!transfers[k]);
   });
@@ -4845,14 +4743,14 @@ async function toggleAllocBucket(key) {
   const el = document.getElementById('alloc-b-' + key);
   if (el) el.classList.toggle('transferred', data.transfers[key]);
 
-  // Update status label — includes cashdeposit
-  const allKeys = ['cashdeposit','tax','overhead','herbalife','payouts'];
-  const doneCount = allKeys.filter(k => data.transfers[k]).length;
+  // Update status label
+  const keys = ['tax','overhead','herbalife','payouts'];
+  const doneCount = keys.filter(k => data.transfers[k]).length;
   const statusEl = document.getElementById('alloc-detail-status');
   if (statusEl) {
-    if (doneCount === 5) statusEl.textContent = 'All complete';
-    else if (doneCount === 0) statusEl.textContent = 'Nothing marked yet';
-    else statusEl.textContent = doneCount + ' of 5 complete';
+    if (doneCount === 4) statusEl.textContent = 'All transferred';
+    else if (doneCount === 0) statusEl.textContent = 'None transferred';
+    else statusEl.textContent = doneCount + ' of 4 transferred';
   }
 
   // Save to Supabase
@@ -4866,1419 +4764,18 @@ async function toggleAllocBucket(key) {
     return;
   }
 
-  // Re-render history calendar and alloc list live
-  renderHistCal();
-}
-
-
-// ── PAYMENT REGISTER ─────────────────────────────────────────────────────────
-let _pregEditId = null; // null = new entry, string = editing existing
-
-function getPregAccounts() {
-  return SETTINGS.payAccounts || ['Payout Account', 'Opex Account'];
-}
-
-function getNextCheckNum() {
-  const log = SETTINGS.paymentLog || [];
-  const checks = log
-    .filter(e => e.method === 'check' && e.checkNum)
-    .map(e => parseInt(e.checkNum) || 0);
-  return checks.length ? Math.max(...checks) + 1 : 1100;
-}
-
-function getPayeeList() {
-  const ops = (SETTINGS.operators || []).filter(o => o.name && o.visible !== false).map(o => o.name);
-  const logNames = (SETTINGS.paymentLog || []).map(e => e.payee).filter(Boolean);
-  const all = [...new Set([...ops, ...logNames])].sort();
-  return all;
-}
-
-let _pregSortCol = 'date', _pregSortDir = -1; // newest first by default
-
-function renderPaymentRegister() {
-  const el = document.getElementById('preg-list');
-  if (!el) return;
-  const allLog = (SETTINGS.paymentLog || []).slice();
-
-  // Populate payee lookup dropdown
-  const lookupSel = document.getElementById('preg-lookup-payee');
-  if (lookupSel) {
-    const payees = getPayeeList();
-    lookupSel.innerHTML = payees.map(p => `<option value="${p}">${p}</option>`).join('');
-  }
-  const now = new Date();
-  const lf = document.getElementById('preg-lookup-from');
-  const lt = document.getElementById('preg-lookup-to');
-  if (lf && !lf.value) lf.value = now.getFullYear() + '-01-01';
-  if (lt && !lt.value) lt.value = now.getFullYear() + '-12-31';
-
-  if (!allLog.length) {
-    el.innerHTML = '<div class="preg-empty" style="padding:24px;text-align:center;color:var(--text-faint);">No payments logged yet. Tap + Add Payment to get started.</div>';
-    const ft = document.getElementById('preg-footer-total'); if(ft) ft.textContent='';
-    return;
-  }
-
-  const filtered = filterPregLog(allLog);
-  const footerTotal = document.getElementById('preg-footer-total');
-
-  // Sort
-  const sorted = filtered.slice().sort((a,b) => {
-    let av, bv;
-    if (_pregSortCol === 'date')    { av=a.date||''; bv=b.date||''; return av.localeCompare(bv)*_pregSortDir; }
-    if (_pregSortCol === 'payee')   { av=a.payee||''; bv=b.payee||''; return av.localeCompare(bv)*_pregSortDir; }
-    if (_pregSortCol === 'amount')  { av=parseFloat(a.amount)||0; bv=parseFloat(b.amount)||0; return (av-bv)*_pregSortDir; }
-    if (_pregSortCol === 'check')   { av=parseInt(a.checkNum)||0; bv=parseInt(b.checkNum)||0; return (av-bv)*_pregSortDir; }
-    if (_pregSortCol === 'period')  { av=a.periodFrom||''; bv=b.periodFrom||''; return av.localeCompare(bv)*_pregSortDir; }
-    if (_pregSortCol === 'account') { av=a.account||''; bv=b.account||''; return av.localeCompare(bv)*_pregSortDir; }
-    return 0;
-  });
-
-  function sortArr(col) {
-    const on = _pregSortCol === col;
-    const dir = on ? (_pregSortDir===1?'&#8593;':'&#8595;') : '&#8597;';
-    return `<span class="preg-sort-arr${on?' on':''}">${dir}</span>`;
-  }
-  function thClick(col) { return `onclick="pregSortBy('${col}')" class="${_pregSortCol===col?'sorted':''}" `; }
-
-  function fmtDateShort(str) {
-    if (!str) return '—';
-    const d = new Date(str+'T12:00:00');
-    return (d.getMonth()+1)+'/'+d.getDate()+'/'+String(d.getFullYear()).slice(2);
-  }
-  function fmtPeriod(from, to) {
-    if (!from && !to) return '—';
-    const f = from ? fmtDateShort(from) : '';
-    const t = to   ? fmtDateShort(to)   : '';
-    if (f && t) return f+' – '+t;
-    return f || t;
-  }
-
-  const total = sorted.reduce((s,e) => s+(parseFloat(e.amount)||0), 0);
-
-  const thead = `<thead><tr>
-    <th ${thClick('payee')}style="min-width:110px;">Payee${sortArr('payee')}</th>
-    <th ${thClick('amount')}style="text-align:right;min-width:80px;">Amount${sortArr('amount')}</th>
-    <th ${thClick('date')}style="min-width:80px;">Date${sortArr('date')}</th>
-    <th ${thClick('check')}style="min-width:80px;">Check #${sortArr('check')}</th>
-    <th ${thClick('period')}style="min-width:110px;">Pay Period${sortArr('period')}</th>
-    <th ${thClick('account')}style="min-width:110px;">Account${sortArr('account')}</th>
-  </tr></thead>`;
-
-  const rows = sorted.map(e => {
-    const checkDisp = e.checkNum ? '#'+e.checkNum : (e.method&&e.method!=='check'?({venmo:'Venmo',cash:'Cash',direct_deposit:'Dir. Dep.',other:'Other'}[e.method]||e.method):'—');
-    return `<tr onclick="openPregSheet('${e.id}')">
-      <td class="preg-td-payee">${escHtml(e.payee||'—')}</td>
-      <td class="preg-td-amt">${fmt$(parseFloat(e.amount)||0)}</td>
-      <td class="preg-td-date">${fmtDateShort(e.date)}</td>
-      <td class="preg-td-check">${escHtml(checkDisp)}</td>
-      <td class="preg-td-period">${fmtPeriod(e.periodFrom, e.periodTo)}</td>
-      <td class="preg-td-acct">${escHtml(e.account||'—')}</td>
-    </tr>`;
-  }).join('');
-
-  const tfoot = `<tfoot><tr>
-    <td style="font-weight:700;color:var(--text);">${sorted.length} entries</td>
-    <td class="preg-td-amt" style="font-weight:700;">${fmt$(total)}</td>
-    <td colspan="4"></td>
-  </tr></tfoot>`;
-
-  el.innerHTML = sorted.length
-    ? `<table class="preg-tbl">${thead}<tbody>${rows}</tbody>${tfoot}</table>`
-    : '<div class="preg-empty" style="padding:24px;text-align:center;color:var(--text-faint);">No payments in this period.</div>';
-
-  if (footerTotal) footerTotal.textContent = (_pregFilter!=='all') ? 'Filtered: '+sorted.length+' of '+allLog.length+' entries' : '';
-}
-
-function pregSortBy(col) {
-  if (_pregSortCol === col) _pregSortDir *= -1;
-  else { _pregSortCol = col; _pregSortDir = col==='date' ? -1 : 1; }
-  renderPaymentRegister();
-}
-
-function expandPregRegister() { renderPaymentRegister(); } // no longer needed separately
-
-function fmtShortDate(str) {
-  if (!str) return '';
-  const d = new Date(str + 'T12:00:00');
-  return (d.getMonth()+1) + '/' + d.getDate();
-}
-
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function openPregSheet(id) {
-  _pregEditId = id || null;
-  const today = new Date();
-  const todayStr = today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
-
-  // Populate payee dropdown
-  const payeeSel = document.getElementById('preg-f-payee');
-  if (payeeSel) {
-    const payees = getPayeeList();
-    payeeSel.innerHTML = '<option value="">Select payee...</option>' +
-      payees.map(p => `<option value="${p}">${p}</option>`).join('') +
-      '<option value="__other__">Other (type name)...</option>';
-  }
-
-  // Populate account dropdown
-  const acctSel = document.getElementById('preg-f-account');
-  if (acctSel) {
-    acctSel.innerHTML = getPregAccounts().map(a => `<option value="${a}">${a}</option>`).join('');
-  }
-
-  if (id) {
-    // Edit mode
-    const entry = (SETTINGS.paymentLog||[]).find(e => e.id === id);
-    if (!entry) return;
-    document.getElementById('preg-sheet-title').textContent = 'Edit Payment';
-    document.getElementById('preg-delete-btn').style.display = 'block';
-    document.getElementById('preg-f-payee').value = getPayeeList().includes(entry.payee) ? entry.payee : '__other__';
-    if (!getPayeeList().includes(entry.payee)) {
-      document.getElementById('preg-custom-payee-row').style.display = 'flex';
-      document.getElementById('preg-f-custom-payee').value = entry.payee || '';
-    } else {
-      document.getElementById('preg-custom-payee-row').style.display = 'none';
-    }
-    document.getElementById('preg-f-amount').value = entry.amount || '';
-    document.getElementById('preg-f-date').value = entry.date || todayStr;
-    document.getElementById('preg-f-period-from').value = entry.periodFrom || '';
-    document.getElementById('preg-f-period-to').value = entry.periodTo || '';
-    document.getElementById('preg-f-method').value = entry.method || 'check';
-    document.getElementById('preg-f-checknum').value = entry.checkNum || '';
-    document.getElementById('preg-f-account').value = entry.account || getPregAccounts()[0];
-    document.getElementById('preg-f-notes').value = entry.notes || '';
-  } else {
-    // New entry
-    document.getElementById('preg-sheet-title').textContent = 'Add Payment';
-    document.getElementById('preg-delete-btn').style.display = 'none';
-    document.getElementById('preg-f-payee').value = '';
-    document.getElementById('preg-custom-payee-row').style.display = 'none';
-    document.getElementById('preg-f-custom-payee').value = '';
-    document.getElementById('preg-f-amount').value = '';
-    document.getElementById('preg-f-date').value = todayStr;
-    document.getElementById('preg-f-period-from').value = '';
-    document.getElementById('preg-f-period-to').value = '';
-    document.getElementById('preg-f-method').value = 'check';
-    document.getElementById('preg-f-checknum').value = getNextCheckNum();
-    document.getElementById('preg-f-account').value = getPregAccounts()[0];
-    document.getElementById('preg-f-notes').value = '';
-  }
-  onPregMethodChange();
-  document.getElementById('preg-sheet-overlay').style.display = 'flex';
-}
-
-function closePregSheet() {
-  document.getElementById('preg-sheet-overlay').style.display = 'none';
-  _pregEditId = null;
-}
-
-function closePregSheetOnBg(e) {
-  if (e.target === document.getElementById('preg-sheet-overlay')) closePregSheet();
-}
-
-function onPregPayeeChange(sel) {
-  const row = document.getElementById('preg-custom-payee-row');
-  if (sel.value === '__other__') {
-    row.style.display = 'flex';
-    document.getElementById('preg-f-custom-payee').focus();
-  } else {
-    row.style.display = 'none';
-  }
-}
-
-function onPregMethodChange() {
-  const method = document.getElementById('preg-f-method')?.value;
-  const row = document.getElementById('preg-checknum-row');
-  if (row) row.style.display = method === 'check' ? 'flex' : 'none';
-}
-
-async function savePregEntry() {
-  const payeeSel = document.getElementById('preg-f-payee').value;
-  const payee = payeeSel === '__other__'
-    ? (document.getElementById('preg-f-custom-payee').value.trim())
-    : payeeSel;
-  const amount = parseFloat(document.getElementById('preg-f-amount').value.replace(/,/g,''))||0;
-  const date = document.getElementById('preg-f-date').value;
-  const periodFrom = document.getElementById('preg-f-period-from').value;
-  const periodTo = document.getElementById('preg-f-period-to').value;
-  const method = document.getElementById('preg-f-method').value;
-  const checkNum = method === 'check' ? document.getElementById('preg-f-checknum').value.trim() : '';
-  const account = document.getElementById('preg-f-account').value;
-  const notes = document.getElementById('preg-f-notes').value.trim();
-
-  if (!payee) { showToast('Please enter a payee name', 'error'); return; }
-  if (!amount) { showToast('Please enter an amount', 'error'); return; }
-  if (!date) { showToast('Please enter a date', 'error'); return; }
-
-  if (!SETTINGS.paymentLog) SETTINGS.paymentLog = [];
-
-  if (_pregEditId) {
-    const idx = SETTINGS.paymentLog.findIndex(e => e.id === _pregEditId);
-    if (idx >= 0) SETTINGS.paymentLog[idx] = { id: _pregEditId, payee, amount, date, periodFrom, periodTo, method, checkNum, account, notes };
-  } else {
-    SETTINGS.paymentLog.unshift({ id: Date.now().toString(), payee, amount, date, periodFrom, periodTo, method, checkNum, account, notes });
-  }
-
-  const { error } = await sb.from('locations').update({ settings: SETTINGS }).eq('id', LOCATION_ID);
-  if (error) { showToast('Save failed: ' + error.message, 'error'); return; }
-
-  closePregSheet();
-  renderPaymentRegister();
-  showToast(_pregEditId ? 'Payment updated' : 'Payment saved', 'success');
-}
-
-async function deletePregEntry() {
-  if (!_pregEditId) return;
-  if (!confirm('Delete this payment entry?')) return;
-  SETTINGS.paymentLog = (SETTINGS.paymentLog||[]).filter(e => e.id !== _pregEditId);
-  const { error } = await sb.from('locations').update({ settings: SETTINGS }).eq('id', LOCATION_ID);
-  if (error) { showToast('Delete failed', 'error'); return; }
-  closePregSheet();
-  renderPaymentRegister();
-  showToast('Entry deleted', 'success');
-}
-
-function runPayeeLookup() {
-  const payee = document.getElementById('preg-lookup-payee')?.value;
-  const from = document.getElementById('preg-lookup-from')?.value;
-  const to = document.getElementById('preg-lookup-to')?.value;
-  if (!payee || !from || !to) return;
-
-  const entries = (SETTINGS.paymentLog||[]).filter(e =>
-    e.payee === payee && e.date >= from && e.date <= to
-  );
-  const total = entries.reduce((s,e) => s + (parseFloat(e.amount)||0), 0);
-
-  const fromFmt = new Date(from+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-  const toFmt = new Date(to+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-
-  document.getElementById('preg-lookup-label').textContent = payee + ' · ' + fromFmt + ' – ' + toFmt;
-  document.getElementById('preg-lookup-count').textContent = entries.length + ' payment' + (entries.length!==1?'s':'');
-  document.getElementById('preg-lookup-total').textContent = fmt$(total);
-  document.getElementById('preg-lookup-result').style.display = 'flex';
-}
-
-
-// ── UNIFIED HISTORY: ALLOC + PROJECTIONS ─────────────────────────────────────
-let _histProjScenario = [0,10,20,30];
-let _histProjDate = null;
-
-function renderHistAlloc() {
-  const yr = _histCalYear, mo = _histCalMonth;
-  if (yr === null || mo === null) return;
-
-  const keys = ['cashdeposit','tax','overhead','herbalife','payouts'];
-  const BUCKET_LABELS = {cashdeposit:'Cash Deposit', tax:'Taxes', overhead:'Overhead', herbalife:'Herbalife', payouts:'Payouts'};
-  const allDays = []; // ALL days with sales data, sorted newest first
-  let monthOwe = 0, monthDone = 0;
-
-  ALL_DAYS.forEach(d => {
-    const dt = new Date(d.date + 'T00:00:00');
-    if (dt.getFullYear() !== yr || dt.getMonth() !== mo) return;
-    const data = d.data || {};
-    if (!calSales(data)) return;
-    const c = calcAllFromData(data);
-    const cashDep = parseFloat(data.cashSales)||0;
-    const bv = [cashDep, c.tax||0, c.overhead||0, c.products||0, c.payouts||0];
-    const tr = data.transfers || {};
-    bv.forEach((v,i) => { monthOwe += v; if (tr[keys[i]]) monthDone += v; });
-    const doneCount = keys.filter(k => tr[k]).length;
-    const allComplete = doneCount === 5; // all 5 including cashdeposit
-    const allComplete5 = allComplete;
-    const dl = new Date(d.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-    const totalAmt = bv.reduce((s,v) => s+v, 0);
-    const dayRemaining = keys.reduce((s,k,i) => s + (tr[k] ? 0 : bv[i]), 0);
-    allDays.push({
-      dateStr: d.date,
-      label: dl,
-      bv, tr, keys,
-      totalAmt,
-      dayRemaining,
-      doneCount,
-      allComplete,
-      allComplete5
-    });
-  });
-
-  // Sort newest first
-  // Only show days with pending allocations — completed days visible via quadrant circle on calendar
-  const pendingDays = allDays.filter(d => !d.allComplete5).sort((a,b) => b.dateStr.localeCompare(a.dateStr));
-
-  const section = document.getElementById('hist-alloc-section');
-  const list = document.getElementById('hist-alloc-list');
-  const done = document.getElementById('hist-alloc-done');
-  if (!section || !list) return;
-
-  if (monthOwe === 0) { section.style.display = 'none'; return; }
-  section.style.display = 'block';
-
-  if (pendingDays.length === 0) {
-    list.innerHTML = '';
-    if (done) { done.style.display = 'block'; done.dataset.shouldShow = '1'; }
-  } else {
-    if (done) { done.style.display = 'none'; done.dataset.shouldShow = '0'; }
-    list.innerHTML = pendingDays.map(day => {
-      const buckets = day.keys.map((k,i) => {
-        const transferred = !!day.tr[k];
-        const isCash = k === 'cashdeposit';
-        const greenBdr = '#c4e6d2', blueBdr = '#8ab4d8';
-        const br = i < day.keys.length-1 ? `border-right:1px solid ${transferred ? (isCash?blueBdr:greenBdr) : 'var(--border-light)'};` : '';
-        const bg = transferred ? (isCash?'#e6f1fb':'#eaf6eb') : 'var(--surface)';
-        const labelColor = transferred ? (isCash?'var(--b6)':'var(--g5)') : 'var(--text-faint)';
-        const valColor = transferred ? (isCash?'var(--b6)':'var(--g5)') : 'var(--text)';
-        const check = transferred ? '<span style="font-size:9px;margin-left:3px;">&#10003;</span>' : '';
-        const flex = isCash ? 'flex:1.6;' : 'flex:1;';
-        return `<div style="${flex}min-width:60px;padding:6px 8px;${br}background:${bg};">
-          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:${labelColor};margin-bottom:2px;">${BUCKET_LABELS[k]}${check}</div>
-          <div style="font-family:'Outfit',sans-serif;font-size:12px;font-weight:800;color:${valColor};">${fmt$(day.bv[i])}</div>
-        </div>`;
-      }).join('');
-      const pendingAmt = day.keys.reduce((s,k,i) => s + (day.tr[k] ? 0 : day.bv[i]), 0);
-      return `<div style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);margin-bottom:6px;overflow:hidden;box-shadow:var(--shadow-sm);cursor:pointer;" onclick="openAllocDetail('${day.dateStr}')">
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid #a8bfcf;background:#b2c4d4;">
-          <span style="font-size:13px;font-weight:700;color:#1e3040;">${day.label}</span>
-          <span style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--text);">${fmt$(pendingAmt)}</span>
-        </div>
-        <div style="display:flex;flex-wrap:wrap;">${buckets}</div>
-      </div>`;
-    }).join('');
-  }
-
-  // Show projections toggle once there's data
-  const toggle = document.getElementById('hist-proj-toggle');
-  if (toggle) toggle.style.display = 'block';
-}
-
-
-function toggleHistAllocList() {
-  const list = document.getElementById('hist-alloc-list');
-  const done = document.getElementById('hist-alloc-done');
-  const btn = document.getElementById('hist-alloc-toggle-btn');
-  if (!list) return;
-  const hidden = list.style.display === 'none';
-  list.style.display = hidden ? '' : 'none';
-  if (done) done.style.display = hidden ? (done.dataset.shouldShow === '1' ? 'block' : 'none') : 'none';
-  if (btn) btn.textContent = hidden ? 'Hide ▲' : 'Show ▼';
-}
-
-
-function closeDupOpModal(e) {
-  if (e && e.target !== document.getElementById('dup-op-modal')) return;
-  document.getElementById('dup-op-modal').style.display = 'none';
-  _pendingSaveDupNote = null;
-}
-
-function confirmDupOpSave() {
-  const note = document.getElementById('dup-op-note')?.value.trim();
-  if (!note) return;
-  _pendingSaveDupNote = note;
-  document.getElementById('dup-op-modal').style.display = 'none';
-  saveDay(); // re-call saveDay, now with note set, will skip modal
-}
-
-function toggleHistProjections() {
-  const body = document.getElementById('hist-proj-body');
-  const arrow = document.getElementById('hist-proj-arrow');
-  if (!body) return;
-  const open = body.style.display === 'block';
-  body.style.display = open ? 'none' : 'block';
-  if (arrow) arrow.innerHTML = open ? '&#9656;' : '&#9662;';
-}
-
-function loadHistProjDay(dateStr) {
-  _histProjDate = dateStr;
-  const dayObj = ALL_DAYS.find(d => d.date === dateStr);
-  if (!dayObj) return;
-  const d = dayObj.data || {};
-  const c = calcAllFromData(d);
-  _projBaseSales = calSales(d);
-  _projBaseOh = c.overhead || 0;
-  _projBasePayouts = c.payouts || 0;
-  _projBaseTax = c.tax || 0;
-  _projBaseProd = c.products || 0;
-  _projBaseDv = d.dv || 0;
-
-  const dt = new Date(dateStr+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-  const lbl = document.getElementById('hist-proj-base-label');
-  if (lbl) lbl.textContent = 'Based on ' + dt + ' · ' + fmt$(_projBaseSales);
-
-  renderHistProjScenario();
-}
-
-function setHistScenario(btn, pcts) {
-  _histProjScenario = pcts;
-  document.querySelectorAll('#hist-proj-preset-btns .proj-preset-btn').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  renderHistProjScenario();
-}
-
-function adjustHistOpDays(dir) {
-  const input = document.getElementById('hist-proj-opdays');
-  const display = document.getElementById('hist-proj-opdays-display');
-  let v = parseInt(input?.value) || 26;
-  v = Math.min(31, Math.max(20, v + dir));
-  if (input) input.value = v;
-  if (display) display.textContent = v;
-  renderHistProjScenario();
-}
-
-function renderHistProjScenario() {
-  const el = document.getElementById('hist-proj-estimator');
-  if (!el) return;
-  if (!_projBaseSales) {
-    el.innerHTML = '<div style="padding:16px;text-align:center;font-size:13px;color:var(--text-faint);">Select a day from the calendar to load projections.</div>';
-    return;
-  }
-  const op = parseInt(document.getElementById('hist-proj-opdays')?.value) || 26;
-  const pcts = _histProjScenario || [0,10,20,30];
-  const mults = pcts.map(p => 1 + p/100);
-  const headers = pcts.map(p => p === 0 ? 'Base' : '+'+p+'%');
-
-  const cellS = 'padding:8px 10px;text-align:right;font-size:13px;font-weight:600;color:var(--text);border-bottom:1px solid var(--border-light);';
-  const lblS = 'padding:8px 10px;font-size:12px;color:var(--text-muted);border-bottom:1px solid var(--border-light);white-space:nowrap;';
-  const secS = 'padding:6px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);background:var(--b0);';
-  const thS = 'padding:8px 10px;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);background:var(--b0);border-bottom:1px solid var(--border-light);';
-
-  const row = (label, vals, bold) => `<tr${bold?' style="background:var(--b0);"':''}>
-    <td style="${lblS}${bold?'font-weight:700;color:var(--text);':''}">${label}</td>
-    ${vals.map(v=>`<td style="${cellS}${bold?'font-weight:800;':''}">${v}</td>`).join('')}
-  </tr>`;
-  const sec = label => `<tr><td colspan="${pcts.length+1}" style="${secS}">${label}</td></tr>`;
-
-  el.innerHTML = `<table style="width:100%;border-collapse:collapse;">
-    <thead><tr>
-      <th style="${thS}text-align:left;"></th>
-      ${headers.map(h=>`<th style="${thS}">${h}</th>`).join('')}
-    </tr></thead>
-    <tbody>
-      ${sec('Sales')}
-      ${row('Net sales / day', mults.map(m=>fmt$(_projBaseSales*m)))}
-      ${row('Payouts / day', mults.map(m=>fmt$(_projBasePayouts*m)))}
-      ${row('Weekly (5d)', mults.map(m=>fmt$(_projBaseSales*m*5)), true)}
-      ${row('Monthly ('+op+'d)', mults.map(m=>fmt$(_projBaseSales*m*op)), true)}
-      ${sec('Documented Volume')}
-      ${row('Daily DV', mults.map(m=>fmtN(_projBaseDv*m)))}
-      ${row('Monthly DV ('+op+'d)', mults.map(m=>fmtN(_projBaseDv*m*op)), true)}
-    </tbody>
-  </table>`;
-}
-
-
-// ── ENTER TAB UNDO / REDO ────────────────────────────────────────────────────
-const _UNDO_FIELDS = [
-  'cashSales','cardSales','cardFees','giftCardRedeemed','cashAppPay','venmo',
-  'otherSales','merchSales','giftCardSales','giftCardLoadFees',
-  'fundraiserCash','fundraiserCard','fundraiserPct',
-  'dv','notes','op1','op2','op1Hrs','op2Hrs','owner-reinvest'
-];
-let _undoStack = [];   // array of state snapshots
-let _redoStack = [];   // redo stack
-let _undoEnabled = false;
-
-function _captureFormState() {
-  const state = {};
-  _UNDO_FIELDS.forEach(k => {
-    const el = document.getElementById('f-' + k);
-    if (!el) return;
-    state[k] = el.type === 'checkbox' ? el.checked : el.value;
-  });
-  return state;
-}
-
-function _applyFormState(state) {
-  _loadingDay = true; // suppress dirty flagging during restore
-  _UNDO_FIELDS.forEach(k => {
-    const el = document.getElementById('f-' + k);
-    if (!el || !(k in state)) return;
-    if (el.type === 'checkbox') el.checked = state[k];
-    else el.value = state[k];
-  });
-  formatAllCurrencyFields();
-  recalc(false);
-  _loadingDay = false;
-  markDirty();
-}
-
-function pushUndoSnapshot() {
-  if (!_undoEnabled) return;
-  const snap = _captureFormState();
-  // Avoid duplicate consecutive snapshots
-  if (_undoStack.length > 0) {
-    const last = _undoStack[_undoStack.length - 1];
-    if (JSON.stringify(last) === JSON.stringify(snap)) return;
-  }
-  _undoStack.push(snap);
-  if (_undoStack.length > 50) _undoStack.shift(); // cap at 50
-  _redoStack = []; // new action clears redo
-}
-
-function undoFormAction() {
-  if (!_undoEnabled || _undoStack.length < 2) {
-    showToast('Nothing to undo', 'info');
-    return;
-  }
-  // Push current state to redo stack
-  _redoStack.push(_captureFormState());
-  // Pop and discard the top (current state)
-  _undoStack.pop();
-  // Apply the previous state
-  _applyFormState(_undoStack[_undoStack.length - 1]);
-  showToast('Undone', 'success');
-}
-
-function redoFormAction() {
-  if (!_undoEnabled || _redoStack.length === 0) {
-    showToast('Nothing to redo', 'info');
-    return;
-  }
-  const next = _redoStack.pop();
-  _undoStack.push(next);
-  _applyFormState(next);
-  showToast('Redone', 'success');
-}
-
-function clearUndoHistory() {
-  _undoStack = [];
-  _redoStack = [];
-}
-
-function initUndoListeners() {
-  // Snapshot on blur for text/textarea inputs
-  _UNDO_FIELDS.forEach(k => {
-    const el = document.getElementById('f-' + k);
-    if (!el) return;
-    if (el.type === 'checkbox') {
-      el.addEventListener('change', () => { pushUndoSnapshot(); });
-    } else if (el.tagName === 'SELECT') {
-      el.addEventListener('change', () => { pushUndoSnapshot(); });
-    } else {
-      el.addEventListener('blur', () => { pushUndoSnapshot(); });
-    }
-  });
-}
-
-// Keyboard handler — only fires on Enter tab
-document.addEventListener('keydown', function(e) {
-  const enterPanel = document.getElementById('panel-enter');
-  if (!enterPanel || !enterPanel.classList.contains('active')) return;
-  const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-  const cmdKey = isMac ? e.metaKey : e.ctrlKey;
-  if (!cmdKey) return;
-  if (e.key === 'z' && !e.shiftKey) {
-    e.preventDefault();
-    undoFormAction();
-  } else if ((e.key === 'z' && e.shiftKey) || e.key === 'y') {
-    e.preventDefault();
-    redoFormAction();
-  }
-});
-
-
-// ── PAYOUT PRESET DATE LOGIC ─────────────────────────────────────────────────
-function getMonWeekRange(weeksBack) {
-  // Returns {from, to} for the Mon-Sun week that ended most recently
-  // weeksBack=0 means current/last complete Mon-Sun block
-  // "Last week" = the Mon-Sun week containing or most recently past
-  const today = new Date();
-  const dow = today.getDay(); // 0=Sun, 1=Mon...
-  // Days since last Monday (if today is Sun=0, days since Mon = 6; Mon=1 -> 0; etc)
-  const daysSinceMon = dow === 0 ? 6 : dow - 1;
-  const thisMon = new Date(today);
-  thisMon.setDate(today.getDate() - daysSinceMon);
-  // "Last week" = this current Mon-Sun span (Mon through today incl. if Sun)
-  const from = new Date(thisMon);
-  from.setDate(from.getDate() - (weeksBack * 7));
-  const to = new Date(from);
-  to.setDate(to.getDate() + 6); // Sun
-  // Don't go beyond today
-  const todayClean = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  if (to > todayClean) to.setTime(todayClean.getTime());
-  return {
-    from: fmtDateStr(from),
-    to:   fmtDateStr(to)
-  };
-}
-
-function fmtDateStr(d) {
-  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-}
-
-function fmtDateLbl(str) {
-  if (!str) return '—';
-  const d = new Date(str+'T00:00:00');
-  return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-}
-
-function setPayoutPreset(preset, btn) {
-  document.querySelectorAll('.payout-preset-chip').forEach(c => c.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  const today = new Date();
-  let from, to;
-  if (preset === 'lastweek') {
-    const r = getMonWeekRange(0);
-    from = r.from; to = r.to;
-  } else if (preset === 'last2weeks') {
-    const r1 = getMonWeekRange(1); // week before
-    const r2 = getMonWeekRange(0); // current week
-    from = r1.from; to = r2.to;
-  } else if (preset === 'lastmonth') {
-    const lm = new Date(today.getFullYear(), today.getMonth()-1, 1);
-    from = fmtDateStr(lm);
-    to = fmtDateStr(new Date(today.getFullYear(), today.getMonth(), 0));
-  } else if (preset === 'thismonth') {
-    from = fmtDateStr(new Date(today.getFullYear(), today.getMonth(), 1));
-    to = localToday();
-  }
-  applyPayoutDates(from, to);
-  renderPayouts();
-}
-
-function applyPayoutDates(from, to) {
-  const fEl = document.getElementById('payout-from');
-  const tEl = document.getElementById('payout-to');
-  if (fEl) fEl.value = from || '';
-  if (tEl) tEl.value = to || '';
-  const fLbl = document.getElementById('payout-range-from-lbl');
-  const tLbl = document.getElementById('payout-range-to-lbl');
-  if (fLbl) fLbl.textContent = from ? fmtDateLbl(from) : '—';
-  if (tLbl) tLbl.textContent = to ? fmtDateLbl(to) : '—';
-  // Sync cal picker state
-  _calPickerStart = from || null;
-  _calPickerEnd = to || null;
-}
-
-function resetPayouts() {
-  document.querySelectorAll('.payout-preset-chip').forEach(c => c.classList.remove('active'));
-  applyPayoutDates('', '');
-  const el = document.getElementById('payouts-body');
-  if (el) el.innerHTML = '';
-  const snapWrap = document.getElementById('payout-snapshot-wrap');
-  if (snapWrap) snapWrap.style.display = 'none';
-}
-
-// ── CALENDAR DATE RANGE PICKER ────────────────────────────────────────────────
-let _calPickerYear = null, _calPickerMonth = null;
-let _calPickerStart = null, _calPickerEnd = null, _calPickerSelecting = false;
-
-function openCalPicker() {
-  const now = new Date();
-  // Show last 2 months by default
-  _calPickerYear = now.getFullYear();
-  _calPickerMonth = now.getMonth() - 1;
-  if (_calPickerMonth < 0) { _calPickerMonth = 11; _calPickerYear--; }
-  renderCalPicker();
-  document.getElementById('cal-picker-overlay').style.display = 'flex';
-}
-
-function closeCalPicker() {
-  document.getElementById('cal-picker-overlay').style.display = 'none';
-}
-
-function closeCalPickerOnBg(e) {
-  if (e.target === document.getElementById('cal-picker-overlay')) closeCalPicker();
-}
-
-function shiftCalPicker(dir) {
-  _calPickerMonth += dir;
-  if (_calPickerMonth > 11) { _calPickerMonth = 0; _calPickerYear++; }
-  if (_calPickerMonth < 0)  { _calPickerMonth = 11; _calPickerYear--; }
-  renderCalPicker();
-}
-
-function renderCalPicker() {
-  const DOWS = ['Mo','Tu','We','Th','Fr','Sa','Su'];
-  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  const lbl = document.getElementById('cal-picker-month-label');
-  if (lbl) lbl.textContent = monthNames[_calPickerMonth] + ' ' + _calPickerYear + ' – ' + monthNames[(_calPickerMonth+1)%12] + ' ' + (_calPickerMonth===11?_calPickerYear+1:_calPickerYear);
-
-  const hint = document.getElementById('cal-picker-hint');
-  if (hint) hint.textContent = _calPickerStart && !_calPickerEnd ? 'Now tap an end date' : (_calPickerStart && _calPickerEnd ? fmtDateLbl(_calPickerStart) + ' → ' + fmtDateLbl(_calPickerEnd) : 'Tap a start date');
-
-  const applyBtn = document.getElementById('cal-picker-apply');
-  if (applyBtn) applyBtn.disabled = !(_calPickerStart && _calPickerEnd);
-
-  [0,1].forEach(offset => {
-    let mo = _calPickerMonth + offset;
-    let yr = _calPickerYear;
-    if (mo > 11) { mo -= 12; yr++; }
-    const el = document.getElementById('cal-picker-month-' + offset);
-    if (!el) return;
-
-    const firstDow = new Date(yr, mo, 1).getDay(); // 0=Sun
-    // Convert to Mon-first: Sun=6, Mon=0, Tue=1...
-    const firstOffset = firstDow === 0 ? 6 : firstDow - 1;
-    const daysInMo = new Date(yr, mo+1, 0).getDate();
-    const todayStr = localToday();
-
-    let html = `<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px;text-align:center;">${monthNames[mo]} ${yr}</div>`;
-    html += '<div class="cal-month-grid">';
-    DOWS.forEach(d => { html += `<div class="cal-m-dow">${d}</div>`; });
-    for (let i = 0; i < firstOffset; i++) html += '<div></div>';
-    for (let d = 1; d <= daysInMo; d++) {
-      const ds = yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
-      const isFuture = ds > todayStr;
-      let cls = 'cal-m-day';
-      if (isFuture) cls += ' disabled';
-      if (ds === _calPickerStart) cls += ' range-start';
-      if (ds === _calPickerEnd) cls += ' range-end';
-      if (_calPickerStart && _calPickerEnd && ds > _calPickerStart && ds < _calPickerEnd) cls += ' in-range';
-      html += `<div class="${cls}" onclick="calPickerClickDay('${ds}')">${d}</div>`;
-    }
-    html += '</div>';
-    el.innerHTML = html;
-  });
-}
-
-function calPickerClickDay(ds) {
-  if (!_calPickerStart || (_calPickerStart && _calPickerEnd)) {
-    // Start fresh
-    _calPickerStart = ds;
-    _calPickerEnd = null;
-  } else {
-    // Second click = end
-    if (ds < _calPickerStart) {
-      _calPickerEnd = _calPickerStart;
-      _calPickerStart = ds;
-    } else {
-      _calPickerEnd = ds;
-    }
-  }
-  renderCalPicker();
-}
-
-function applyCalPicker() {
-  if (!_calPickerStart || !_calPickerEnd) return;
-  applyPayoutDates(_calPickerStart, _calPickerEnd);
-  document.querySelectorAll('.payout-preset-chip').forEach(c => c.classList.remove('active'));
-  closeCalPicker();
-  renderPayouts();
-}
-
-// ── PAYMENT REGISTER FILTER ───────────────────────────────────────────────────
-let _pregFilter = 'all';
-
-function setPregFilter(filter, btn) {
-  _pregFilter = filter;
-  document.querySelectorAll('.preg-fchip').forEach(c => c.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  const clearBtn = document.getElementById('preg-clear-filter-btn');
-  if (clearBtn) clearBtn.style.display = filter === 'all' ? 'none' : 'inline';
-  renderPaymentRegister();
-}
-
-function clearPregFilter() {
-  _pregFilter = 'all';
-  document.querySelectorAll('.preg-fchip').forEach(c => c.classList.remove('active'));
-  const first = document.querySelector('.preg-fchip');
-  if (first) first.classList.add('active');
-  const clearBtn = document.getElementById('preg-clear-filter-btn');
-  if (clearBtn) clearBtn.style.display = 'none';
-  renderPaymentRegister();
-}
-
-
-function filterPregLog(log) {
-  const now = new Date();
-  const yr = now.getFullYear(), mo = now.getMonth();
-  if (_pregFilter === 'thismonth') {
-    const from = yr+'-'+String(mo+1).padStart(2,'0')+'-01';
-    const to = localToday();
-    return log.filter(e => e.date >= from && e.date <= to);
-  }
-  if (_pregFilter === 'lastmonth') {
-    const lmDate = new Date(yr, mo-1, 1);
-    const from = fmtDateStr(lmDate);
-    const to = fmtDateStr(new Date(yr, mo, 0));
-    return log.filter(e => e.date >= from && e.date <= to);
-  }
-  if (_pregFilter === 'thisyear') {
-    return log.filter(e => e.date.startsWith(yr+''));
-  }
-  if (_pregFilter === 'lastyear') {
-    return log.filter(e => e.date.startsWith((yr-1)+''));
-  }
-  return log; // 'all'
-}
-
-
-// ── PAYMENT REGISTER IMPORT ───────────────────────────────────────────────────
-
-
-// ── HISTORY SUMMARY VIEW ──────────────────────────────────────────────────────
-let _histView = 'cal';       // 'cal' | 'sum'
-let _sumTab = 'week';        // 'week' | 'month'
-let _sumWeekOffset = 0;      // 0 = current week (Mon-Sun), -1 = last week, etc.
-
-const SUM_FIELDS = [
-  {key:'net',    label:'Net sales',    section:'Sales',   fn:(d)=>calSales(d),                 fmt:'$', color:'green'},
-  {key:'cash',   label:'Cash sales',   section:null,      fn:(d)=>parseFloat(d.cashSales)||0,  fmt:'$'},
-  {key:'card',   label:'Card sales',   section:null,      fn:(d)=>parseFloat(d.cardSales)||0,  fmt:'$'},
-  {key:'fees',   label:'Card fees',    section:null,      fn:(d)=>parseFloat(d.cardFees)||0,   fmt:'$', color:'amber'},
-  {key:'venmo',  label:'Venmo/CashApp',section:null,      fn:(d)=>parseFloat(d.venmo)||0,      fmt:'$'},
-  {key:'cashapp',label:'CashApp (POS)',section:null,      fn:(d)=>parseFloat(d.cashAppPay)||0, fmt:'$'},
-  {key:'other',  label:'Other sales',  section:null,      fn:(d)=>parseFloat(d.otherSales)||0, fmt:'$'},
-  {key:'merch',  label:'Merch',        section:null,      fn:(d)=>parseFloat(d.merchSales)||0, fmt:'$'},
-  {key:'gc',     label:'Gift cards',   section:null,      fn:(d)=>parseFloat(d.giftCardSales)||0, fmt:'$'},
-  {key:'gcr',    label:'GC redeemed',  section:null,      fn:(d)=>parseFloat(d.giftCardRedeemed)||0, fmt:'$'},
-  {key:'dv',     label:'DV',           section:'Volume',  fn:(d)=>parseFloat(d.dv)||0,         fmt:'n'},
-  {key:'fcash',  label:'Fundraiser $', section:'Fundraiser', fn:(d)=>(parseFloat(d.fundraiserCash)||0)+(parseFloat(d.fundraiserCard)||0), fmt:'$'},
-];
-
-function setHistView(view) {
-  _histView = view;
-  const calGrid  = document.getElementById('history-cal-grid');
-  const sumView  = document.getElementById('history-sum-view');
-  const allocSec = document.getElementById('hist-alloc-section');
-  const projTog  = document.getElementById('hist-proj-toggle');
-  const calBtn   = document.getElementById('hvt-cal');
-  const sumBtn   = document.getElementById('hvt-sum');
-
-  if (view === 'cal') {
-    if (calGrid) calGrid.style.display = '';
-    if (sumView) sumView.style.display = 'none';
-    if (allocSec) allocSec.style.display = '';
-    if (projTog) projTog.style.display = '';
-    calBtn?.classList.add('active'); sumBtn?.classList.remove('active');
-  } else {
-    if (calGrid) calGrid.style.display = 'none';
-    if (sumView) sumView.style.display = 'block';
-    if (allocSec) allocSec.style.display = 'none';
-    if (projTog) projTog.style.display = 'none';
-    sumBtn?.classList.add('active'); calBtn?.classList.remove('active');
-    renderSummaryView();
-  }
-}
-
-function setSumTab(tab) {
-  _sumTab = tab;
-  document.getElementById('sum-tab-week')?.classList.toggle('active', tab==='week');
-  document.getElementById('sum-tab-month')?.classList.toggle('active', tab==='month');
-  document.getElementById('sum-week-nav').style.display = tab==='week' ? 'flex' : 'none';
-  renderSummaryView();
-}
-
-function sumWeekShift(dir) {
-  _sumWeekOffset += dir;
-  // Don't go past current week
-  if (_sumWeekOffset > 0) _sumWeekOffset = 0;
-  renderSummaryView();
-}
-
-function getSumWeekDates() {
-  // Sun–Sat week, _sumWeekOffset weeks from current
-  const now = new Date();
-  const dow = now.getDay(); // 0=Sun
-  const thisSun = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dow);
-  thisSun.setDate(thisSun.getDate() + _sumWeekOffset * 7);
-  const dates = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(thisSun);
-    d.setDate(thisSun.getDate() + i);
-    dates.push(fmtDateStr2(d));
-  }
-  return dates;
-}
-
-function fmtDateStr2(d) {
-  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-}
-
-function fmtSumVal(val, fmt, color) {
-  if (!val) return '<td class="s-empty">—</td>';
-  const formatted = fmt==='$' ? ('$'+val.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})) : val.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1});
-  const cls = color==='green'?'s-green':color==='amber'?'s-amber':'';
-  return `<td class="${cls}">${formatted}</td>`;
-}
-
-function renderSummaryView() {
-  const content = document.getElementById('sum-content');
-  if (!content) return;
-  if (_sumTab === 'week') renderWeekGrid(content);
-  else renderMonthTable(content);
-}
-
-function renderWeekGrid(el) {
-  const dates = getSumWeekDates();
-  const todayStr = localToday();
-  const DOWS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-
-  // Week label
-  const s = new Date(dates[0]+'T12:00:00'), e = new Date(dates[6]+'T12:00:00');
-  const lbl = document.getElementById('sum-week-label');
-  if (lbl) lbl.textContent = months[s.getMonth()]+' '+s.getDate()+' – '+months[e.getMonth()]+' '+e.getDate()+', '+e.getFullYear();
-
-  // Build day map
-  const dayMap = {};
-  ALL_DAYS.forEach(d => { if (dates.includes(d.date)) dayMap[d.date] = d.data||{}; });
-
-  // Column headers
-  let thead = '<thead><tr><th>Field</th>';
-  dates.forEach((ds, i) => {
-    const d = new Date(ds+'T12:00:00');
-    const isToday = ds === todayStr;
-    const cls = isToday ? 's-today' : '';
-    thead += `<th class="${cls}">${DOWS[i]}<br><span style="font-weight:400;">${d.getDate()}</span></th>`;
-  });
-  thead += '<th class="s-total">Total</th></tr></thead>';
-
-  // Rows
-  let lastSection = null;
-  let tbody = '<tbody>';
-  SUM_FIELDS.forEach(f => {
-    // Only show fields that have any data this week, OR are key fields
-    const keyFields = ['net','cash','card','fees','dv'];
-    const hasAnyData = dates.some(ds => dayMap[ds] && f.fn(dayMap[ds]) > 0);
-    if (!hasAnyData && !keyFields.includes(f.key)) return;
-
-    if (f.section && f.section !== lastSection) {
-      tbody += `<tr class="s-section"><td colspan="${dates.length+2}">${f.section}</td></tr>`;
-      lastSection = f.section;
-    }
-
-    let total = 0;
-    let row = `<tr><td>${f.label}</td>`;
-    dates.forEach(ds => {
-      const d = new Date(ds+'T12:00:00');
-      const dow = d.getDay();
-      const opDays = SETTINGS.opDays||[false,true,true,true,true,true,true];
-      const closedDays = SETTINGS.closedDays||{};
-      const isClosed = (!opDays[dow]||!!closedDays[ds])&&closedDays[ds]!=='open';
-      const isFuture = ds > todayStr;
-
-      if (isFuture) { row += '<td class="s-empty">—</td>'; return; }
-      if (isClosed && !dayMap[ds]) { row += '<td class="s-closed">closed</td>'; return; }
-      if (!dayMap[ds]) { row += '<td class="s-empty">—</td>'; return; }
-
-      const val = f.fn(dayMap[ds]);
-      total += val;
-      row += fmtSumVal(val, f.fmt, f.color);
-    });
-    // Total column
-    row += fmtSumVal(total, f.fmt, f.color).replace('<td ', '<td class="s-total ').replace('s-total s-', 's-total s-');
-    row += '</tr>';
-    tbody += row;
-  });
-  tbody += '</tbody>';
-
-  el.innerHTML = `<div class="sgrid-wrap"><table class="sgrid">${thead}${tbody}</table></div>`;
-}
-
-function renderMonthTable(el) {
-  const yr = _histCalYear, mo = _histCalMonth;
-  if (yr === null || mo === null) return;
-
-  const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  const todayStr = localToday();
-  const daysInMonth = new Date(yr, mo+1, 0).getDate();
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-
-  // Build day map for this month
-  const dayMap = {};
-  ALL_DAYS.forEach(d => {
-    const dt = new Date(d.date+'T00:00:00');
-    if (dt.getFullYear()===yr && dt.getMonth()===mo) dayMap[d.date] = d.data||{};
-  });
-
-  // All Enter tab fields as columns — no Days column
-  const cols = [
-    {key:'net',     label:'Net Sales',    fn:d=>calSales(d),                             fmt:'$',  cls:'sm-green'},
-    {key:'cash',    label:'Cash',         fn:d=>parseFloat(d.cashSales)||0,              fmt:'$',  cls:''},
-    {key:'card',    label:'Card',         fn:d=>parseFloat(d.cardSales)||0,              fmt:'$',  cls:''},
-    {key:'fees',    label:'Card Fees',    fn:d=>parseFloat(d.cardFees)||0,               fmt:'$',  cls:'sm-amber'},
-    {key:'gcr',     label:'GC Redeemed', fn:d=>parseFloat(d.giftCardRedeemed)||0,       fmt:'$',  cls:''},
-    {key:'cashapp', label:'CashApp POS',  fn:d=>parseFloat(d.cashAppPay)||0,             fmt:'$',  cls:''},
-    {key:'venmo',   label:'Venmo',        fn:d=>parseFloat(d.venmo)||0,                  fmt:'$',  cls:''},
-    {key:'other',   label:'Other',        fn:d=>parseFloat(d.otherSales)||0,             fmt:'$',  cls:''},
-    {key:'merch',   label:'Merch',        fn:d=>parseFloat(d.merchSales)||0,             fmt:'$',  cls:''},
-    {key:'gcs',     label:'GC Sales',     fn:d=>parseFloat(d.giftCardSales)||0,          fmt:'$',  cls:''},
-    {key:'gcf',     label:'GC Load Fees', fn:d=>parseFloat(d.giftCardLoadFees)||0,       fmt:'$',  cls:'sm-amber'},
-    {key:'fcash',   label:'Fund Cash',    fn:d=>parseFloat(d.fundraiserCash)||0,         fmt:'$',  cls:''},
-    {key:'fcard',   label:'Fund Card',    fn:d=>parseFloat(d.fundraiserCard)||0,         fmt:'$',  cls:''},
-    {key:'dv',      label:'DV',           fn:d=>parseFloat(d.dv)||0,                     fmt:'dv', cls:''},
-  ];
-
-  function fmtCell(val, fmt, cls) {
-    if (!val) return `<td class="sm-nodata">—</td>`;
-    let s;
-    if (fmt==='$') s = '$'+val.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-    else if (fmt==='dv') s = val.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-    else s = val.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1});
-    return `<td class="${cls}">${s}</td>`;
-  }
-
-  const thead = `<thead><tr><th style="position:sticky;left:0;background:var(--b0);z-index:2;min-width:100px;">Period</th>${cols.map(c=>`<th style="white-space:nowrap;">${c.label}</th>`).join('')}</tr></thead>`;
-
-  // Group days by Sun–Sat weeks
-  let tbody = '<tbody>';
-  let monthTotals = {};
-  cols.forEach(c => monthTotals[c.key] = 0);
-  let monthDays = 0;
-
-  // Find first Sunday on or before the 1st of month
-  let weekStart = new Date(yr, mo, 1);
-  while (weekStart.getDay() !== 0) weekStart.setDate(weekStart.getDate()-1);
-
-  while (weekStart.getMonth() <= mo || weekStart.getFullYear() < yr) {
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekStart.getDate()+6);
-    if (weekStart > new Date(yr, mo, daysInMonth)) break;
-
-    let weekTotals = {}; cols.forEach(c => weekTotals[c.key] = 0);
-    let weekDays = 0;
-    let hasWeekData = false;
-    let dayRows = '';
-
-    for (let d = new Date(weekStart); d <= weekEnd; d.setDate(d.getDate()+1)) {
-      if (d.getMonth() !== mo && !(d <= weekEnd && d.getMonth() !== mo)) continue;
-      if (d.getMonth() !== mo) continue;
-      const ds = fmtDateStr2(d);
-      const isFuture = ds > todayStr;
-      const data = dayMap[ds];
-      const dayNum = d.getDate();
-      const dayName = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
-      const dayLabel = `${dayName} ${months[d.getMonth()]} ${dayNum}`;
-
-      if (!data || isFuture) {
-        const note = isFuture ? 'future' : 'no data';
-        dayRows += `<tr><td class="sm-nodata" style="position:sticky;left:0;background:var(--surface);z-index:1;">${dayLabel}</td>${cols.map(()=>'<td class="sm-nodata">—</td>').join('')}</tr>`;
-        continue;
-      }
-
-      hasWeekData = true;
-      weekDays++;
-      let cells = '';
-      cols.forEach(c => {
-        const val = c.fn(data);
-        weekTotals[c.key] = (weekTotals[c.key]||0) + val;
-        monthTotals[c.key] = (monthTotals[c.key]||0) + val;
-        cells += fmtCell(val, c.fmt, c.cls);
-      });
-      monthDays++;
-      dayRows += `<tr><td style="position:sticky;left:0;background:var(--surface);z-index:1;">${dayLabel}</td>${cells}</tr>`;
-    }
-
-    // Week label
-    const ws = weekStart.getMonth()===mo ? weekStart : new Date(yr,mo,1);
-    const we = weekEnd.getMonth()===mo ? weekEnd : new Date(yr,mo,daysInMonth);
-    const wLabel = `${months[ws.getMonth()]} ${ws.getDate()}–${we.getDate()}`;
-
-    tbody += dayRows;
-    // Week subtotal
-    let wCells = cols.map(c => {
-      return fmtCell(weekTotals[c.key]||0, c.fmt, c.cls);
-    }).join('');
-    tbody += `<tr class="sm-wk"><td style="position:sticky;left:0;background:var(--b0);z-index:1;">${wLabel}</td>${wCells}</tr>`;
-
-    weekStart.setDate(weekStart.getDate()+7);
-    if (weekStart.getFullYear() > yr && mo < 11) break;
-    if (weekStart.getMonth() > mo && weekStart.getFullYear() >= yr) break;
-  }
-
-  // Month total
-  let mCells = cols.map(c => {
-    return fmtCell(monthTotals[c.key]||0, c.fmt, c.cls);
-  }).join('');
-  tbody += `<tr class="sm-total"><td style="position:sticky;left:0;background:var(--surface);z-index:1;">${MONTH_NAMES[mo]} ${yr}</td>${mCells}</tr>`;
-  tbody += '</tbody>';
-
-  el.innerHTML = `<div style="overflow-x:auto;"><table class="smtbl" style="min-width:900px;">${thead}${tbody}</table></div>`;
-}
-
-
-// ── BANK RECONCILIATION WIDGET ───────────────────────────────────────────────
-let _reconOpen = false;
-
-function calcReconTotals() {
-  // Unallocated = sum of pending bucket amounts on days NOT fully allocated.
-  // Fully-allocated days (all 5 buckets done) net to zero and are excluded.
-  let unalloc = 0;
-  let cardDepositsTotal = 0, cashDepositsTotal = 0, transfersTotal = 0;
-  const unallocDays = [];
-  ALL_DAYS.forEach(d => {
-    const data = d.data || {};
-    if (!calSales(data)) return;
-    const c = calcAllFromData(data);
-    const tr = data.transfers || {};
-    const allKeys = ['cashdeposit','tax','overhead','herbalife','payouts'];
-    const allDone = allKeys.every(k => tr[k]);
-    const cardDep = (c.cardDeposits||0); // Square sweep only: cardSales - fees + cashAppPay - gcLoadFees
-    const cashDep = parseFloat(data.cashSales)||0;
-    cardDepositsTotal += cardDep;
-    if (tr.cashdeposit) cashDepositsTotal += cashDep;
-    if (tr.tax)       transfersTotal += c.tax||0;
-    if (tr.overhead)  transfersTotal += c.overhead||0;
-    if (tr.herbalife) transfersTotal += c.products||0;
-    if (tr.payouts)   transfersTotal += c.payouts||0;
-    if (allDone) return; // fully allocated days contribute zero
-    const bvMap = {cashdeposit:cashDep, tax:c.tax||0, overhead:c.overhead||0, herbalife:c.products||0, payouts:c.payouts||0};
-    const pending = allKeys.filter(k => !tr[k]).map(k => ({key:k, amt:bvMap[k]}));
-    const pendingTotal = pending.reduce((s,p) => s+p.amt, 0);
-    unalloc += pendingTotal;
-    const dt = new Date(d.date+'T00:00:00');
-    const label = dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
-    unallocDays.push({date:d.date, label, pending, pendingTotal});
-  });
-  unallocDays.sort((a,b) => b.date.localeCompare(a.date));
-  return { cardDeposits:cardDepositsTotal, cashDeposits:cashDepositsTotal, transfers:transfersTotal, unalloc, unallocDays };
-}
-
-let _reconDaysOpen = false;
-
-function renderReconWidget() {
-  const totals = calcReconTotals();
-  const valEl = document.getElementById('recon-unalloc-val');
-  if (valEl) valEl.textContent = fmt$(totals.unalloc);
-  const cardEl = document.getElementById('recon-card-val');
-  if (cardEl) cardEl.textContent = '+' + fmt$(totals.cardDeposits);
-  const cashEl = document.getElementById('recon-cash-val');
-  if (cashEl) cashEl.textContent = '+' + fmt$(totals.cashDeposits);
-  const xferEl = document.getElementById('recon-xfer-val');
-  if (xferEl) xferEl.textContent = '−' + fmt$(totals.transfers);
-  // Set bulk date default to end of last month
-  const bulkDate = document.getElementById('recon-bulk-date');
-  if (bulkDate && !bulkDate.value) {
-    const now = new Date();
-    const lastMo = new Date(now.getFullYear(), now.getMonth(), 0);
-    bulkDate.value = lastMo.getFullYear()+'-'+String(lastMo.getMonth()+1).padStart(2,'0')+'-'+String(lastMo.getDate()).padStart(2,'0');
-  }
-  // Update toggle button count
-  const toggleBtn = document.getElementById('recon-days-toggle-btn');
-  const cnt = totals.unallocDays.length;
-  if (toggleBtn) toggleBtn.innerHTML = (_reconDaysOpen ? '&#9650;' : '&#9660;') + ' ' + cnt + ' unallocated day' + (cnt!==1?'s':'') + ' — click to ' + (_reconDaysOpen?'hide':'show');
-  // Render unallocated days list
-  const listEl = document.getElementById('recon-unalloc-days');
-  if (listEl) {
-    const BUCKET_NAMES = {cashdeposit:'Cash', tax:'Tax', overhead:'OH', herbalife:'Herb.', payouts:'Payouts'};
-    listEl.innerHTML = totals.unallocDays.map(day => {
-      const bucketStr = day.pending.map(p => BUCKET_NAMES[p.key]||p.key).join(', ');
-      return `<div class="recon-day-row" onclick="openAllocDetail('${day.date}')">
-        <div>
-          <div class="recon-day-lbl">${day.label}</div>
-          <div class="recon-day-buckets">Pending: ${bucketStr}</div>
-        </div>
-        <div class="recon-day-amt">${fmt$(day.pendingTotal)}</div>
-      </div>`;
-    }).join('') || '<div style="padding:8px 14px;font-size:11px;color:rgba(255,255,255,0.4);">All days fully allocated</div>';
-    listEl.style.display = _reconDaysOpen ? 'block' : 'none';
-  }
-  updateReconMatch();
-}
-
-function toggleReconDaysList() {
-  _reconDaysOpen = !_reconDaysOpen;
-  renderReconWidget();
-}
-
-
-function reconPendingFocus() {
-  const el = document.getElementById('recon-pending-input');
-  if (!el) return;
-  const raw = el.value.replace(/[$,]/g, '').trim();
-  if (raw && !isNaN(parseFloat(raw))) el.value = raw;
-  el.select();
-}
-
-function reconPendingBlur() {
-  const el = document.getElementById('recon-pending-input');
-  if (!el) return;
-  const raw = el.value.replace(/[$,]/g, '').trim();
-  const val = parseFloat(raw);
-  if (!raw || isNaN(val)) { el.value = ''; updateReconMatch(); return; }
-  el.value = '$' + val.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
-  updateReconMatch();
-}
-
-function reconBankFocus() {
-  const el = document.getElementById('recon-bank-input');
-  if (!el) return;
-  // Strip formatting so user can type cleanly
-  const raw = el.value.replace(/[$,]/g, '').trim();
-  if (raw && !isNaN(parseFloat(raw))) el.value = raw;
-  el.select();
-}
-
-function reconBankBlur() {
-  const el = document.getElementById('recon-bank-input');
-  if (!el) return;
-  const raw = el.value.replace(/[$,]/g, '').trim();
-  const val = parseFloat(raw);
-  if (!raw || isNaN(val)) { el.value = ''; return; }
-  // Format as $X,XXX.XX
-  el.value = '$' + val.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
-  updateReconMatch();
-}
-
-function updateReconMatch() {
-  const totals = calcReconTotals();
-  const inputEl = document.getElementById('recon-bank-input');
-  const pendingEl = document.getElementById('recon-pending-input');
-  const badge = document.getElementById('recon-match-badge');
-  const resultBar = document.getElementById('recon-result-bar');
-  const pendingBrow = document.getElementById('recon-pending-brow');
-  const pendingBrowVal = document.getElementById('recon-pending-brow-val');
-  if (!inputEl || !badge) return;
-
-  const rawBank = inputEl.value.replace(/[$,]/g, '').trim();
-  const bankVal = parseFloat(rawBank);
-  const rawPending = pendingEl ? pendingEl.value.replace(/[$,]/g, '').trim() : '';
-  const pendingVal = parseFloat(rawPending) || 0;
-
-  // Show/hide pending row in breakdown
-  if (pendingBrow) pendingBrow.style.display = pendingVal > 0 ? 'flex' : 'none';
-  if (pendingBrowVal) pendingBrowVal.textContent = pendingVal > 0 ? '+' + fmt$(pendingVal) : '—';
-
-  if (!rawBank || isNaN(bankVal)) {
-    badge.className = 'recon-match-badge none';
-    badge.textContent = '—';
-    if (resultBar) resultBar.style.display = 'none';
-    return;
-  }
-
-  // Effective balance = what's in bank + what's pending
-  const effectiveBalance = bankVal + pendingVal;
-  const diff = Math.abs(effectiveBalance - totals.unalloc);
-  const isMatch = diff < 0.02;
-  badge.className = 'recon-match-badge ' + (isMatch ? 'ok' : 'off');
-  badge.textContent = isMatch ? '✓ Match' : 'Off ' + fmt$(diff);
-  if (resultBar && _reconOpen) {
-    resultBar.style.display = 'block';
-    resultBar.className = 'recon-result-bar ' + (isMatch ? 'ok' : 'off');
-    const effectiveStr = pendingVal > 0 ? fmt$(bankVal) + ' + ' + fmt$(pendingVal) + ' pending = ' + fmt$(effectiveBalance) : fmt$(effectiveBalance);
-    resultBar.textContent = isMatch
-      ? '✓ ' + effectiveStr + ' matches unallocated balance'
-      : 'Off by ' + fmt$(diff) + ' — ' + effectiveStr + ' vs ' + fmt$(totals.unalloc) + ' unallocated';
-  }
-}
-
-function toggleReconWidget() {
-  _reconOpen = !_reconOpen;
-  const body = document.getElementById('recon-body');
-  const chev = document.getElementById('recon-chev');
-  if (body) body.classList.toggle('open', _reconOpen);
-  if (chev) chev.classList.toggle('open', _reconOpen);
-  if (_reconOpen) updateReconMatch();
-}
-
-function toggleReconChip(el) {
-  el.classList.toggle('on');
-}
-
-async function runBulkMark() {
-  const dateEl = document.getElementById('recon-bulk-date');
-  const runBtn = document.getElementById('recon-run-btn');
-  if (!dateEl || !dateEl.value) { showToast('Pick a date first', 'error'); return; }
-  const cutoff = dateEl.value;
-  // Get selected buckets
-  const chips = document.querySelectorAll('#recon-chips .recon-chip.on');
-  const buckets = Array.from(chips).map(c => c.dataset.key);
-  if (!buckets.length) { showToast('Select at least one bucket', 'error'); return; }
-  const eligible = ALL_DAYS.filter(d => d.date <= cutoff && calSales(d.data||{}));
-  if (!eligible.length) { showToast('No days with data on or before that date', 'error'); return; }
-  const needsUpdate = eligible.filter(d => {
-    const tr = d.data?.transfers || {};
-    return buckets.some(k => !tr[k]);
-  });
-  if (!needsUpdate.length) { showToast('All selected buckets already marked for that range', 'success'); return; }
-  if (!confirm('Mark ' + buckets.join(', ') + ' as complete for ' + needsUpdate.length + ' day' + (needsUpdate.length !== 1 ? 's' : '') + ' on or before ' + cutoff + '?')) return;
-  if (runBtn) { runBtn.disabled = true; runBtn.textContent = 'Running…'; }
-  let done = 0, failed = 0;
-  for (const d of needsUpdate) {
-    const data = { ...(d.data || {}) };
-    if (!data.transfers) data.transfers = {};
-    buckets.forEach(k => { data.transfers[k] = true; });
-    const { error } = await sb.from('days').update({ data }).eq('id', d.id);
-    if (error) { failed++; }
-    else { d.data = data; done++; }
-  }
-  if (runBtn) { runBtn.disabled = false; runBtn.textContent = '⚡ Run'; }
-  if (failed) showToast(done + ' marked, ' + failed + ' failed', 'error');
-  else showToast('✓ ' + done + ' day' + (done !== 1 ? 's' : '') + ' marked complete', 'success');
-  renderReconWidget();
-  renderHistCal();
-  renderHistAlloc();
-}
-
-
-function confirmResetDay() {
-  const dateLabel = document.getElementById('current-date-label')?.textContent || 'this day';
-  if (!confirm('Clear all fields for ' + dateLabel + '?\n\nThis resets the form to blank — no data will be deleted until you Save.')) return;
-  resetDayFields();
-}
-
-function resetDayFields() {
-  // Clear all entry fields
-  const CURRENCY_FIELDS = ['f-cashSales','f-cardSales','f-cardFees','f-giftCardRedeemed',
-    'f-cashAppPay','f-venmo','f-otherSales','f-merchSales','f-giftCardSales',
-    'f-giftCardLoadFees','f-fundraiserCash','f-fundraiserCard'];
-  CURRENCY_FIELDS.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
-  });
-  const dvEl = document.getElementById('f-dv');
-  if (dvEl) dvEl.value = '';
-  // Clear operators
-  const op1 = document.getElementById('f-op1');
-  const op2 = document.getElementById('f-op2');
-  if (op1) op1.value = '';
-  if (op2) op2.value = '';
-  // Clear fundraiser pct
-  const fPct = document.getElementById('f-fundraiserPct');
-  if (fPct) fPct.value = '0';
-  // Clear notes
-  const notes = document.getElementById('f-notes');
-  if (notes) notes.value = '';
-  // Clear closed day
-  const closedCheck = document.getElementById('f-closed-day');
-  if (closedCheck) closedCheck.checked = false;
-  // Recalc to update display
-  recalc(true);
-  showToast('Fields cleared', 'success');
+  // Re-render calendar cell live
+  renderAllocCal();
 }
 
 function resolveAlias(n){for(const op of SETTINGS.operators){if(!op.name)continue;const a=(op.aliases||'').split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);if(op.name.toLowerCase()===n.toLowerCase())return op.name;if(a.includes(n.toLowerCase()))return op.name;}return n;}
-
-function buildPayAccountsUI() {
-  const el = document.getElementById('s-pay-accounts');
-  if (!el) return;
-  const accounts = getPregAccounts();
-  el.innerHTML = accounts.map((a,i) => `
-    <div class="settings-row">
-      <input type="text" value="${a.replace(/"/g,'&quot;')}" onchange="updatePayAccount(${i},this.value)"
-        style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 8px;outline:none;flex:1;background:var(--b0);color:var(--text);"/>
-      <button onclick="removePayAccount(${i})" style="background:none;border:none;color:var(--r5);cursor:pointer;font-size:16px;padding:0 4px;flex-shrink:0;">×</button>
-    </div>`).join('');
-}
-
-async function addPayAccount() {
-  if (!SETTINGS.payAccounts) SETTINGS.payAccounts = ['Payout Account','Opex Account'];
-  SETTINGS.payAccounts.push('New Account');
-  await sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID);
-  buildPayAccountsUI();
-}
-
-async function removePayAccount(i) {
-  if (!SETTINGS.payAccounts || SETTINGS.payAccounts.length <= 1) { showToast('Need at least one account','error'); return; }
-  SETTINGS.payAccounts.splice(i,1);
-  await sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID);
-  buildPayAccountsUI();
-  showToast('Account removed','success');
-}
-
-async function updatePayAccount(i, val) {
-  if (!SETTINGS.payAccounts) SETTINGS.payAccounts = ['Payout Account','Opex Account'];
-  SETTINGS.payAccounts[i] = val;
-  await sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID);
-  showToast('Account updated','success');
-}
 
 function buildSettingsUI(){
   // Always update nav club name from settings -- no conditional
   const _bncn=document.getElementById('nav-club-name');
   if(_bncn&&SETTINGS.clubName){_bncn.textContent=SETTINGS.clubName;}
   const c=document.getElementById('s-prod-count');if(c)c.textContent=PRODUCTS.length+' products ->';
-  buildPayAccountsUI();buildSelect('s-taxrate', range(0,4,0.25), SETTINGS.taxRate,  v=>v.toFixed(2)+'%');
+  buildSelect('s-taxrate', range(0,4,0.25), SETTINGS.taxRate,  v=>v.toFixed(2)+'%');
   buildSelect('s-ohrate',  range(15,40,1),  SETTINGS.ohRate,   v=>v+'%');
   buildSelect('s-otherrate',range(30,60,2), SETTINGS.otherRate,v=>v+'%');
   buildSelect('s-merchrate',range(5,100,5), SETTINGS.merchRate,v=>v+'%');
@@ -6374,33 +4871,6 @@ function populateOperatorDropdowns(){
   });
   renderOpsEarningsPreview();
 }
-
-// ── THEME SYSTEM ─────────────────────────────────────────────────────────────
-const THEMES = {
-  ocean:  { b8:'#4e6e86', b7:'#607e96' },
-  forest: { b8:'#2d6a4f', b7:'#3d8060' },
-  sand:   { b8:'#9e7e6a', b7:'#b4947e' }
-};
-
-function applyTheme(name) {
-  const theme = THEMES[name] || THEMES.ocean;
-  const validName = THEMES[name] ? name : 'ocean';
-  document.documentElement.setAttribute('data-theme', validName === 'ocean' ? '' : validName);
-  // Update active dot
-  ['ocean','forest','sand'].forEach(t => {
-    const dot = document.getElementById('td-' + t);
-    if (dot) dot.classList.toggle('active', t === validName);
-  });
-}
-
-async function setTheme(name) {
-  applyTheme(name);
-  // Save to Supabase location settings
-  if (!SETTINGS) return;
-  SETTINGS.theme = name;
-  await sb.from('locations').update({ settings: SETTINGS }).eq('id', LOCATION_ID);
-}
-
 async function handleSignOut(){if(IS_ADMIN_VIEW){window.location.href='admin.html';return;}await sb.auth.signOut();window.location.href='index.html';}
 
 // -- LOCATION SWITCHER --
@@ -6507,13 +4977,12 @@ function updateDateDisplay(){
     const existing=_entryDirty?'<span class="unsaved-dot" style="font-size:11px;font-weight:600;color:#c47c0a;">· unsaved</span>':'';
     if(_entryDirty)dowEl.innerHTML+=existing;
   }
-  // Show "&#8617; Today" and → only when not on today's date
-  const todayStr=localToday();
+  // Show "&#8617; Today" button only when not on today's date
+  const todayStr=new Date().toISOString().slice(0,10);
   const todayBtn=document.getElementById('btn-go-today');
   const nextBtn=document.getElementById('btn-next-day');
-  const isToday=(val===todayStr);
-  if(todayBtn)todayBtn.style.display=isToday?'none':'inline-flex';
-  if(nextBtn)nextBtn.style.display=isToday?'none':'inline-flex';
+  if(todayBtn)todayBtn.style.display=(val!==todayStr)?'inline-flex':'none';
+  if(nextBtn)nextBtn.style.display=(val!==todayStr)?'inline-flex':'none';
   updateClosedDayToggle(val);
 }
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
@@ -6582,9 +5051,9 @@ function autoSizeInput(el){
     el.innerHTML =
       '<div style="background:#fff;border-radius:18px;width:100%;max-width:380px;padding:36px 28px 28px;text-align:center;font-family:\'DM Sans\',sans-serif;">' +
         '<div style="font-size:40px;margin-bottom:14px;">&#128274;</div>' +
-        '<div style="font-family:\'Outfit\',sans-serif;font-size:20px;font-weight:700;color:#354e62;margin-bottom:10px;">Account Deactivated</div>' +
+        '<div style="font-family:\'Outfit\',sans-serif;font-size:20px;font-weight:700;color:#1e2d3d;margin-bottom:10px;">Account Deactivated</div>' +
         '<div style="font-size:14px;color:#5b7087;line-height:1.6;margin-bottom:24px;">Your account has been removed from this location. Contact your admin to request reactivation.</div>' +
-        '<button onclick="window.location.href=\'index.html\'" style="width:100%;font-family:\'DM Sans\',sans-serif;font-size:15px;font-weight:600;background:linear-gradient(135deg,#4e6e86,#85a6ba);color:white;border:none;border-radius:10px;padding:13px;cursor:pointer;">OK</button>' +
+        '<button onclick="window.location.href=\'index.html\'" style="width:100%;font-family:\'DM Sans\',sans-serif;font-size:15px;font-weight:600;background:linear-gradient(135deg,#3a5470,#5b80a0);color:white;border:none;border-radius:10px;padding:13px;cursor:pointer;">OK</button>' +
       '</div>';
     document.body.appendChild(el);
   }
@@ -6594,36 +5063,20 @@ function autoSizeInput(el){
     try {
       var res = await sb.from('users').select('role,location_id').eq('id', CURRENT_SESSION.user.id).single();
       var u = res.data;
-      // No user row — could be a Supabase hiccup, skip silently rather than logging out
-      if (!u) {
-        console.warn('checkDeactivation: no user row returned, skipping.');
-        return;
-      }
-      // Only show deactivated screen if the account is explicitly marked pending
-      if (u.role === 'pending') {
+      // org_leader role is set during onboarding before location is assigned -- don't deactivate
+      if (!u || u.role === 'pending' || (!u.location_id && u.role !== 'org_leader' && u.role !== 'admin')) {
         deactivationShown = true;
         await sb.auth.signOut();
         injectDeactivationOverlay();
-        return;
-      }
-      // No location assigned (and not a privileged role) = session/data issue, redirect quietly
-      if (!u.location_id && u.role !== 'org_leader' && u.role !== 'admin') {
-        await sb.auth.signOut();
-        window.location.href = 'index.html';
-        return;
       }
       // org_leader with no location_id means onboarding incomplete -- redirect to onboard
-      if (u.role === 'org_leader' && !u.location_id) {
+      if (u && u.role === 'org_leader' && !u.location_id) {
         window.location.href = 'index.html';
         return;
       }
-    } catch(e) {
-      // Network/transient error — do NOT sign out, just skip this check silently.
-      // Only redirect on confirmed auth issues, not connectivity blips.
-      console.warn('checkDeactivation skipped (network/auth error):', e?.message);
-    }
+    } catch(e) {}
   }
-  setTimeout(function() { checkDeactivation(); setInterval(checkDeactivation, 120000); }, 15000);
+  setTimeout(function() { checkDeactivation(); setInterval(checkDeactivation, 30000); }, 10000);
 })();
 
 // -- IDLE AUTO-LOGOUT (30 min idle, 3 min warning) --
@@ -6645,10 +5098,10 @@ function autoSizeInput(el){
     el.innerHTML =
       '<div style="background:#fff;border-radius:18px;width:100%;max-width:380px;padding:32px 28px 24px;box-shadow:0 20px 60px rgba(30,45,61,0.25);text-align:center;font-family:\'DM Sans\',sans-serif;">' +
         '<div style="font-size:36px;margin-bottom:12px;">&#9201;</div>' +
-        '<div style="font-family:\'Outfit\',sans-serif;font-size:20px;font-weight:700;color:#354e62;margin-bottom:8px;">Still there?</div>' +
+        '<div style="font-family:\'Outfit\',sans-serif;font-size:20px;font-weight:700;color:#1e2d3d;margin-bottom:8px;">Still there?</div>' +
         '<div style="font-size:14px;color:#5b7087;margin-bottom:6px;line-height:1.5;">You will be signed out automatically due to inactivity in</div>' +
         '<div id="idle-countdown" style="font-family:\'Outfit\',sans-serif;font-size:36px;font-weight:800;color:#c47c0a;margin:10px 0 20px;letter-spacing:-1px;">3:00</div>' +
-        '<button id="idle-stay-btn" style="width:100%;font-family:\'DM Sans\',sans-serif;font-size:15px;font-weight:600;background:linear-gradient(135deg,#4e6e86,#85a6ba);color:white;border:none;border-radius:10px;padding:13px;cursor:pointer;box-shadow:0 2px 10px rgba(78,110,134,0.25);">Keep me signed in</button>' +
+        '<button id="idle-stay-btn" style="width:100%;font-family:\'DM Sans\',sans-serif;font-size:15px;font-weight:600;background:linear-gradient(135deg,#3a5470,#5b80a0);color:white;border:none;border-radius:10px;padding:13px;cursor:pointer;box-shadow:0 2px 10px rgba(58,84,112,0.25);">Keep me signed in</button>' +
       '</div>';
     document.body.appendChild(el);
     document.getElementById('idle-stay-btn').addEventListener('click', resetIdle);
@@ -6722,8 +5175,8 @@ async function safeInit() {
       '<details style="margin-top:8px;"><summary style="font-size:12px;color:#8fa3b3;cursor:pointer;">Stack trace</summary>' +
       '<pre style="font-size:11px;color:#8fa3b3;white-space:pre-wrap;margin-top:8px;">' + (e.stack||'') + '</pre></details>' +
       '<div style="margin-top:20px;display:flex;gap:10px;">' +
-      '<a href="admin.html" style="background:#4e6e86;color:white;padding:10px 18px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">Dashboard</a>' +
-      '<a href="index.html" style="background:#e8edf4;color:#4e6e86;padding:10px 18px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">Sign In</a>' +
+      '<a href="admin.html" style="background:#3a5470;color:white;padding:10px 18px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">Dashboard</a>' +
+      '<a href="index.html" style="background:#e8edf4;color:#3a5470;padding:10px 18px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">Sign In</a>' +
       '</div>' +
       '</div></div>';
   }
