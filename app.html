@@ -737,6 +737,45 @@ if('serviceWorker' in navigator){
     .alloc-bucket.cash-deposit.transferred .alloc-bucket-amt{color:var(--b6);}
     .alloc-bucket.cash-deposit.transferred .alloc-bucket-check{background:var(--b6);border-color:var(--b6);}
 
+
+    /* ── MULTI-SELECT MODE ── */
+    .hcal-day.ms-selectable{cursor:pointer !important;}
+    .hcal-day.ms-selectable:hover{box-shadow:0 0 0 2px var(--b4) !important;}
+    .hcal-day.ms-selected{background:var(--b1) !important;border:2px solid var(--b5) !important;}
+    .hcal-day.ms-selected .hcal-val-sales{color:var(--b7) !important;}
+    .ms-day-check{position:absolute;top:3px;right:3px;width:14px;height:14px;display:none;appearance:none;-webkit-appearance:none;border:1.5px solid var(--b4);border-radius:3px;background:var(--surface);cursor:pointer;flex-shrink:0;z-index:5;}
+    .ms-day-check:checked{background:var(--b6);border-color:var(--b6);}
+    .ms-day-check:checked::after{content:'';position:absolute;left:3px;top:0px;width:5px;height:8px;border:2px solid white;border-top:none;border-left:none;transform:rotate(45deg);}
+    body.ms-mode .ms-day-check{display:block;}
+    body.ms-mode .hcal-day.has-data{cursor:pointer;}
+
+    /* ── BULK ACTION PANEL ── */
+    .ms-bulk-panel{background:var(--b9);border-radius:var(--radius);overflow:hidden;margin-bottom:12px;display:none;}
+    .ms-bulk-panel.open{display:block;}
+    .ms-bulk-header{padding:10px 14px 0;display:flex;align-items:center;justify-content:space-between;}
+    .ms-bulk-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.5);}
+    .ms-bulk-clear{font-size:11px;font-weight:600;color:rgba(255,255,255,0.4);background:none;border:none;cursor:pointer;}
+    .ms-bulk-selected{display:flex;flex-wrap:wrap;gap:5px;padding:8px 14px;}
+    .ms-sel-pill{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,0.12);border-radius:20px;padding:3px 8px;font-size:11px;font-weight:600;color:white;}
+    .ms-sel-x{font-size:12px;color:rgba(255,255,255,0.45);cursor:pointer;line-height:1;background:none;border:none;}
+    .ms-bulk-chips{display:flex;flex-wrap:wrap;gap:5px;padding:0 14px 10px;}
+    .ms-bkt-chip{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;border:0.5px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.06);font-size:11px;font-weight:600;cursor:pointer;transition:all 0.12s;}
+    .ms-bkt-chip.on{background:rgba(255,255,255,0.18);color:white;border-color:rgba(255,255,255,0.4);}
+    .ms-bkt-box{width:12px;height:12px;border-radius:3px;border:1px solid rgba(255,255,255,0.3);flex-shrink:0;position:relative;}
+    .ms-bkt-chip.on .ms-bkt-box{background:white;border-color:white;}
+    .ms-bkt-chip.on .ms-bkt-box::after{content:'';position:absolute;left:2px;top:0;width:5px;height:8px;border:1.5px solid var(--b8);border-top:none;border-left:none;transform:rotate(45deg);}
+    .ms-breakdown{background:rgba(0,0,0,0.15);margin:0 14px 10px;}
+    .ms-bkt-row{display:flex;align-items:flex-start;justify-content:space-between;padding:6px 10px;border-bottom:0.5px solid rgba(255,255,255,0.06);}
+    .ms-bkt-row:last-child{border-bottom:none;background:rgba(255,255,255,0.07);}
+    .ms-bkt-row-name{font-size:12px;color:rgba(255,255,255,0.7);}
+    .ms-bkt-row-days{font-size:10px;color:rgba(255,255,255,0.35);margin-top:1px;}
+    .ms-bkt-row-amt{font-size:12px;font-weight:700;color:white;flex-shrink:0;margin-left:8px;}
+    .ms-bkt-row:last-child .ms-bkt-row-name{font-size:11px;font-weight:700;color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:0.4px;}
+    .ms-bkt-row:last-child .ms-bkt-row-amt{font-size:14px;font-weight:800;}
+    .ms-bulk-actions{display:flex;gap:8px;padding:0 14px 12px;}
+    .ms-run-btn{font-size:12px;font-weight:700;padding:7px 0;border-radius:7px;border:none;background:white;color:var(--b8);cursor:pointer;flex:1;font-family:'DM Sans',sans-serif;}
+    .ms-run-btn:hover{background:var(--b1);}
+    .ms-run-btn:disabled{opacity:0.4;cursor:default;}
     /* ── BANK RECONCILIATION WIDGET ── */
 
     #hist-sticky-header{flex-shrink:0;background:var(--bg);padding-bottom:6px;border-bottom:1px solid var(--border-light);box-shadow:0 2px 6px -2px rgba(53,78,98,0.08);z-index:10;}
@@ -1216,13 +1255,37 @@ if('serviceWorker' in navigator){
         <button id="fill-dv-btn" onclick="openFillDvModal()" style="display:none;font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;background:#854F0B;color:#fff;border:none;cursor:pointer;">&#9679; Fill missing DV</button>
         <button class="btn btn-ghost" id="hist-next-btn" onclick="histCalShift(1)" style="padding:5px 12px;font-size:16px;">&#8594;</button>
       </div>
-      <div class="hist-view-toggle">
-        <button class="hvt-btn active" id="hvt-cal" onclick="setHistView('cal')">&#128197; Calendar</button>
-        <button class="hvt-btn" id="hvt-sum" onclick="setHistView('sum')">&#9776; Summary</button>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div style="display:flex;background:var(--b0);border-radius:20px;padding:2px;border:1px solid var(--border-light);">
+          <button id="ms-single-btn" onclick="setMultiSelect(false)" style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:16px;border:none;background:var(--b7);color:white;cursor:pointer;">Single</button>
+          <button id="ms-multi-btn" onclick="setMultiSelect(true)" style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:16px;border:none;background:none;color:var(--text-muted);cursor:pointer;">Multi</button>
+        </div>
+        <div class="hist-view-toggle">
+          <button class="hvt-btn active" id="hvt-cal" onclick="setHistView('cal')">&#128197; Calendar</button>
+          <button class="hvt-btn" id="hvt-sum" onclick="setHistView('sum')">&#9776; Summary</button>
+        </div>
       </div>
     </div>
     </div><!-- /hist-sticky-header -->
     <div id="hist-scroll-body">
+    <div class="ms-bulk-panel" id="ms-bulk-panel">
+      <div class="ms-bulk-header">
+        <span class="ms-bulk-title">Mark complete — <span id="ms-day-count">0</span> days selected</span>
+        <button class="ms-bulk-clear" onclick="msClearAll()">Clear all</button>
+      </div>
+      <div class="ms-bulk-selected" id="ms-bulk-selected"></div>
+      <div class="ms-bulk-chips">
+        <div class="ms-bkt-chip on" data-key="tax" onclick="msBktToggle(this)"><div class="ms-bkt-box"></div>Taxes</div>
+        <div class="ms-bkt-chip on" data-key="overhead" onclick="msBktToggle(this)"><div class="ms-bkt-box"></div>Overhead</div>
+        <div class="ms-bkt-chip on" data-key="herbalife" onclick="msBktToggle(this)"><div class="ms-bkt-box"></div>Herbalife</div>
+        <div class="ms-bkt-chip on" data-key="payouts" onclick="msBktToggle(this)"><div class="ms-bkt-box"></div>Payouts</div>
+        <div class="ms-bkt-chip" data-key="cashdeposit" onclick="msBktToggle(this)"><div class="ms-bkt-box"></div>Cash Deposit</div>
+      </div>
+      <div class="ms-breakdown" id="ms-breakdown"></div>
+      <div class="ms-bulk-actions">
+        <button class="ms-run-btn" id="ms-run-btn" onclick="msRunBulk()">&#10003; Mark complete</button>
+      </div>
+    </div>
     <div id="history-cal-grid" style="width:100%;"></div>
     <!-- Summary view — hidden by default -->
     <div id="history-sum-view" style="display:none;">
@@ -3834,7 +3897,7 @@ function renderHistCal(){
         const _allDone=_tkeys.every(k=>_tr[k]);
         const _salesNum=calSales(data);
         const _dvNum=(parseFloat(data.dv)||0).toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1});
-        html+=`<div class="hcal-day has-data${isToday?' today-day':''}${_allDone?' style=\\"border-color:var(--g4);\\"':''}" onclick="openDetail('${dateStr}');loadHistProjDay('${dateStr}')" style="${_allDone?'border-color:var(--g4);':''}">
+        html+=`<div class="hcal-day has-data${isToday?' today-day':''}${_allDone?' style=\\"border-color:var(--g4);\\"':''}" onclick="hcalDayClick(event,'${dateStr}')" style="${_allDone?'border-color:var(--g4);':''}" data-date="${dateStr}"><input type="checkbox" class="ms-day-check" data-date="${dateStr}" onclick="event.stopPropagation()" onchange="msDayToggle('${dateStr}',this.checked)">
           <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2px;">
             <div class="hcal-dn" style="margin-bottom:0;">${day}</div>
             <div style="display:flex;align-items:center;gap:2px;">${adminIcon}${noteIcon}</div>
@@ -6484,6 +6547,144 @@ function resetDayFields() {
   showToast('Fields cleared', 'success');
 }
 
+
+// ── MULTI-SELECT MODE ────────────────────────────────────────────────────────
+let _msMode = false;
+let _msSelected = {}; // dateStr -> day data object
+
+function setMultiSelect(on) {
+  _msMode = on;
+  document.body.classList.toggle('ms-mode', on);
+  const sBtn = document.getElementById('ms-single-btn');
+  const mBtn = document.getElementById('ms-multi-btn');
+  if (sBtn) { sBtn.style.background = on ? 'none' : 'var(--b7)'; sBtn.style.color = on ? 'var(--text-muted)' : 'white'; }
+  if (mBtn) { mBtn.style.background = on ? 'var(--b7)' : 'none'; mBtn.style.color = on ? 'white' : 'var(--text-muted)'; }
+  if (!on) { msClearAll(); }
+}
+
+function hcalDayClick(event, dateStr) {
+  if (_msMode) {
+    const cb = event.currentTarget.querySelector('.ms-day-check');
+    if (cb) { cb.checked = !cb.checked; msDayToggle(dateStr, cb.checked); }
+  } else {
+    openDetail(dateStr);
+    loadHistProjDay(dateStr);
+  }
+}
+
+function msDayToggle(dateStr, checked) {
+  const day = ALL_DAYS.find(d => d.date === dateStr);
+  if (!day || !calSales(day.data || {})) return;
+  const cell = document.querySelector(`.hcal-day[data-date="${dateStr}"]`);
+  if (checked) {
+    _msSelected[dateStr] = day;
+    if (cell) cell.classList.add('ms-selected');
+  } else {
+    delete _msSelected[dateStr];
+    if (cell) cell.classList.remove('ms-selected');
+  }
+  msUpdatePanel();
+}
+
+function msClearAll() {
+  _msSelected = {};
+  document.querySelectorAll('.ms-day-check').forEach(cb => { cb.checked = false; });
+  document.querySelectorAll('.hcal-day.ms-selected').forEach(el => el.classList.remove('ms-selected'));
+  msUpdatePanel();
+}
+
+function msBktToggle(el) {
+  el.classList.toggle('on');
+  msUpdatePanel();
+}
+
+function msUpdatePanel() {
+  const panel = document.getElementById('ms-bulk-panel');
+  const days = Object.values(_msSelected).sort((a,b) => a.date.localeCompare(b.date));
+  const count = days.length;
+
+  if (!panel) return;
+  panel.classList.toggle('open', count > 0);
+  document.getElementById('ms-day-count').textContent = count;
+
+  // Selected day pills
+  const pillsEl = document.getElementById('ms-bulk-selected');
+  if (pillsEl) {
+    pillsEl.innerHTML = days.map(d => {
+      const dt = new Date(d.date + 'T00:00:00');
+      const lbl = dt.toLocaleDateString('en-US', {month:'short', day:'numeric'});
+      return `<div class="ms-sel-pill">${lbl}<button class="ms-sel-x" onclick="msDayToggle('${d.date}',false);document.querySelector('.ms-day-check[data-date=\'${d.date}\']').checked=false;">&#215;</button></div>`;
+    }).join('');
+  }
+
+  // Breakdown by bucket
+  const BKTS = {
+    tax: {key:'tax', label:'Taxes', fn: (c) => c.tax||0},
+    overhead: {key:'overhead', label:'Overhead', fn: (c) => c.overhead||0},
+    herbalife: {key:'herbalife', label:'Herbalife', fn: (c) => c.products||0},
+    payouts: {key:'payouts', label:'Payouts', fn: (c) => c.payouts||0},
+    cashdeposit: {key:'cashdeposit', label:'Cash Deposit', fn: (c,d) => parseFloat(d.cashSales)||0},
+  };
+  const activeBkts = Array.from(document.querySelectorAll('.ms-bkt-chip.on')).map(el => el.dataset.key);
+  const bdEl = document.getElementById('ms-breakdown');
+  if (bdEl && days.length) {
+    let grandTotal = 0;
+    const rows = activeBkts.map(key => {
+      const bkt = BKTS[key];
+      if (!bkt) return '';
+      let bktTotal = 0;
+      const dayAmts = days.map(d => {
+        const c = calcAllFromData(d.data || {});
+        const amt = bkt.fn(c, d.data || {});
+        bktTotal += amt;
+        const dt = new Date(d.date + 'T00:00:00');
+        const lbl = dt.toLocaleDateString('en-US', {month:'short', day:'numeric'});
+        return `${lbl} ${fmt$(amt)}`;
+      }).join(' · ');
+      grandTotal += bktTotal;
+      return `<div class="ms-bkt-row"><div><div class="ms-bkt-row-name">${bkt.label}</div><div class="ms-bkt-row-days">${dayAmts}</div></div><div class="ms-bkt-row-amt">${fmt$(bktTotal)}</div></div>`;
+    }).join('');
+    bdEl.innerHTML = rows + `<div class="ms-bkt-row"><div class="ms-bkt-row-name">Total</div><div class="ms-bkt-row-amt">${fmt$(grandTotal)}</div></div>`;
+  } else if (bdEl) {
+    bdEl.innerHTML = '';
+  }
+}
+
+async function msRunBulk() {
+  const days = Object.values(_msSelected);
+  if (!days.length) return;
+  const activeBkts = Array.from(document.querySelectorAll('.ms-bkt-chip.on')).map(el => el.dataset.key);
+  if (!activeBkts.length) { showToast('Select at least one bucket', 'error'); return; }
+
+  const dayLabels = days.map(d => {
+    const dt = new Date(d.date + 'T00:00:00');
+    return dt.toLocaleDateString('en-US', {month:'short', day:'numeric'});
+  }).join(', ');
+
+  if (!confirm('Mark ' + activeBkts.join(', ') + ' as complete for: ' + dayLabels + '?')) return;
+
+  const btn = document.getElementById('ms-run-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+
+  let done = 0, failed = 0;
+  for (const d of days) {
+    const data = { ...(d.data || {}) };
+    if (!data.transfers) data.transfers = {};
+    activeBkts.forEach(k => { data.transfers[k] = true; });
+    const { error } = await sb.from('days').update({ data }).eq('id', d.id);
+    if (error) { failed++; }
+    else { d.data = data; done++; }
+  }
+
+  if (btn) { btn.disabled = false; btn.textContent = '✓ Mark complete'; }
+  if (failed) showToast(done + ' saved, ' + failed + ' failed', 'error');
+  else showToast('✓ ' + done + ' day' + (done !== 1 ? 's' : '') + ' marked complete', 'success');
+
+  msClearAll();
+  renderHistCal();
+  renderHistAlloc();
+  renderReconWidget();
+}
 function resolveAlias(n){for(const op of SETTINGS.operators){if(!op.name)continue;const a=(op.aliases||'').split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);if(op.name.toLowerCase()===n.toLowerCase())return op.name;if(a.includes(n.toLowerCase()))return op.name;}return n;}
 
 function buildPayAccountsUI() {
