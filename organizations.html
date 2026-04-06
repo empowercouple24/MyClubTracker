@@ -784,7 +784,7 @@ function orgBuildLocCard(l, d7, d30) {
         + '<div class="lef-sec-lbl">Team (' + locUsers.length + ' member' + (locUsers.length !== 1 ? 's' : '') + ')</div>'
         + '<div class="lef-team-box">' + teamHtml + '</div>'
         + '<div style="display:flex;align-items:center;justify-content:space-between;">'
-          + '<button onclick="if(confirm(\'Delete this club? This cannot be undone.\')) deleteLocation(\'' + l.id + '\')" style="font-family:\'DM Sans\',sans-serif;font-size:12px;padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--r5);cursor:pointer;">&#128465; Delete</button>'
+          + '<button onclick="deleteLocation(\'' + l.id + '\')" style="font-family:\'DM Sans\',sans-serif;font-size:12px;padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--r5);cursor:pointer;">&#128465; Delete</button>'
           + '<div style="display:flex;gap:8px;">'
             + '<a href="app.html?location_id=' + l.id + '&admin=1&from=org" style="font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:700;padding:6px 14px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);text-decoration:none;cursor:pointer;">&#8594; Manage Club</a>'
             + '<button id="lef-save-' + l.id + '" onclick="confirmSaveLocDetails(\'' + l.id + '\',this)" style="font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:700;padding:6px 14px;border-radius:6px;border:none;background:var(--b7);color:white;cursor:pointer;">Save Changes</button>'
@@ -991,6 +991,7 @@ async function saveLocDetails(locId) {
 async function deleteLocation(locId) {
   const loc = allOrgLocations.find(l => l.id === locId);
   const name = loc ? loc.name : 'this club';
+  const orgId = loc ? loc.org_id : null;
   if (!confirm('Permanently delete ' + name + '?\n\nThis will remove all club data including days, inventory, and team members. This cannot be undone.')) return;
   const { error } = await sb.from('locations').delete().eq('id', locId);
   if (error) { showOrgToast('Delete failed: ' + error.message); return; }
@@ -999,6 +1000,11 @@ async function deleteLocation(locId) {
   allOrgDays = allOrgDays.filter(d => d.location_id !== locId);
   showOrgToast(name + ' deleted');
   renderOrgs();
+  // Re-open the org card this location belonged to
+  if (orgId) {
+    const card = document.getElementById('ocard-' + orgId);
+    if (card && !card.classList.contains('expanded')) card.classList.add('expanded');
+  }
 }
 async function deleteOrg(orgId, orgName, btn, e) {
   e && e.stopPropagation();

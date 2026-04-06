@@ -443,6 +443,9 @@ function togglePwVis(id,btn){var el=document.getElementById(id);if(!el)return;va
           <option value="employee">Operator</option>
           <option value="admin">Admin</option>
         </select>
+        <select id="users-filter-org" onchange="onOrgFilterChange()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;">
+          <option value="">All orgs</option>
+        </select>
         <select id="users-filter-loc" onchange="renderAdmins()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;">
           <option value="">All locations</option>
         </select>
@@ -451,6 +454,7 @@ function togglePwVis(id,btn){var el=document.getElementById(id);if(!el)return;va
           <option value="name-desc">Sort: name Z–A</option>
           <option value="role">Sort: role</option>
           <option value="location">Sort: location</option>
+          <option value="org">Sort: org</option>
         </select>
       </div>
       <div id="admins-list-inner">
@@ -664,6 +668,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY,{
 
 const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 let allLocations = [];
+let allOrgs = [];
 
 // ── SHARED HELPERS ──
 const US_STATES=[['AL','Alabama'],['AK','Alaska'],['AZ','Arizona'],['AR','Arkansas'],['CA','California'],['CO','Colorado'],['CT','Connecticut'],['DE','Delaware'],['FL','Florida'],['GA','Georgia'],['HI','Hawaii'],['ID','Idaho'],['IL','Illinois'],['IN','Indiana'],['IA','Iowa'],['KS','Kansas'],['KY','Kentucky'],['LA','Louisiana'],['ME','Maine'],['MD','Maryland'],['MA','Massachusetts'],['MI','Michigan'],['MN','Minnesota'],['MS','Mississippi'],['MO','Missouri'],['MT','Montana'],['NE','Nebraska'],['NV','Nevada'],['NH','New Hampshire'],['NJ','New Jersey'],['NM','New Mexico'],['NY','New York'],['NC','North Carolina'],['ND','North Dakota'],['OH','Ohio'],['OK','Oklahoma'],['OR','Oregon'],['PA','Pennsylvania'],['RI','Rhode Island'],['SC','South Carolina'],['SD','South Dakota'],['TN','Tennessee'],['TX','Texas'],['UT','Utah'],['VT','Vermont'],['VA','Virginia'],['WA','Washington'],['WV','West Virginia'],['WI','Wisconsin'],['WY','Wyoming']];
@@ -991,8 +996,12 @@ function attachPlacesAutocomplete(streetInputId, cityId, stateId, zipId) {
 }
 
 async function loadLocations() {
-  const { data:locs } = await sb.from('locations').select('id,name,address,owner_name,invite_code,settings').order('name');
+  const [{ data:locs }, { data:orgs }] = await Promise.all([
+    sb.from('locations').select('id,name,address,owner_name,invite_code,settings,org_id').order('name'),
+    sb.from('organizations').select('id,name').order('name')
+  ]);
   allLocations = locs || [];
+  allOrgs = orgs || [];
   renderLocations();
   renderCodes();
 }
@@ -1090,6 +1099,24 @@ function renderCodes() {
 }
 
 // ── RENDER ALL USERS ──
+function onOrgFilterChange() {
+  const orgId = document.getElementById('users-filter-org')?.value || '';
+  const locSel = document.getElementById('users-filter-loc');
+  if (!locSel) return;
+  // Reset location dropdown
+  locSel.innerHTML = '<option value="">All locations</option>';
+  const visibleLocs = orgId
+    ? allLocations.filter(l => l.org_id === orgId)
+    : allLocations;
+  visibleLocs.forEach(l => {
+    const opt = document.createElement('option');
+    opt.value = l.id;
+    opt.textContent = l.name;
+    locSel.appendChild(opt);
+  });
+  renderAdmins();
+}
+
 function renderAdmins() {
   const el = document.getElementById('admins-list-inner');
   const footer = document.getElementById('users-count-footer');
@@ -1098,10 +1125,22 @@ function renderAdmins() {
     el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-faint);font-size:14px;">No users yet.</div>';
     return;
   }
-  // Populate location filter dropdown once
+  // Populate org filter dropdown once
+  const orgSel = document.getElementById('users-filter-org');
+  if (orgSel && orgSel.options.length === 1) {
+    allOrgs.forEach(o => {
+      const opt = document.createElement('option');
+      opt.value = o.id;
+      opt.textContent = o.name;
+      orgSel.appendChild(opt);
+    });
+  }
+  // Populate location filter dropdown (respects org filter)
+  const filterOrg = document.getElementById('users-filter-org')?.value || '';
   const locSel = document.getElementById('users-filter-loc');
   if (locSel && locSel.options.length === 1) {
-    allLocations.forEach(l => {
+    const visibleLocs = filterOrg ? allLocations.filter(l => l.org_id === filterOrg) : allLocations;
+    visibleLocs.forEach(l => {
       const opt = document.createElement('option');
       opt.value = l.id;
       opt.textContent = l.name;
@@ -1119,6 +1158,10 @@ function renderAdmins() {
     return hay.includes(searchQ);
   });
   if (filterRole) users = users.filter(u => u.role === filterRole);
+  if (filterOrg) users = users.filter(u => {
+    const loc = allLocations.find(l => l.id === u.location_id);
+    return loc && loc.org_id === filterOrg;
+  });
   if (filterLoc) users = users.filter(u => u.location_id === filterLoc);
   // Sort
   users.sort((a,b) => {
@@ -1131,6 +1174,13 @@ function renderAdmins() {
       const la = allLocations.find(l=>l.id===a.location_id)?.name||'';
       const lb = allLocations.find(l=>l.id===b.location_id)?.name||'';
       return la.localeCompare(lb);
+    }
+    if (sortBy === 'org') {
+      const la = allLocations.find(l=>l.id===a.location_id);
+      const lb = allLocations.find(l=>l.id===b.location_id);
+      const oa = allOrgs.find(o=>o.id===la?.org_id)?.name||'';
+      const ob = allOrgs.find(o=>o.id===lb?.org_id)?.name||'';
+      return oa.localeCompare(ob);
     }
     return 0;
   });
