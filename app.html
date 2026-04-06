@@ -190,6 +190,10 @@ if('serviceWorker' in navigator){
     .hcal-sales-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--g6);white-space:nowrap;}
     .hcal-sales{font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--g5);line-height:1.1;margin-bottom:2px;}
     .hcal-dv-block{display:flex;flex-direction:column;margin:2px 0 0;}
+    .hcal-net-suffix{font-size:8px;font-weight:700;color:var(--g5);opacity:0.7;margin-left:1px;letter-spacing:0.2px;}
+    .hcal-dv-suffix{font-size:8px;font-weight:700;color:var(--text-faint);margin-left:1px;letter-spacing:0.2px;}
+    .hcal-val-sales{font-size:12px;font-weight:800;color:var(--g5);line-height:1.1;}
+    .hcal-val-dv{font-size:12px;font-weight:800;color:var(--text);line-height:1.1;margin-top:1px;}
     .hcal-pill-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--b4);white-space:nowrap;}
     .hcal-pill-val{font-size:12px;font-weight:700;color:var(--text);}
     .hcal-extras{margin-top:3px;font-size:10px;color:var(--text-faint);}
@@ -317,7 +321,9 @@ if('serviceWorker' in navigator){
     .inv-row-need td{background:rgba(59,130,246,0.04);}
     .inv-row-need:hover td{background:rgba(59,130,246,0.07);}
     /* OOS checkbox */
-    .oos-check{width:16px;height:16px;cursor:pointer;accent-color:var(--r5,#ef4444);flex-shrink:0;}
+    .oos-check{width:15px;height:15px;cursor:pointer;flex-shrink:0;appearance:none;-webkit-appearance:none;border:1px solid #c8d8e4;border-radius:3px;background:var(--surface);position:relative;margin-top:1px;}
+    .oos-check:checked{background:var(--r5,#ef4444);border-color:var(--r5,#ef4444);}
+    .oos-check:checked::after{content:'';position:absolute;left:3px;top:0px;width:5px;height:9px;border:2px solid white;border-top:none;border-left:none;transform:rotate(45deg);}
     .oos-badge{display:inline-block;font-size:10px;font-weight:700;background:#fee2e2;color:#dc2626;border-radius:4px;padding:1px 5px;margin-left:4px;vertical-align:middle;white-space:nowrap;}
     .inv-row-oos td{opacity:0.55;}
     .inv-row-oos .inv-name{text-decoration:line-through;}
@@ -482,7 +488,7 @@ if('serviceWorker' in navigator){
       .hcal-dow-row { gap: 2px; }
       .hcal-dow { font-size: 8px; padding: 2px 0; }
       .hcal-week { gap: 2px; }
-      .hcal-day { padding: 4px 3px; min-height: 0 !important; aspect-ratio: unset !important; }
+      .hcal-day { padding: 3px 3px 4px; min-height: 0 !important; aspect-ratio: unset !important; }
       .hcal-dn { font-size: 9px; margin-bottom: 1px; }
       .hcal-sales-label { font-size: 7px; }
       .hcal-sales { font-size: 9px; margin-bottom: 1px; }
@@ -495,8 +501,32 @@ if('serviceWorker' in navigator){
       .hcal-week-total { font-size: 11px; }
       .hcal-month-total { padding: 7px 10px; margin-bottom: 6px; }
       .hcal-month-total-val { font-size: 13px; }
+      /* Mobile calendar day values — tighter, no suffixes */
+      .hcal-val-sales { font-size: 10px; }
+      .hcal-val-dv { font-size: 10px; margin-top: 0; }
+      .hcal-net-suffix { display: none; }
+      .hcal-dv-suffix { display: none; }
       /* hide alloc dots on mobile history — too small */
       .hcal-day .dot-row { display: none; }
+      /* Operator dots smaller on mobile */
+      .hcal-day [style*="width:14px"] { width: 11px !important; height: 11px !important; font-size: 6px !important; }
+      /* Quadrant SVG smaller on mobile */
+      .hcal-day svg { width: 16px !important; height: 16px !important; }
+      /* Recon banner — compact on mobile */
+      .recon-banner { flex-wrap: wrap; gap: 4px; padding: 8px 10px; }
+      .recon-banner-left { flex: 1; min-width: 0; }
+      .recon-banner-val { font-size: 17px; }
+      .recon-banner-sub { font-size: 9px; }
+      .recon-banner-right { flex-shrink: 0; gap: 5px; }
+      .recon-bank-pill { padding: 4px 8px; gap: 5px; }
+      .recon-bank-lbl { display: none; }
+      .recon-bank-div { display: none; }
+      .recon-bank-input { width: 82px; font-size: 11px; }
+      .recon-match-badge { font-size: 9px; padding: 2px 6px; }
+      .recon-chev { font-size: 10px; }
+      /* History panel full width on mobile */
+      #panel-history > div { width: 100% !important; min-width: 0 !important; padding: 6px 6px 40px !important; }
+      .recon-widget { margin-bottom: 8px; }
 
       /* ── ALLOCATIONS CALENDAR ── */
       #panel-alloc > div {
@@ -1116,7 +1146,7 @@ if('serviceWorker' in navigator){
         <div class="recon-banner-left">
           <div class="recon-banner-lbl">Unallocated Balance</div>
           <div class="recon-banner-val" id="recon-unalloc-val">—</div>
-          <div class="recon-banner-sub">Square deposits + cash deposits &#8722; transfers</div>
+          <div class="recon-banner-sub">card + cash &#8722; transfers</div>
         </div>
         <div class="recon-banner-right">
           <div class="recon-bank-pill" onclick="event.stopPropagation()">
@@ -3810,8 +3840,8 @@ function renderHistCal(){
             <div class="hcal-dn" style="margin-bottom:0;">${day}</div>
             <div style="display:flex;align-items:center;gap:2px;">${adminIcon}${noteIcon}</div>
           </div>
-          <div style="font-size:12px;font-weight:800;color:var(--g5);line-height:1.1;">${fmt$(_salesNum)}<span style="font-size:8px;font-weight:700;color:var(--g5);opacity:0.7;margin-left:1px;letter-spacing:0.2px;">NET</span></div>
-          <div style="font-size:12px;font-weight:800;color:var(--text);line-height:1.1;margin-top:1px;">${_dvNum}<span style="font-size:8px;font-weight:700;color:var(--text-faint);margin-left:1px;letter-spacing:0.2px;">DV</span></div>
+          <div class="hcal-val-sales">${fmt$(_salesNum)}<span class="hcal-net-suffix">NET</span></div>
+          <div class="hcal-val-dv">${_dvNum}<span class="hcal-dv-suffix">DV</span></div>
           <div style="display:flex;gap:3px;margin-top:3px;">${_opDots}</div>
           <div style="position:absolute;bottom:3px;right:3px;">${_qSvg}</div>
           ${closedBadge}
@@ -4296,7 +4326,7 @@ function renderInventory(){
     const catDvHave=items.reduce((s,p)=>{const q=invHave[p.sku]||0;return s+(p.vp||0)*q;},0);
     const catAnyFilled=items.some(p=>invHave[p.sku]!=null);
     const catDvNeed=items.reduce((s,p)=>{const q=invHave[p.sku]||0;const he=invHave[p.sku]!=null;const need=Math.max(0,(p.par||0)-q);return s+(he?(p.vp||0)*need:0);},0);
-    html+=`<div class="inv-cat-header">${cat}</div><table class="inv-table"><thead><tr><th style="text-align:left">Product</th><th style="text-align:center;font-size:10px;">OOS</th><th>VP</th><th>PAR</th><th>HAVE</th><th>NEED</th><th>DV Have</th><th>DV Need</th></tr></thead><tbody>`;
+    html+=`<div class="inv-cat-header">${cat}</div><table class="inv-table"><thead><tr><th style="text-align:left">Product</th><th>PAR</th><th>Need</th><th>Have</th><th>DV</th></tr></thead><tbody>`;
     vis.forEach(p=>{
       const haveRaw=invHave[p.sku],have=haveRaw||0,haveEntered=haveRaw!=null&&haveRaw!==undefined;
       const need=Math.max(0,p.par-have),bc=need>0?'need':(haveEntered?'ok':'zero'),bt=need>0?need:(haveEntered?'ok':'--');
@@ -4308,21 +4338,17 @@ function renderInventory(){
       const dvNeedStr=haveEntered&&dvNeed>0?fmtVP(dvNeed):'--';
       const oosInfo=isOos&&oos.expectedDate?`<span class="oos-badge">OOS - ${new Date(oos.expectedDate+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>`:(isOos?`<span class="oos-badge">OOS</span>`:'');
       html+=`<tr class="${rowClass}" id="inv-row-${p.sku}">
-        <td><div class="inv-name-cell"><span class="inv-name">${p.name}</span>${p.sku?`<span class="inv-sku">${p.sku}</span>`:''}</div>${oosInfo}</td>
-        <td style="text-align:center;padding:6px 4px;"><input type="checkbox" class="oos-check" title="Mark out of stock" ${isOos?'checked':''} onchange="toggleOos('${p.sku}','${escHtml(p.name)}',this)"/></td>
-        <td>${p.vp!=null?fmtVP(p.vp):'--'}</td>
-        <td>${p.par}</td>
-        <td><input class="inv-input" type="number" min="0" value="${haveEntered?have:''}" oninput="setHave('${p.sku}',this.value)" onfocus="this.closest('tr').classList.add('inv-row-active')" onblur="this.closest('tr').classList.remove('inv-row-active')" ondblclick="this.select()" onclick="this.focus()" onwheel="this.blur()" ${isOos?'disabled style="opacity:0.4"':''}/></td>
+        <td><div class="inv-name-cell" style="display:flex;align-items:center;gap:7px;"><input type="checkbox" class="oos-check" title="Mark out of stock" ${isOos?'checked':''} onchange="toggleOos('${p.sku}','${escHtml(p.name)}',this)"/><div><span class="inv-name">${p.name}</span>${p.sku?`<span class="inv-sku">${p.sku}</span>`:''} ${oosInfo}</div></div></td>
+        <td style="color:var(--text-muted);font-size:12px;">${p.par}</td>
         <td><span class="need-badge ${bc}">${bt}</span></td>
-        <td id="vptot-${p.sku}" style="font-size:16px;font-weight:600;color:var(--b6);">${dvHaveStr}</td>
-        <td id="dvneed-${p.sku}" style="font-size:16px;font-weight:600;color:var(--r5);opacity:0.8;">${dvNeedStr}</td>
+        <td><input class="inv-input" type="number" min="0" value="${haveEntered?have:''}" oninput="setHave('${p.sku}',this.value)" onfocus="this.closest('tr').classList.add('inv-row-active')" onblur="this.closest('tr').classList.remove('inv-row-active')" ondblclick="this.select()" onclick="this.focus()" onwheel="this.blur()" ${isOos?'disabled style="opacity:0.4"':''}/></td>
+        <td id="vptot-${p.sku}" style="font-size:13px;font-weight:600;color:var(--b6);">${dvHaveStr}</td>
       </tr>`;
     });
     html+=`<tr class="inv-cat-subtotal">
       <td style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">${cat} Total</td>
-      <td></td><td></td><td></td><td></td><td></td>
+      <td></td><td></td><td></td>
       <td id="cat-dvhave-${catSlug}" style="font-size:13px;font-weight:700;color:var(--b6);">${catAnyFilled?fmtVP(catDvHave):'--'}</td>
-      <td id="cat-dvneed-${catSlug}" style="font-size:13px;font-weight:700;color:var(--r5);opacity:0.85;">${catAnyFilled?fmtVP(catDvNeed):'--'}</td>
     </tr>`;
     html+='</tbody></table>';
   });
@@ -4629,26 +4655,23 @@ function renderInvHistSnapshot(snapId){
       const dvNeedStr=haveEntered?fmtVP(dvNeed):'--';
       return`<tr class="${needClass}">
         <td><div class="inv-name-cell"><span class="inv-name">${p.name}</span>${p.sku?`<span class="inv-sku">${p.sku}</span>`:''}</div></td>
-        <td>${p.vp!=null?fmtVP(p.vp):'--'}</td>
-        <td>${p.par}</td>
-        <td style="text-align:right;font-size:16px;font-weight:700;">${haveEntered?have:'--'}</td>
+        <td style="color:var(--text-muted);font-size:12px;">${p.par}</td>
         <td><span class="need-badge ${bc}">${bt}</span></td>
-        <td style="font-size:16px;font-weight:600;color:var(--b6);">${dvHaveStr}</td>
-        <td style="font-size:16px;font-weight:600;color:var(--r5);opacity:0.85;">${dvNeedStr}</td>
+        <td style="text-align:right;font-size:14px;font-weight:700;">${haveEntered?have:'--'}</td>
+        <td style="font-size:13px;font-weight:600;color:var(--b6);">${dvHaveStr}</td>
       </tr>`;
     });
     html+=`<div class="inv-cat-header">${cat}</div>
       <table class="inv-table">
         <thead><tr>
-          <th style="text-align:left">Product</th><th>VP</th><th>PAR</th><th>HAVE</th><th>NEED</th><th>DV Have</th><th>DV Need</th>
+          <th style="text-align:left">Product</th><th>PAR</th><th>Need</th><th>Have</th><th>DV</th>
         </tr></thead>
         <tbody>
           ${rows.join('')}
           <tr class="inv-cat-subtotal">
             <td style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">${cat} Total</td>
-            <td></td><td></td><td></td><td></td>
+            <td></td><td></td><td></td>
             <td style="font-size:13px;font-weight:700;color:var(--b6);">${catAnyFilled?fmtVP(catDvHave):'--'}</td>
-            <td style="font-size:13px;font-weight:700;color:var(--r5);opacity:0.85;">${catAnyFilled?fmtVP(catDvNeed):'--'}</td>
           </tr>
         </tbody>
       </table>`;
