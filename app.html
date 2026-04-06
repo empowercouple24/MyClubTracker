@@ -1121,7 +1121,7 @@ if('serviceWorker' in navigator){
           <div class="recon-bank-pill" onclick="event.stopPropagation()">
             <span class="recon-bank-lbl">Bank</span>
             <div class="recon-bank-div"></div>
-            <input class="recon-bank-input" id="recon-bank-input" placeholder="enter balance&#8230;" oninput="updateReconMatch()" type="text" inputmode="decimal"/>
+            <input class="recon-bank-input" id="recon-bank-input" placeholder="$0.00" oninput="updateReconMatch()" onfocus="reconBankFocus()" onblur="reconBankBlur()" type="text" inputmode="decimal"/>
           </div>
           <span class="recon-match-badge none" id="recon-match-badge">&#8212;</span>
           <span class="recon-chev" id="recon-chev">&#9662;</span>
@@ -6358,6 +6358,27 @@ function renderReconWidget() {
 function toggleReconDaysList() {
   _reconDaysOpen = !_reconDaysOpen;
   renderReconWidget();
+}
+
+
+function reconBankFocus() {
+  const el = document.getElementById('recon-bank-input');
+  if (!el) return;
+  // Strip formatting so user can type cleanly
+  const raw = el.value.replace(/[$,]/g, '').trim();
+  if (raw && !isNaN(parseFloat(raw))) el.value = raw;
+  el.select();
+}
+
+function reconBankBlur() {
+  const el = document.getElementById('recon-bank-input');
+  if (!el) return;
+  const raw = el.value.replace(/[$,]/g, '').trim();
+  const val = parseFloat(raw);
+  if (!raw || isNaN(val)) { el.value = ''; return; }
+  // Format as $X,XXX.XX
+  el.value = '$' + val.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  updateReconMatch();
 }
 
 function updateReconMatch() {
