@@ -611,6 +611,45 @@ if('serviceWorker' in navigator){
     .preg-sheet-select{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:var(--text);background:none;border:none;outline:none;text-align:right;flex:1;cursor:pointer;}
     .preg-period-wrap{display:flex;align-items:center;gap:6px;flex:1;justify-content:flex-end;}
     .preg-period-input{font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 7px;outline:none;width:115px;text-align:center;}
+
+    /* ── PAYOUT DATE RANGE PICKER ── */
+    .payout-preset-row{display:flex;gap:6px;flex-wrap:wrap;padding:10px 12px;border-bottom:1px solid var(--border-light);}
+    .payout-preset-chip{font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--b0);color:var(--text-muted);cursor:pointer;white-space:nowrap;transition:background 0.12s,color 0.12s;}
+    .payout-preset-chip:hover{background:var(--b1);}
+    .payout-preset-chip.active{background:var(--b7);color:white;border-color:var(--b7);}
+    .payout-preset-chip.reset-chip{color:var(--r5);border-color:var(--border);}
+    .payout-range-bar{display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;background:var(--b0);border-bottom:1px solid var(--border-light);}
+    .payout-range-bar:hover{background:var(--b1);}
+    .payout-range-val{font-size:13px;font-weight:600;color:var(--text);}
+    .payout-range-placeholder{font-size:13px;color:var(--text-faint);}
+    /* Calendar picker overlay */
+    .cal-picker-overlay{position:fixed;inset:0;z-index:300;background:rgba(15,25,40,0.45);display:none;align-items:flex-end;justify-content:center;}
+    .cal-picker-sheet{background:var(--surface);border-radius:18px 18px 0 0;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;padding:16px 16px 24px;}
+    .cal-picker-months{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+    @media(max-width:480px){.cal-picker-months{grid-template-columns:1fr;}}
+    .cal-month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+    .cal-m-dow{font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text-faint);text-align:center;padding:3px 0;}
+    .cal-m-day{font-size:12px;font-weight:500;text-align:center;padding:7px 2px;border-radius:5px;cursor:pointer;color:var(--text);user-select:none;}
+    .cal-m-day:hover{background:var(--b1);}
+    .cal-m-day.in-range{background:rgba(78,110,134,0.15);border-radius:0;}
+    .cal-m-day.range-start{background:var(--b7);color:white;border-radius:5px 0 0 5px;}
+    .cal-m-day.range-end{background:var(--b7);color:white;border-radius:0 5px 5px 0;}
+    .cal-m-day.range-start.range-end{border-radius:5px;}
+    .cal-m-day.faded{color:var(--text-faint);}
+    .cal-m-day.disabled{opacity:0.25;cursor:default;pointer-events:none;}
+    /* Payment Register enhancements */
+    .preg-filter-row{display:flex;gap:5px;flex-wrap:wrap;padding:8px 12px;border-bottom:1px solid var(--border-light);}
+    .preg-fchip{font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:var(--b0);color:var(--text-muted);cursor:pointer;white-space:nowrap;}
+    .preg-fchip:hover{background:var(--b1);}
+    .preg-fchip.active{background:var(--b7);color:white;border-color:var(--b7);}
+    .preg-count-row{display:flex;align-items:center;justify-content:space-between;padding:5px 12px;border-bottom:1px solid var(--border-light);background:var(--b0);}
+    .preg-count-label{font-size:11px;color:var(--text-faint);}
+    .preg-count-btns{display:flex;gap:3px;}
+    .preg-count-btn{font-size:11px;font-weight:600;padding:3px 8px;border-radius:5px;border:1px solid var(--border);background:var(--surface);cursor:pointer;color:var(--text-muted);}
+    .preg-count-btn.active{background:var(--b7);color:white;border-color:var(--b7);}
+    .preg-scroll-box{max-height:340px;overflow-y:auto;}
+    .preg-footer-bar{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;border-top:1px solid var(--border-light);background:var(--b0);}
+    .preg-footer-total{font-size:11px;color:var(--text-faint);}
     
   </style>
 </head>
@@ -1219,15 +1258,32 @@ if('serviceWorker' in navigator){
 <div class="tab-panel" id="panel-payouts">
   <div style="max-width:620px;margin:0 auto;padding:12px 12px 40px;">
 
-    <!-- Date range selector -->
-    <div class="section-label">Date Range</div>
+    <!-- Payout Calculator -->
+    <div class="section-label">Payout Calculator</div>
     <div class="card" style="margin-bottom:12px;">
-      <div class="field-row" style="gap:8px;align-items:center;flex-wrap:wrap;">
-        <input type="date" id="payout-from" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;background:var(--surface);color:var(--text);outline:none;flex:1;min-width:130px;"/>
-        <span style="color:var(--text-faint);font-size:13px;flex-shrink:0;">to</span>
-        <input type="date" id="payout-to" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;background:var(--surface);color:var(--text);outline:none;flex:1;min-width:130px;"/>
-        <button class="btn btn-primary" onclick="renderPayouts()" style="flex-shrink:0;">Load</button>
+      <!-- Preset chips -->
+      <div class="payout-preset-row">
+        <div class="payout-preset-chip" onclick="setPayoutPreset('lastweek',this)">Last Week</div>
+        <div class="payout-preset-chip" onclick="setPayoutPreset('last2weeks',this)">Last 2 Weeks</div>
+        <div class="payout-preset-chip" onclick="setPayoutPreset('lastmonth',this)">Last Month</div>
+        <div class="payout-preset-chip" onclick="setPayoutPreset('thismonth',this)">This Month</div>
+        <div class="payout-preset-chip reset-chip" onclick="resetPayouts()">&#10005; Reset</div>
       </div>
+      <!-- Range bar — tap to open picker -->
+      <div class="payout-range-bar" onclick="openCalPicker()">
+        <div style="flex:1;display:flex;align-items:center;gap:6px;">
+          <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">From</span>
+          <span class="payout-range-val" id="payout-range-from-lbl">—</span>
+          <span style="font-size:12px;color:var(--text-faint);">&#8594;</span>
+          <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">To</span>
+          <span class="payout-range-val" id="payout-range-to-lbl">—</span>
+        </div>
+        <span style="font-size:11px;color:var(--b5);">&#9998; Edit</span>
+        <button class="btn btn-primary" style="font-size:12px;padding:5px 14px;margin-left:6px;" onclick="event.stopPropagation();renderPayouts();">Load</button>
+      </div>
+      <!-- Hidden date inputs kept for renderPayouts() compatibility -->
+      <input type="hidden" id="payout-from"/>
+      <input type="hidden" id="payout-to"/>
     </div>
 
     <!-- Results -->
@@ -1281,7 +1337,32 @@ if('serviceWorker' in navigator){
       <button class="btn btn-primary" onclick="openPregSheet()" style="font-size:12px;padding:4px 12px;">+ Add Payment</button>
     </div>
     <div class="card" style="margin-bottom:40px;">
-      <div id="preg-list"></div>
+      <!-- Filter chips -->
+      <div class="preg-filter-row">
+        <div class="preg-fchip active" onclick="setPregFilter('all',this)">All</div>
+        <div class="preg-fchip" onclick="setPregFilter('thismonth',this)">This Month</div>
+        <div class="preg-fchip" onclick="setPregFilter('lastmonth',this)">Last Month</div>
+        <div class="preg-fchip" onclick="setPregFilter('thisyear',this)">This Year</div>
+        <div class="preg-fchip" onclick="setPregFilter('lastyear',this)">Last Year</div>
+      </div>
+      <!-- Count preference -->
+      <div class="preg-count-row">
+        <span class="preg-count-label">Default visible</span>
+        <div class="preg-count-btns">
+          <div class="preg-count-btn" onclick="setPregCount(6,this)">6</div>
+          <div class="preg-count-btn active" onclick="setPregCount(12,this)">12</div>
+          <div class="preg-count-btn" onclick="setPregCount(18,this)">18</div>
+        </div>
+      </div>
+      <!-- Scrollable list -->
+      <div class="preg-scroll-box" id="preg-scroll-box">
+        <div id="preg-list"></div>
+      </div>
+      <!-- Footer -->
+      <div class="preg-footer-bar">
+        <span class="preg-footer-total" id="preg-footer-total"></span>
+        <button onclick="clearPregFilter()" id="preg-clear-filter-btn" style="display:none;font-size:11px;font-weight:600;color:var(--r5);background:none;border:none;cursor:pointer;">Clear filter</button>
+      </div>
     </div>
 
   </div>
@@ -1387,6 +1468,35 @@ if('serviceWorker' in navigator){
     <div style="display:flex;gap:8px;padding:0 16px 16px;">
       <button onclick="closeDupOpModal()" class="btn btn-ghost" style="flex:1;">Go back</button>
       <button id="dup-op-save-btn" onclick="confirmDupOpSave()" class="btn btn-primary" style="flex:2;" disabled>Save with note</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- CALENDAR DATE RANGE PICKER -->
+<div class="cal-picker-overlay" id="cal-picker-overlay" onclick="closeCalPickerOnBg(event)">
+  <div class="cal-picker-sheet">
+    <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 14px;"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div>
+        <div style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;color:var(--text);">Select Date Range</div>
+        <div style="font-size:12px;color:var(--text-faint);margin-top:2px;" id="cal-picker-hint">Tap a start date</div>
+      </div>
+      <button onclick="closeCalPicker()" style="background:none;border:none;font-size:20px;color:var(--text-faint);cursor:pointer;">&#10005;</button>
+    </div>
+    <!-- Nav -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <button onclick="shiftCalPicker(-1)" style="background:var(--b0);border:1px solid var(--border);border-radius:8px;padding:5px 12px;cursor:pointer;font-size:14px;color:var(--text);">&#8592;</button>
+      <span id="cal-picker-month-label" style="font-size:14px;font-weight:700;color:var(--text);"></span>
+      <button onclick="shiftCalPicker(1)" style="background:var(--b0);border:1px solid var(--border);border-radius:8px;padding:5px 12px;cursor:pointer;font-size:14px;color:var(--text);">&#8594;</button>
+    </div>
+    <div class="cal-picker-months">
+      <div id="cal-picker-month-0"></div>
+      <div id="cal-picker-month-1"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:14px;">
+      <button onclick="applyCalPicker()" id="cal-picker-apply" class="btn btn-primary" style="flex:2;" disabled>Apply &amp; Load</button>
+      <button onclick="closeCalPicker()" class="btn btn-ghost" style="flex:1;">Cancel</button>
     </div>
   </div>
 </div>
@@ -2599,8 +2709,12 @@ async function init(){
   const _ed=document.getElementById('entry-date');if(_ed){_ed.value=_startDate;_ed.max=localToday();}
   updateDateDisplay();
   const now=new Date();
-  const _pf=document.getElementById('payout-from');if(_pf)_pf.value=new Date(now.getFullYear(),now.getMonth(),1).toISOString().slice(0,10);
-  const _pt=document.getElementById('payout-to');if(_pt)_pt.value=new Date(now.getFullYear(),now.getMonth()+1,0).toISOString().slice(0,10);
+  // Init payout date range to this month
+  const _pfrom=fmtDateStr(new Date(now.getFullYear(),now.getMonth(),1));
+  const _pto=localToday();
+  applyPayoutDates(_pfrom,_pto);
+  // Mark This Month chip active
+  setTimeout(()=>{ const _tc=document.querySelector('.payout-preset-chip:nth-child(4)');if(_tc)_tc.classList.add('active'); },100);
   applyTheme(SETTINGS.theme||'ocean');populateOperatorDropdowns();buildSettingsUI();loadDay();renderHistory();renderHistAlloc();initUndoListeners();renderInventory();renderInventoryHistory();renderPayoutSnapshots();renderPaymentRegister();renderDashboardWidgets();
   recalcContentTop();
   // Unconditionally set nav name after everything loads
@@ -4773,7 +4887,7 @@ function getPayeeList() {
 function renderPaymentRegister() {
   const el = document.getElementById('preg-list');
   if (!el) return;
-  const log = (SETTINGS.paymentLog || []).slice().sort((a,b) => b.date.localeCompare(a.date));
+  const allLog = (SETTINGS.paymentLog || []).slice().sort((a,b) => b.date.localeCompare(a.date));
 
   // Populate payee lookup dropdown
   const lookupSel = document.getElementById('preg-lookup-payee');
@@ -4781,36 +4895,35 @@ function renderPaymentRegister() {
     const payees = getPayeeList();
     lookupSel.innerHTML = payees.map(p => `<option value="${p}">${p}</option>`).join('');
   }
-
-  // Set lookup defaults to current year
   const now = new Date();
   const lf = document.getElementById('preg-lookup-from');
   const lt = document.getElementById('preg-lookup-to');
   if (lf && !lf.value) lf.value = now.getFullYear() + '-01-01';
   if (lt && !lt.value) lt.value = now.getFullYear() + '-12-31';
 
-  if (!log.length) {
+  if (!allLog.length) {
     el.innerHTML = '<div class="preg-empty">No payments logged yet. Tap + Add Payment to get started.</div>';
+    document.getElementById('preg-footer-total').textContent = '';
     return;
   }
 
-  const SHOW = 4;
-  const showing = log.slice(0, SHOW);
-  const rest = log.length - SHOW;
+  const filtered = filterPregLog(allLog);
+  const isFiltered = _pregFilter !== 'all';
+  const scrollBox = document.getElementById('preg-scroll-box');
+  const footerTotal = document.getElementById('preg-footer-total');
 
   function rowHtml(e) {
     const methodLabel = {check:'Check',venmo:'Venmo',cash:'Cash',direct_deposit:'Direct Deposit',other:'Other'}[e.method]||e.method||'';
     const checkStr = e.method === 'check' && e.checkNum ? ` #${e.checkNum}` : '';
-    const periodStr = e.periodFrom && e.periodTo ?
-      `${fmtShortDate(e.periodFrom)} – ${fmtShortDate(e.periodTo)}` : '';
-    const dateStr = e.date ? fmtShortDate(e.date) : '';
+    const noteStr = e.notes ? ` · ${e.notes}` : '';
+    const dateStr = e.date ? new Date(e.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
     return `<div class="preg-row" onclick="openPregSheet('${e.id}')">
       <div>
         <div class="preg-payee">${escHtml(e.payee||'—')}</div>
         <div class="preg-meta">
-          ${periodStr ? `<span>${periodStr}</span>` : ''}
           ${dateStr ? `<span>${dateStr}</span>` : ''}
           ${methodLabel ? `<span>${methodLabel}${checkStr}</span>` : ''}
+          ${noteStr ? `<span style="color:var(--text-faint);">${escHtml(e.notes)}</span>` : ''}
         </div>
       </div>
       <div class="preg-right">
@@ -4820,29 +4933,45 @@ function renderPaymentRegister() {
     </div>`;
   }
 
-  let html = showing.map(rowHtml).join('');
-  if (rest > 0) {
-    html += `<div class="preg-show-more" id="preg-show-more-btn" onclick="expandPregRegister()">Show ${rest} more ↓</div>`;
+  if (isFiltered) {
+    // Show all filtered results in scrollable box
+    if (scrollBox) scrollBox.style.maxHeight = '340px';
+    const total = filtered.reduce((s,e) => s+(parseFloat(e.amount)||0), 0);
+    el.innerHTML = filtered.length
+      ? filtered.map(rowHtml).join('')
+      : '<div class="preg-empty">No payments in this period.</div>';
+    if (footerTotal) footerTotal.textContent = filtered.length + ' entries · ' + fmt$(total) + ' total';
+  } else {
+    // Default: show _pregCount most recent, with show more
+    if (scrollBox) scrollBox.style.maxHeight = '';
+    const showing = allLog.slice(0, _pregCount);
+    const rest = allLog.length - _pregCount;
+    let html = showing.map(rowHtml).join('');
+    if (rest > 0) {
+      html += `<div class="preg-show-more" onclick="expandPregRegister()">Show ${rest} more ↓</div>`;
+    }
+    el.innerHTML = html;
+    if (footerTotal) footerTotal.textContent = allLog.length + ' total entries';
   }
-  el.innerHTML = html;
 }
 
 function expandPregRegister() {
   const el = document.getElementById('preg-list');
+  const scrollBox = document.getElementById('preg-scroll-box');
   if (!el) return;
-  const log = (SETTINGS.paymentLog || []).slice().sort((a,b) => b.date.localeCompare(a.date));
-  el.innerHTML = log.map(e => {
+  const log = filterPregLog((SETTINGS.paymentLog || []).slice().sort((a,b) => b.date.localeCompare(a.date)));
+  if (scrollBox) scrollBox.style.maxHeight = '340px';
+  function rowHtml(e) {
     const methodLabel = {check:'Check',venmo:'Venmo',cash:'Cash',direct_deposit:'Direct Deposit',other:'Other'}[e.method]||e.method||'';
     const checkStr = e.method === 'check' && e.checkNum ? ` #${e.checkNum}` : '';
-    const periodStr = e.periodFrom && e.periodTo ? `${fmtShortDate(e.periodFrom)} – ${fmtShortDate(e.periodTo)}` : '';
-    const dateStr = e.date ? fmtShortDate(e.date) : '';
+    const dateStr = e.date ? new Date(e.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
     return `<div class="preg-row" onclick="openPregSheet('${e.id}')">
       <div>
         <div class="preg-payee">${escHtml(e.payee||'—')}</div>
         <div class="preg-meta">
-          ${periodStr ? `<span>${periodStr}</span>` : ''}
           ${dateStr ? `<span>${dateStr}</span>` : ''}
           ${methodLabel ? `<span>${methodLabel}${checkStr}</span>` : ''}
+          ${e.notes ? `<span style="color:var(--text-faint);">${escHtml(e.notes)}</span>` : ''}
         </div>
       </div>
       <div class="preg-right">
@@ -4850,7 +4979,11 @@ function expandPregRegister() {
         ${e.account ? `<span class="preg-acct">${escHtml(e.account)}</span>` : ''}
       </div>
     </div>`;
-  }).join('') + '<div class="preg-show-more" onclick="renderPaymentRegister()">Show less ↑</div>';
+  }
+  const total = log.reduce((s,e)=>s+(parseFloat(e.amount)||0),0);
+  el.innerHTML = log.map(rowHtml).join('') + `<div class="preg-show-more" onclick="renderPaymentRegister()">Show less ↑</div>`;
+  const footerTotal = document.getElementById('preg-footer-total');
+  if (footerTotal) footerTotal.textContent = log.length + ' entries · ' + fmt$(total) + ' total';
 }
 
 function fmtShortDate(str) {
@@ -5315,6 +5448,240 @@ document.addEventListener('keydown', function(e) {
     redoFormAction();
   }
 });
+
+
+// ── PAYOUT PRESET DATE LOGIC ─────────────────────────────────────────────────
+function getMonWeekRange(weeksBack) {
+  // Returns {from, to} for the Mon-Sun week that ended most recently
+  // weeksBack=0 means current/last complete Mon-Sun block
+  // "Last week" = the Mon-Sun week containing or most recently past
+  const today = new Date();
+  const dow = today.getDay(); // 0=Sun, 1=Mon...
+  // Days since last Monday (if today is Sun=0, days since Mon = 6; Mon=1 -> 0; etc)
+  const daysSinceMon = dow === 0 ? 6 : dow - 1;
+  const thisMon = new Date(today);
+  thisMon.setDate(today.getDate() - daysSinceMon);
+  // "Last week" = this current Mon-Sun span (Mon through today incl. if Sun)
+  const from = new Date(thisMon);
+  from.setDate(from.getDate() - (weeksBack * 7));
+  const to = new Date(from);
+  to.setDate(to.getDate() + 6); // Sun
+  // Don't go beyond today
+  const todayClean = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  if (to > todayClean) to.setTime(todayClean.getTime());
+  return {
+    from: fmtDateStr(from),
+    to:   fmtDateStr(to)
+  };
+}
+
+function fmtDateStr(d) {
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+function fmtDateLbl(str) {
+  if (!str) return '—';
+  const d = new Date(str+'T00:00:00');
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+
+function setPayoutPreset(preset, btn) {
+  document.querySelectorAll('.payout-preset-chip').forEach(c => c.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const today = new Date();
+  let from, to;
+  if (preset === 'lastweek') {
+    const r = getMonWeekRange(0);
+    from = r.from; to = r.to;
+  } else if (preset === 'last2weeks') {
+    const r1 = getMonWeekRange(1); // week before
+    const r2 = getMonWeekRange(0); // current week
+    from = r1.from; to = r2.to;
+  } else if (preset === 'lastmonth') {
+    const lm = new Date(today.getFullYear(), today.getMonth()-1, 1);
+    from = fmtDateStr(lm);
+    to = fmtDateStr(new Date(today.getFullYear(), today.getMonth(), 0));
+  } else if (preset === 'thismonth') {
+    from = fmtDateStr(new Date(today.getFullYear(), today.getMonth(), 1));
+    to = localToday();
+  }
+  applyPayoutDates(from, to);
+  renderPayouts();
+}
+
+function applyPayoutDates(from, to) {
+  const fEl = document.getElementById('payout-from');
+  const tEl = document.getElementById('payout-to');
+  if (fEl) fEl.value = from || '';
+  if (tEl) tEl.value = to || '';
+  const fLbl = document.getElementById('payout-range-from-lbl');
+  const tLbl = document.getElementById('payout-range-to-lbl');
+  if (fLbl) fLbl.textContent = from ? fmtDateLbl(from) : '—';
+  if (tLbl) tLbl.textContent = to ? fmtDateLbl(to) : '—';
+  // Sync cal picker state
+  _calPickerStart = from || null;
+  _calPickerEnd = to || null;
+}
+
+function resetPayouts() {
+  document.querySelectorAll('.payout-preset-chip').forEach(c => c.classList.remove('active'));
+  applyPayoutDates('', '');
+  const el = document.getElementById('payouts-body');
+  if (el) el.innerHTML = '';
+  const snapWrap = document.getElementById('payout-snapshot-wrap');
+  if (snapWrap) snapWrap.style.display = 'none';
+}
+
+// ── CALENDAR DATE RANGE PICKER ────────────────────────────────────────────────
+let _calPickerYear = null, _calPickerMonth = null;
+let _calPickerStart = null, _calPickerEnd = null, _calPickerSelecting = false;
+
+function openCalPicker() {
+  const now = new Date();
+  // Show last 2 months by default
+  _calPickerYear = now.getFullYear();
+  _calPickerMonth = now.getMonth() - 1;
+  if (_calPickerMonth < 0) { _calPickerMonth = 11; _calPickerYear--; }
+  renderCalPicker();
+  document.getElementById('cal-picker-overlay').style.display = 'flex';
+}
+
+function closeCalPicker() {
+  document.getElementById('cal-picker-overlay').style.display = 'none';
+}
+
+function closeCalPickerOnBg(e) {
+  if (e.target === document.getElementById('cal-picker-overlay')) closeCalPicker();
+}
+
+function shiftCalPicker(dir) {
+  _calPickerMonth += dir;
+  if (_calPickerMonth > 11) { _calPickerMonth = 0; _calPickerYear++; }
+  if (_calPickerMonth < 0)  { _calPickerMonth = 11; _calPickerYear--; }
+  renderCalPicker();
+}
+
+function renderCalPicker() {
+  const DOWS = ['Mo','Tu','We','Th','Fr','Sa','Su'];
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const lbl = document.getElementById('cal-picker-month-label');
+  if (lbl) lbl.textContent = monthNames[_calPickerMonth] + ' ' + _calPickerYear + ' – ' + monthNames[(_calPickerMonth+1)%12] + ' ' + (_calPickerMonth===11?_calPickerYear+1:_calPickerYear);
+
+  const hint = document.getElementById('cal-picker-hint');
+  if (hint) hint.textContent = _calPickerStart && !_calPickerEnd ? 'Now tap an end date' : (_calPickerStart && _calPickerEnd ? fmtDateLbl(_calPickerStart) + ' → ' + fmtDateLbl(_calPickerEnd) : 'Tap a start date');
+
+  const applyBtn = document.getElementById('cal-picker-apply');
+  if (applyBtn) applyBtn.disabled = !(_calPickerStart && _calPickerEnd);
+
+  [0,1].forEach(offset => {
+    let mo = _calPickerMonth + offset;
+    let yr = _calPickerYear;
+    if (mo > 11) { mo -= 12; yr++; }
+    const el = document.getElementById('cal-picker-month-' + offset);
+    if (!el) return;
+
+    const firstDow = new Date(yr, mo, 1).getDay(); // 0=Sun
+    // Convert to Mon-first: Sun=6, Mon=0, Tue=1...
+    const firstOffset = firstDow === 0 ? 6 : firstDow - 1;
+    const daysInMo = new Date(yr, mo+1, 0).getDate();
+    const todayStr = localToday();
+
+    let html = `<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px;text-align:center;">${monthNames[mo]} ${yr}</div>`;
+    html += '<div class="cal-month-grid">';
+    DOWS.forEach(d => { html += `<div class="cal-m-dow">${d}</div>`; });
+    for (let i = 0; i < firstOffset; i++) html += '<div></div>';
+    for (let d = 1; d <= daysInMo; d++) {
+      const ds = yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+      const isFuture = ds > todayStr;
+      let cls = 'cal-m-day';
+      if (isFuture) cls += ' disabled';
+      if (ds === _calPickerStart) cls += ' range-start';
+      if (ds === _calPickerEnd) cls += ' range-end';
+      if (_calPickerStart && _calPickerEnd && ds > _calPickerStart && ds < _calPickerEnd) cls += ' in-range';
+      html += `<div class="${cls}" onclick="calPickerClickDay('${ds}')">${d}</div>`;
+    }
+    html += '</div>';
+    el.innerHTML = html;
+  });
+}
+
+function calPickerClickDay(ds) {
+  if (!_calPickerStart || (_calPickerStart && _calPickerEnd)) {
+    // Start fresh
+    _calPickerStart = ds;
+    _calPickerEnd = null;
+  } else {
+    // Second click = end
+    if (ds < _calPickerStart) {
+      _calPickerEnd = _calPickerStart;
+      _calPickerStart = ds;
+    } else {
+      _calPickerEnd = ds;
+    }
+  }
+  renderCalPicker();
+}
+
+function applyCalPicker() {
+  if (!_calPickerStart || !_calPickerEnd) return;
+  applyPayoutDates(_calPickerStart, _calPickerEnd);
+  document.querySelectorAll('.payout-preset-chip').forEach(c => c.classList.remove('active'));
+  closeCalPicker();
+  renderPayouts();
+}
+
+// ── PAYMENT REGISTER FILTER ───────────────────────────────────────────────────
+let _pregFilter = 'all';
+let _pregCount = 12;
+
+function setPregFilter(filter, btn) {
+  _pregFilter = filter;
+  document.querySelectorAll('.preg-fchip').forEach(c => c.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const clearBtn = document.getElementById('preg-clear-filter-btn');
+  if (clearBtn) clearBtn.style.display = filter === 'all' ? 'none' : 'inline';
+  renderPaymentRegister();
+}
+
+function clearPregFilter() {
+  _pregFilter = 'all';
+  document.querySelectorAll('.preg-fchip').forEach(c => c.classList.remove('active'));
+  const first = document.querySelector('.preg-fchip');
+  if (first) first.classList.add('active');
+  const clearBtn = document.getElementById('preg-clear-filter-btn');
+  if (clearBtn) clearBtn.style.display = 'none';
+  renderPaymentRegister();
+}
+
+function setPregCount(n, btn) {
+  _pregCount = n;
+  document.querySelectorAll('.preg-count-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderPaymentRegister();
+}
+
+function filterPregLog(log) {
+  const now = new Date();
+  const yr = now.getFullYear(), mo = now.getMonth();
+  if (_pregFilter === 'thismonth') {
+    const from = yr+'-'+String(mo+1).padStart(2,'0')+'-01';
+    const to = localToday();
+    return log.filter(e => e.date >= from && e.date <= to);
+  }
+  if (_pregFilter === 'lastmonth') {
+    const lmDate = new Date(yr, mo-1, 1);
+    const from = fmtDateStr(lmDate);
+    const to = fmtDateStr(new Date(yr, mo, 0));
+    return log.filter(e => e.date >= from && e.date <= to);
+  }
+  if (_pregFilter === 'thisyear') {
+    return log.filter(e => e.date.startsWith(yr+''));
+  }
+  if (_pregFilter === 'lastyear') {
+    return log.filter(e => e.date.startsWith((yr-1)+''));
+  }
+  return log; // 'all'
+}
 
 function resolveAlias(n){for(const op of SETTINGS.operators){if(!op.name)continue;const a=(op.aliases||'').split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);if(op.name.toLowerCase()===n.toLowerCase())return op.name;if(a.includes(n.toLowerCase()))return op.name;}return n;}
 
