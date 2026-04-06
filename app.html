@@ -1123,6 +1123,11 @@ if('serviceWorker' in navigator){
             <div class="recon-bank-div"></div>
             <input class="recon-bank-input" id="recon-bank-input" placeholder="$0.00" oninput="updateReconMatch()" onfocus="reconBankFocus()" onblur="reconBankBlur()" type="text" inputmode="decimal"/>
           </div>
+          <div class="recon-bank-pill" onclick="event.stopPropagation()" title="Pending Square deposits not yet in bank">
+            <span class="recon-bank-lbl">Pending</span>
+            <div class="recon-bank-div"></div>
+            <input class="recon-bank-input" id="recon-pending-input" placeholder="$0.00" oninput="updateReconMatch()" onfocus="reconPendingFocus()" onblur="reconPendingBlur()" type="text" inputmode="decimal"/>
+          </div>
           <span class="recon-match-badge none" id="recon-match-badge">&#8212;</span>
           <span class="recon-chev" id="recon-chev">&#9662;</span>
         </div>
@@ -1140,6 +1145,10 @@ if('serviceWorker' in navigator){
           <div class="recon-brow">
             <span class="recon-brow-lbl">Transfers marked &#10003;</span>
             <span class="recon-brow-val out" id="recon-xfer-val">—</span>
+          </div>
+          <div class="recon-brow" id="recon-pending-brow" style="display:none;">
+            <span class="recon-brow-lbl">Pending Square deposits</span>
+            <span class="recon-brow-val in" id="recon-pending-brow-val">—</span>
           </div>
           <div style="margin-top:8px;padding:7px 10px;background:rgba(255,255,255,0.06);border-radius:6px;font-size:10px;line-height:1.6;color:rgba(255,255,255,0.45);">
             <span style="color:rgba(255,255,255,0.65);font-weight:700;">Scope: main Square/cash account only.</span>
@@ -6361,6 +6370,24 @@ function toggleReconDaysList() {
 }
 
 
+function reconPendingFocus() {
+  const el = document.getElementById('recon-pending-input');
+  if (!el) return;
+  const raw = el.value.replace(/[$,]/g, '').trim();
+  if (raw && !isNaN(parseFloat(raw))) el.value = raw;
+  el.select();
+}
+
+function reconPendingBlur() {
+  const el = document.getElementById('recon-pending-input');
+  if (!el) return;
+  const raw = el.value.replace(/[$,]/g, '').trim();
+  const val = parseFloat(raw);
+  if (!raw || isNaN(val)) { el.value = ''; updateReconMatch(); return; }
+  el.value = '$' + val.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  updateReconMatch();
+}
+
 function reconBankFocus() {
   const el = document.getElementById('recon-bank-input');
   if (!el) return;
@@ -6384,27 +6411,42 @@ function reconBankBlur() {
 function updateReconMatch() {
   const totals = calcReconTotals();
   const inputEl = document.getElementById('recon-bank-input');
+  const pendingEl = document.getElementById('recon-pending-input');
   const badge = document.getElementById('recon-match-badge');
   const resultBar = document.getElementById('recon-result-bar');
+  const pendingBrow = document.getElementById('recon-pending-brow');
+  const pendingBrowVal = document.getElementById('recon-pending-brow-val');
   if (!inputEl || !badge) return;
-  const raw = inputEl.value.replace(/[$,]/g, '').trim();
-  const bankVal = parseFloat(raw);
-  if (!raw || isNaN(bankVal)) {
+
+  const rawBank = inputEl.value.replace(/[$,]/g, '').trim();
+  const bankVal = parseFloat(rawBank);
+  const rawPending = pendingEl ? pendingEl.value.replace(/[$,]/g, '').trim() : '';
+  const pendingVal = parseFloat(rawPending) || 0;
+
+  // Show/hide pending row in breakdown
+  if (pendingBrow) pendingBrow.style.display = pendingVal > 0 ? 'flex' : 'none';
+  if (pendingBrowVal) pendingBrowVal.textContent = pendingVal > 0 ? '+' + fmt$(pendingVal) : '—';
+
+  if (!rawBank || isNaN(bankVal)) {
     badge.className = 'recon-match-badge none';
     badge.textContent = '—';
     if (resultBar) resultBar.style.display = 'none';
     return;
   }
-  const diff = Math.abs(bankVal - totals.unalloc);
+
+  // Effective balance = what's in bank + what's pending
+  const effectiveBalance = bankVal + pendingVal;
+  const diff = Math.abs(effectiveBalance - totals.unalloc);
   const isMatch = diff < 0.02;
   badge.className = 'recon-match-badge ' + (isMatch ? 'ok' : 'off');
   badge.textContent = isMatch ? '✓ Match' : 'Off ' + fmt$(diff);
   if (resultBar && _reconOpen) {
     resultBar.style.display = 'block';
     resultBar.className = 'recon-result-bar ' + (isMatch ? 'ok' : 'off');
+    const effectiveStr = pendingVal > 0 ? fmt$(bankVal) + ' + ' + fmt$(pendingVal) + ' pending = ' + fmt$(effectiveBalance) : fmt$(effectiveBalance);
     resultBar.textContent = isMatch
-      ? '✓ Bank balance matches unallocated balance'
-      : 'Off by ' + fmt$(diff) + ' — check unmarked transfers or deposits';
+      ? '✓ ' + effectiveStr + ' matches unallocated balance'
+      : 'Off by ' + fmt$(diff) + ' — ' + effectiveStr + ' vs ' + fmt$(totals.unalloc) + ' unallocated';
   }
 }
 
