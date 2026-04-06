@@ -28,7 +28,7 @@ if('serviceWorker' in navigator){
       --b9:#354e62;--b8:#4e6e86;--b7:#607e96;--b6:#7292a8;--b5:#85a6ba;--b4:#7599b8;--b3:#9ab4cc;--b2:#bfd0e0;--b1:#dde7f0;--b0:#f0f4f8;
       --g5:#2e7a35;--g4:#3d9e46;--g3:#5ab864;--g2:#88cc90;--g1:#b8e0bc;--g0:#eaf6eb;
       --a7:#7a4800;--a6:#a06000;--a5:#c47c0a;--a4:#e09820;--a3:#f0b440;--a2:#f8cc70;--a1:#fce4b0;--a0:#fef7e8;
-      --bg:#e8edf4;--surface:#fff;--border:#cdd6e0;--border-light:#e2e9f0;
+      --bg:#f5f8fb;--surface:#fff;--border:#cdd6e0;--border-light:#e2e9f0;
       --text:#354e62;--text-muted:#5b7087;--text-faint:#8fa3b3;
       --radius:10px;--radius-sm:7px;
       --shadow-sm:0 1px 4px rgba(30,45,61,0.07),0 2px 10px rgba(30,45,61,0.05);
@@ -642,10 +642,10 @@ if('serviceWorker' in navigator){
     .preg-fchip{font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:var(--b0);color:var(--text-muted);cursor:pointer;white-space:nowrap;}
     .preg-fchip:hover{background:var(--b1);}
     .preg-fchip.active{background:var(--b7);color:white;border-color:var(--b7);}
-    .preg-scroll-box{overflow-x:auto;max-height:420px;overflow-y:auto;}
+    .preg-scroll-box{overflow-x:auto;max-height:420px;overflow-y:auto;width:100%;}
     .preg-footer-bar{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;border-top:1px solid var(--border-light);background:var(--b0);}
     /* Table styles */
-    .preg-tbl{width:100%;border-collapse:collapse;min-width:560px;font-size:12px;}
+    .preg-tbl{width:max-content;min-width:100%;border-collapse:collapse;font-size:12px;}
     .preg-tbl thead{position:sticky;top:0;z-index:2;}
     .preg-tbl th{padding:7px 10px;border-bottom:1px solid var(--border);text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);background:var(--b0);white-space:nowrap;cursor:pointer;user-select:none;}
     .preg-tbl th:hover{color:var(--text-muted);}
@@ -1340,7 +1340,7 @@ if('serviceWorker' in navigator){
 </div>
 
 <div class="tab-panel" id="panel-payouts">
-  <div style="max-width:620px;margin:0 auto;padding:12px 12px 40px;">
+  <div style="max-width:960px;margin:0 auto;padding:12px 12px 40px;">
 
     <!-- Payout Calculator -->
     <div class="section-label">Payout Calculator</div>
@@ -4717,8 +4717,8 @@ function renderAllocCal() {
   const firstDow   = new Date(yr, mo, 1).getDay(); // 0=Sun
   const daysInMonth = new Date(yr, mo+1, 0).getDate();
   const DOWS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const BUCKET_LABELS = {tax:'Taxes', overhead:'Overhead', herbalife:'Herbalife', payouts:'Payouts'};
-  const keys = ['tax','overhead','herbalife','payouts'];
+  const BUCKET_LABELS = {cashdeposit:'Cash Deposit', tax:'Taxes', overhead:'Overhead', herbalife:'Herbalife', payouts:'Payouts'};
+  const keys = ['cashdeposit','tax','overhead','herbalife','payouts'];
 
   // Month totals
   let monthOwe = 0, monthDone = 0;
@@ -4770,7 +4770,8 @@ function renderAllocCal() {
       const data = dayObj.data || {};
       if (!calSales(data)) return;
       const c = calcAllFromData(data);
-      const bv = [c.tax||0, c.overhead||0, c.products||0, c.payouts||0];
+      const cashDep2 = parseFloat(data.cashSales)||0;
+      const bv = [cashDep2, c.tax||0, c.overhead||0, c.products||0, c.payouts||0];
       const tr = data.transfers || {};
       bv.forEach((v,i) => { weekOwe += v; if (tr[keys[i]]) weekDone += v; });
     });
@@ -4806,7 +4807,7 @@ function renderAllocCal() {
       const data = dayObj.data || {};
       const sales = calSales(data);
       const transfers = data.transfers || {};
-      const doneCount = keys.filter(k => transfers[k]).length;
+      const doneCount = ['tax','overhead','herbalife','payouts'].filter(k => transfers[k]).length;
       const stateClass = doneCount === 0 ? 'none' : doneCount === 4 ? 'full' : 'partial';
       const dots = keys.map(k => `<div class="acal-dot${transfers[k]?' done':''}"></div>`).join('');
 
@@ -4817,7 +4818,10 @@ function renderAllocCal() {
       </div>`;
 
       // Collect remaining for this day
-      const pendingItems = keys.map((k,i) => ({key:k, label:BUCKET_LABELS[k], amt:[calcAllFromData(data).tax||0,calcAllFromData(data).overhead||0,calcAllFromData(data).products||0,calcAllFromData(data).payouts||0][i]})).filter((_,i) => !transfers[keys[i]]);
+      const _c2 = calcAllFromData(data);
+      const _cashDep3 = parseFloat(data.cashSales)||0;
+      const _bvMap = {cashdeposit:_cashDep3, tax:_c2.tax||0, overhead:_c2.overhead||0, herbalife:_c2.products||0, payouts:_c2.payouts||0};
+      const pendingItems = keys.map(k => ({key:k, label:BUCKET_LABELS[k], amt:_bvMap[k]})).filter(k => !transfers[k.key]);
       if (pendingItems.length > 0) {
         const d2 = new Date(dateStr+'T00:00:00');
         const dayLabel = d2.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
@@ -4848,7 +4852,7 @@ function renderAllocCal() {
       html += `<div style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);margin-bottom:6px;overflow:hidden;box-shadow:var(--shadow-sm);">`;
       html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--border-light);cursor:pointer;" onclick="openAllocDetail('${day.dateStr}')">`;
       html += `<span style="font-size:13px;font-weight:700;color:var(--text);">${day.label}</span>`;
-      html += `<span style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--a6);">${fmt$(day.dayRemaining)}</span>`;
+      html += `<span style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--text);">${fmt$(day.dayRemaining)}</span>`;
       html += `</div><div style="display:flex;flex-wrap:wrap;gap:0;">`;
       day.items.forEach((item,idx) => {
         const br = idx < day.items.length-1 ? 'border-right:1px solid var(--border-light);' : '';
@@ -5327,9 +5331,9 @@ function renderHistAlloc() {
       }).join('');
       const pendingAmt = day.keys.reduce((s,k,i) => s + (day.tr[k] ? 0 : day.bv[i]), 0);
       return `<div style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);margin-bottom:6px;overflow:hidden;box-shadow:var(--shadow-sm);cursor:pointer;" onclick="openAllocDetail('${day.dateStr}')">
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--border-light);background:var(--b0);">
-          <span style="font-size:13px;font-weight:700;color:var(--text);">${day.label}</span>
-          <span style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--a6);">${fmt$(pendingAmt)}</span>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid #a8bfcf;background:#b2c4d4;">
+          <span style="font-size:13px;font-weight:700;color:#1e3040;">${day.label}</span>
+          <span style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--text);">${fmt$(pendingAmt)}</span>
         </div>
         <div style="display:flex;flex-wrap:wrap;">${buckets}</div>
       </div>`;
