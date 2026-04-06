@@ -805,7 +805,7 @@ if('serviceWorker' in navigator){
       <button class="nav-drop-item" id="nav-profile-btn" onclick="openProfileModal();closeNavMenu()">⚙ Profile &amp; Settings</button>
       <div class="nav-drop-divider"></div>
       <div id="admin-nav-items" style="display:none;">
-        <button class="nav-drop-item" onclick="goBackToAdmin();closeNavMenu()">🏪 Locations</button>
+        <button class="nav-drop-item" onclick="goBackToAdmin();closeNavMenu()">&#8592; Club Profile</button>
         <button class="nav-drop-item" onclick="window.location.href='admin.html';closeNavMenu()">🏠 Admin Dashboard</button>
         <div class="nav-drop-divider"></div>
       </div>
@@ -2884,14 +2884,14 @@ async function init(){
     const _nbb=document.getElementById('nav-back-btn');if(_nbb){
       _nbb.style.display='block';
       const _fromParam=new URLSearchParams(window.location.search).get('from');
-      _nbb.innerHTML=_fromParam==='org'?'&#8592; Dashboard':'&#8592; Locations';
+      _nbb.innerHTML='&#8592; Club Profile';
     }
     const _so=document.getElementById('nav-signout-btn');if(_so)_so.style.display='none';
     const bn=document.getElementById('admin-banner');if(bn){bn.style.display='block';bn.textContent='Admin View: '+(loc?.name||LOCATION_ID);}
     const _aeb=document.getElementById('admin-edit-banner');if(_aeb){
       _aeb.classList.add('show');
       const _fromParam2=new URLSearchParams(window.location.search).get('from');
-      _aeb.innerHTML=(_fromParam2==='org'?'&#9888; Admin View -- click to return to Dashboard':'&#9888; Admin Edit Mode -- click to return to Locations');
+      _aeb.innerHTML='&#9888; Admin View &#8212; click to return to Club Profile';
     }
     recalcContentTop();
     // settings merged into profile modal
@@ -2945,9 +2945,7 @@ function setNavLocation(name, address, owner){
   }
 }
 function goBackToAdmin(){
-  const from=new URLSearchParams(window.location.search).get('from');
-  if(from==='org') window.location.href='org-admin.html';
-  else window.location.href='locations.html';
+  window.location.href='organizations.html?loc='+LOCATION_ID;
 }
 function switchTab(name){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
