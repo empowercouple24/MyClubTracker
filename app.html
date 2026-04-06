@@ -5376,7 +5376,8 @@ function renderHistAlloc() {
     const data = d.data || {};
     if (!calSales(data)) return;
     const c = calcAllFromData(data);
-    const bv = [c.tax||0, c.overhead||0, c.products||0, c.payouts||0];
+    const cashDep = parseFloat(data.cashSales)||0;
+    const bv = [cashDep, c.tax||0, c.overhead||0, c.products||0, c.payouts||0];
     const tr = data.transfers || {};
     bv.forEach((v,i) => { monthOwe += v; if (tr[keys[i]]) monthDone += v; });
     const doneCount = keys.filter(k => tr[k]).length;
