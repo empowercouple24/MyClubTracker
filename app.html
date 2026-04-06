@@ -714,6 +714,54 @@ if('serviceWorker' in navigator){
     .alloc-bucket.cash-deposit .alloc-bucket-amt{color:var(--text);}
     .alloc-bucket.cash-deposit.transferred .alloc-bucket-amt{color:var(--b6);}
     .alloc-bucket.cash-deposit.transferred .alloc-bucket-check{background:var(--b6);border-color:var(--b6);}
+
+    /* ── BANK RECONCILIATION WIDGET ── */
+    .recon-widget{border-radius:var(--radius);overflow:hidden;margin-bottom:12px;}
+    .recon-banner{background:var(--b8);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;transition:background 0.15s;}
+    .recon-banner:hover{background:var(--b7);}
+    .recon-banner-left{}
+    .recon-banner-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.6);margin-bottom:3px;}
+    .recon-banner-val{font-family:'Outfit',sans-serif;font-size:20px;font-weight:800;color:white;line-height:1;}
+    .recon-banner-sub{font-size:10px;color:rgba(255,255,255,0.45);margin-top:2px;}
+    .recon-banner-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+    .recon-bank-pill{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,0.12);border-radius:20px;padding:5px 12px;}
+    .recon-bank-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:rgba(255,255,255,0.55);white-space:nowrap;}
+    .recon-bank-div{width:0.5px;height:13px;background:rgba(255,255,255,0.2);flex-shrink:0;}
+    .recon-bank-input{font-size:12px;font-weight:700;background:none;border:none;outline:none;color:white;width:95px;text-align:right;font-family:'DM Sans',sans-serif;}
+    .recon-bank-input::placeholder{color:rgba(255,255,255,0.3);font-weight:400;}
+    .recon-match-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;flex-shrink:0;}
+    .recon-match-badge.ok{background:var(--g0);color:var(--g5);}
+    .recon-match-badge.off{background:var(--a0);color:var(--a6);}
+    .recon-match-badge.none{background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.4);}
+    .recon-chev{font-size:11px;color:rgba(255,255,255,0.45);transition:transform 0.2s;flex-shrink:0;}
+    .recon-chev.open{transform:rotate(180deg);}
+    .recon-body{background:var(--b9);border-top:0.5px solid rgba(255,255,255,0.08);display:none;}
+    .recon-body.open{display:block;}
+    .recon-breakdown{padding:8px 14px 4px;}
+    .recon-brow{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:0.5px solid rgba(255,255,255,0.07);}
+    .recon-brow:last-child{border-bottom:none;}
+    .recon-brow-lbl{font-size:11px;color:rgba(255,255,255,0.6);}
+    .recon-brow-val{font-size:11px;font-weight:700;}
+    .recon-brow-val.in{color:#88cc90;}
+    .recon-brow-val.out{color:#fce4b0;}
+    .recon-bulk{padding:10px 14px 12px;border-top:0.5px solid rgba(255,255,255,0.08);}
+    .recon-bulk-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.5);margin-bottom:8px;}
+    .recon-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
+    .recon-chip{font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;border:0.5px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.06);cursor:pointer;display:flex;align-items:center;gap:5px;transition:all 0.12s;}
+    .recon-chip.on{background:rgba(255,255,255,0.18);color:white;border-color:rgba(255,255,255,0.35);}
+    .recon-chip-box{width:12px;height:12px;border-radius:3px;border:1px solid rgba(255,255,255,0.3);flex-shrink:0;position:relative;}
+    .recon-chip.on .recon-chip-box{background:white;border-color:white;}
+    .recon-chip.on .recon-chip-box::after{content:'';position:absolute;left:2px;top:0px;width:5px;height:8px;border:1.5px solid var(--b8);border-top:none;border-left:none;transform:rotate(45deg);}
+    .recon-date-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+    .recon-date-lbl{font-size:11px;color:rgba(255,255,255,0.55);white-space:nowrap;}
+    .recon-date-input{font-size:12px;font-weight:600;padding:5px 10px;border-radius:7px;border:0.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.1);color:white;outline:none;font-family:'DM Sans',sans-serif;width:145px;}
+    .recon-date-input::-webkit-calendar-picker-indicator{filter:invert(1);opacity:0.5;}
+    .recon-run-btn{font-size:12px;font-weight:700;padding:5px 14px;border-radius:7px;border:none;background:white;color:var(--b8);cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif;}
+    .recon-run-btn:hover{background:var(--b1);}
+    .recon-run-btn:disabled{opacity:0.4;cursor:default;}
+    .recon-result-bar{margin:8px 14px 10px;padding:7px 12px;border-radius:7px;font-size:12px;font-weight:700;display:none;}
+    .recon-result-bar.ok{background:var(--g0);color:var(--g5);}
+    .recon-result-bar.off{background:var(--a0);color:var(--a6);}
     
   </style>
 </head>
@@ -1054,6 +1102,58 @@ if('serviceWorker' in navigator){
 
 <div class="tab-panel" id="panel-history">
   <div style="max-width:900px;margin:0 auto;width:75%;min-width:480px;padding-bottom:40px;">
+    <!-- Bank Reconciliation Widget -->
+    <div class="recon-widget" id="recon-widget">
+      <div class="recon-banner" onclick="toggleReconWidget()">
+        <div class="recon-banner-left">
+          <div class="recon-banner-lbl">Unallocated Balance</div>
+          <div class="recon-banner-val" id="recon-unalloc-val">—</div>
+          <div class="recon-banner-sub">Card deposits + cash deposits &#8722; transfers</div>
+        </div>
+        <div class="recon-banner-right">
+          <div class="recon-bank-pill" onclick="event.stopPropagation()">
+            <span class="recon-bank-lbl">Bank</span>
+            <div class="recon-bank-div"></div>
+            <input class="recon-bank-input" id="recon-bank-input" placeholder="enter balance&#8230;" oninput="updateReconMatch()" type="text" inputmode="decimal"/>
+          </div>
+          <span class="recon-match-badge none" id="recon-match-badge">&#8212;</span>
+          <span class="recon-chev" id="recon-chev">&#9662;</span>
+        </div>
+      </div>
+      <div class="recon-body" id="recon-body">
+        <div class="recon-breakdown" id="recon-breakdown">
+          <div class="recon-brow">
+            <span class="recon-brow-lbl">Card deposits (all time)</span>
+            <span class="recon-brow-val in" id="recon-card-val">—</span>
+          </div>
+          <div class="recon-brow">
+            <span class="recon-brow-lbl">Cash deposits marked &#10003;</span>
+            <span class="recon-brow-val in" id="recon-cash-val">—</span>
+          </div>
+          <div class="recon-brow">
+            <span class="recon-brow-lbl">Transfers marked &#10003;</span>
+            <span class="recon-brow-val out" id="recon-xfer-val">—</span>
+          </div>
+        </div>
+        <div class="recon-result-bar" id="recon-result-bar"></div>
+        <div class="recon-bulk">
+          <div class="recon-bulk-title">Bulk mark complete &#8212; on or before date</div>
+          <div class="recon-chips" id="recon-chips">
+            <div class="recon-chip on" data-key="cashdeposit" onclick="toggleReconChip(this)"><div class="recon-chip-box"></div>Cash Deposit</div>
+            <div class="recon-chip on" data-key="tax" onclick="toggleReconChip(this)"><div class="recon-chip-box"></div>Taxes</div>
+            <div class="recon-chip on" data-key="overhead" onclick="toggleReconChip(this)"><div class="recon-chip-box"></div>Overhead</div>
+            <div class="recon-chip on" data-key="herbalife" onclick="toggleReconChip(this)"><div class="recon-chip-box"></div>Herbalife</div>
+            <div class="recon-chip on" data-key="payouts" onclick="toggleReconChip(this)"><div class="recon-chip-box"></div>Payouts</div>
+          </div>
+          <div class="recon-date-row">
+            <span class="recon-date-lbl">On or before</span>
+            <input class="recon-date-input" type="date" id="recon-bulk-date"/>
+            <button class="recon-run-btn" id="recon-run-btn" onclick="runBulkMark()">&#9889; Run</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div id="history-cal-nav" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <div style="display:flex;align-items:center;gap:6px;">
         <button class="btn btn-ghost" id="hist-prev-btn" onclick="histCalShift(-1)" style="padding:5px 12px;font-size:16px;">&#8592;</button>
@@ -2837,7 +2937,7 @@ function switchTab(name){
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
   document.getElementById('panel-'+name).classList.add('active');
-  if(name==='payouts'){renderPayoutSnapshots();}if(name==='payouts'){renderPaymentRegister();}if(name==='history'){renderHistAlloc();}
+  if(name==='payouts'){renderPayoutSnapshots();}if(name==='payouts'){renderPaymentRegister();}if(name==='history'){renderHistAlloc();renderReconWidget();}
   if(name==='inv')recalcInvCatTop();
   if(name==='invhist'){
     setTimeout(()=>{
@@ -3736,6 +3836,7 @@ function renderHistCal(){
 
   grid.innerHTML=html;
   renderHistAlloc();
+  renderReconWidget();
   if(_histView==='sum')renderSummaryView();
 }
 function onClosedDayToggle(){
@@ -6153,6 +6254,125 @@ function renderMonthTable(el) {
   tbody += '</tbody>';
 
   el.innerHTML = `<div style="overflow-x:auto;"><table class="smtbl" style="min-width:900px;">${thead}${tbody}</table></div>`;
+}
+
+
+// ── BANK RECONCILIATION WIDGET ───────────────────────────────────────────────
+let _reconOpen = false;
+
+function calcReconTotals() {
+  let cardDeposits = 0, cashDeposits = 0, transfers = 0;
+  ALL_DAYS.forEach(d => {
+    const data = d.data || {};
+    if (!calSales(data)) return;
+    const c = calcAllFromData(data);
+    const tr = data.transfers || {};
+    // Card deposits accumulate automatically every day with sales
+    cardDeposits += (parseFloat(data.cardSales)||0) - (parseFloat(data.cardFees)||0) + (parseFloat(data.cashAppPay)||0) - (parseFloat(data.giftCardLoadFees)||0) + (parseFloat(data.venmo)||0);
+    // Cash deposit only if marked
+    if (tr.cashdeposit) cashDeposits += parseFloat(data.cashSales)||0;
+    // Transfers — sum the 4 buckets that are marked done
+    if (tr.tax)       transfers += c.tax||0;
+    if (tr.overhead)  transfers += c.overhead||0;
+    if (tr.herbalife) transfers += c.products||0;
+    if (tr.payouts)   transfers += c.payouts||0;
+  });
+  return { cardDeposits, cashDeposits, transfers, unalloc: cardDeposits + cashDeposits - transfers };
+}
+
+function renderReconWidget() {
+  const totals = calcReconTotals();
+  const valEl = document.getElementById('recon-unalloc-val');
+  if (valEl) valEl.textContent = fmt$(totals.unalloc);
+  const cardEl = document.getElementById('recon-card-val');
+  if (cardEl) cardEl.textContent = '+' + fmt$(totals.cardDeposits);
+  const cashEl = document.getElementById('recon-cash-val');
+  if (cashEl) cashEl.textContent = '+' + fmt$(totals.cashDeposits);
+  const xferEl = document.getElementById('recon-xfer-val');
+  if (xferEl) xferEl.textContent = '−' + fmt$(totals.transfers);
+  // Set bulk date default to end of last month
+  const bulkDate = document.getElementById('recon-bulk-date');
+  if (bulkDate && !bulkDate.value) {
+    const now = new Date();
+    const lastMo = new Date(now.getFullYear(), now.getMonth(), 0);
+    bulkDate.value = lastMo.getFullYear()+'-'+String(lastMo.getMonth()+1).padStart(2,'0')+'-'+String(lastMo.getDate()).padStart(2,'0');
+  }
+  updateReconMatch();
+}
+
+function updateReconMatch() {
+  const totals = calcReconTotals();
+  const inputEl = document.getElementById('recon-bank-input');
+  const badge = document.getElementById('recon-match-badge');
+  const resultBar = document.getElementById('recon-result-bar');
+  if (!inputEl || !badge) return;
+  const raw = inputEl.value.replace(/[$,]/g, '').trim();
+  const bankVal = parseFloat(raw);
+  if (!raw || isNaN(bankVal)) {
+    badge.className = 'recon-match-badge none';
+    badge.textContent = '—';
+    if (resultBar) resultBar.style.display = 'none';
+    return;
+  }
+  const diff = Math.abs(bankVal - totals.unalloc);
+  const isMatch = diff < 0.02;
+  badge.className = 'recon-match-badge ' + (isMatch ? 'ok' : 'off');
+  badge.textContent = isMatch ? '✓ Match' : 'Off ' + fmt$(diff);
+  if (resultBar && _reconOpen) {
+    resultBar.style.display = 'block';
+    resultBar.className = 'recon-result-bar ' + (isMatch ? 'ok' : 'off');
+    resultBar.textContent = isMatch
+      ? '✓ Bank balance matches unallocated balance'
+      : 'Off by ' + fmt$(diff) + ' — check unmarked transfers or deposits';
+  }
+}
+
+function toggleReconWidget() {
+  _reconOpen = !_reconOpen;
+  const body = document.getElementById('recon-body');
+  const chev = document.getElementById('recon-chev');
+  if (body) body.classList.toggle('open', _reconOpen);
+  if (chev) chev.classList.toggle('open', _reconOpen);
+  if (_reconOpen) updateReconMatch();
+}
+
+function toggleReconChip(el) {
+  el.classList.toggle('on');
+}
+
+async function runBulkMark() {
+  const dateEl = document.getElementById('recon-bulk-date');
+  const runBtn = document.getElementById('recon-run-btn');
+  if (!dateEl || !dateEl.value) { showToast('Pick a date first', 'error'); return; }
+  const cutoff = dateEl.value;
+  // Get selected buckets
+  const chips = document.querySelectorAll('#recon-chips .recon-chip.on');
+  const buckets = Array.from(chips).map(c => c.dataset.key);
+  if (!buckets.length) { showToast('Select at least one bucket', 'error'); return; }
+  const eligible = ALL_DAYS.filter(d => d.date <= cutoff && calSales(d.data||{}));
+  if (!eligible.length) { showToast('No days with data on or before that date', 'error'); return; }
+  const needsUpdate = eligible.filter(d => {
+    const tr = d.data?.transfers || {};
+    return buckets.some(k => !tr[k]);
+  });
+  if (!needsUpdate.length) { showToast('All selected buckets already marked for that range', 'success'); return; }
+  if (!confirm('Mark ' + buckets.join(', ') + ' as complete for ' + needsUpdate.length + ' day' + (needsUpdate.length !== 1 ? 's' : '') + ' on or before ' + cutoff + '?')) return;
+  if (runBtn) { runBtn.disabled = true; runBtn.textContent = 'Running…'; }
+  let done = 0, failed = 0;
+  for (const d of needsUpdate) {
+    const data = { ...(d.data || {}) };
+    if (!data.transfers) data.transfers = {};
+    buckets.forEach(k => { data.transfers[k] = true; });
+    const { error } = await sb.from('days').update({ data }).eq('id', d.id);
+    if (error) { failed++; }
+    else { d.data = data; done++; }
+  }
+  if (runBtn) { runBtn.disabled = false; runBtn.textContent = '⚡ Run'; }
+  if (failed) showToast(done + ' marked, ' + failed + ' failed', 'error');
+  else showToast('✓ ' + done + ' day' + (done !== 1 ? 's' : '') + ' marked complete', 'success');
+  renderReconWidget();
+  renderHistCal();
+  renderHistAlloc();
 }
 
 function resolveAlias(n){for(const op of SETTINGS.operators){if(!op.name)continue;const a=(op.aliases||'').split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);if(op.name.toLowerCase()===n.toLowerCase())return op.name;if(a.includes(n.toLowerCase()))return op.name;}return n;}
