@@ -4107,15 +4107,21 @@ function renderHistCal(){
         const _allDone=_tkeys.every(k=>_tr[k]);
         const _salesNum=calSales(data);
         const _dvNum=(parseFloat(data.dv)||0).toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1});
-        html+=`<div class="hcal-day has-data${isToday?' today-day':''}${_allDone?' style=\\"border-color:var(--g4);\\"':''}" onclick="openDetail('${dateStr}');loadHistProjDay('${dateStr}')" style="${_allDone?'border-color:var(--g4);':''}">
+        const _isMsel=_histView==='msel';
+        const _isMselSel=_isMsel&&_mselDates.has(dateStr);
+        const _mselBorderStyle=_isMselSel?'border:1.5px solid #378add;background:#e6f1fb;':'';
+        const _mselCheck=_isMsel?`<div style="position:absolute;top:4px;left:4px;width:14px;height:14px;border-radius:3px;border:1.5px solid ${_isMselSel?'#378add':'#9ab4cc'};background:${_isMselSel?'#378add':'white'};flex-shrink:0;">${_isMselSel?'<svg viewBox="0 0 10 10" style="width:10px;height:10px;display:block;margin:1px auto 0;"><polyline points="1.5,5 4,7.5 8.5,2" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>':''}</div>`:'';
+        const _cellOnclick=_isMsel?`mselToggleDate('${dateStr}')`:`openDetail('${dateStr}');loadHistProjDay('${dateStr}')`;
+        html+=`<div class="hcal-day has-data${isToday?' today-day':''}" onclick="${_cellOnclick}" style="${_allDone?'border-color:var(--g4);':''}${_mselBorderStyle}">
+          ${_mselCheck}
           <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2px;">
-            <div class="hcal-dn" style="margin-bottom:0;">${day}</div>
-            <div style="display:flex;align-items:center;gap:2px;">${adminIcon}${noteIcon}</div>
+            <div class="hcal-dn" style="margin-bottom:0;${_isMsel?'margin-left:18px;':''}">${day}</div>
+            <div style="display:flex;align-items:center;gap:2px;">${_isMsel?'':adminIcon+noteIcon}</div>
           </div>
           <div class="hcal-val-sales">${fmt$(_salesNum)}<span class="hcal-net-suffix">NET</span></div>
           <div class="hcal-val-dv">${_dvNum}<span class="hcal-dv-suffix">DV</span></div>
-          <div style="display:flex;gap:3px;margin-top:3px;">${_opDots}</div>
-          <div style="position:absolute;bottom:3px;right:3px;">${_qSvg}</div>
+          ${_isMsel?'':(`<div style="display:flex;gap:3px;margin-top:3px;">${_opDots}</div>`)}
+          <div style="position:absolute;bottom:3px;right:3px;">${_isMsel?'':_qSvg}</div>
           ${closedBadge}
         </div>`;
       } else if(isFuture){
@@ -4152,8 +4158,7 @@ function renderHistCal(){
   });
 
   grid.innerHTML=html;
-  renderHistAlloc();
-  renderReconWidget();
+  if(_histView!=='msel'){renderHistAlloc();renderReconWidget();}
   if(_histView==='sum')renderSummaryView();
 }
 function onClosedDayToggle(){
@@ -5292,6 +5297,7 @@ function renderAllocCal() {
 let _allocDetailDate = null;
 
 function openAllocDetail(dateStr) {
+  if (_histView === 'msel') { mselToggleDate(dateStr); return; } // intercept in msel mode
   _allocDetailDate = dateStr;
   const dayObj = ALL_DAYS.find(d => d.date === dateStr);
   if (!dayObj) return;
