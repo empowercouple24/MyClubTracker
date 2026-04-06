@@ -746,34 +746,33 @@ if('serviceWorker' in navigator){
     .alloc-bucket.cash-deposit.transferred .alloc-bucket-check{background:var(--b6);border-color:var(--b6);}
 
     /* ── MULTI-SELECT ALLOCATION ── */
-    .msel-panel{background:#2c4254;border-radius:var(--radius);padding:12px 14px;margin-top:10px;}
-    .msel-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.5);margin-bottom:8px;}
-    .msel-pills{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;min-height:26px;}
+    .msel-panel{background:#2c4254;border-radius:var(--radius);padding:12px 14px;}
+    .msel-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.55);}
+    .msel-pills{display:flex;flex-wrap:wrap;gap:5px;min-height:24px;}
     .msel-pill{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.12);border-radius:20px;padding:3px 8px 3px 10px;font-size:11px;font-weight:600;color:white;}
     .msel-pill-x{font-size:13px;color:rgba(255,255,255,0.45);cursor:pointer;line-height:1;padding:0 2px;}
     .msel-pill-x:hover{color:white;}
     .msel-empty{font-size:12px;color:rgba(255,255,255,0.3);font-style:italic;padding:2px 0;}
-    .msel-buckets{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
-    .msel-chip{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;border:0.5px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.45);background:rgba(255,255,255,0.05);font-size:11px;font-weight:600;cursor:pointer;transition:all 0.12s;user-select:none;}
-    .msel-chip.on{background:rgba(255,255,255,0.18);color:white;border-color:rgba(255,255,255,0.45);}
-    .msel-chip-box{width:12px;height:12px;border-radius:3px;border:1px solid rgba(255,255,255,0.3);flex-shrink:0;position:relative;}
-    .msel-chip.on .msel-chip-box{background:white;border-color:white;}
-    .msel-chip.on .msel-chip-box::after{content:'';position:absolute;left:2px;top:0px;width:5px;height:8px;border:1.5px solid #2c4254;border-top:none;border-left:none;transform:rotate(45deg);}
-    .msel-breakdown{background:rgba(0,0,0,0.18);border-radius:8px;margin-bottom:10px;overflow:hidden;}
-    .msel-brow{display:flex;align-items:flex-start;justify-content:space-between;padding:7px 12px;border-bottom:0.5px solid rgba(255,255,255,0.06);}
+    .msel-buckets{display:flex;flex-wrap:wrap;gap:6px;}
+    .msel-chip{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);font-size:12px;font-weight:600;color:white;cursor:pointer;user-select:none;}
+    .msel-chip input[type=checkbox]{width:14px;height:14px;accent-color:#378add;cursor:pointer;flex-shrink:0;}
+    .msel-breakdown{background:rgba(0,0,0,0.18);border-radius:8px;margin-top:10px;overflow:hidden;}
+    .msel-brow{display:flex;align-items:flex-start;justify-content:space-between;padding:8px 12px;border-bottom:0.5px solid rgba(255,255,255,0.06);}
     .msel-brow:last-child{border-bottom:none;}
-    .msel-brow.total-row{background:rgba(255,255,255,0.07);padding:8px 12px;}
-    .msel-brow-name{font-size:12px;color:rgba(255,255,255,0.65);}
-    .msel-brow.total-row .msel-brow-name{font-size:11px;font-weight:700;color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:0.4px;}
-    .msel-brow-amt{font-size:12px;font-weight:700;color:white;flex-shrink:0;padding-left:8px;}
-    .msel-brow.total-row .msel-brow-amt{font-size:15px;font-weight:800;}
-    .msel-brow-days{font-size:10px;color:rgba(255,255,255,0.3);margin-top:2px;line-height:1.4;}
-    .msel-actions{display:flex;gap:8px;}
-    .msel-cancel{font-size:12px;font-weight:600;padding:7px 14px;border-radius:7px;border:0.5px solid rgba(255,255,255,0.2);background:none;color:rgba(255,255,255,0.55);cursor:pointer;font-family:'DM Sans',sans-serif;}
-    .msel-cancel:hover{color:white;border-color:rgba(255,255,255,0.4);}
-    .msel-run{font-size:12px;font-weight:700;padding:7px 18px;border-radius:7px;border:none;background:white;color:#2c4254;cursor:pointer;flex:1;font-family:'DM Sans',sans-serif;}
+    .msel-brow.total-row{background:rgba(255,255,255,0.07);padding:9px 12px;}
+    .msel-brow-left{flex:1;min-width:0;}
+    .msel-brow-name{font-size:13px;font-weight:600;color:rgba(255,255,255,0.85);margin-bottom:2px;}
+    .msel-brow.total-row .msel-brow-name{font-size:11px;font-weight:800;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.6px;}
+    .msel-brow-days{font-size:11px;color:rgba(255,255,255,0.35);line-height:1.4;}
+    .msel-brow-amt{font-size:13px;font-weight:700;color:white;flex-shrink:0;padding-left:12px;}
+    .msel-brow.total-row .msel-brow-amt{font-size:16px;font-weight:800;}
+    .msel-run{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;padding:10px;border-radius:8px;border:none;background:white;color:#2c4254;cursor:pointer;}
     .msel-run:hover{background:#e8edf4;}
     .msel-run:disabled{opacity:0.4;cursor:not-allowed;}
+    /* "4 DAYS RECORDED" bar */
+    .msel-recorded-bar{background:#3a5470;border-radius:var(--radius);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+    .msel-recorded-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:rgba(255,255,255,0.65);}
+    .msel-recorded-amt{font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;color:white;}
 
     /* ── BANK RECONCILIATION WIDGET ── */
 
@@ -1285,35 +1284,44 @@ if('serviceWorker' in navigator){
         <button id="fill-dv-btn" onclick="openFillDvModal()" style="display:none;font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;background:#854F0B;color:#fff;border:none;cursor:pointer;">&#9679; Fill missing DV</button>
         <button class="btn btn-ghost" id="hist-next-btn" onclick="histCalShift(1)" style="padding:5px 12px;font-size:16px;">&#8594;</button>
       </div>
-      <div class="hist-view-toggle">
-        <button class="hvt-btn active" id="hvt-cal" onclick="setHistView('cal')">&#128197; Calendar</button>
-        <button class="hvt-btn" id="hvt-sum" onclick="setHistView('sum')">&#9776; Summary</button>
-        <button class="hvt-btn" id="hvt-msel" onclick="setHistView('msel')">&#9745; Multi-select</button>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <div class="hist-view-toggle" style="margin-right:6px;">
+          <button class="hvt-btn active" id="hvt-single" onclick="setHistView('cal')" style="font-size:11px;">Single</button>
+          <button class="hvt-btn" id="hvt-msel" onclick="setHistView('msel')" style="font-size:11px;">Multi</button>
+        </div>
+        <div class="hist-view-toggle">
+          <button class="hvt-btn active" id="hvt-cal" onclick="setHistModeView('cal')">&#128197; Calendar</button>
+          <button class="hvt-btn" id="hvt-sum" onclick="setHistModeView('sum')">&#9776; Summary</button>
+        </div>
       </div>
     </div>
 
-    <!-- MULTI-SELECT ALLOCATION PANEL — sits above calendar in msel mode -->
+    <!-- MULTI-SELECT ALLOCATION PANEL — above calendar -->
     <div id="hist-msel-section" style="display:none;margin-bottom:10px;">
       <div class="msel-panel" id="msel-bulk-panel">
-        <div class="msel-title" id="msel-panel-title">0 days selected</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div class="msel-title" id="msel-panel-title">MARK COMPLETE — 0 DAYS SELECTED</div>
+          <button onclick="mselClearAll()" style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.55);background:none;border:none;cursor:pointer;padding:0;font-family:'DM Sans',sans-serif;">Clear all</button>
+        </div>
         <div class="msel-pills" id="msel-pills">
           <span class="msel-empty">Tap days on the calendar below to select them</span>
         </div>
-        <div class="msel-buckets">
-          <div class="msel-chip on" id="msel-chip-tax" onclick="toggleMselChip('tax')"><div class="msel-chip-box"></div>Taxes</div>
-          <div class="msel-chip on" id="msel-chip-overhead" onclick="toggleMselChip('overhead')"><div class="msel-chip-box"></div>Overhead</div>
-          <div class="msel-chip on" id="msel-chip-herbalife" onclick="toggleMselChip('herbalife')"><div class="msel-chip-box"></div>Herbalife</div>
-          <div class="msel-chip on" id="msel-chip-payouts" onclick="toggleMselChip('payouts')"><div class="msel-chip-box"></div>Payouts</div>
-          <div class="msel-chip on" id="msel-chip-cashdeposit" onclick="toggleMselChip('cashdeposit')"><div class="msel-chip-box"></div>Cash Deposit</div>
+        <div class="msel-buckets" style="margin-top:8px;">
+          <label class="msel-chip"><input type="checkbox" id="msel-chk-tax" checked onchange="toggleMselChip('tax')"/><span>Taxes</span></label>
+          <label class="msel-chip"><input type="checkbox" id="msel-chk-overhead" checked onchange="toggleMselChip('overhead')"/><span>Overhead</span></label>
+          <label class="msel-chip"><input type="checkbox" id="msel-chk-herbalife" checked onchange="toggleMselChip('herbalife')"/><span>Herbalife</span></label>
+          <label class="msel-chip"><input type="checkbox" id="msel-chk-payouts" checked onchange="toggleMselChip('payouts')"/><span>Payouts</span></label>
+          <label class="msel-chip"><input type="checkbox" id="msel-chk-cashdeposit" onchange="toggleMselChip('cashdeposit')"/><span>Cash Deposit</span></label>
         </div>
         <div class="msel-breakdown" id="msel-breakdown"></div>
-        <div class="msel-actions">
-          <button class="msel-cancel" onclick="setHistView('cal')">Cancel</button>
-          <button class="msel-run" id="msel-run-btn" onclick="runMselMark()" disabled>&#10003; Mark complete</button>
-        </div>
+        <button class="msel-run" id="msel-run-btn" onclick="runMselMark()" disabled style="width:100%;margin-top:10px;">&#10003; Mark complete</button>
       </div>
     </div>
 
+    <div id="msel-recorded-bar" style="display:none;" class="msel-recorded-bar">
+      <span class="msel-recorded-lbl" id="msel-recorded-lbl">0 days recorded</span>
+      <span class="msel-recorded-amt" id="msel-recorded-amt"></span>
+    </div>
     <div id="history-cal-grid" style="width:100%;"></div>
     <!-- Summary view — hidden by default -->
     <div id="history-sum-view" style="display:none;">
@@ -5172,6 +5180,10 @@ function renderAllocCal() {
       const _closedDays = SETTINGS.closedDays || {};
       const _isClosed = (!_opDays[_dow] || !!_closedDays[dateStr]) && _closedDays[dateStr] !== 'open';
 
+      // Compute msel state before early-return so checkboxes work on all past days
+      const isMsel = _histView === 'msel';
+      const isMselSelected = isMsel && _mselDates.has(dateStr);
+
       if (!dayObj || !calSales(dayObj.data||{})) {
         if (isFuture) {
           html += `<div class="acal-day empty-day"><div class="acal-dn">${day}</div></div>`;
@@ -5179,6 +5191,9 @@ function renderAllocCal() {
           html += `<div class="acal-day no-data${todayClass}"><div class="acal-dn">${day}</div><div style="margin-top:auto;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);text-align:center;">Closed</div></div>`;
         } else if (isToday) {
           html += `<div class="acal-day no-data${todayClass}"><div class="acal-dn">${day}</div><div style="margin-top:auto;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--b5);text-align:center;">Enter today</div></div>`;
+        } else if (isMsel) {
+          // Past day with no data — show in msel mode as unselectable (greyed, no checkbox)
+          html += `<div class="acal-day no-data${todayClass}" style="opacity:0.35;cursor:default;"><div class="acal-dn">${day}</div></div>`;
         } else {
           html += `<div class="acal-day" style="background:#fef7e8;border:1px solid #f0b440;border-radius:var(--radius-sm);padding:5px 5px 6px;min-height:72px;display:flex;flex-direction:column;cursor:pointer;position:relative;overflow:hidden;" onclick="navToDate('${dateStr}')"><div class="acal-dn" style="color:var(--a6);">${day}</div><div style="margin-top:auto;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--a6);text-align:center;line-height:1.3;">Enter<br>data</div></div>`;
         }
@@ -5192,8 +5207,6 @@ function renderAllocCal() {
       const stateClass = doneCount === 0 ? 'none' : doneCount === 4 ? 'full' : 'partial';
       const dots = keys.map(k => `<div class="acal-dot${transfers[k]?' done':''}"></div>`).join('');
 
-      const isMsel = _histView === 'msel';
-      const isMselSelected = isMsel && _mselDates.has(dateStr);
       const mselSelStyle = isMselSelected ? 'background:#e6f1fb;border:1.5px solid #378add;' : '';
       const mselCheck = isMsel ? `<input type="checkbox" style="position:absolute;top:4px;right:4px;width:14px;height:14px;accent-color:#378add;pointer-events:none;" ${isMselSelected?'checked':''}/>` : '';
       const dayOnclick = isMsel ? `mselToggleDate('${dateStr}')` : `openAllocDetail('${dateStr}')`;
@@ -5650,23 +5663,21 @@ let _histProjDate = null;
 
 // ── MULTI-SELECT ALLOCATION ──────────────────────────────────────────────────
 
-let _mselDates = new Set();   // selected date strings
-let _mselBuckets = new Set(['tax','overhead','herbalife','payouts','cashdeposit']); // active bucket chips
+let _mselDates = new Set();
+// Taxes/Overhead/Herbalife/Payouts on by default, Cash Deposit off
+let _mselBuckets = new Set(['tax','overhead','herbalife','payouts']);
 
+const MSEL_BUCKET_KEYS   = ['tax','overhead','herbalife','payouts','cashdeposit'];
 const MSEL_BUCKET_LABELS = {
-  cashdeposit: 'Cash Deposit',
-  tax:         'Taxes',
-  overhead:    'Overhead',
-  herbalife:   'Herbalife',
-  payouts:     'Payouts'
+  tax:'Taxes', overhead:'Overhead', herbalife:'Herbalife',
+  payouts:'Payouts', cashdeposit:'Cash Deposit'
 };
-const MSEL_BUCKET_KEYS = ['tax','overhead','herbalife','payouts','cashdeposit'];
 
 function mselToggleDate(dateStr) {
   if (_mselDates.has(dateStr)) _mselDates.delete(dateStr);
   else _mselDates.add(dateStr);
   renderMselPanel();
-  renderHistCal(); // re-render so selection state reflects on cells
+  renderHistCal();
 }
 
 function mselRemoveDate(dateStr) {
@@ -5675,31 +5686,57 @@ function mselRemoveDate(dateStr) {
   renderHistCal();
 }
 
+function mselClearAll() {
+  _mselDates.clear();
+  renderMselPanel();
+  renderHistCal();
+}
+
 function toggleMselChip(key) {
-  if (_mselBuckets.has(key)) _mselBuckets.delete(key);
-  else _mselBuckets.add(key);
-  const chip = document.getElementById('msel-chip-' + key);
-  if (chip) chip.classList.toggle('on', _mselBuckets.has(key));
+  const chk = document.getElementById('msel-chk-' + key);
+  if (chk) {
+    if (chk.checked) _mselBuckets.add(key);
+    else _mselBuckets.delete(key);
+  }
   renderMselBreakdown();
 }
 
 function renderMselPanel() {
-  const pillsEl = document.getElementById('msel-pills');
-  const titleEl = document.getElementById('msel-panel-title');
-  const runBtn  = document.getElementById('msel-run-btn');
-  const count   = _mselDates.size;
+  const pillsEl  = document.getElementById('msel-pills');
+  const titleEl  = document.getElementById('msel-panel-title');
+  const runBtn   = document.getElementById('msel-run-btn');
+  const recBar   = document.getElementById('msel-recorded-bar');
+  const recLbl   = document.getElementById('msel-recorded-lbl');
+  const recAmt   = document.getElementById('msel-recorded-amt');
+  const count    = _mselDates.size;
 
-  if (titleEl) titleEl.textContent = count + ' day' + (count !== 1 ? 's' : '') + ' selected';
+  if (titleEl) titleEl.textContent = 'MARK COMPLETE \u2014 ' + count + ' DAY' + (count !== 1 ? 'S' : '') + ' SELECTED';
 
   if (pillsEl) {
     if (!count) {
-      pillsEl.innerHTML = '<span class="msel-empty">Tap days on the calendar above to select them</span>';
+      pillsEl.innerHTML = '<span class="msel-empty">Tap days on the calendar below to select them</span>';
     } else {
       const sorted = [..._mselDates].sort();
       pillsEl.innerHTML = sorted.map(d => {
         const lbl = new Date(d + 'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
-        return `<div class="msel-pill">${lbl}<span class="msel-pill-x" onclick="mselRemoveDate('${d}')">&#215;</span></div>`;
+        return '<div class="msel-pill">' + lbl + '<span class="msel-pill-x" onclick="mselRemoveDate(\'' + d + '\')">&#215;</span></div>';
       }).join('');
+    }
+  }
+
+  // Recorded bar — show count + total sales for selected days
+  if (recBar) {
+    if (count > 0) {
+      recBar.style.display = 'flex';
+      const sorted = [..._mselDates].sort();
+      const totalSales = sorted.reduce((s, dateStr) => {
+        const dayObj = ALL_DAYS.find(d => d.date === dateStr);
+        return s + (dayObj ? (calSales(dayObj.data || {}) || 0) : 0);
+      }, 0);
+      if (recLbl) recLbl.textContent = count + ' DAY' + (count !== 1 ? 'S' : '') + ' RECORDED';
+      if (recAmt) recAmt.textContent = fmt$(totalSales);
+    } else {
+      recBar.style.display = 'none';
     }
   }
 
@@ -5708,11 +5745,11 @@ function renderMselPanel() {
 }
 
 function renderMselBreakdown() {
-  const el = document.getElementById('msel-breakdown');
+  const el     = document.getElementById('msel-breakdown');
   const runBtn = document.getElementById('msel-run-btn');
   if (!el) return;
 
-  const sorted = [..._mselDates].sort();
+  const sorted     = [..._mselDates].sort();
   const activeKeys = MSEL_BUCKET_KEYS.filter(k => _mselBuckets.has(k));
 
   if (!sorted.length || !activeKeys.length) {
@@ -5721,92 +5758,60 @@ function renderMselBreakdown() {
     return;
   }
 
-  // Build per-day data
-  const dayRows = [];
-  const colTotals = {};
-  activeKeys.forEach(k => { colTotals[k] = 0; });
-  let grandTotal = 0;
+  // Per-bucket totals with per-day sub-lines (matches screenshot layout)
+  const bucketTotals = {};
+  const bucketDayLines = {};
+  activeKeys.forEach(k => { bucketTotals[k] = 0; bucketDayLines[k] = []; });
 
   sorted.forEach(dateStr => {
     const dayObj = ALL_DAYS.find(d => d.date === dateStr);
     if (!dayObj) return;
     const data = dayObj.data || {};
-    const c = calcAllFromData(data);
+    const c    = calcAllFromData(data);
     const cashDep = parseFloat(data.cashSales) || 0;
     const bvMap = {
-      cashdeposit: cashDep,
-      tax:         c.tax      || 0,
-      overhead:    c.overhead || 0,
-      herbalife:   c.products || 0,
-      payouts:     c.payouts  || 0
+      tax: c.tax||0, overhead: c.overhead||0,
+      herbalife: c.products||0, payouts: c.payouts||0,
+      cashdeposit: cashDep
     };
     const lbl = new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
-    const rowTotal = activeKeys.reduce((s,k) => s + bvMap[k], 0);
-    activeKeys.forEach(k => { colTotals[k] += bvMap[k]; });
-    grandTotal += rowTotal;
-    dayRows.push({ lbl, bvMap, rowTotal });
+    activeKeys.forEach(k => {
+      bucketTotals[k] += bvMap[k];
+      bucketDayLines[k].push(lbl + ' ' + fmt$(bvMap[k]));
+    });
   });
 
-  // Header row
-  const headerCells = activeKeys.map(k =>
-    `<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.4);text-align:right;flex:1;min-width:0;">${MSEL_BUCKET_LABELS[k]}</div>`
-  ).join('');
+  const grandTotal = activeKeys.reduce((s,k) => s + bucketTotals[k], 0);
 
-  // Day rows
-  const rowsHtml = dayRows.map(row => {
-    const cells = activeKeys.map(k =>
-      `<div style="font-size:11px;font-weight:600;color:white;text-align:right;flex:1;min-width:0;">${fmt$(row.bvMap[k])}</div>`
-    ).join('');
-    return `<div class="msel-brow" style="flex-direction:column;gap:3px;">
-      <div style="display:flex;align-items:center;gap:4px;">
-        <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.8);min-width:46px;">${row.lbl}</div>
-        ${cells}
-        <div style="font-size:12px;font-weight:800;color:white;text-align:right;min-width:56px;">${fmt$(row.rowTotal)}</div>
-      </div>
-    </div>`;
-  }).join('');
-
-  // Totals row
-  const totalCells = activeKeys.map(k =>
-    `<div style="font-size:11px;font-weight:700;color:white;text-align:right;flex:1;min-width:0;">${fmt$(colTotals[k])}</div>`
-  ).join('');
-
-  el.innerHTML = `
-    <div class="msel-brow" style="flex-direction:column;gap:3px;padding-bottom:4px;">
-      <div style="display:flex;align-items:center;gap:4px;">
-        <div style="min-width:46px;"></div>
-        ${headerCells}
-        <div style="min-width:56px;text-align:right;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.4);">Total</div>
-      </div>
-    </div>
-    ${rowsHtml}
-    <div class="msel-brow total-row" style="flex-direction:column;gap:3px;">
-      <div style="display:flex;align-items:center;gap:4px;">
-        <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.4px;min-width:46px;">Total</div>
-        ${totalCells}
-        <div style="font-size:15px;font-weight:800;color:white;text-align:right;min-width:56px;">${fmt$(grandTotal)}</div>
-      </div>
-    </div>`;
+  el.innerHTML = activeKeys.map(k =>
+    '<div class="msel-brow">' +
+      '<div class="msel-brow-left">' +
+        '<div class="msel-brow-name">' + MSEL_BUCKET_LABELS[k] + '</div>' +
+        '<div class="msel-brow-days">' + bucketDayLines[k].join(' \u00b7 ') + '</div>' +
+      '</div>' +
+      '<div class="msel-brow-amt">' + fmt$(bucketTotals[k]) + '</div>' +
+    '</div>'
+  ).join('') +
+  '<div class="msel-brow total-row">' +
+    '<div class="msel-brow-left"><div class="msel-brow-name">Total</div></div>' +
+    '<div class="msel-brow-amt">' + fmt$(grandTotal) + '</div>' +
+  '</div>';
 
   if (runBtn) runBtn.disabled = sorted.length === 0 || activeKeys.length === 0;
 }
 
 async function runMselMark() {
   const runBtn = document.getElementById('msel-run-btn');
-  const sorted = [..._mselDates].sort();
+  const sorted  = [..._mselDates].sort();
   const buckets = [..._mselBuckets];
   if (!sorted.length || !buckets.length) return;
 
-  // Find which days actually need updating
   const toUpdate = sorted
     .map(dateStr => ALL_DAYS.find(d => d.date === dateStr))
     .filter(Boolean)
     .filter(dayObj => buckets.some(k => !dayObj.data?.transfers?.[k]));
 
-  if (!toUpdate.length) {
-    showToast('All selected buckets already marked for these days', 'success');
-    return;
-  }
+  if (!toUpdate.length) { showToast('All selected buckets already marked for these days', 'success'); return; }
 
   if (runBtn) { runBtn.disabled = true; runBtn.textContent = 'Saving\u2026'; }
 
@@ -5816,16 +5821,13 @@ async function runMselMark() {
     if (!data.transfers) data.transfers = {};
     buckets.forEach(k => { data.transfers[k] = true; });
     const { error } = await sb.from('days').update({ data }).eq('id', dayObj.id);
-    if (error) { failed++; }
-    else { dayObj.data = data; done++; }
+    if (error) { failed++; } else { dayObj.data = data; done++; }
   }
 
   if (runBtn) { runBtn.disabled = false; runBtn.textContent = '\u2713 Mark complete'; }
-
   if (failed) showToast(done + ' marked, ' + failed + ' failed', 'error');
   else showToast('\u2713 ' + done + ' day' + (done !== 1 ? 's' : '') + ' marked complete', 'success');
 
-  // Clear selection and re-render
   _mselDates.clear();
   renderMselPanel();
   renderHistCal();
@@ -6396,48 +6398,85 @@ const SUM_FIELDS = [
   {key:'fcash',  label:'Fundraiser $', section:'Fundraiser', fn:(d)=>(parseFloat(d.fundraiserCash)||0)+(parseFloat(d.fundraiserCard)||0), fmt:'$'},
 ];
 
-function setHistView(view) {
-  _histView = view;
-  const calGrid  = document.getElementById('history-cal-grid');
-  const sumView  = document.getElementById('history-sum-view');
-  const allocSec = document.getElementById('hist-alloc-section');
-  const mselSec  = document.getElementById('hist-msel-section');
-  const projTog  = document.getElementById('hist-proj-toggle');
-  const calBtn   = document.getElementById('hvt-cal');
-  const sumBtn   = document.getElementById('hvt-sum');
-  const mselBtn  = document.getElementById('hvt-msel');
+function setHistView(mode) {
+  // mode = 'cal' (single) or 'msel' (multi)
+  // Keeps whatever cal/sum sub-view was active, just switches mode
+  const singleBtn = document.getElementById('hvt-single');
+  const mselBtn   = document.getElementById('hvt-msel');
+  const mselSec   = document.getElementById('hist-msel-section');
+  const allocSec  = document.getElementById('hist-alloc-section');
+  const projTog   = document.getElementById('hist-proj-toggle');
+  const recBar    = document.getElementById('msel-recorded-bar');
 
-  // Reset all buttons
-  calBtn?.classList.remove('active');
-  sumBtn?.classList.remove('active');
+  singleBtn?.classList.remove('active');
   mselBtn?.classList.remove('active');
 
-  if (view === 'cal') {
-    if (calGrid) calGrid.style.display = '';
-    if (sumView) sumView.style.display = 'none';
-    if (allocSec) allocSec.style.display = '';
-    if (mselSec) mselSec.style.display = 'none';
-    if (projTog) projTog.style.display = '';
-    calBtn?.classList.add('active');
-    renderHistCal();
-  } else if (view === 'msel') {
-    if (calGrid) calGrid.style.display = '';
-    if (sumView) sumView.style.display = 'none';
-    if (allocSec) allocSec.style.display = 'none';
-    if (mselSec) mselSec.style.display = 'block';
-    if (projTog) projTog.style.display = 'none';
+  if (mode === 'msel') {
+    _histView = 'msel';
     mselBtn?.classList.add('active');
-    _mselDates.clear();
-    renderMselPanel();
-    renderHistCal(); // re-renders in msel tap mode
-  } else {
-    // summary
-    if (calGrid) calGrid.style.display = 'none';
-    if (sumView) sumView.style.display = 'block';
+    if (mselSec)  mselSec.style.display  = 'block';
     if (allocSec) allocSec.style.display = 'none';
-    if (mselSec) mselSec.style.display = 'none';
-    if (projTog) projTog.style.display = 'none';
+    if (projTog)  projTog.style.display  = 'none';
+    // Show calendar, hide summary
+    const calGrid = document.getElementById('history-cal-grid');
+    const sumView = document.getElementById('history-sum-view');
+    if (calGrid) calGrid.style.display = '';
+    if (sumView) sumView.style.display = 'none';
+    // Reset bucket checkboxes to default (tax/oh/herb/pay on, cash off)
+    _mselDates.clear();
+    _mselBuckets = new Set(['tax','overhead','herbalife','payouts']);
+    ['tax','overhead','herbalife','payouts','cashdeposit'].forEach(k => {
+      const chk = document.getElementById('msel-chk-' + k);
+      if (chk) chk.checked = _mselBuckets.has(k);
+    });
+    renderMselPanel();
+    renderHistCal();
+  } else {
+    // Single mode — restore cal view
+    _histView = 'cal';
+    singleBtn?.classList.add('active');
+    if (mselSec)  mselSec.style.display  = 'none';
+    if (recBar)   recBar.style.display   = 'none';
+    if (allocSec) allocSec.style.display = '';
+    if (projTog)  projTog.style.display  = '';
+    const calGrid = document.getElementById('history-cal-grid');
+    const sumView = document.getElementById('history-sum-view');
+    if (calGrid) calGrid.style.display = '';
+    if (sumView) sumView.style.display = 'none';
+    // Restore cal/sum sub-view buttons
+    document.getElementById('hvt-cal')?.classList.add('active');
+    document.getElementById('hvt-sum')?.classList.remove('active');
+    renderHistCal();
+  }
+}
+
+function setHistModeView(view) {
+  // Switches calendar ↔ summary within single mode
+  const calBtn  = document.getElementById('hvt-cal');
+  const sumBtn  = document.getElementById('hvt-sum');
+  const calGrid = document.getElementById('history-cal-grid');
+  const sumView = document.getElementById('history-sum-view');
+  const allocSec = document.getElementById('hist-alloc-section');
+  const projTog  = document.getElementById('hist-proj-toggle');
+
+  calBtn?.classList.remove('active');
+  sumBtn?.classList.remove('active');
+
+  if (view === 'cal') {
+    _histView = 'cal';
+    calBtn?.classList.add('active');
+    if (calGrid)  calGrid.style.display  = '';
+    if (sumView)  sumView.style.display  = 'none';
+    if (allocSec) allocSec.style.display = '';
+    if (projTog)  projTog.style.display  = '';
+    renderHistCal();
+  } else {
+    _histView = 'sum';
     sumBtn?.classList.add('active');
+    if (calGrid)  calGrid.style.display  = 'none';
+    if (sumView)  sumView.style.display  = 'block';
+    if (allocSec) allocSec.style.display = 'none';
+    if (projTog)  projTog.style.display  = 'none';
     renderSummaryView();
   }
 }
