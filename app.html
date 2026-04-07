@@ -1239,6 +1239,7 @@ if('serviceWorker' in navigator){
             <input class="recon-bank-input" id="recon-pending-input" placeholder="$0.00" oninput="updateReconMatch()" onfocus="reconPendingFocus()" onblur="reconPendingBlur()" type="text" inputmode="decimal"/>
           </div>
           <span class="recon-match-badge none" id="recon-match-badge">&#8212;</span>
+          <button onclick="event.stopPropagation();openReconDiag()" title="Diagnose discrepancy" style="background:rgba(255,255,255,0.12);border:none;border-radius:20px;padding:3px 9px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.7);cursor:pointer;flex-shrink:0;">&#128269; Diagnose</button>
           <span class="recon-chev" id="recon-chev">&#9662;</span>
         </div>
       </div>
@@ -1398,7 +1399,19 @@ if('serviceWorker' in navigator){
   </div>
 </div>
 
-<div class="tab-panel" id="panel-alloc" style="display:none!important;">
+<!-- RECON DIAGNOSTIC MODAL -->
+<div id="recon-diag-modal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(15,25,40,0.55);align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;">
+  <div style="background:var(--surface);border-radius:var(--radius);max-width:680px;width:100%;margin:0 auto;box-shadow:0 8px 40px rgba(0,0,0,0.25);overflow:hidden;">
+    <div style="background:linear-gradient(135deg,var(--b8),var(--b7));padding:14px 18px;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.55);margin-bottom:2px;">Recon Diagnostic</div>
+        <div style="font-size:15px;font-weight:800;color:white;">What&#39;s causing my discrepancy?</div>
+      </div>
+      <button onclick="closeReconDiag()" style="background:rgba(255,255,255,0.15);border:none;border-radius:20px;padding:5px 12px;font-size:12px;font-weight:700;color:white;cursor:pointer;">Close</button>
+    </div>
+    <div id="recon-diag-content" style="padding:16px 18px;font-size:13px;color:var(--text);"></div>
+  </div>
+</div>
   <div style="max-width:900px;margin:0 auto;width:75%;min-width:480px;">
     <div id="alloc-cal-nav" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <button class="btn btn-ghost" id="alloc-prev-btn" onclick="allocCalShift(-1)" style="padding:5px 12px;font-size:16px;">&#8592;</button>
@@ -5986,7 +5999,101 @@ function updateAllocHighlights() {
   });
 }
 
-// ── END MULTI-SELECT ──────────────────────────────────────────────────────────
+function closeReconDiag() {
+  document.getElementById('recon-diag-modal').style.display = 'none';
+}
+
+function openReconDiag() {
+  const modal = document.getElementById('recon-diag-modal');
+  const content = document.getElementById('recon-diag-content');
+  if (!modal || !content) return;
+  modal.style.display = 'flex';
+
+  // Scan ALL_DAYS for anything that could cause a discrepancy
+  const rows = [];
+  let venmoTotal = 0, gcfTotal = 0, cashAppTotal = 0;
+
+  ALL_DAYS.forEach(d => {
+    const data = d.data || {};
+    if (!calSales(data)) return;
+    const venmo    = parseFloat(data.venmo)||0;
+    const cashApp  = parseFloat(data.cashAppPay)||0;
+    const gcf      = parseFloat(data.giftCardLoadFees)||0;
+    const tr       = data.transfers || {};
+    const allKeys  = ['cashdeposit','tax','overhead','herbalife','payouts'];
+    const allDone  = allKeys.every(k => tr[k]);
+    const dt       = new Date(d.date+'T00:00:00');
+    const lbl      = dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+
+    if (venmo > 0)   { venmoTotal   += venmo;   rows.push({date:d.date, label:lbl, type:'Venmo / CashApp (App)', amt:venmo,   allDone, note:'Goes to separate account — not in bank balance'}); }
+    if (gcf > 0)     { gcfTotal     += gcf;     rows.push({date:d.date, label:lbl, type:'GC Load Fees',          amt:gcf,     allDone, note:'Deducted by Square before deposit'}); }
+  });
+
+  // Sort newest first
+  rows.sort((a,b) => b.date.localeCompare(a.date));
+
+  const grandTotal = venmoTotal + gcfTotal;
+
+  // Build HTML
+  let html = '';
+
+  // Summary at top
+  html += `<div style="background:var(--b0);border-radius:var(--radius);padding:12px 14px;margin-bottom:14px;">`;
+  html += `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:8px;">Amounts excluded from bank reconciliation</div>`;
+  html += `<div style="display:flex;gap:16px;flex-wrap:wrap;">`;
+  if (venmoTotal > 0) html += `<div><div style="font-size:11px;color:var(--text-faint);">Venmo / CashApp (App)</div><div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;color:var(--a6);">${fmt$(venmoTotal)}</div></div>`;
+  if (gcfTotal > 0)   html += `<div><div style="font-size:11px;color:var(--text-faint);">GC Load Fees (unallocated days)</div><div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;color:var(--a6);">${fmt$(gcfTotal)}</div></div>`;
+  html += `<div style="margin-left:auto;text-align:right;"><div style="font-size:11px;color:var(--text-faint);">Total variance</div><div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;color:var(--b8);">${fmt$(grandTotal)}</div></div>`;
+  html += `</div></div>`;
+
+  if (rows.length === 0) {
+    html += `<div style="text-align:center;padding:24px;color:var(--text-faint);font-size:13px;">No discrepancy sources found across all recorded days.</div>`;
+  } else {
+    // Group by type
+    const byType = {};
+    rows.forEach(r => {
+      if (!byType[r.type]) byType[r.type] = [];
+      byType[r.type].push(r);
+    });
+
+    Object.entries(byType).forEach(([type, typeRows]) => {
+      const typeTotal = typeRows.reduce((s,r) => s+r.amt, 0);
+      html += `<div style="margin-bottom:12px;">`;
+      html += `<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">`;
+      html += `<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">${type}</div>`;
+      html += `<div style="font-size:12px;font-weight:700;color:var(--a6);">${fmt$(typeTotal)} total</div>`;
+      html += `</div>`;
+      html += `<div style="font-size:11px;color:var(--text-faint);margin-bottom:6px;font-style:italic;">${typeRows[0].note}</div>`;
+      html += `<table style="width:100%;border-collapse:collapse;font-size:12px;">`;
+      html += `<thead><tr style="background:var(--b0);">
+        <th style="text-align:left;padding:5px 8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);">Date</th>
+        <th style="text-align:right;padding:5px 8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);">Amount</th>
+        <th style="text-align:center;padding:5px 8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);">Allocated?</th>
+      </tr></thead><tbody>`;
+      typeRows.forEach((r,i) => {
+        const bg = i%2===0 ? 'var(--surface)' : 'var(--b0)';
+        const allocBadge = r.allDone
+          ? `<span style="background:var(--g0);color:var(--g5);font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;">✓ Done</span>`
+          : `<span style="background:var(--a0);color:var(--a6);font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;">Pending</span>`;
+        html += `<tr style="background:${bg};">
+          <td style="padding:6px 8px;color:var(--text);">${r.label}</td>
+          <td style="padding:6px 8px;text-align:right;font-weight:700;color:var(--a6);">${fmt$(r.amt)}</td>
+          <td style="padding:6px 8px;text-align:center;">${allocBadge}</td>
+        </tr>`;
+      });
+      html += `</tbody></table></div>`;
+    });
+  }
+
+  // Explanation
+  html += `<div style="background:#fef3c7;border:1px solid #f0b440;border-radius:8px;padding:10px 12px;margin-top:8px;font-size:12px;color:#854f0b;line-height:1.6;">`;
+  html += `<strong>Why these cause discrepancies:</strong> Venmo and CashApp (via App) deposit to a separate account, not your main bank. GC Load Fees are deducted by Square before your deposit lands. Neither has an allocation bucket, so they sit in the unallocated balance but never appear in your bank account.`;
+  html += `</div>`;
+
+  content.innerHTML = html;
+}
+
+// ── END RECON DIAGNOSTIC ──────────────────────────────────────────────────────
 
 function renderHistAlloc() {
   const yr = _histCalYear, mo = _histCalMonth;
