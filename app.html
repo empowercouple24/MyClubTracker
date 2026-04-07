@@ -1249,7 +1249,7 @@ if('serviceWorker' in navigator){
         <!-- Summary breakdown rows -->
         <div class="recon-breakdown" id="recon-breakdown">
           <div class="recon-brow">
-            <span class="recon-brow-lbl">Card + Venmo deposits (all time)</span>
+            <span class="recon-brow-lbl">Square card deposits (all time)</span>
             <span class="recon-brow-val in" id="recon-card-val">—</span>
           </div>
           <div class="recon-brow">
@@ -6931,7 +6931,7 @@ function calcReconTotals() {
     const tr = data.transfers || {};
     const allKeys = ['cashdeposit','tax','overhead','herbalife','payouts'];
     const allDone = allKeys.every(k => tr[k]);
-    const cardDep = (c.cardDeposits||0) + (parseFloat(data.venmo)||0); // Square sweep + Venmo
+    const cardDep = (c.cardDeposits||0); // Square sweep only: card sales − fees + CashApp POS − GC load fees
     const cashDep = parseFloat(data.cashSales)||0;
     cardDepositsTotal += cardDep;
     if (tr.cashdeposit) cashDepositsTotal += cashDep;
