@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-07 18:00:00 -->
+<!-- CACHE BUST: 2026-04-07 19:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -917,8 +917,6 @@ if('serviceWorker' in navigator){
 </nav>
 
 <div class="tabbar">
-  <button class="tab green"  onclick="switchTab('expansion')" id="tab-expansion" data-short="Expansion">Expansion</button>
-  <div class="tab-divider"></div>
   <button class="tab active" onclick="switchTab('enter')"   id="tab-enter" data-short="Enter">Enter</button>
   <button class="tab"        onclick="switchTab('history')" id="tab-history" data-short="History">History</button>
   <div class="tab-divider"></div>
@@ -926,6 +924,8 @@ if('serviceWorker' in navigator){
   <button class="tab amber"  onclick="switchTab('invhist')" id="tab-invhist" data-short="Inv Hist">Inv History</button>
   <div class="tab-divider"></div>
   <button class="tab"        onclick="switchTab('payouts')" id="tab-payouts" data-short="Payouts">Payouts</button>
+  <div class="tab-divider"></div>
+  <button class="tab green"  onclick="switchTab('expansion')" id="tab-expansion" data-short="Expansion">Expansion</button>
 </div>
 
 <div id="hist-sticky-header">
@@ -1751,7 +1751,7 @@ if('serviceWorker' in navigator){
 </div>
 
 <!-- ═══════ EXPANSION TAB ═══════ -->
-<div class="tab-panel" id="panel-expansion" style="background:var(--bg);min-height:100%;position:relative;z-index:38;padding-bottom:60px;">
+<div class="tab-panel" id="panel-expansion" style="background:var(--bg);min-height:100%;padding-bottom:60px;">
 <div style="max-width:680px;margin:0 auto;width:100%;">
 
   <div style="display:flex;gap:0;background:var(--b0);border-radius:var(--radius-sm);padding:2px;width:fit-content;margin-bottom:14px;">
