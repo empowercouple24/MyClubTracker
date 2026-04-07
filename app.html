@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-07 21:00:00 -->
+<!-- CACHE BUST: 2026-04-07 22:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -1422,6 +1422,15 @@ if('serviceWorker' in navigator){
       </div>
     </div>
 
+  <div style="max-width:900px;margin:0 auto;width:75%;min-width:480px;">
+    <div id="alloc-cal-nav" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <button class="btn btn-ghost" id="alloc-prev-btn" onclick="allocCalShift(-1)" style="padding:5px 12px;font-size:16px;">&#8592;</button>
+      <span id="alloc-cal-label" style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:var(--text);"></span>
+      <button class="btn btn-ghost" id="alloc-next-btn" onclick="allocCalShift(1)" style="padding:5px 12px;font-size:16px;">&#8594;</button>
+    </div>
+    <div id="alloc-cal-grid" style="width:100%;"></div>
+  </div>
+
   </div>
 </div>
 
@@ -1438,15 +1447,7 @@ if('serviceWorker' in navigator){
     <div id="recon-diag-content" style="padding:16px 18px;font-size:13px;color:var(--text);"></div>
   </div>
 </div>
-  <div style="max-width:900px;margin:0 auto;width:75%;min-width:480px;">
-    <div id="alloc-cal-nav" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-      <button class="btn btn-ghost" id="alloc-prev-btn" onclick="allocCalShift(-1)" style="padding:5px 12px;font-size:16px;">&#8592;</button>
-      <span id="alloc-cal-label" style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:var(--text);"></span>
-      <button class="btn btn-ghost" id="alloc-next-btn" onclick="allocCalShift(1)" style="padding:5px 12px;font-size:16px;">&#8594;</button>
-    </div>
-    <div id="alloc-cal-grid" style="width:100%;"></div>
-  </div>
-</div>
+
 
 <div class="tab-panel" id="panel-proj" style="display:none!important;">
   <div style="max-width:805px;margin:0 auto;padding:12px 12px 40px;">
