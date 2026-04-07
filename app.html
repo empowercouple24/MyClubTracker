@@ -1225,7 +1225,7 @@ if('serviceWorker' in navigator){
         <div class="recon-banner-left">
           <div class="recon-banner-lbl">Unallocated Balance</div>
           <div class="recon-banner-val" id="recon-unalloc-val">—</div>
-          <div class="recon-banner-sub">Card deposits + cash deposits &#8722; transfers</div>
+          <div class="recon-banner-sub" id="recon-bank-sub">Card deposits + cash deposits &#8722; transfers</div>
         </div>
         <div class="recon-banner-right">
           <div class="recon-bank-pill" onclick="event.stopPropagation()">
@@ -7026,39 +7026,54 @@ function renderMonthTable(el) {
 let _reconOpen = false;
 
 function calcReconTotals() {
-  // Unallocated = sum of pending bucket amounts on days NOT fully allocated.
-  // GC Load Fees are deducted by Square before deposit — they have no bucket
-  // but must be subtracted from unalloc so they don't inflate the balance.
-  let unalloc = 0;
-  let cardDepositsTotal = 0, cashDepositsTotal = 0, transfersTotal = 0;
-  const unallocDays = [];
+  // Direct formula: what should be in your bank =
+  //   Card deposits (all time)       — Square sweeps: cardSales − fees + cashAppPOS − gcLoadFees
+  // + Cash deposits marked ✓         — cash you've confirmed deposited
+  // − Transfers marked ✓             — tax, overhead, herbalife, payouts moved out
+  // = Unallocated balance
+  //
+  // Venmo/CashApp via App go to a separate account — excluded.
+  // GC Load Fees are already baked out of cardDeposits via calcAllFromData.
+
+  let cardDepositsTotal = 0;
+  let cashDepositsTotal = 0;
+  let transfersTotal    = 0;
+  const unallocDays     = [];
+
   ALL_DAYS.forEach(d => {
     const data = d.data || {};
     if (!calSales(data)) return;
-    const c = calcAllFromData(data);
-    const tr = data.transfers || {};
+    const c   = calcAllFromData(data);
+    const tr  = data.transfers || {};
     const allKeys = ['cashdeposit','tax','overhead','herbalife','payouts'];
+
+    // Card deposits (Square sweep) — already excludes GC load fees
+    cardDepositsTotal += (c.cardDeposits || 0);
+
+    // Cash deposits — only count days where cash deposit is marked ✓
+    if (tr.cashdeposit) cashDepositsTotal += parseFloat(data.cashSales)||0;
+
+    // Transfers out — only buckets marked ✓
+    if (tr.tax)       transfersTotal += c.tax     || 0;
+    if (tr.overhead)  transfersTotal += c.overhead|| 0;
+    if (tr.herbalife) transfersTotal += c.products|| 0;
+    if (tr.payouts)   transfersTotal += c.payouts || 0;
+
+    // Track unallocated days for the list
     const allDone = allKeys.every(k => tr[k]);
-    const cardDep = (c.cardDeposits||0); // card sales − fees + CashApp POS − GC load fees
-    const cashDep = parseFloat(data.cashSales)||0;
-    const gcLoadFees = parseFloat(data.giftCardLoadFees)||0;
-    cardDepositsTotal += cardDep;
-    if (tr.cashdeposit) cashDepositsTotal += cashDep;
-    if (tr.tax)       transfersTotal += c.tax||0;
-    if (tr.overhead)  transfersTotal += c.overhead||0;
-    if (tr.herbalife) transfersTotal += c.products||0;
-    if (tr.payouts)   transfersTotal += c.payouts||0;
-    if (allDone) return;
-    const bvMap = {cashdeposit:cashDep, tax:c.tax||0, overhead:c.overhead||0, herbalife:c.products||0, payouts:c.payouts||0};
-    const pending = allKeys.filter(k => !tr[k]).map(k => ({key:k, amt:bvMap[k]}));
-    const pendingTotal = pending.reduce((s,p) => s+p.amt, 0);
-    // Subtract GC load fees — Square deducts these before deposit, no bucket needed
-    unalloc += pendingTotal - gcLoadFees;
-    const dt = new Date(d.date+'T00:00:00');
-    const label = dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
-    unallocDays.push({date:d.date, label, pending, pendingTotal});
+    if (!allDone) {
+      const cashDep = parseFloat(data.cashSales)||0;
+      const bvMap   = {cashdeposit:cashDep, tax:c.tax||0, overhead:c.overhead||0, herbalife:c.products||0, payouts:c.payouts||0};
+      const pending = allKeys.filter(k => !tr[k]).map(k => ({key:k, amt:bvMap[k]}));
+      const pendingTotal = pending.reduce((s,p) => s+p.amt, 0);
+      const dt    = new Date(d.date+'T00:00:00');
+      const label = dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+      unallocDays.push({date:d.date, label, pending, pendingTotal});
+    }
   });
+
   unallocDays.sort((a,b) => b.date.localeCompare(a.date));
+  const unalloc = cardDepositsTotal + cashDepositsTotal - transfersTotal;
   return { cardDeposits:cardDepositsTotal, cashDeposits:cashDepositsTotal, transfers:transfersTotal, unalloc, unallocDays };
 }
 
@@ -7152,41 +7167,53 @@ function reconBankBlur() {
 
 function updateReconMatch() {
   const totals = calcReconTotals();
-  const inputEl = document.getElementById('recon-bank-input');
-  const pendingEl = document.getElementById('recon-pending-input');
-  const badge = document.getElementById('recon-match-badge');
-  const resultBar = document.getElementById('recon-result-bar');
-  const pendingBrow = document.getElementById('recon-pending-brow');
+  const inputEl    = document.getElementById('recon-bank-input');
+  const pendingEl  = document.getElementById('recon-pending-input');
+  const badge      = document.getElementById('recon-match-badge');
+  const resultBar  = document.getElementById('recon-result-bar');
+  const subEl      = document.getElementById('recon-bank-sub');
+  const pendingBrow    = document.getElementById('recon-pending-brow');
   const pendingBrowVal = document.getElementById('recon-pending-brow-val');
   if (!inputEl || !badge) return;
 
-  const rawBank = inputEl.value.replace(/[$,]/g, '').trim();
-  const bankVal = parseFloat(rawBank);
+  const rawBank    = inputEl.value.replace(/[$,]/g, '').trim();
+  const bankVal    = parseFloat(rawBank);
   const rawPending = pendingEl ? pendingEl.value.replace(/[$,]/g, '').trim() : '';
   const pendingVal = parseFloat(rawPending) || 0;
 
   // Show/hide pending row in breakdown
-  if (pendingBrow) pendingBrow.style.display = pendingVal > 0 ? 'flex' : 'none';
-  if (pendingBrowVal) pendingBrowVal.textContent = pendingVal > 0 ? '+' + fmt$(pendingVal) : '—';
+  if (pendingBrow)    pendingBrow.style.display    = pendingVal > 0 ? 'flex' : 'none';
+  if (pendingBrowVal) pendingBrowVal.textContent    = pendingVal > 0 ? '+' + fmt$(pendingVal) : '—';
 
   if (!rawBank || isNaN(bankVal)) {
-    badge.className = 'recon-match-badge none';
+    badge.className   = 'recon-match-badge none';
     badge.textContent = '—';
     if (resultBar) resultBar.style.display = 'none';
+    if (subEl) subEl.textContent = 'Card deposits + cash deposits − transfers';
     return;
   }
 
-  // Effective balance = what's in bank + what's pending
   const effectiveBalance = bankVal + pendingVal;
-  const diff = Math.abs(effectiveBalance - totals.unalloc);
+
+  // Update subtitle to show Bank + Pending = total
+  if (subEl) {
+    if (pendingVal > 0) {
+      subEl.textContent = 'Bank ' + fmt$(bankVal) + ' + Pending ' + fmt$(pendingVal) + ' = ' + fmt$(effectiveBalance);
+    } else {
+      subEl.textContent = 'Bank ' + fmt$(bankVal) + ' entered';
+    }
+  }
+
+  const diff    = Math.abs(effectiveBalance - totals.unalloc);
   const isMatch = diff < 0.02;
-  badge.className = 'recon-match-badge ' + (isMatch ? 'ok' : 'off');
+  badge.className   = 'recon-match-badge ' + (isMatch ? 'ok' : 'off');
   badge.textContent = isMatch ? '✓ Match' : 'Off ' + fmt$(diff);
+
   if (resultBar && _reconOpen) {
     resultBar.style.display = 'block';
-    resultBar.className = 'recon-result-bar ' + (isMatch ? 'ok' : 'off');
-    resultBar.textContent = isMatch
-      ? '&#10003; Balanced — deposits match unallocated balance'
+    resultBar.className     = 'recon-result-bar ' + (isMatch ? 'ok' : 'off');
+    resultBar.textContent   = isMatch
+      ? '✓ Balanced — bank matches unallocated balance'
       : 'Off by ' + fmt$(diff) + ' \u2014 check unmarked transfers or deposits';
   }
 }
