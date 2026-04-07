@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-07 19:00:00 -->
+<!-- CACHE BUST: 2026-04-07 20:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -1751,12 +1751,12 @@ if('serviceWorker' in navigator){
 </div>
 
 <!-- ═══════ EXPANSION TAB ═══════ -->
-<div class="tab-panel" id="panel-expansion" style="background:var(--bg);min-height:100%;padding-bottom:60px;">
+<div class="tab-panel" id="panel-expansion" style="background:var(--bg);min-height:100%;padding-bottom:60px;isolation:isolate;">
 <div style="max-width:680px;margin:0 auto;width:100%;">
 
   <div style="display:flex;gap:0;background:var(--b0);border-radius:var(--radius-sm);padding:2px;width:fit-content;margin-bottom:14px;">
     <button id="exp-btn-proj" onclick="switchExpSub('proj')" style="padding:6px 16px;font-size:12px;font-weight:600;border:none;background:transparent;color:var(--text-muted);cursor:pointer;border-radius:6px;font-family:'DM Sans',sans-serif;transition:all 0.15s;">Projections</button>
-    <button id="exp-btn-csa" onclick="switchExpSub('csa')" style="padding:6px 16px;font-size:12px;font-weight:600;border:none;background:var(--surface);color:var(--b7);cursor:pointer;border-radius:6px;font-family:'DM Sans',sans-serif;transition:all 0.15s;box-shadow:var(--shadow-sm);">Club Sales Analysis</button>
+      <button id="exp-btn-csa" onclick="switchExpSub('csa')" style="padding:6px 16px;font-size:12px;font-weight:600;border:none;background:var(--surface);color:var(--b7);cursor:pointer;border-radius:6px;font-family:'DM Sans',sans-serif;transition:all 0.15s;box-shadow:var(--shadow-sm);">Club Viability Analyzer</button>
   </div>
 
   <!-- ── PROJECTIONS ── -->
@@ -1916,7 +1916,7 @@ if('serviceWorker' in navigator){
     </div><!-- /wif-results -->
   </div>
 
-  <!-- ── CLUB SALES ANALYSIS ── -->
+  <!-- ── CLUB VIABILITY ANALYZER ── -->
   <div id="exp-sub-csa">
 
     <div class="card" style="padding:14px;margin-bottom:10px;">
@@ -3453,10 +3453,10 @@ function switchTab(name){
       if(w)document.documentElement.style.setProperty('--invhist-cat-top',w.offsetHeight+'px');
     },50);
   }
-  if(name==='expansion'){csaInitChart();}
+  if(name==='expansion'){csaInitChart();switchExpSub('csa');}
 }
 
-// ── EXPANSION TAB: Club Sales Analysis ──
+// ── EXPANSION TAB: Club Viability Analyzer ──
 function switchExpSub(sub){
   var bp=document.getElementById('exp-btn-proj'),bc=document.getElementById('exp-btn-csa');
   bp.style.background=sub==='proj'?'var(--surface)':'transparent';
