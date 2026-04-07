@@ -1211,11 +1211,12 @@ if('serviceWorker' in navigator){
   <div style="max-width:900px;margin:0 auto;width:75%;min-width:480px;padding-bottom:40px;">
     <!-- Bank Reconciliation Widget (rendered via #hist-sticky-header outside scroll) -->
     <div class="recon-widget" id="recon-widget" style="display:none;">
+      <!-- HEADER — always visible, click to expand/collapse -->
       <div class="recon-banner" onclick="toggleReconWidget()">
         <div class="recon-banner-left">
           <div class="recon-banner-lbl">Unallocated Balance</div>
           <div class="recon-banner-val" id="recon-unalloc-val">—</div>
-          <div class="recon-banner-sub">card + cash &#8722; transfers</div>
+          <div class="recon-banner-sub">Card deposits + cash deposits &#8722; transfers</div>
         </div>
         <div class="recon-banner-right">
           <div class="recon-bank-pill" onclick="event.stopPropagation()">
@@ -1232,10 +1233,14 @@ if('serviceWorker' in navigator){
           <span class="recon-chev" id="recon-chev">&#9662;</span>
         </div>
       </div>
+
+      <!-- BODY — expands on click -->
       <div class="recon-body" id="recon-body">
+
+        <!-- Summary breakdown rows -->
         <div class="recon-breakdown" id="recon-breakdown">
           <div class="recon-brow">
-            <span class="recon-brow-lbl">Square card deposits (all time)</span>
+            <span class="recon-brow-lbl">Card + Venmo deposits (all time)</span>
             <span class="recon-brow-val in" id="recon-card-val">—</span>
           </div>
           <div class="recon-brow">
@@ -1250,19 +1255,18 @@ if('serviceWorker' in navigator){
             <span class="recon-brow-lbl">Pending Square deposits</span>
             <span class="recon-brow-val in" id="recon-pending-brow-val">—</span>
           </div>
-          <div style="margin-top:8px;padding:7px 10px;background:rgba(255,255,255,0.06);border-radius:6px;font-size:10px;line-height:1.6;color:rgba(255,255,255,0.45);">
-            <span style="color:rgba(255,255,255,0.65);font-weight:700;">Scope: main Square/cash account only.</span>
-            Includes Square card sweeps (card sales minus fees + CashApp POS) and cash you have marked deposited.
-            Venmo is excluded as it deposits to a separate account and is not tracked here.
-            Allocation buckets are calculated off total sales including Venmo, so a small variance is expected on days with Venmo entries.
-          </div>
         </div>
+
         <!-- Unallocated days list -->
-        <div id="recon-unalloc-days" style="border-top:0.5px solid rgba(255,255,255,0.08);max-height:220px;overflow-y:auto;display:none;"></div>
+        <div id="recon-unalloc-days" style="border-top:0.5px solid rgba(255,255,255,0.08);max-height:260px;overflow-y:auto;display:none;"></div>
         <div style="padding:4px 14px 6px;border-top:0.5px solid rgba(255,255,255,0.08);">
           <button onclick="toggleReconDaysList()" id="recon-days-toggle-btn" style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.55);background:none;border:none;cursor:pointer;padding:2px 0;">&#9660; Show unallocated days</button>
         </div>
+
+        <!-- Off/match result bar -->
         <div class="recon-result-bar" id="recon-result-bar"></div>
+
+        <!-- Bulk mark complete -->
         <div class="recon-bulk">
           <div class="recon-bulk-title">Bulk mark complete &#8212; on or before date</div>
           <div class="recon-chips" id="recon-chips">
@@ -1278,10 +1282,10 @@ if('serviceWorker' in navigator){
             <button class="recon-run-btn" id="recon-run-btn" onclick="runBulkMark()">&#9889; Run</button>
           </div>
         </div>
-      </div>
-    </div>
+      </div><!-- /recon-body -->
+    </div><!-- /recon-widget -->
 
-    <div id="history-cal-nav" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+    <div id="history-cal-nav" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;position:sticky;top:0;z-index:30;background:var(--bg);padding:8px 0 6px;margin-left:-2px;margin-right:-2px;">
       <div style="display:flex;align-items:center;gap:6px;">
         <button class="btn btn-ghost" id="hist-prev-btn" onclick="histCalShift(-1)" style="padding:5px 12px;font-size:16px;">&#8592;</button>
         <span id="hist-cal-label" style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:var(--text);"></span>
@@ -6888,7 +6892,7 @@ function calcReconTotals() {
     const tr = data.transfers || {};
     const allKeys = ['cashdeposit','tax','overhead','herbalife','payouts'];
     const allDone = allKeys.every(k => tr[k]);
-    const cardDep = (c.cardDeposits||0); // Square sweep only: cardSales - fees + cashAppPay - gcLoadFees
+    const cardDep = (c.cardDeposits||0) + (parseFloat(data.venmo)||0); // Square sweep + Venmo
     const cashDep = parseFloat(data.cashSales)||0;
     cardDepositsTotal += cardDep;
     if (tr.cashdeposit) cashDepositsTotal += cashDep;
@@ -7030,10 +7034,9 @@ function updateReconMatch() {
   if (resultBar && _reconOpen) {
     resultBar.style.display = 'block';
     resultBar.className = 'recon-result-bar ' + (isMatch ? 'ok' : 'off');
-    const effectiveStr = pendingVal > 0 ? fmt$(bankVal) + ' + ' + fmt$(pendingVal) + ' pending = ' + fmt$(effectiveBalance) : fmt$(effectiveBalance);
     resultBar.textContent = isMatch
-      ? '✓ ' + effectiveStr + ' matches unallocated balance'
-      : 'Off by ' + fmt$(diff) + ' — ' + effectiveStr + ' vs ' + fmt$(totals.unalloc) + ' unallocated';
+      ? '&#10003; Balanced — deposits match unallocated balance'
+      : 'Off by ' + fmt$(diff) + ' \u2014 check unmarked transfers or deposits';
   }
 }
 
