@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-08 00:00:00 -->
+<!-- CACHE BUST: 2026-04-08 01:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -1916,14 +1916,31 @@ if('serviceWorker' in navigator){
   <!-- ── CLUB VIABILITY ANALYZER ── -->
   <div id="exp-sub-csa">
 
-    <!-- 1. PROFIT GOAL -->
+    <!-- 1. REVENUE TARGET SLIDER -->
     <div class="card" style="padding:14px;margin-bottom:10px;">
-      <div class="section-label" style="margin-top:0;">Profit goal</div>
-      <div style="font-size:11px;color:var(--text-faint);margin-bottom:12px;">How much you want to take home each month after all expenses.</div>
-      <div style="display:flex;align-items:center;gap:10px;">
-        <span style="font-size:11px;color:var(--text-faint);white-space:nowrap;">Monthly target</span>
-        <input type="range" min="0" max="15000" value="5000" step="500" id="cva-profit-slider" style="flex:1;min-width:0;height:4px;-webkit-appearance:none;appearance:none;background:var(--b1);border-radius:2px;outline:none;"/>
-        <span style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;min-width:68px;text-align:right;" id="cva-profit-val">$5,000</span>
+      <div class="section-label" style="margin-top:0;">Monthly revenue target</div>
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:14px;">
+        <div>
+          <div style="font-family:'Outfit',sans-serif;font-size:26px;font-weight:700;color:var(--text);line-height:1;" id="cva-rev-display">$20,000</div>
+          <div style="font-size:11px;color:var(--text-faint);margin-top:3px;" id="cva-rev-sublabel">monthly sales revenue</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:10px;color:var(--text-faint);">daily revenue</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;color:var(--text);" id="cva-rev-daily">—</div>
+        </div>
+      </div>
+      <input type="range" id="cva-rev-slider" min="10000" max="50000" step="500" value="20000" oninput="cvaRevSliderInput()" onchange="cvaRevSliderInput()" style="width:100%;height:5px;-webkit-appearance:none;appearance:none;border-radius:3px;outline:none;cursor:pointer;background:var(--b1);"/>
+      <div style="position:relative;height:28px;margin-top:5px;" id="cva-hash-track"></div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;align-items:center;" id="cva-rev-chips"></div>
+      <div id="cva-custom-box" style="display:none;align-items:center;gap:6px;margin-top:8px;padding:8px 10px;background:var(--b0);border-radius:6px;border:1px solid var(--b4);">
+        <span style="font-size:12px;color:var(--text-faint);white-space:nowrap;">$</span>
+        <input type="text" inputmode="numeric" id="cva-custom-input" placeholder="e.g. 55000" style="flex:1;min-width:0;padding:5px 8px;font-size:14px;font-weight:600;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;"/>
+        <button onclick="cvaApplyCustom()" style="padding:5px 12px;border-radius:6px;border:none;background:var(--b5);color:#fff;font-size:12px;font-weight:600;cursor:pointer;">Set</button>
+      </div>
+      <div id="cva-profit-result" style="border-radius:8px;padding:12px 14px;margin-top:12px;background:var(--g0);border:1px solid #b8e0bc;">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;color:var(--g5);" id="cva-profit-result-label">Estimated monthly profit</div>
+        <div style="font-family:'Outfit',sans-serif;font-size:30px;font-weight:700;line-height:1;color:var(--g5);" id="cva-profit-result-num">—</div>
+        <div style="font-size:11px;margin-top:8px;display:grid;grid-template-columns:1fr auto;gap:3px 12px;" id="cva-profit-breakdown"></div>
       </div>
     </div>
 
@@ -1993,7 +2010,7 @@ if('serviceWorker' in navigator){
           <span>Total</span><span id="cva-exp-total">$3,818.14 / mo</span>
         </div>
         <div style="display:flex;justify-content:space-between;padding:2px 0 0;font-size:11px;color:var(--text-faint);">
-          <span>Daily (÷ 30)</span><span id="cva-exp-daily">$127.27 / day</span>
+          <span>Daily (÷ 26)</span><span id="cva-exp-daily">$146.85 / day</span>
         </div>
       </div>
     </div>
@@ -3692,12 +3709,26 @@ function cvaScaleTeas(newTotal){
 function cvaRenderExp(){
   var c=document.getElementById('cva-exp-rows');if(!c)return;
   c.innerHTML='';
-  _cvaExpenses.forEach(function(e){
+  _cvaExpenses.forEach(function(e,i){
     var row=document.createElement('div');
-    row.style.cssText='display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border-light);font-size:12px;';
-    row.innerHTML='<span style="color:var(--text-muted)">'+e.l+'</span><span style="font-weight:600">$'+e.v.toFixed(2)+'</span>';
+    row.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border-light);font-size:12px;gap:8px;';
+    var inp=document.createElement('input');
+    inp.type='text';inp.inputMode='numeric';
+    inp.value=Math.round(e.v).toLocaleString();
+    inp.style.cssText='width:90px;text-align:right;padding:3px 7px;font-size:12px;font-weight:600;border:1px solid var(--border);border-radius:5px;background:var(--surface);color:var(--text);outline:none;';
+    inp.addEventListener('focus',function(){this.value=this.value.replace(/,/g,'');this.select();});
+    inp.addEventListener('input',function(){this.value=this.value.replace(/[^0-9]/g,'');_cvaExpenses[i].v=parseInt(this.value)||0;cvaUpdateExpTotals();});
+    inp.addEventListener('blur',function(){var n=parseInt(this.value.replace(/,/g,''))||0;_cvaExpenses[i].v=n;this.value=n.toLocaleString();cvaUpdateExpTotals();cvaRecalc();});
+    row.innerHTML='<span style="color:var(--text-muted);flex:1;">'+e.l+'</span><span style="color:var(--text-faint);font-size:12px;">$</span>';
+    row.appendChild(inp);
     c.appendChild(row);
   });
+}
+function cvaUpdateExpTotals(){
+  var fixed=cvaGetFixed();
+  cvaST('cva-exp-hdr',cvaFmt$(fixed)+' / mo');
+  cvaST('cva-exp-total',cvaFmt$(fixed)+' / mo');
+  cvaST('cva-exp-daily',cvaFmt$(fixed/26)+' / day');
 }
 
 // ── CVA: RENDER PRODUCT TABLE ──
@@ -3795,24 +3826,180 @@ function cvaRenderTeaSub(){
   cvaST('cva-tea-avg',cvaFc(cvaTeaWtdProfit()));
 }
 
+// ── CVA: REVENUE SLIDER STATE ──
+var _cvaRevSliderMax=50000;
+var _cvaRevCustomActive=false;
+var _cvaRevChips=[10000,13000,16000,20000,23000,26000,30000,33000,36000,40000,45000,50000];
+var _cvaRevMajor=[10000,16000,20000,26000,30000,36000,40000,50000];
+var _cvaSnapZone=1200;
+
+function cvaRevFmtChip(v){return '$'+(v%1000===0?(v/1000)+'k':((v/1000).toFixed(1))+'k');}
+
+function cvaRevCalcProfit(rev){
+  var fixed=cvaGetFixed();
+  var wage=cvaGetWage(),hrs=cvaGetHrs();
+  var avgP=cvaOverallAvgPrice()||11.5;
+  var avgW=cvaOverallWtd()||7.2;
+  var avgCost=avgP-avgW;
+  var drinksPerDay=rev/(avgP*26);
+  var ingMo=avgCost*drinksPerDay*26;
+  var labMo=wage*hrs*26;
+  return{fixed:fixed,ing:ingMo,lab:labMo,profit:rev-fixed-ingMo-labMo};
+}
+
+function cvaRevUpdateSliderTrack(){
+  var sl=document.getElementById('cva-rev-slider');if(!sl)return;
+  var v=parseInt(sl.value),mn=10000,mx=_cvaRevSliderMax;
+  var pct=Math.max(0,Math.min(100,((v-mn)/(mx-mn))*100));
+  sl.style.background='linear-gradient(to right,var(--b5) 0%,var(--b5) '+pct+'%,var(--b1) '+pct+'%,var(--b1) 100%)';
+}
+
+function cvaRevSyncChips(v){
+  document.querySelectorAll('.cva-rev-chip:not(.cva-rev-custom-chip)').forEach(function(c){
+    c.style.background=parseInt(c.dataset.v)===v?'var(--b5)':'';
+    c.style.color=parseInt(c.dataset.v)===v?'#fff':'';
+    c.style.borderColor=parseInt(c.dataset.v)===v?'var(--b5)':'';
+  });
+  var cc=document.getElementById('cva-custom-chip');
+  if(cc){cc.style.background='';cc.style.color='';cc.style.borderColor='';}
+}
+
+function cvaRevSliderInput(){
+  _cvaRevCustomActive=false;
+  var cb=document.getElementById('cva-custom-box');if(cb)cb.style.display='none';
+  var cc=document.getElementById('cva-custom-chip');if(cc){cc.style.background='';cc.style.color='';cc.style.borderColor='';}
+  cvaRevUpdateSliderTrack();
+  cvaRecalc();
+}
+
+function cvaRevSnapOnRelease(){
+  if(_cvaRevCustomActive)return;
+  var sl=document.getElementById('cva-rev-slider');if(!sl)return;
+  var v=parseInt(sl.value);
+  var closest=_cvaRevChips.reduce(function(a,b){return Math.abs(b-v)<Math.abs(a-v)?b:a;});
+  if(Math.abs(closest-v)<=_cvaSnapZone){sl.value=closest;cvaRevUpdateSliderTrack();cvaRecalc();}
+}
+
+function cvaRevSnapTo(v){
+  _cvaRevCustomActive=false;
+  var cb=document.getElementById('cva-custom-box');if(cb)cb.style.display='none';
+  var sl=document.getElementById('cva-rev-slider');if(!sl)return;
+  sl.value=v;
+  cvaRevUpdateSliderTrack();
+  cvaRecalc();
+}
+
+function cvaOpenCustom(){
+  _cvaRevCustomActive=true;
+  var cb=document.getElementById('cva-custom-box');if(cb)cb.style.display='flex';
+  var cc=document.getElementById('cva-custom-chip');
+  if(cc){cc.style.background='var(--b5)';cc.style.color='#fff';cc.style.borderColor='var(--b5)';}
+  document.querySelectorAll('.cva-rev-chip:not(.cva-rev-custom-chip)').forEach(function(c){c.style.background='';c.style.color='';c.style.borderColor='';});
+  var inp=document.getElementById('cva-custom-input');if(inp){inp.focus();inp.select();}
+}
+
+function cvaApplyCustom(){
+  var raw=document.getElementById('cva-custom-input').value.replace(/[^0-9]/g,'');
+  var v=parseInt(raw)||0;if(v<=0)return;
+  var sl=document.getElementById('cva-rev-slider');if(!sl)return;
+  if(v>_cvaRevSliderMax){
+    _cvaRevSliderMax=Math.ceil(v/5000)*5000;
+    sl.max=_cvaRevSliderMax;
+    cvaRevBuildHashmarks();
+  }
+  if(v<10000)v=10000;
+  sl.value=v;
+  var sub=document.getElementById('cva-rev-sublabel');if(sub)sub.textContent='custom target \xb7 monthly revenue';
+  cvaRevUpdateSliderTrack();
+  cvaRecalc();
+}
+
+function cvaRevBuildChips(){
+  var wrap=document.getElementById('cva-rev-chips');if(!wrap)return;
+  wrap.innerHTML='';
+  _cvaRevChips.forEach(function(v){
+    var c=document.createElement('span');
+    c.className='cva-rev-chip';
+    c.dataset.v=v;
+    c.textContent=cvaRevFmtChip(v);
+    c.style.cssText='display:inline-block;padding:4px 9px;border:1px solid var(--border);border-radius:20px;font-size:11px;color:var(--text-muted);cursor:pointer;transition:all 0.1s;white-space:nowrap;';
+    if(v===20000){c.style.background='var(--b5)';c.style.color='#fff';c.style.borderColor='var(--b5)';}
+    c.onclick=function(){cvaRevSnapTo(v);};
+    wrap.appendChild(c);
+  });
+  var cc=document.createElement('span');
+  cc.className='cva-rev-chip cva-rev-custom-chip';
+  cc.id='cva-custom-chip';
+  cc.style.cssText='display:inline-flex;align-items:center;gap:4px;padding:4px 9px;border:1px dashed var(--border);border-radius:20px;font-size:11px;color:var(--text-muted);cursor:pointer;transition:all 0.1s;white-space:nowrap;';
+  cc.innerHTML='<svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M8.5 1.5a1.414 1.414 0 0 1 2 2L4 10 1 11l1-3 6.5-6.5z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>Custom';
+  cc.onclick=cvaOpenCustom;
+  wrap.appendChild(cc);
+}
+
+function cvaRevBuildHashmarks(){
+  var track=document.getElementById('cva-hash-track');if(!track)return;
+  track.innerHTML='';
+  _cvaRevChips.forEach(function(m){
+    var p=((m-10000)/(_cvaRevSliderMax-10000))*100;
+    var isMajor=_cvaRevMajor.indexOf(m)>=0;
+    var mk=document.createElement('div');
+    mk.style.cssText='position:absolute;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;';
+    mk.style.left=p+'%';
+    if(isMajor){
+      mk.innerHTML='<div style="width:1.5px;height:8px;background:var(--border);"></div><div style="font-size:10px;color:var(--text-faint);white-space:nowrap;">'+cvaRevFmtChip(m)+'</div>';
+    } else {
+      mk.innerHTML='<div style="width:1px;height:5px;background:var(--border-light);"></div>';
+    }
+    mk.onclick=function(){cvaRevSnapTo(m);};
+    track.appendChild(mk);
+  });
+}
+
 // ── CVA: MAIN RECALC ──
 function cvaRecalc(){
   var fixed=cvaGetFixed(),wage=cvaGetWage(),hrs=cvaGetHrs(),ceil=cvaGetCeil();
-  var goal=parseInt(document.getElementById('cva-profit-slider').value)||0;
   var w=cvaOverallWtd(),avgP=cvaOverallAvgPrice();
 
-  cvaST('cva-profit-val','$'+goal.toLocaleString());
+  // Revenue slider values
+  var sl=document.getElementById('cva-rev-slider');
+  var rev=sl?parseInt(sl.value)||20000:20000;
+  var r=cvaRevCalcProfit(rev);
+
+  cvaST('cva-rev-display','$'+rev.toLocaleString());
+  cvaST('cva-rev-daily','$'+Math.round(rev/26).toLocaleString());
+
+  // Profit result card
+  var isPos=r.profit>=0;
+  var pc=document.getElementById('cva-profit-result');
+  if(pc){
+    pc.style.background=isPos?'var(--g0)':'#FCEBEB';
+    pc.style.borderColor=isPos?'#b8e0bc':'#F7C1C1';
+  }
+  var rl=document.getElementById('cva-profit-result-label');
+  if(rl){rl.style.color=isPos?'var(--g5)':'#A32D2D';rl.textContent=isPos?'Estimated monthly profit':'Monthly shortfall';}
+  var rn=document.getElementById('cva-profit-result-num');
+  if(rn){rn.style.color=isPos?'var(--g5)':'#A32D2D';rn.textContent=(r.profit<0?'-':'')+'$'+Math.round(Math.abs(r.profit)).toLocaleString();}
+  var bd=document.getElementById('cva-profit-breakdown');
+  if(bd){bd.innerHTML=
+    '<span style="color:var(--text-faint);">Fixed expenses</span><span style="text-align:right;font-weight:600;color:var(--text-muted);">-$'+Math.round(r.fixed).toLocaleString()+'</span>'
+   +'<span style="color:var(--text-faint);">Ingredients (wtd avg)</span><span style="text-align:right;font-weight:600;color:var(--text-muted);">-$'+Math.round(r.ing).toLocaleString()+'</span>'
+   +'<span style="color:var(--text-faint);">Labor (26 days)</span><span style="text-align:right;font-weight:600;color:var(--text-muted);">-$'+Math.round(r.lab).toLocaleString()+'</span>';
+  }
+
+  if(!_cvaRevCustomActive)cvaRevSyncChips(rev);
+  cvaRevUpdateSliderTrack();
+
+  // Downstream outputs that depend on mix/labor inputs
   cvaST('cva-wtd-profit',cvaFc(w));
   cvaST('cva-wtd-hdr',cvaFc(w)+' / drink');
   cvaST('cva-exp-hdr',cvaFmt$(fixed)+' / mo');
   cvaST('cva-exp-total',cvaFmt$(fixed)+' / mo');
-  cvaST('cva-exp-daily',cvaFmt$(fixed/30)+' / day');
+  cvaST('cva-exp-daily',cvaFmt$(fixed/26)+' / day');
   cvaST('cva-emp-cost',cvaFmt$(wage*hrs));
   cvaST('cva-lab-hdr','$'+wage.toFixed(2)+'/hr \xb7 '+hrs+'hrs \xb7 $'+Math.round(ceil)+' ceiling');
 
-  var target=cvaCalcTarget(goal);
-  var drinks=Math.ceil(target/(avgP||1));
-  cvaST('cva-target-rev',cvaFmtD(target));
+  var drinks=Math.ceil(rev/((avgP||11.5)*26));
+  cvaST('cva-target-rev','$'+Math.round(rev/26).toLocaleString());
   cvaST('cva-target-drinks',drinks);
   cvaST('cva-target-dph',(drinks/(hrs||8)).toFixed(1));
   cvaST('cva-bench-0',cvaFmtD(cvaCalcTarget(0)));
@@ -3827,9 +4014,20 @@ function cvaRecalc(){
 
 // ── CVA: INIT ──
 (function(){
-  var sl=document.getElementById('cva-profit-slider');
+  var sl=document.getElementById('cva-rev-slider');
   if(!sl)return;
+  sl.addEventListener('mouseup',cvaRevSnapOnRelease);
+  sl.addEventListener('touchend',cvaRevSnapOnRelease);
   sl.addEventListener('wheel',function(e){if(document.activeElement!==sl){e.preventDefault();}},{passive:false});
+  var ci=document.getElementById('cva-custom-input');
+  if(ci){
+    ci.addEventListener('keydown',function(e){
+      if(e.key==='Enter')cvaApplyCustom();
+      if(e.key==='Escape'){_cvaRevCustomActive=false;var cb=document.getElementById('cva-custom-box');if(cb)cb.style.display='none';cvaRecalc();}
+    });
+  }
+  cvaRevBuildChips();
+  cvaRevBuildHashmarks();
   cvaRenderExp();
   cvaRenderTable();
   cvaRenderMix();
