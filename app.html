@@ -2024,6 +2024,7 @@ if('serviceWorker' in navigator){
       <div class="card" style="margin:0 0 10px;">
         <div class="detail-row"><span class="detail-row-label">Card Deposits</span><span class="detail-row-val" id="df-cardDeposits"></span></div>
         <div class="detail-row"><span class="detail-row-label">Total Sales</span><span class="detail-row-val green" id="df-totalSales"></span></div>
+        <div class="detail-row"><span class="detail-row-label">DV</span><span class="detail-row-val" id="df-dv"></span></div>
         <div class="detail-row"><span class="detail-row-label">Tax</span><span class="detail-row-val" id="df-tax"></span></div>
         <div class="detail-row"><span class="detail-row-label">Overhead</span><span class="detail-row-val" id="df-overhead"></span></div>
         <div class="detail-row"><span class="detail-row-label">Donation</span><span class="detail-row-val" id="df-donation"></span></div>
@@ -4326,6 +4327,8 @@ function openDetail(date){
 
   document.getElementById('df-cardDeposits').textContent = fmt$(cardDep);
   document.getElementById('df-totalSales').textContent   = fmt$(totalS);
+  const dvVal = parseFloat(d.dv)||0;
+  document.getElementById('df-dv').textContent           = dvVal ? dvVal.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1}) : '--';
   document.getElementById('df-tax').textContent          = tax!==null ? fmt$(tax) : '--';
   document.getElementById('df-overhead').textContent     = ohFinal!==null ? fmt$(ohFinal) : '--';
   document.getElementById('df-donation').textContent     = (don&&don>0) ? fmt$(don) : '--';
