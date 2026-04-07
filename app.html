@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-07 09:00:00 -->
+<!-- CACHE BUST: 2026-04-07 11:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -1745,16 +1745,16 @@ if('serviceWorker' in navigator){
 </div>
 
 <!-- ═══════ EXPANSION TAB ═══════ -->
-<div class="tab-panel" id="panel-expansion">
+<div class="tab-panel" id="panel-expansion" style="background:var(--bg);min-height:100%;position:relative;z-index:38;">
 <div style="max-width:680px;margin:0 auto;width:100%;">
 
   <div style="display:flex;gap:0;background:var(--b0);border-radius:var(--radius-sm);padding:2px;width:fit-content;margin-bottom:14px;">
-    <button id="exp-btn-proj" onclick="switchExpSub('proj')" style="padding:6px 16px;font-size:12px;font-weight:600;border:none;background:var(--surface);color:var(--b7);cursor:pointer;border-radius:6px;font-family:'DM Sans',sans-serif;transition:all 0.15s;box-shadow:var(--shadow-sm);">Projections</button>
-    <button id="exp-btn-csa" onclick="switchExpSub('csa')" style="padding:6px 16px;font-size:12px;font-weight:600;border:none;background:transparent;color:var(--text-muted);cursor:pointer;border-radius:6px;font-family:'DM Sans',sans-serif;transition:all 0.15s;">Club Sales Analysis</button>
+    <button id="exp-btn-proj" onclick="switchExpSub('proj')" style="padding:6px 16px;font-size:12px;font-weight:600;border:none;background:transparent;color:var(--text-muted);cursor:pointer;border-radius:6px;font-family:'DM Sans',sans-serif;transition:all 0.15s;">Projections</button>
+    <button id="exp-btn-csa" onclick="switchExpSub('csa')" style="padding:6px 16px;font-size:12px;font-weight:600;border:none;background:var(--surface);color:var(--b7);cursor:pointer;border-radius:6px;font-family:'DM Sans',sans-serif;transition:all 0.15s;box-shadow:var(--shadow-sm);">Club Sales Analysis</button>
   </div>
 
   <!-- ── PROJECTIONS ── -->
-  <div id="exp-sub-proj">
+  <div id="exp-sub-proj" style="display:none;">
     <div class="card" style="padding:14px;margin-bottom:10px;">
       <div class="section-label" style="margin-top:0;">2025 performance</div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;">
@@ -1797,7 +1797,7 @@ if('serviceWorker' in navigator){
   </div>
 
   <!-- ── CLUB SALES ANALYSIS ── -->
-  <div id="exp-sub-csa" style="display:none;">
+  <div id="exp-sub-csa">
 
     <div class="card" style="padding:14px;margin-bottom:10px;">
       <div class="section-label" style="margin-top:0;">Fixed monthly overhead</div>
@@ -3310,6 +3310,11 @@ function switchTab(name){
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
   document.getElementById('panel-'+name).classList.add('active');
+  // Hide history sticky header when not on history tab
+  var hsh=document.getElementById('hist-sticky-header');
+  if(hsh){if(name!=='history')hsh.classList.remove('visible');};
+  // Scroll content area to top
+  var ca=document.querySelector('.content-area');if(ca)ca.scrollTop=0;
   if(name==='payouts'){renderPayoutSnapshots();}if(name==='payouts'){renderPaymentRegister();}if(name==='history'){renderHistAlloc();renderReconWidget();}
   if(name==='inv')recalcInvCatTop();
   if(name==='invhist'){
