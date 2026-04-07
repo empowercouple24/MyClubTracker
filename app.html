@@ -1322,7 +1322,7 @@ if('serviceWorker' in navigator){
           <button class="msel-preset" id="msel-pre-cash" onclick="applyMselPreset('cash')">Cash only</button>
         </div>
         <div class="msel-breakdown" id="msel-breakdown"></div>
-        <button class="msel-run" id="msel-run-btn" onclick="runMselMark()" disabled style="width:100%;margin-top:10px;">&#10003; Mark complete</button>
+        <button class="msel-run" id="msel-run-btn" onclick="runMselMark()" disabled style="width:100%;margin-top:10px;">&#10003; Allocations completed</button>
         <div class="msel-recorded-bar" id="msel-recorded-bar" style="display:none;">
           <span class="msel-recorded-lbl" id="msel-recorded-lbl">0 days recorded</span>
           <span class="msel-recorded-amt" id="msel-recorded-amt"></span>
@@ -5897,7 +5897,7 @@ async function runMselMark() {
     if (error) { failed++; } else { dayObj.data = data; done++; }
   }
 
-  if (runBtn) { runBtn.disabled = false; runBtn.textContent = '\u2713 Mark complete'; }
+  if (runBtn) { runBtn.disabled = false; runBtn.textContent = '\u2713 Allocations completed'; }
   if (failed) showToast(done + ' marked, ' + failed + ' failed', 'error');
   else showToast('\u2713 ' + done + ' day' + (done !== 1 ? 's' : '') + ' marked complete', 'success');
 
