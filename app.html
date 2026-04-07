@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-07 12:00:00 -->
+<!-- CACHE BUST: 2026-04-07 18:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -273,6 +273,11 @@ if('serviceWorker' in navigator){
     .pcal-day.has-data.selected .pcal-dvlabel,.pcal-day.has-data.selected .pcal-dvval{color:white;}
     /* PROJ PRESET BTNS */
     .proj-preset-btn{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;transition:all 0.15s;}
+    .wif-chip{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;border:1px solid var(--b3);background:var(--b1);color:var(--b8);cursor:pointer;transition:all 0.15s;}
+    .wif-chip:hover{background:var(--b3);border-color:var(--b5);}
+    .wif-chip.active{background:var(--b7);color:#fff;border-color:var(--b7);}
+    .wif-profit-pos{background:var(--g0,#f0faf4);color:var(--g6,#1a7a45);}
+    .wif-profit-neg{background:#fff0f0;color:#c0392b;}
     .proj-preset-btn:hover{border-color:var(--b4);color:var(--text);}
     .proj-preset-btn.active{background:var(--b7);color:#fff;border-color:var(--b7);}
     /* PMULT CARDS */
@@ -1755,46 +1760,160 @@ if('serviceWorker' in navigator){
   </div>
 
   <!-- ── PROJECTIONS ── -->
+  <!-- PROJECTIONS -->
   <div id="exp-sub-proj" style="display:none;">
+
+    <!-- Mode toggle -->
+    <div style="display:flex;gap:0;background:var(--b0);border-radius:var(--radius-sm);padding:2px;width:fit-content;margin-bottom:12px;">
+      <button id="wif-btn-actual" onclick="wifSetMode('actual')" style="padding:6px 18px;font-size:12px;font-weight:600;border:none;background:var(--surface);color:var(--b7);cursor:pointer;border-radius:6px;font-family:'DM Sans',sans-serif;transition:all 0.15s;box-shadow:var(--shadow-sm);">Actual Day</button>
+      <button id="wif-btn-hypo" onclick="wifSetMode('hypo')" style="padding:6px 18px;font-size:12px;font-weight:600;border:none;background:transparent;color:var(--text-muted);cursor:pointer;border-radius:6px;font-family:'DM Sans',sans-serif;transition:all 0.15s;">What-If</button>
+    </div>
+
+    <!-- Input card -->
     <div class="card" style="padding:14px;margin-bottom:10px;">
-      <div class="section-label" style="margin-top:0;">2025 performance</div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;">
-        <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--text-faint);margin-bottom:2px;">Net sales</div>
-          <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:700;">$353,706</div>
+
+      <!-- Actual Day mode -->
+      <div id="wif-input-actual">
+        <div class="section-label" style="margin-top:0;">Pick a real sales day</div>
+        <div style="font-size:12px;color:var(--text-faint);margin-bottom:10px;">Select a date to load that day's actual net sales and extrapolate forward.</div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <input type="date" id="wif-date-picker" style="padding:8px 12px;border:1px solid var(--border-light);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;cursor:pointer;" onchange="wifLoadActualDay(this.value)"/>
+          <button onclick="wifLoadAvg()" style="padding:7px 14px;font-size:12px;font-weight:600;background:var(--b1);color:var(--b8);border:none;border-radius:var(--radius-sm);cursor:pointer;font-family:'DM Sans',sans-serif;">Use this month's avg</button>
         </div>
-        <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--text-faint);margin-bottom:2px;">Avg monthly</div>
-          <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:700;">$29,475</div>
+        <div id="wif-actual-loaded" style="display:none;margin-top:12px;padding:10px 12px;background:var(--b0);border-radius:var(--radius-sm);border-left:3px solid var(--b5);">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);margin-bottom:4px;" id="wif-actual-label">--</div>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:baseline;">
+            <div><span style="font-family:'Outfit',sans-serif;font-size:26px;font-weight:800;color:var(--text);" id="wif-actual-sales">--</span><span style="font-size:11px;color:var(--text-faint);margin-left:4px;">net sales</span></div>
+            <div><span style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;color:var(--text-muted);" id="wif-actual-dv">--</span><span style="font-size:11px;color:var(--text-faint);margin-left:4px;">DV</span></div>
+          </div>
         </div>
-        <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--text-faint);margin-bottom:2px;">Avg daily</div>
-          <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:700;">$1,134</div>
+        <div id="wif-actual-empty" style="margin-top:10px;font-size:12px;color:var(--text-faint);">No data loaded yet.</div>
+      </div>
+
+      <!-- Hypothetical mode -->
+      <div id="wif-input-hypo" style="display:none;">
+        <div class="section-label" style="margin-top:0;">Enter a hypothetical daily revenue</div>
+        <div style="font-size:12px;color:var(--text-faint);margin-bottom:10px;">Type any daily sales number to see what your week, month, and year would look like.</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);overflow:hidden;">
+            <span style="padding:0 10px;font-size:15px;color:var(--text-muted);font-weight:600;">$</span>
+            <input type="number" id="wif-hypo-input" min="0" max="9999" step="50" placeholder="1000" style="padding:9px 12px 9px 0;border:none;background:transparent;color:var(--text);font-size:18px;font-weight:700;font-family:'Outfit',sans-serif;width:120px;outline:none;" oninput="wifRecalc()"/>
+          </div>
+          <div style="display:flex;gap:4px;">
+            <button onclick="wifNudge(50)" style="padding:6px 10px;font-size:12px;background:var(--b1);color:var(--b8);border:none;border-radius:var(--radius-sm);cursor:pointer;font-weight:700;">+$50</button>
+            <button onclick="wifNudge(-50)" style="padding:6px 10px;font-size:12px;background:var(--b0);color:var(--text-muted);border:1px solid var(--border-light);border-radius:var(--radius-sm);cursor:pointer;font-weight:700;">-$50</button>
+            <button onclick="wifNudge(100)" style="padding:6px 10px;font-size:12px;background:var(--b1);color:var(--b8);border:none;border-radius:var(--radius-sm);cursor:pointer;font-weight:700;">+$100</button>
+            <button onclick="wifNudge(-100)" style="padding:6px 10px;font-size:12px;background:var(--b0);color:var(--text-muted);border:1px solid var(--border-light);border-radius:var(--radius-sm);cursor:pointer;font-weight:700;">-$100</button>
+          </div>
+        </div>
+        <!-- Quick-set chips -->
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;">
+          <button class="wif-chip" onclick="wifSetHypo(750)">$750</button>
+          <button class="wif-chip" onclick="wifSetHypo(1000)">$1,000</button>
+          <button class="wif-chip" onclick="wifSetHypo(1250)">$1,250</button>
+          <button class="wif-chip" onclick="wifSetHypo(1500)">$1,500</button>
+          <button class="wif-chip" onclick="wifSetHypo(2000)">$2,000</button>
         </div>
       </div>
     </div>
-    <div class="card" style="padding:14px;margin-bottom:10px;">
-      <div class="section-label" style="margin-top:0;">Monthly revenue — 2025</div>
-      <div style="position:relative;height:180px;margin-top:8px;"><canvas id="exp-proj-chart"></canvas></div>
-    </div>
-    <div class="card" style="padding:14px;">
-      <div class="section-label" style="margin-top:0;">Growth scenarios — 2026</div>
-      <div style="font-size:11px;color:var(--text-faint);margin-bottom:8px;">Projected annual revenue at different growth rates.</div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
-        <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
-          <div style="font-size:10px;font-weight:600;color:var(--text-faint);margin-bottom:2px;">Conservative (5%)</div>
-          <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--b8);">$371k</div>
-        </div>
-        <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
-          <div style="font-size:10px;font-weight:600;color:var(--text-faint);margin-bottom:2px;">Moderate (15%)</div>
-          <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--b8);">$407k</div>
-        </div>
-        <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
-          <div style="font-size:10px;font-weight:600;color:var(--text-faint);margin-bottom:2px;">Aggressive (25%)</div>
-          <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--b8);">$442k</div>
+
+    <!-- Results panel (hidden until value loaded) -->
+    <div id="wif-results" style="display:none;">
+
+      <!-- Op days adjuster -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--b0);border-radius:var(--radius-sm);margin-bottom:10px;border:1px solid var(--border-light);">
+        <span style="font-size:12px;font-weight:600;color:var(--text-muted);">Operating days / month</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button onclick="wifAdjOp(-1)" style="width:26px;height:26px;border:1px solid var(--border-light);background:var(--surface);border-radius:50%;cursor:pointer;font-size:14px;font-weight:700;color:var(--text-muted);">-</button>
+          <span style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;min-width:28px;text-align:center;" id="wif-opdays-display">26</span>
+          <input type="hidden" id="wif-opdays" value="26"/>
+          <button onclick="wifAdjOp(1)" style="width:26px;height:26px;border:none;background:var(--b5);border-radius:50%;cursor:pointer;font-size:14px;font-weight:700;color:#fff;">+</button>
         </div>
       </div>
-    </div>
+
+      <!-- Revenue projections -->
+      <div class="card" style="padding:14px;margin-bottom:10px;">
+        <div class="section-label" style="margin-top:0;">Revenue projections</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px;">
+          <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);margin-bottom:4px;">Daily</div>
+            <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;color:var(--text);" id="wif-rev-daily">--</div>
+          </div>
+          <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);margin-bottom:4px;">Weekly</div>
+            <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;color:var(--text);" id="wif-rev-weekly">--</div>
+            <div style="font-size:9px;color:var(--text-faint);margin-top:2px;">6 days</div>
+          </div>
+          <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);margin-bottom:4px;">Monthly</div>
+            <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;color:var(--text);" id="wif-rev-monthly">--</div>
+            <div style="font-size:9px;color:var(--text-faint);margin-top:2px;" id="wif-opdays-label">26 days</div>
+          </div>
+          <div style="background:var(--b2);border-radius:var(--radius-sm);padding:10px;text-align:center;border:1px solid var(--b3);">
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--b6);margin-bottom:4px;">Annual</div>
+            <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;color:var(--b8);" id="wif-rev-annual">--</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profit projections -->
+      <div class="card" style="padding:14px;margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div class="section-label" style="margin-top:0;margin-bottom:0;">Profit after expenses</div>
+          <div id="wif-labor-badge" style="display:none;padding:3px 8px;background:#fff3cd;border-radius:12px;font-size:10px;font-weight:700;color:#856404;">Employee needed</div>
+        </div>
+        <div style="font-size:11px;color:var(--text-faint);margin:4px 0 10px;">Fixed overhead + ingredients + labor (if above solo ceiling)</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px;">
+          <div style="background:var(--b0);border-radius:var(--radius-sm);padding:8px;text-align:center;">
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--text-faint);margin-bottom:3px;">Fixed OH / mo</div>
+            <div style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:var(--text-muted);" id="wif-cost-fixed">--</div>
+          </div>
+          <div style="background:var(--b0);border-radius:var(--radius-sm);padding:8px;text-align:center;">
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--text-faint);margin-bottom:3px;">Ingredients / mo</div>
+            <div style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:var(--text-muted);" id="wif-cost-ingr">--</div>
+          </div>
+          <div style="background:var(--b0);border-radius:var(--radius-sm);padding:8px;text-align:center;">
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--text-faint);margin-bottom:3px;">Labor / mo</div>
+            <div style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:var(--text-muted);" id="wif-cost-labor">--</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+          <div style="border-radius:var(--radius-sm);padding:10px;text-align:center;" id="wif-profit-daily-card">
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);margin-bottom:4px;">Daily profit</div>
+            <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;" id="wif-profit-daily">--</div>
+          </div>
+          <div style="border-radius:var(--radius-sm);padding:10px;text-align:center;" id="wif-profit-monthly-card">
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);margin-bottom:4px;">Monthly profit</div>
+            <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;" id="wif-profit-monthly">--</div>
+          </div>
+          <div style="border-radius:var(--radius-sm);padding:10px;text-align:center;" id="wif-profit-annual-card">
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);margin-bottom:4px;">Annual profit</div>
+            <div style="font-family:'Outfit',sans-serif;font-size:20px;font-weight:800;" id="wif-profit-annual">--</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Volume insights -->
+      <div class="card" style="padding:14px;">
+        <div class="section-label" style="margin-top:0;">Volume &amp; capacity</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;">
+          <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);margin-bottom:4px;">Drinks / day</div>
+            <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;color:var(--text);" id="wif-vol-drinks">--</div>
+          </div>
+          <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);margin-bottom:4px;">Drinks / hr</div>
+            <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;color:var(--text);" id="wif-vol-dph">--</div>
+          </div>
+          <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);margin-bottom:4px;">Solo ceiling</div>
+            <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;" id="wif-vol-ceiling">--</div>
+            <div style="font-size:9px;color:var(--text-faint);margin-top:2px;" id="wif-vol-ceiling-label">--</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /wif-results -->
   </div>
 
   <!-- ── CLUB SALES ANALYSIS ── -->
@@ -4916,6 +5035,171 @@ function renderProjScenario(){
   setText('proj-daysin',di);setText('proj-totalsales',fmt$(ts));setText('proj-avgsales',fmt$(as));
   setText('proj-sales',fmt$(as*op));setText('proj-avgdv',fmtN(tdv));setText('proj-dv',fmtN(adv*op));
 }
+// ── WHAT-IF MODELER ──────────────────────────────────────────────
+var _wifMode='actual';
+var _wifDailySales=0;
+var _wifOpdays=26;
+
+function wifGetCSA(){
+  // Pull live values from CSA panel inputs
+  var fixedTotal=0;
+  document.querySelectorAll('.csa-cost-input').forEach(function(el){fixedTotal+=parseFloat(el.value.replace(/,/g,''))||0;});
+  var wage=parseFloat((document.getElementById('csa-wage').value||'0').replace(/,/g,''))||12;
+  var hrs=parseFloat(document.getElementById('csa-shift-hrs').value)||8;
+  var soloCeil=parseFloat((document.getElementById('csa-solo-ceil').value||'0').replace(/,/g,''))||960;
+  var mixInputs=document.querySelectorAll('.csa-mix-input');
+  var mix=[];mixInputs.forEach(function(el){mix.push((parseFloat(el.value)||0)/100);});
+  var wtdProfit=mix[0]*5.69+mix[1]*6.92+mix[2]*5.19+mix[3]*5.88+mix[4]*5.00;
+  var wtdPrice=mix[0]*12+mix[1]*11+mix[2]*13+mix[3]*11+mix[4]*10;
+  // Fallback if product mix not set up
+  if(!wtdProfit||isNaN(wtdProfit)){wtdProfit=5.86;wtdPrice=11.8;}
+  // Avg daily hrs: Mon-Fri=8, Sat=6, weighted over 6-day week
+  var avgHrsPerDay=((8*5)+(6*1))/6;
+  return{fixedTotal:fixedTotal,fixedDaily:fixedTotal/30,wage:wage,hrs:hrs,soloCeil:soloCeil,
+    empCostDay:wage*hrs,wtdProfit:wtdProfit,wtdPrice:wtdPrice,avgHrsPerDay:avgHrsPerDay};
+}
+
+function wifSetMode(mode){
+  _wifMode=mode;
+  var ba=document.getElementById('wif-btn-actual'),bh=document.getElementById('wif-btn-hypo');
+  if(ba){ba.style.background=mode==='actual'?'var(--surface)':'transparent';ba.style.color=mode==='actual'?'var(--b7)':'var(--text-muted)';ba.style.boxShadow=mode==='actual'?'var(--shadow-sm)':'none';}
+  if(bh){bh.style.background=mode==='hypo'?'var(--surface)':'transparent';bh.style.color=mode==='hypo'?'var(--b7)':'var(--text-muted)';bh.style.boxShadow=mode==='hypo'?'var(--shadow-sm)':'none';}
+  document.getElementById('wif-input-actual').style.display=mode==='actual'?'block':'none';
+  document.getElementById('wif-input-hypo').style.display=mode==='hypo'?'block':'none';
+  // Keep results visible if already showing
+}
+
+function wifLoadActualDay(dateStr){
+  if(!dateStr)return;
+  var day=ALL_DAYS.find(function(d){return d.date===dateStr;});
+  if(!day){showToast('No entry found for that date','');return;}
+  var sales=calSales(day.data||{});
+  var dv=day.data?day.data.dv||0:0;
+  _wifDailySales=sales;
+  var dt=new Date(dateStr+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'long',day:'numeric',year:'numeric'});
+  document.getElementById('wif-actual-label').textContent=dt.toUpperCase();
+  document.getElementById('wif-actual-sales').textContent=fmt$(sales);
+  document.getElementById('wif-actual-dv').textContent=fmtN(dv)+' DV';
+  document.getElementById('wif-actual-loaded').style.display='block';
+  document.getElementById('wif-actual-empty').style.display='none';
+  wifRecalc();
+}
+
+function wifLoadAvg(){
+  var now=new Date(),y=now.getFullYear(),m=now.getMonth();
+  var md=ALL_DAYS.filter(function(d){var dt=new Date(d.date+'T00:00:00');return dt.getFullYear()===y&&dt.getMonth()===m;});
+  if(!md.length){showToast('No entries this month yet','');return;}
+  var n=md.length;
+  _wifDailySales=md.reduce(function(s,d){return s+calSales(d.data||{});},0)/n;
+  document.getElementById('wif-actual-label').textContent='AVG OF '+n+' DAYS — THIS MONTH';
+  document.getElementById('wif-actual-sales').textContent=fmt$(_wifDailySales);
+  document.getElementById('wif-actual-dv').textContent='avg / day';
+  document.getElementById('wif-actual-loaded').style.display='block';
+  document.getElementById('wif-actual-empty').style.display='none';
+  if(document.getElementById('wif-date-picker'))document.getElementById('wif-date-picker').value='';
+  wifRecalc();
+}
+
+function wifSetHypo(val){
+  var inp=document.getElementById('wif-hypo-input');
+  if(inp){inp.value=val;}
+  _wifDailySales=val;
+  wifRecalc();
+}
+
+function wifNudge(delta){
+  var inp=document.getElementById('wif-hypo-input');
+  var cur=parseFloat(inp?inp.value:0)||0;
+  var next=Math.max(0,cur+delta);
+  if(inp)inp.value=next;
+  _wifDailySales=next;
+  wifRecalc();
+}
+
+function wifAdjOp(dir){
+  var cur=parseInt(document.getElementById('wif-opdays').value)||26;
+  var next=Math.min(31,Math.max(20,cur+dir));
+  document.getElementById('wif-opdays').value=next;
+  document.getElementById('wif-opdays-display').textContent=next;
+  document.getElementById('wif-opdays-label').textContent=next+' days';
+  _wifOpdays=next;
+  wifRecalc();
+}
+
+function wifRecalc(){
+  var daily=_wifMode==='hypo'
+    ?(parseFloat(document.getElementById('wif-hypo-input').value)||0)
+    :_wifDailySales;
+  if(!daily){document.getElementById('wif-results').style.display='none';return;}
+  _wifDailySales=daily;
+
+  var op=parseInt(document.getElementById('wif-opdays').value)||26;
+  var weekly=daily*6;   // 6 operating days (Mon-Sat), weighted avg handles hours
+  var monthly=daily*op;
+  var annual=monthly*12;
+
+  var csa=wifGetCSA();
+  // Ingredient cost = revenue - gross profit. Gross profit = drinks * wtdProfit
+  // drinks per day = daily / wtdPrice
+  var drinksDay=daily/csa.wtdPrice;
+  var grossProfitDay=drinksDay*csa.wtdProfit;
+  var ingrCostDay=daily-grossProfitDay;
+
+  // Labor: kicks in when daily > soloCeil
+  var laborDay=daily>csa.soloCeil?csa.empCostDay:0;
+  var needsEmployee=daily>csa.soloCeil;
+
+  // Total costs
+  var totalCostDay=csa.fixedDaily+ingrCostDay+laborDay;
+  var profitDay=daily-totalCostDay;
+  var profitMonthly=profitDay*op;
+  var profitAnnual=profitMonthly*12;
+
+  var ingrMonthly=ingrCostDay*op;
+  var laborMonthly=laborDay*op;
+
+  // Volume & capacity
+  var dph=drinksDay/csa.avgHrsPerDay;
+
+  // Show results
+  document.getElementById('wif-results').style.display='block';
+  document.getElementById('wif-opdays-label').textContent=op+' days';
+
+  setText('wif-rev-daily',fmt$(daily));
+  setText('wif-rev-weekly',fmt$(weekly));
+  setText('wif-rev-monthly',fmt$(monthly));
+  setText('wif-rev-annual',fmt$(annual));
+
+  setText('wif-cost-fixed',fmt$(csa.fixedTotal));
+  setText('wif-cost-ingr',fmt$(ingrMonthly));
+  setText('wif-cost-labor',laborMonthly>0?fmt$(laborMonthly):'$0');
+
+  var badge=document.getElementById('wif-labor-badge');
+  if(badge)badge.style.display=needsEmployee?'block':'none';
+
+  function profitColor(v){return v>=0?'var(--g6,#1a7a45)':'#c0392b';}
+  function profitBg(v){return v>=0?'var(--b0)':'#fff8f8';}
+
+  setText('wif-profit-daily',fmt$(profitDay));
+  setText('wif-profit-monthly',fmt$(profitMonthly));
+  setText('wif-profit-annual',fmt$(profitAnnual));
+  var pd=document.getElementById('wif-profit-daily'),pm=document.getElementById('wif-profit-monthly'),pa=document.getElementById('wif-profit-annual');
+  if(pd){pd.style.color=profitColor(profitDay);}
+  if(pm){pm.style.color=profitColor(profitMonthly);}
+  if(pa){pa.style.color=profitColor(profitAnnual);}
+  var pdc=document.getElementById('wif-profit-daily-card'),pmc=document.getElementById('wif-profit-monthly-card'),pac=document.getElementById('wif-profit-annual-card');
+  if(pdc)pdc.style.background=profitBg(profitDay);
+  if(pmc)pmc.style.background=profitBg(profitMonthly);
+  if(pac){pac.style.background=profitAnnual>=0?'var(--b1)':'#fff0f0';pac.style.border=profitAnnual>=0?'1px solid var(--b3)':'1px solid #f5c6cb';}
+
+  setText('wif-vol-drinks',Math.round(drinksDay).toString());
+  setText('wif-vol-dph',dph.toFixed(1));
+  var ceilEl=document.getElementById('wif-vol-ceiling');
+  var ceilLabelEl=document.getElementById('wif-vol-ceiling-label');
+  if(ceilEl){ceilEl.textContent=fmt$(csa.soloCeil);ceilEl.style.color=needsEmployee?'#c0392b':'var(--g6,#1a7a45)';}
+  if(ceilLabelEl){ceilLabelEl.textContent=needsEmployee?'OVER ceiling':'Under ceiling';}
+}
+
 function renderWhatIf(){}
 
 function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
