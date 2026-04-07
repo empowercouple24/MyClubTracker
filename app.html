@@ -1324,7 +1324,7 @@ if('serviceWorker' in navigator){
         <div class="msel-breakdown" id="msel-breakdown"></div>
         <button class="msel-run" id="msel-run-btn" onclick="runMselMark()" disabled style="width:100%;margin-top:10px;">&#10003; Allocations completed</button>
         <div class="msel-recorded-bar" id="msel-recorded-bar" style="display:none;">
-          <span class="msel-recorded-lbl" id="msel-recorded-lbl">0 days recorded</span>
+          <span class="msel-recorded-lbl" id="msel-recorded-lbl">0 days selected</span>
           <span class="msel-recorded-amt" id="msel-recorded-amt"></span>
         </div>
       </div>
@@ -4164,7 +4164,7 @@ function renderHistCal(){
         const d = ALL_DAYS.find(x => x.date === dateStr);
         return s + (d ? (calSales(d.data||{})||0) : 0);
       }, 0);
-      if (_recLbl) _recLbl.textContent = _mselDates.size + ' DAY' + (_mselDates.size!==1?'S':'') + ' RECORDED';
+      if (_recLbl) _recLbl.textContent = _mselDates.size + ' DAY' + (_mselDates.size!==1?'S':'') + ' SELECTED';
       if (_recAmt) _recAmt.textContent = fmt$(_selTotal);
     } else {
       _recBar.style.display = 'none';
@@ -5761,6 +5761,9 @@ function mselRemoveDate(dateStr) {
 
 function mselClearAll() {
   _mselDates.clear();
+  // Reset recorded bar (clear any "ALLOCATED" state)
+  const recBar = document.getElementById('msel-recorded-bar');
+  if (recBar) recBar.style.display = 'none';
   renderMselPanel();
   renderHistCal();
 }
@@ -5798,7 +5801,9 @@ function renderMselPanel() {
   }
 
   // Recorded bar — show count + total sales for selected days
+  // Don't hide if currently showing "ALLOCATED" state
   if (recBar) {
+    const isAllocated = recLbl && recLbl.textContent.includes('ALLOCATED');
     if (count > 0) {
       recBar.style.display = 'flex';
       const sorted = [..._mselDates].sort();
@@ -5806,11 +5811,12 @@ function renderMselPanel() {
         const dayObj = ALL_DAYS.find(d => d.date === dateStr);
         return s + (dayObj ? (calSales(dayObj.data || {}) || 0) : 0);
       }, 0);
-      if (recLbl) recLbl.textContent = count + ' DAY' + (count !== 1 ? 'S' : '') + ' RECORDED';
+      if (recLbl) recLbl.textContent = count + ' DAY' + (count !== 1 ? 'S' : '') + ' SELECTED';
       if (recAmt) recAmt.textContent = fmt$(totalSales);
-    } else {
+    } else if (!isAllocated) {
       recBar.style.display = 'none';
     }
+    // If isAllocated + count===0: leave the bar as-is showing "X DAYS ALLOCATED"
   }
 
   if (runBtn) runBtn.disabled = count === 0 || _mselBuckets.size === 0;
@@ -5900,6 +5906,16 @@ async function runMselMark() {
   if (runBtn) { runBtn.disabled = false; runBtn.textContent = '\u2713 Allocations completed'; }
   if (failed) showToast(done + ' marked, ' + failed + ' failed', 'error');
   else showToast('\u2713 ' + done + ' day' + (done !== 1 ? 's' : '') + ' marked complete', 'success');
+
+  // Show "X DAYS ALLOCATED" — stays until next selection
+  if (!failed) {
+    const _rb = document.getElementById('msel-recorded-bar');
+    const _rl = document.getElementById('msel-recorded-lbl');
+    if (_rb && _rl) {
+      _rl.textContent = done + ' DAY' + (done !== 1 ? 'S' : '') + ' ALLOCATED';
+      _rb.style.display = 'flex';
+    }
+  }
 
   _mselDates.clear();
   renderMselPanel();
