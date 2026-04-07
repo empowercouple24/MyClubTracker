@@ -1289,18 +1289,23 @@ if('serviceWorker' in navigator){
 
         <!-- Bulk mark complete -->
         <div class="recon-bulk">
-          <div class="recon-bulk-title">Bulk mark complete &#8212; on or before date</div>
-          <div class="recon-chips" id="recon-chips">
-            <div class="recon-chip on" data-key="cashdeposit" onclick="toggleReconChip(this)"><div class="recon-chip-box"></div>Cash Deposit</div>
-            <div class="recon-chip on" data-key="tax" onclick="toggleReconChip(this)"><div class="recon-chip-box"></div>Taxes</div>
-            <div class="recon-chip on" data-key="overhead" onclick="toggleReconChip(this)"><div class="recon-chip-box"></div>Overhead</div>
-            <div class="recon-chip on" data-key="herbalife" onclick="toggleReconChip(this)"><div class="recon-chip-box"></div>Herbalife</div>
-            <div class="recon-chip on" data-key="payouts" onclick="toggleReconChip(this)"><div class="recon-chip-box"></div>Payouts</div>
+          <div class="recon-bulk-title" onclick="toggleReconBulk()" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;">
+            <span>Bulk mark complete &#8212; on or before date</span>
+            <span id="recon-bulk-chev" style="font-size:10px;color:rgba(255,255,255,0.4);transition:transform 0.2s;">&#9660;</span>
           </div>
-          <div class="recon-date-row">
-            <span class="recon-date-lbl">On or before</span>
-            <input class="recon-date-input" type="date" id="recon-bulk-date"/>
-            <button class="recon-run-btn" id="recon-run-btn" onclick="runBulkMark()">&#9889; Run</button>
+          <div id="recon-bulk-body" style="display:none;margin-top:8px;">
+            <div class="recon-chips" id="recon-chips">
+              <div class="recon-chip on" data-key="cashdeposit" onclick="toggleReconChip(this)"><div class="recon-chip-box"></div>Cash Deposit</div>
+              <div class="recon-chip on" data-key="tax" onclick="toggleReconChip(this)"><div class="recon-chip-box"></div>Taxes</div>
+              <div class="recon-chip on" data-key="overhead" onclick="toggleReconChip(this)"><div class="recon-chip-box"></div>Overhead</div>
+              <div class="recon-chip on" data-key="herbalife" onclick="toggleReconChip(this)"><div class="recon-chip-box"></div>Herbalife</div>
+              <div class="recon-chip on" data-key="payouts" onclick="toggleReconChip(this)"><div class="recon-chip-box"></div>Payouts</div>
+            </div>
+            <div class="recon-date-row" style="margin-top:10px;">
+              <span class="recon-date-lbl">On or before</span>
+              <input class="recon-date-input" type="date" id="recon-bulk-date"/>
+              <button class="recon-run-btn" id="recon-run-btn" onclick="runBulkMark()">&#9889; Run</button>
+            </div>
           </div>
         </div>
       </div><!-- /recon-body -->
@@ -7293,6 +7298,15 @@ function toggleReconWidget() {
   if (body) body.classList.toggle('open', _reconOpen);
   if (chev) chev.classList.toggle('open', _reconOpen);
   if (_reconOpen) updateReconMatch();
+}
+
+function toggleReconBulk() {
+  const body = document.getElementById('recon-bulk-body');
+  const chev = document.getElementById('recon-bulk-chev');
+  if (!body) return;
+  const open = body.style.display === 'none';
+  body.style.display = open ? 'block' : 'none';
+  if (chev) chev.style.transform = open ? 'rotate(180deg)' : '';
 }
 
 function toggleReconChip(el) {
