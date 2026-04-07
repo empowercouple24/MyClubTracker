@@ -753,26 +753,30 @@ if('serviceWorker' in navigator){
     .msel-pill-x{font-size:13px;color:rgba(255,255,255,0.45);cursor:pointer;line-height:1;padding:0 2px;}
     .msel-pill-x:hover{color:white;}
     .msel-empty{font-size:12px;color:rgba(255,255,255,0.35);font-style:italic;padding:2px 0;}
-    .msel-buckets{display:flex;flex-wrap:wrap;gap:6px;}
+    .msel-buckets{display:flex;flex-wrap:wrap;align-items:center;gap:6px;}
     .msel-chip{display:flex;align-items:center;gap:6px;padding:5px 13px;border-radius:20px;border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.07);font-size:12px;font-weight:600;color:rgba(255,255,255,0.65);cursor:pointer;user-select:none;transition:background 0.12s,border-color 0.12s,color 0.12s;}
     .msel-chip:has(input:checked){background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.35);color:white;}
-    .msel-chip input[type=checkbox]{width:14px;height:14px;accent-color:var(--b5);cursor:pointer;flex-shrink:0;}
+    .msel-chip input[type=checkbox]{width:13px;height:13px;accent-color:var(--b5);cursor:pointer;flex-shrink:0;}
+    .msel-preset-divider{width:1px;height:20px;background:rgba(255,255,255,0.15);flex-shrink:0;margin:0 2px;}
+    .msel-preset{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.45);cursor:pointer;white-space:nowrap;transition:all 0.12s;}
+    .msel-preset:hover{background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.85);border-color:rgba(255,255,255,0.3);}
+    .msel-preset.active{background:rgba(255,255,255,0.14);color:white;border-color:rgba(255,255,255,0.35);}
     .msel-breakdown{background:rgba(0,0,0,0.18);border-radius:8px;margin-top:10px;overflow:hidden;}
     .msel-brow{display:flex;align-items:flex-start;justify-content:space-between;padding:8px 12px;border-bottom:0.5px solid rgba(255,255,255,0.06);}
     .msel-brow:last-child{border-bottom:none;}
     .msel-brow.total-row{background:rgba(255,255,255,0.07);padding:9px 12px;}
     .msel-brow-left{flex:1;min-width:0;}
-    .msel-brow-name{font-size:13px;font-weight:600;color:rgba(255,255,255,0.85);margin-bottom:2px;}
+    .msel-brow-name{font-size:13px;font-weight:600;color:rgba(255,255,255,0.9);margin-bottom:3px;}
     .msel-brow.total-row .msel-brow-name{font-size:11px;font-weight:800;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.6px;}
-    .msel-brow-days{font-size:11px;color:rgba(255,255,255,0.35);line-height:1.4;}
+    .msel-brow-days{font-size:11px;color:rgba(255,255,255,0.55);line-height:1.5;}
     .msel-brow-amt{font-size:13px;font-weight:700;color:white;flex-shrink:0;padding-left:12px;}
     .msel-brow.total-row .msel-brow-amt{font-size:16px;font-weight:800;}
     .msel-run{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;padding:10px;border-radius:8px;border:none;background:white;color:var(--b9,#2c4254);cursor:pointer;}
     .msel-run:hover{background:var(--b1);}
     .msel-run:disabled{opacity:0.4;cursor:not-allowed;}
-    .msel-recorded-bar{background:var(--b8,#3a5470);border-radius:var(--radius);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
-    .msel-recorded-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:rgba(255,255,255,0.65);}
-    .msel-recorded-amt{font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;color:white;}
+    .msel-recorded-bar{display:flex;align-items:center;justify-content:space-between;margin-top:8px;}
+    .msel-recorded-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--g5,#639922);}
+    .msel-recorded-amt{font-family:'Outfit',sans-serif;font-size:15px;font-weight:800;color:var(--g5,#639922);}
 
     /* ── BANK RECONCILIATION WIDGET ── */
 
@@ -1301,27 +1305,31 @@ if('serviceWorker' in navigator){
       <div class="msel-panel" id="msel-bulk-panel">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
           <div class="msel-title" id="msel-panel-title">MARK COMPLETE — 0 DAYS SELECTED</div>
-          <button onclick="mselClearAll()" style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.55);background:none;border:none;cursor:pointer;padding:0;font-family:'DM Sans',sans-serif;">Clear all</button>
+          <button onclick="mselClearAll()" style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.4);background:none;border:none;cursor:pointer;padding:0;font-family:'DM Sans',sans-serif;">Clear all</button>
         </div>
         <div class="msel-pills" id="msel-pills">
           <span class="msel-empty">Tap days on the calendar below to select them</span>
         </div>
         <div class="msel-buckets" style="margin-top:8px;">
-          <label class="msel-chip"><input type="checkbox" id="msel-chk-cashdeposit" checked onchange="toggleMselChip('cashdeposit')"/><span>Cash Deposit</span></label>
-          <label class="msel-chip"><input type="checkbox" id="msel-chk-tax" onchange="toggleMselChip('tax')"/><span>Taxes</span></label>
-          <label class="msel-chip"><input type="checkbox" id="msel-chk-overhead" onchange="toggleMselChip('overhead')"/><span>Overhead</span></label>
-          <label class="msel-chip"><input type="checkbox" id="msel-chk-herbalife" onchange="toggleMselChip('herbalife')"/><span>Herbalife</span></label>
-          <label class="msel-chip"><input type="checkbox" id="msel-chk-payouts" onchange="toggleMselChip('payouts')"/><span>Payouts</span></label>
+          <label class="msel-chip"><input type="checkbox" id="msel-chk-cashdeposit" onchange="toggleMselChip('cashdeposit');syncMselPreset()"/><span>Cash Deposit</span></label>
+          <label class="msel-chip"><input type="checkbox" id="msel-chk-tax" onchange="toggleMselChip('tax');syncMselPreset()"/><span>Taxes</span></label>
+          <label class="msel-chip"><input type="checkbox" id="msel-chk-overhead" onchange="toggleMselChip('overhead');syncMselPreset()"/><span>Overhead</span></label>
+          <label class="msel-chip"><input type="checkbox" id="msel-chk-herbalife" onchange="toggleMselChip('herbalife');syncMselPreset()"/><span>Herbalife</span></label>
+          <label class="msel-chip"><input type="checkbox" id="msel-chk-payouts" onchange="toggleMselChip('payouts');syncMselPreset()"/><span>Payouts</span></label>
+          <div class="msel-preset-divider"></div>
+          <button class="msel-preset" id="msel-pre-all" onclick="applyMselPreset('all')">All</button>
+          <button class="msel-preset" id="msel-pre-alloc" onclick="applyMselPreset('alloc')">Allocations only</button>
+          <button class="msel-preset" id="msel-pre-cash" onclick="applyMselPreset('cash')">Cash only</button>
         </div>
         <div class="msel-breakdown" id="msel-breakdown"></div>
         <button class="msel-run" id="msel-run-btn" onclick="runMselMark()" disabled style="width:100%;margin-top:10px;">&#10003; Mark complete</button>
+        <div class="msel-recorded-bar" id="msel-recorded-bar" style="display:none;">
+          <span class="msel-recorded-lbl" id="msel-recorded-lbl">0 days recorded</span>
+          <span class="msel-recorded-amt" id="msel-recorded-amt"></span>
+        </div>
       </div>
     </div>
 
-    <div id="msel-recorded-bar" style="display:none;" class="msel-recorded-bar">
-      <span class="msel-recorded-lbl" id="msel-recorded-lbl">0 days recorded</span>
-      <span class="msel-recorded-amt" id="msel-recorded-amt"></span>
-    </div>
     <div id="history-cal-grid" style="width:100%;"></div>
     <!-- Summary view — hidden by default -->
     <div id="history-sum-view" style="display:none;">
@@ -5697,14 +5705,46 @@ let _histProjDate = null;
 // ── MULTI-SELECT ALLOCATION ──────────────────────────────────────────────────
 
 let _mselDates = new Set();
-// Cash Deposit on by default, others off
-let _mselBuckets = new Set(['cashdeposit']);
+// All unchecked by default
+let _mselBuckets = new Set();
 
 const MSEL_BUCKET_KEYS   = ['cashdeposit','tax','overhead','herbalife','payouts'];
 const MSEL_BUCKET_LABELS = {
   tax:'Taxes', overhead:'Overhead', herbalife:'Herbalife',
   payouts:'Payouts', cashdeposit:'Cash Deposit'
 };
+
+function applyMselPreset(p) {
+  const allKeys = ['cashdeposit','tax','overhead','herbalife','payouts'];
+  if (p === 'all') {
+    _mselBuckets = new Set(allKeys);
+  } else if (p === 'alloc') {
+    _mselBuckets = new Set(['tax','overhead','herbalife','payouts']);
+  } else if (p === 'cash') {
+    _mselBuckets = new Set(['cashdeposit']);
+  }
+  allKeys.forEach(k => {
+    const chk = document.getElementById('msel-chk-' + k);
+    if (chk) chk.checked = _mselBuckets.has(k);
+  });
+  syncMselPreset();
+  renderMselBreakdown();
+  const runBtn = document.getElementById('msel-run-btn');
+  if (runBtn) runBtn.disabled = _mselDates.size === 0 || _mselBuckets.size === 0;
+}
+
+function syncMselPreset() {
+  const cash = document.getElementById('msel-chk-cashdeposit')?.checked || false;
+  const allocKeys = ['tax','overhead','herbalife','payouts'];
+  const allFour  = allocKeys.every(k => document.getElementById('msel-chk-' + k)?.checked);
+  const noneFour = allocKeys.every(k => !document.getElementById('msel-chk-' + k)?.checked);
+  ['msel-pre-all','msel-pre-alloc','msel-pre-cash'].forEach(id => {
+    document.getElementById(id)?.classList.remove('active');
+  });
+  if (cash && allFour)        document.getElementById('msel-pre-all')?.classList.add('active');
+  else if (!cash && allFour)  document.getElementById('msel-pre-alloc')?.classList.add('active');
+  else if (cash && noneFour)  document.getElementById('msel-pre-cash')?.classList.add('active');
+}
 
 function mselToggleDate(dateStr) {
   if (_mselDates.has(dateStr)) _mselDates.delete(dateStr);
@@ -6455,12 +6495,15 @@ function setHistView(mode) {
     const sumView = document.getElementById('history-sum-view');
     if (calGrid) calGrid.style.display = '';
     if (sumView) sumView.style.display = 'none';
-    // Reset bucket checkboxes to default (cash deposit on, others off)
+    // Reset bucket checkboxes to default (all unchecked)
     _mselDates.clear();
-    _mselBuckets = new Set(['cashdeposit']);
+    _mselBuckets = new Set();
     ['tax','overhead','herbalife','payouts','cashdeposit'].forEach(k => {
       const chk = document.getElementById('msel-chk-' + k);
-      if (chk) chk.checked = _mselBuckets.has(k);
+      if (chk) chk.checked = false;
+    });
+    ['msel-pre-all','msel-pre-alloc','msel-pre-cash'].forEach(id => {
+      document.getElementById(id)?.classList.remove('active');
     });
     renderMselPanel();
     renderHistCal();
