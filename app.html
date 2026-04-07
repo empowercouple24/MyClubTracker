@@ -5731,6 +5731,7 @@ function applyMselPreset(p) {
   renderMselBreakdown();
   const runBtn = document.getElementById('msel-run-btn');
   if (runBtn) runBtn.disabled = _mselDates.size === 0 || _mselBuckets.size === 0;
+  updateAllocHighlights();
 }
 
 function syncMselPreset() {
@@ -5751,21 +5752,23 @@ function mselToggleDate(dateStr) {
   else _mselDates.add(dateStr);
   renderMselPanel();
   renderHistCal();
+  updateAllocHighlights();
 }
 
 function mselRemoveDate(dateStr) {
   _mselDates.delete(dateStr);
   renderMselPanel();
   renderHistCal();
+  updateAllocHighlights();
 }
 
 function mselClearAll() {
   _mselDates.clear();
-  // Reset recorded bar (clear any "ALLOCATED" state)
   const recBar = document.getElementById('msel-recorded-bar');
   if (recBar) recBar.style.display = 'none';
   renderMselPanel();
   renderHistCal();
+  updateAllocHighlights();
 }
 
 function toggleMselChip(key) {
@@ -5775,6 +5778,7 @@ function toggleMselChip(key) {
     else _mselBuckets.delete(key);
   }
   renderMselBreakdown();
+  updateAllocHighlights();
 }
 
 function renderMselPanel() {
@@ -5924,6 +5928,60 @@ async function runMselMark() {
   renderReconWidget();
 }
 
+function updateAllocHighlights() {
+  const list = document.getElementById('hist-alloc-list');
+  if (!list) return;
+
+  // Walk every alloc card in the list
+  list.querySelectorAll('[data-date]').forEach(card => {
+    const dateStr = card.dataset.date;
+    const isSel = _mselDates.has(dateStr);
+
+    // Card border highlight
+    card.style.borderColor = isSel ? 'var(--b5)' : 'var(--border-light)';
+    card.style.boxShadow   = isSel ? '0 0 0 1.5px var(--b5),var(--shadow-sm)' : 'var(--shadow-sm)';
+
+    // Bucket cells
+    card.querySelectorAll('[data-bucket]').forEach(cell => {
+      const k = cell.dataset.bucket;
+      const transferred = cell.dataset.transferred === '1';
+      const isCash = k === 'cashdeposit';
+
+      // Determine which state wins: transferred > msel-highlighted > default
+      const mselHl = isSel && _mselBuckets.has(k) && !transferred;
+
+      const greenBdr = '#c4e6d2', blueBdr = '#8ab4d8';
+      const isLast = !cell.nextElementSibling;
+
+      let bg, labelColor, valColor, borderRight;
+
+      if (transferred) {
+        bg = isCash ? '#e6f1fb' : '#eaf6eb';
+        labelColor = isCash ? 'var(--b6)' : 'var(--g5)';
+        valColor   = isCash ? 'var(--b6)' : 'var(--g5)';
+        borderRight = isLast ? 'none' : `1px solid ${isCash ? blueBdr : greenBdr}`;
+      } else if (mselHl) {
+        bg = isCash ? '#e6f1fb' : '#eaf6eb';
+        labelColor = isCash ? 'var(--b6)' : 'var(--g5)';
+        valColor   = isCash ? 'var(--b6)' : 'var(--g5)';
+        borderRight = isLast ? 'none' : `1px solid ${isCash ? blueBdr : greenBdr}`;
+      } else {
+        bg = 'var(--surface)';
+        labelColor = 'var(--text-faint)';
+        valColor   = 'var(--text)';
+        borderRight = isLast ? 'none' : '1px solid var(--border-light)';
+      }
+
+      cell.style.background   = bg;
+      cell.style.borderRight  = borderRight;
+      const lbl = cell.querySelector('div:first-child');
+      const val = cell.querySelector('div:last-child');
+      if (lbl) lbl.style.color = labelColor;
+      if (val) val.style.color = valColor;
+    });
+  });
+}
+
 // ── END MULTI-SELECT ──────────────────────────────────────────────────────────
 
 function renderHistAlloc() {
@@ -5991,13 +6049,13 @@ function renderHistAlloc() {
         const valColor = transferred ? (isCash?'var(--b6)':'var(--g5)') : 'var(--text)';
         const check = transferred ? '<span style="font-size:9px;margin-left:3px;">&#10003;</span>' : '';
         const flex = isCash ? 'flex:1.6;' : 'flex:1;';
-        return `<div style="${flex}min-width:60px;padding:6px 8px;${br}background:${bg};">
+        return `<div data-bucket="${k}" data-transferred="${transferred?'1':'0'}" style="${flex}min-width:60px;padding:6px 8px;${br}background:${bg};">
           <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:${labelColor};margin-bottom:2px;">${BUCKET_LABELS[k]}${check}</div>
           <div style="font-family:'Outfit',sans-serif;font-size:12px;font-weight:800;color:${valColor};">${fmt$(day.bv[i])}</div>
         </div>`;
       }).join('');
       const pendingAmt = day.keys.reduce((s,k,i) => s + (day.tr[k] ? 0 : day.bv[i]), 0);
-      return `<div style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);margin-bottom:6px;overflow:hidden;box-shadow:var(--shadow-sm);cursor:pointer;" onclick="openAllocDetail('${day.dateStr}')">
+      return `<div data-date="${day.dateStr}" style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);margin-bottom:6px;overflow:hidden;box-shadow:var(--shadow-sm);cursor:pointer;transition:border-color 0.15s,box-shadow 0.15s;" onclick="openAllocDetail('${day.dateStr}')">
         <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid #a8bfcf;background:#b2c4d4;">
           <span style="font-size:13px;font-weight:700;color:#1e3040;">${day.label}</span>
           <span style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--text);">${fmt$(pendingAmt)}</span>
@@ -6006,6 +6064,9 @@ function renderHistAlloc() {
       </div>`;
     }).join('');
   }
+
+  // Apply msel highlights if currently in multi-select mode
+  if (_histView === 'msel') updateAllocHighlights();
 
   // Show projections toggle once there's data
   const toggle = document.getElementById('hist-proj-toggle');
@@ -6538,6 +6599,7 @@ function setHistView(mode) {
     // Restore cal/sum sub-view buttons
     document.getElementById('hvt-cal')?.classList.add('active');
     document.getElementById('hvt-sum')?.classList.remove('active');
+    updateAllocHighlights(); // clear all msel highlights
     renderHistCal();
   }
 }
