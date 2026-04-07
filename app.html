@@ -6920,7 +6920,8 @@ let _reconOpen = false;
 
 function calcReconTotals() {
   // Unallocated = sum of pending bucket amounts on days NOT fully allocated.
-  // Fully-allocated days (all 5 buckets done) net to zero and are excluded.
+  // GC Load Fees are deducted by Square before deposit — they have no bucket
+  // but must be subtracted from unalloc so they don't inflate the balance.
   let unalloc = 0;
   let cardDepositsTotal = 0, cashDepositsTotal = 0, transfersTotal = 0;
   const unallocDays = [];
@@ -6931,19 +6932,21 @@ function calcReconTotals() {
     const tr = data.transfers || {};
     const allKeys = ['cashdeposit','tax','overhead','herbalife','payouts'];
     const allDone = allKeys.every(k => tr[k]);
-    const cardDep = (c.cardDeposits||0); // Square sweep only: card sales − fees + CashApp POS − GC load fees
+    const cardDep = (c.cardDeposits||0); // card sales − fees + CashApp POS − GC load fees
     const cashDep = parseFloat(data.cashSales)||0;
+    const gcLoadFees = parseFloat(data.giftCardLoadFees)||0;
     cardDepositsTotal += cardDep;
     if (tr.cashdeposit) cashDepositsTotal += cashDep;
     if (tr.tax)       transfersTotal += c.tax||0;
     if (tr.overhead)  transfersTotal += c.overhead||0;
     if (tr.herbalife) transfersTotal += c.products||0;
     if (tr.payouts)   transfersTotal += c.payouts||0;
-    if (allDone) return; // fully allocated days contribute zero
+    if (allDone) return;
     const bvMap = {cashdeposit:cashDep, tax:c.tax||0, overhead:c.overhead||0, herbalife:c.products||0, payouts:c.payouts||0};
     const pending = allKeys.filter(k => !tr[k]).map(k => ({key:k, amt:bvMap[k]}));
     const pendingTotal = pending.reduce((s,p) => s+p.amt, 0);
-    unalloc += pendingTotal;
+    // Subtract GC load fees — Square deducts these before deposit, no bucket needed
+    unalloc += pendingTotal - gcLoadFees;
     const dt = new Date(d.date+'T00:00:00');
     const label = dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
     unallocDays.push({date:d.date, label, pending, pendingTotal});
