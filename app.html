@@ -1343,16 +1343,6 @@ if('serviceWorker' in navigator){
     <!-- Summary view — hidden by default -->
     <div id="history-sum-view" style="display:none;">
       <div class="card" style="margin-bottom:10px;">
-        <div class="sum-sub-tabs">
-          <div class="sum-sub-tab active" id="sum-tab-week" onclick="setSumTab('week')">Weekly grid</div>
-          <div class="sum-sub-tab" id="sum-tab-month" onclick="setSumTab('month')">Monthly table</div>
-        </div>
-        <!-- Week sub-nav (only shown in weekly grid mode) -->
-        <div id="sum-week-nav" class="sum-week-nav">
-          <button class="btn btn-ghost" onclick="sumWeekShift(-1)" style="padding:3px 10px;font-size:14px;">&#8592;</button>
-          <span id="sum-week-label" class="sum-week-label"></span>
-          <button class="btn btn-ghost" onclick="sumWeekShift(1)" style="padding:3px 10px;font-size:14px;">&#8594;</button>
-        </div>
         <div id="sum-content"></div>
       </div>
     </div>
@@ -6539,27 +6529,41 @@ function filterPregLog(log) {
 
 // ── HISTORY SUMMARY VIEW ──────────────────────────────────────────────────────
 let _histView = 'cal';       // 'cal' | 'sum'
-let _sumTab = 'week';        // 'week' | 'month'
+let _sumTab = 'month';       // always monthly now
+
+function renderSummaryView() {
+  const content = document.getElementById('sum-content');
+  if (!content) return;
+  renderMonthTable(content);
+}
 let _sumWeekOffset = 0;      // 0 = current week (Mon-Sun), -1 = last week, etc.
 
 const SUM_FIELDS = [
-  // ── Group 1: Core Sales ─────────────────────────────────────────────────────
-  {key:'net',     label:'Net Sales',     section:'Core Sales',  fn:(d)=>calSales(d),                                                          fmt:'$', color:'green'},
-  {key:'cash',    label:'Cash Sales',    section:null,          fn:(d)=>parseFloat(d.cashSales)||0,                                           fmt:'$'},
-  {key:'card',    label:'Card Sales',    section:null,          fn:(d)=>parseFloat(d.cardSales)||0,                                           fmt:'$'},
-  {key:'fees',    label:'Card Fees',     section:null,          fn:(d)=>parseFloat(d.cardFees)||0,                                            fmt:'$', color:'amber'},
-  {key:'gcr',     label:'GC Redeemed',  section:null,          fn:(d)=>parseFloat(d.giftCardRedeemed)||0,                                    fmt:'$'},
-  {key:'cashapp', label:'CashApp POS',  section:null,          fn:(d)=>parseFloat(d.cashAppPay)||0,                                          fmt:'$'},
-  {key:'venmo',   label:'Venmo',        section:null,          fn:(d)=>parseFloat(d.venmo)||0,                                               fmt:'$', groupEnd:true},
-  // ── Group 2: Other Sales ─────────────────────────────────────────────────────
-  {key:'other',   label:'Other Sales',  section:'Other Sales', fn:(d)=>parseFloat(d.otherSales)||0,                                          fmt:'$'},
-  {key:'merch',   label:'Merchandise',  section:null,          fn:(d)=>parseFloat(d.merchSales)||0,                                          fmt:'$'},
-  {key:'gc',      label:'GC Sales',     section:null,          fn:(d)=>parseFloat(d.giftCardSales)||0,                                       fmt:'$'},
-  {key:'gcf',     label:'GC Load Fees', section:null,          fn:(d)=>parseFloat(d.giftCardLoadFees)||0,                                    fmt:'$', color:'amber', groupEnd:true},
-  // ── Group 3: Fundraiser ──────────────────────────────────────────────────────
-  {key:'fund',    label:'Fundraiser',   section:'Fundraiser',  fn:(d)=>(parseFloat(d.fundraiserCash)||0)+(parseFloat(d.fundraiserCard)||0),  fmt:'$', groupEnd:true},
-  // ── Group 4: Volume ──────────────────────────────────────────────────────────
-  {key:'dv',      label:'DV',           section:'Volume',      fn:(d)=>parseFloat(d.dv)||0,                                                  fmt:'n'},
+  // ── Net Sales — computed, always first ──────────────────────────────────────
+  {key:'net',     label:'Net Sales',       section:'Net Sales',        fn:(d)=>calSales(d),                                                         fmt:'$', color:'green'},
+  // ── Sales ───────────────────────────────────────────────────────────────────
+  {key:'cash',    label:'Cash Sales',      section:'Sales',            fn:(d)=>parseFloat(d.cashSales)||0,                                          fmt:'$'},
+  {key:'card',    label:'Card Sales',      section:null,               fn:(d)=>parseFloat(d.cardSales)||0,                                          fmt:'$'},
+  {key:'fees',    label:'Card Fees',       section:null,               fn:(d)=>parseFloat(d.cardFees)||0,                                           fmt:'$', color:'amber'},
+  {key:'gcr',     label:'GC Redeemed',    section:null,               fn:(d)=>parseFloat(d.giftCardRedeemed)||0,                                   fmt:'$'},
+  {key:'cashapp', label:'CashApp POS',    section:null,               fn:(d)=>parseFloat(d.cashAppPay)||0,                                         fmt:'$'},
+  {key:'venmo',   label:'Venmo / CashApp', section:null,              fn:(d)=>parseFloat(d.venmo)||0,                                              fmt:'$'},
+  // ── Other Sales ─────────────────────────────────────────────────────────────
+  {key:'other',   label:'Other Sales',    section:'Other Sales',      fn:(d)=>parseFloat(d.otherSales)||0,                                         fmt:'$'},
+  {key:'merch',   label:'Merchandise',    section:null,               fn:(d)=>parseFloat(d.merchSales)||0,                                         fmt:'$'},
+  // ── Gift Cards ───────────────────────────────────────────────────────────────
+  {key:'gc',      label:'GC Sales',       section:'Gift Cards',       fn:(d)=>parseFloat(d.giftCardSales)||0,                                      fmt:'$'},
+  {key:'gcf',     label:'GC Load Fees',   section:null,               fn:(d)=>parseFloat(d.giftCardLoadFees)||0,                                   fmt:'$', color:'amber'},
+  // ── Fundraiser ───────────────────────────────────────────────────────────────
+  {key:'fcash',   label:'Cash Donations', section:'Fundraiser',       fn:(d)=>parseFloat(d.fundraiserCash)||0,                                     fmt:'$'},
+  {key:'fcard',   label:'Card Donations', section:null,               fn:(d)=>parseFloat(d.fundraiserCard)||0,                                     fmt:'$'},
+  // ── Documented Volume ────────────────────────────────────────────────────────
+  {key:'dv',      label:'DV',             section:'Documented Volume', fn:(d)=>parseFloat(d.dv)||0,                                                fmt:'n'},
+  // ── Allocations (calculated) ─────────────────────────────────────────────────
+  {key:'atax',    label:'Taxes',          section:'Allocations (calculated)', fn:(d)=>{ const c=calcAllFromData(d); return c.tax||0; },            fmt:'$', alloc:true},
+  {key:'aoh',     label:'Overhead',       section:null,               fn:(d)=>{ const c=calcAllFromData(d); return c.overhead||0; },               fmt:'$', alloc:true},
+  {key:'aherb',   label:'Herbalife $',    section:null,               fn:(d)=>{ const c=calcAllFromData(d); return c.products||0; },               fmt:'$', alloc:true},
+  {key:'apay',    label:'Payouts',        section:null,               fn:(d)=>{ const c=calcAllFromData(d); return c.payouts||0; },                fmt:'$', alloc:true},
 ];
 
 function setHistView(mode) {
@@ -6813,14 +6817,15 @@ function renderMonthTable(el) {
   });
 
   // Helper: format a single value
-  function fmtV(val, fmt, color, extraCls) {
-    const colorCls = color==='green'?'sm-green':color==='amber'?'sm-amber':'';
+  function fmtV(val, fmt, color, extraCls, isAlloc) {
+    const colorCls = isAlloc ? '' : (color==='green'?'sm-green':color==='amber'?'sm-amber':'');
     const cls = [colorCls, extraCls||''].filter(Boolean).join(' ');
-    if (!val) return `<td class="sm-nodata${extraCls?' '+extraCls:''}">—</td>`;
+    const allocStyle = isAlloc ? `style="background:${extraCls==='sm-wk'?'var(--b2)':extraCls==='sm-total'?'var(--b3)':'var(--b1)'};color:var(--b8);"` : '';
+    if (!val) return `<td class="sm-nodata${extraCls?' '+extraCls:''}" ${allocStyle}>—</td>`;
     let s;
     if (fmt==='$') s = '$'+val.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
     else s = val.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1});
-    return `<td class="${cls}">${s}</td>`;
+    return `<td class="${cls}" ${allocStyle}>${s}</td>`;
   }
 
   // Build column header row
@@ -6854,7 +6859,8 @@ function renderMonthTable(el) {
   SUM_FIELDS.forEach(f => {
     // Section header row
     if (f.section && f.section !== lastSection) {
-      tbody += `<tr class="s-section"><td colspan="${totalCols+1}" style="position:sticky;left:0;">${f.section}</td></tr>`;
+      const secBg = f.alloc ? 'background:var(--b1);color:var(--b7);' : '';
+      tbody += `<tr class="s-section"><td colspan="${totalCols+1}" style="position:sticky;left:0;${secBg}">${f.section}</td></tr>`;
       lastSection = f.section;
     }
 
@@ -6864,8 +6870,10 @@ function renderMonthTable(el) {
     if (!hasAnyData && !alwaysShow.includes(f.key)) return;
 
     const geClass = f.groupEnd ? 'sm-ge' : '';
+    const isAlloc = !!f.alloc;
+    const rowBg   = isAlloc ? 'var(--b1)' : '';
     let monthTotal = 0;
-    let row = `<tr><td class="sticky-field${geClass?' '+geClass:''}" style="position:sticky;left:0;background:var(--surface);z-index:1;font-size:11px;font-weight:600;color:var(--text-muted);padding:5px 8px;white-space:nowrap;">${f.label}</td>`;
+    let row = `<tr><td class="sticky-field${geClass?' '+geClass:''}" style="position:sticky;left:0;background:${isAlloc?'var(--b1)':'var(--surface)'};z-index:1;font-size:11px;font-weight:600;color:${isAlloc?'var(--b8)':'var(--text-muted)'};padding:5px 8px;white-space:nowrap;${isAlloc?'font-style:italic;':''}">${f.label}</td>`;
 
     weeks.forEach((wk, wi) => {
       let weekTotal = 0;
@@ -6876,20 +6884,21 @@ function renderMonthTable(el) {
         const isClosed = (!opDays[dow]||!!closedDays2[ds])&&closedDays2[ds]!=='open';
         const isFuture = ds > todayStr;
         if (isFuture || (isClosed && !dayMap[ds]) || !dayMap[ds]) {
-          row += `<td class="sm-nodata">—</td>`;
+          const allocBg = isAlloc ? ' style="background:var(--b1);"' : '';
+          row += `<td class="sm-nodata"${allocBg}>—</td>`;
           return;
         }
         const val = f.fn(dayMap[ds]);
         weekTotal += val;
         monthTotal += val;
-        row += fmtV(val, f.fmt, f.color, '');
+        row += fmtV(val, f.fmt, f.color, '', isAlloc);
       });
       // Week subtotal cell
-      row += fmtV(weekTotal, f.fmt, f.color, 'sm-wk');
+      row += fmtV(weekTotal, f.fmt, f.color, 'sm-wk', isAlloc);
     });
 
     // Month total cell
-    row += fmtV(monthTotal, f.fmt, f.color, 'sm-total');
+    row += fmtV(monthTotal, f.fmt, f.color, 'sm-total', isAlloc);
     row += '</tr>';
     tbody += row;
   });
@@ -6942,6 +6951,8 @@ let _reconDaysOpen = false;
 
 function renderReconWidget() {
   const totals = calcReconTotals();
+  const widget = document.getElementById('recon-widget');
+  if (widget) widget.style.display = totals.unalloc > 0 || totals.unallocDays.length > 0 ? 'block' : 'none';
   const valEl = document.getElementById('recon-unalloc-val');
   if (valEl) valEl.textContent = fmt$(totals.unalloc);
   const cardEl = document.getElementById('recon-card-val');
