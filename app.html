@@ -843,6 +843,17 @@ if('serviceWorker' in navigator){
     .recon-result-bar.ok{background:var(--g0);color:var(--g5);}
     .recon-result-bar.off{background:var(--a0);color:var(--a6);}
     
+    /* ── PRINT / PDF EXPORT ── */
+    @media print {
+      body * { visibility: hidden !important; }
+      #sum-print-area, #sum-print-area * { visibility: visible !important; }
+      #sum-print-area { position: fixed; inset: 0; padding: 16px; background: white; z-index: 9999; }
+      #sum-toolbar button { display: none !important; }
+      .smtbl { font-size: 9px !important; min-width: 0 !important; width: 100% !important; }
+      .smtbl th, .smtbl td { padding: 3px 5px !important; }
+      #sum-table-wrap { overflow: visible !important; }
+      @page { size: landscape; margin: 10mm; }
+    }
   </style>
 </head>
 <body>
@@ -7018,11 +7029,53 @@ function renderMonthTable(el) {
 
   // Total cols count for CSS min-width estimate
   const approxCols = dateCols.length + weeks.length + 2;
-  el.innerHTML = `<div style="overflow-x:auto;"><table class="smtbl" style="min-width:${approxCols*52}px;">${thead}${tbody}</table></div>`;
+  const monthLabel = MONTH_NAMES[mo] + ' ' + yr;
+  el.innerHTML = `
+    <div id="sum-toolbar" style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--border-light);background:var(--b0);">
+      <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);">${monthLabel}</span>
+      <button onclick="printSummaryPDF()" style="display:flex;align-items:center;gap:5px;padding:5px 13px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;background:var(--b8);color:white;border:none;font-family:'DM Sans',sans-serif;">&#11015; Export PDF</button>
+    </div>
+    <div style="overflow-x:auto;" id="sum-table-wrap"><table class="smtbl" style="min-width:${approxCols*52}px;">${thead}${tbody}</table></div>`;
 }
 
 
-// ── BANK RECONCILIATION WIDGET ───────────────────────────────────────────────
+function printSummaryPDF() {
+  // Get the month label and table
+  const toolbar = document.getElementById('sum-toolbar');
+  const tableWrap = document.getElementById('sum-table-wrap');
+  const card = document.querySelector('#history-sum-view .card');
+  if (!tableWrap || !card) return;
+
+  // Build print header
+  const monthLabel = toolbar ? toolbar.querySelector('span')?.textContent || '' : '';
+  const locName = document.querySelector('.nav-loc-name')?.textContent || SETTINGS.clubName || 'Club Summary';
+
+  // Wrap card in print area
+  const printDiv = document.createElement('div');
+  printDiv.id = 'sum-print-area';
+
+  // Header for the printed page
+  const header = document.createElement('div');
+  header.style.cssText = 'display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid #354e62;';
+  header.innerHTML = `
+    <div>
+      <div style="font-size:18px;font-weight:800;color:#354e62;">${locName}</div>
+      <div style="font-size:13px;color:#607e96;margin-top:2px;">Monthly Summary — ${monthLabel}</div>
+    </div>
+    <div style="font-size:11px;color:#8fa3b3;text-align:right;">
+      Printed ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}<br>
+      myclubtracker.com
+    </div>`;
+  printDiv.appendChild(header);
+
+  // Clone the table so we don't move the original
+  const tableClone = tableWrap.cloneNode(true);
+  printDiv.appendChild(tableClone);
+
+  document.body.appendChild(printDiv);
+  window.print();
+  document.body.removeChild(printDiv);
+}
 let _reconOpen = false;
 
 function calcReconTotals() {
