@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-07 20:00:00 -->
+<!-- CACHE BUST: 2026-04-07 21:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -1751,8 +1751,8 @@ if('serviceWorker' in navigator){
 </div>
 
 <!-- ═══════ EXPANSION TAB ═══════ -->
-<div class="tab-panel" id="panel-expansion" style="background:var(--bg);min-height:100%;padding-bottom:60px;isolation:isolate;">
-<div style="max-width:680px;margin:0 auto;width:100%;">
+<div class="tab-panel" id="panel-expansion" style="background:var(--bg);min-height:100%;padding-bottom:60px;position:relative;z-index:1;">
+<div style="max-width:680px;margin:0 auto;width:100%;padding-bottom:80px;">
 
   <div style="display:flex;gap:0;background:var(--b0);border-radius:var(--radius-sm);padding:2px;width:fit-content;margin-bottom:14px;">
     <button id="exp-btn-proj" onclick="switchExpSub('proj')" style="padding:6px 16px;font-size:12px;font-weight:600;border:none;background:transparent;color:var(--text-muted);cursor:pointer;border-radius:6px;font-family:'DM Sans',sans-serif;transition:all 0.15s;">Projections</button>
@@ -3528,6 +3528,10 @@ function csaRecalc(){
   var sl=document.getElementById('csa-profit-slider');
   if(!sl)return;
   sl.addEventListener('input',csaRecalc);
+  // Prevent range slider from capturing wheel/scroll — page scrolls normally when slider not focused
+  sl.addEventListener('wheel',function(e){
+    if(document.activeElement!==sl){e.preventDefault();}
+  },{ passive:false });
   document.querySelectorAll('.csa-cost-input,.csa-mix-input').forEach(function(el){el.addEventListener('change',csaRecalc);el.addEventListener('input',csaRecalc);});
   ['csa-wage','csa-shift-hrs','csa-solo-ceil'].forEach(function(id){
     var el=document.getElementById(id);if(el){el.addEventListener('change',csaRecalc);el.addEventListener('input',csaRecalc);}
@@ -7228,11 +7232,6 @@ function filterPregLog(log) {
 let _histView = 'cal';       // 'cal' | 'sum'
 let _sumTab = 'month';       // always monthly now
 
-function renderSummaryView() {
-  const content = document.getElementById('sum-content');
-  if (!content) return;
-  renderMonthTable(content);
-}
 let _sumWeekOffset = 0;      // 0 = current week (Mon-Sun), -1 = last week, etc.
 
 const SUM_FIELDS = [
@@ -7354,7 +7353,7 @@ function setSumTab(tab) {
   _sumTab = tab;
   document.getElementById('sum-tab-week')?.classList.toggle('active', tab==='week');
   document.getElementById('sum-tab-month')?.classList.toggle('active', tab==='month');
-  document.getElementById('sum-week-nav').style.display = tab==='week' ? 'flex' : 'none';
+  document.getElementById('sum-week-nav')?.style && (document.getElementById('sum-week-nav').style.display = tab==='week' ? 'flex' : 'none');
   renderSummaryView();
 }
 
