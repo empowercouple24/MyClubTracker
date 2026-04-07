@@ -1225,7 +1225,7 @@ if('serviceWorker' in navigator){
         <div class="recon-banner-left">
           <div class="recon-banner-lbl">Unallocated Balance</div>
           <div class="recon-banner-val" id="recon-unalloc-val">—</div>
-          <div class="recon-banner-sub" id="recon-bank-sub">Card deposits + cash deposits &#8722; transfers</div>
+          <div class="recon-banner-sub" id="recon-bank-sub">Card deposits + cash deposits &#8722; transfers &middot; 2026</div>
         </div>
         <div class="recon-banner-right">
           <div class="recon-bank-pill" onclick="event.stopPropagation()">
@@ -7026,54 +7026,69 @@ function renderMonthTable(el) {
 let _reconOpen = false;
 
 function calcReconTotals() {
-  // Direct formula: what should be in your bank =
-  //   Card deposits (all time)       — Square sweeps: cardSales − fees + cashAppPOS − gcLoadFees
-  // + Cash deposits marked ✓         — cash you've confirmed deposited
-  // − Transfers marked ✓             — tax, overhead, herbalife, payouts moved out
-  // = Unallocated balance
+  // Unallocated balance = what should be sitting in your bank account.
   //
-  // Venmo/CashApp via App go to a separate account — excluded.
-  // GC Load Fees are already baked out of cardDeposits via calcAllFromData.
+  // For each day:
+  //   - Fully allocated days: all buckets done, net contribution = 0 (already moved out)
+  //   - Unallocated days: sum of PENDING bucket amounts = money still sitting in bank
+  //
+  // Cash deposit bucket = cash sales physically deposited to bank (marked ✓)
+  // Card deposit bucket = Square sweeps automatically (always in bank)
+  // Tax/OH/Herb/Payouts = money moved out once marked ✓
+  //
+  // Venmo/CashApp via App go to a separate account — NOT counted.
+  // GC Load Fees are deducted by Square before deposit — already excluded
+  //   from cardDeposits via calcAllFromData (cardSales − fees + cashAppPOS − gcLoadFees).
 
   let cardDepositsTotal = 0;
   let cashDepositsTotal = 0;
   let transfersTotal    = 0;
+  let unalloc           = 0;
   const unallocDays     = [];
 
+  const reconYearStart = new Date().getFullYear() + '-01-01';
+
   ALL_DAYS.forEach(d => {
+    if (d.date < reconYearStart) return; // current year only
     const data = d.data || {};
     if (!calSales(data)) return;
     const c   = calcAllFromData(data);
     const tr  = data.transfers || {};
     const allKeys = ['cashdeposit','tax','overhead','herbalife','payouts'];
+    const allDone = allKeys.every(k => tr[k]);
 
-    // Card deposits (Square sweep) — already excludes GC load fees
-    cardDepositsTotal += (c.cardDeposits || 0);
+    const cashDep = parseFloat(data.cashSales)||0;
+    const cardDep = c.cardDeposits || 0;
 
-    // Cash deposits — only count days where cash deposit is marked ✓
-    if (tr.cashdeposit) cashDepositsTotal += parseFloat(data.cashSales)||0;
-
-    // Transfers out — only buckets marked ✓
+    // Running totals for the breakdown rows
+    cardDepositsTotal += cardDep;
+    if (tr.cashdeposit) cashDepositsTotal += cashDep;
     if (tr.tax)       transfersTotal += c.tax     || 0;
     if (tr.overhead)  transfersTotal += c.overhead|| 0;
     if (tr.herbalife) transfersTotal += c.products|| 0;
     if (tr.payouts)   transfersTotal += c.payouts || 0;
 
-    // Track unallocated days for the list
-    const allDone = allKeys.every(k => tr[k]);
-    if (!allDone) {
-      const cashDep = parseFloat(data.cashSales)||0;
-      const bvMap   = {cashdeposit:cashDep, tax:c.tax||0, overhead:c.overhead||0, herbalife:c.products||0, payouts:c.payouts||0};
-      const pending = allKeys.filter(k => !tr[k]).map(k => ({key:k, amt:bvMap[k]}));
-      const pendingTotal = pending.reduce((s,p) => s+p.amt, 0);
-      const dt    = new Date(d.date+'T00:00:00');
-      const label = dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
-      unallocDays.push({date:d.date, label, pending, pendingTotal});
-    }
+    // Fully allocated days net to zero — skip
+    if (allDone) return;
+
+    // Pending amounts still in bank for this day
+    const bvMap = {
+      cashdeposit: cashDep,
+      tax:         c.tax     || 0,
+      overhead:    c.overhead|| 0,
+      herbalife:   c.products|| 0,
+      payouts:     c.payouts || 0,
+    };
+    const pending     = allKeys.filter(k => !tr[k]).map(k => ({key:k, amt:bvMap[k]}));
+    const pendingTotal = pending.reduce((s,p) => s+p.amt, 0);
+    unalloc += pendingTotal;
+
+    const dt    = new Date(d.date+'T00:00:00');
+    const label = dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+    unallocDays.push({date:d.date, label, pending, pendingTotal});
   });
 
   unallocDays.sort((a,b) => b.date.localeCompare(a.date));
-  const unalloc = cardDepositsTotal + cashDepositsTotal - transfersTotal;
   return { cardDeposits:cardDepositsTotal, cashDeposits:cashDepositsTotal, transfers:transfersTotal, unalloc, unallocDays };
 }
 
@@ -7189,7 +7204,7 @@ function updateReconMatch() {
     badge.className   = 'recon-match-badge none';
     badge.textContent = '—';
     if (resultBar) resultBar.style.display = 'none';
-    if (subEl) subEl.textContent = 'Card deposits + cash deposits − transfers';
+    if (subEl) subEl.textContent = 'Card deposits + cash deposits \u2212 transfers \u00b7 ' + new Date().getFullYear();
     return;
   }
 
