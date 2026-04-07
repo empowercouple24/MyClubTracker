@@ -717,23 +717,28 @@ if('serviceWorker' in navigator){
     .sgrid td.s-closed{color:var(--text-faint);font-style:italic;font-size:9px;}
     .sgrid td.s-empty{color:var(--text-faint);}
     .sgrid td.s-total{font-weight:700;background:var(--b0);border-left:1px solid var(--border-light);}
-    .sgrid td.s-green{color:var(--g5);}
+    .sgrid td.s-green{color:var(--g5);}.sgrid td.s-total.s-green{color:var(--g5);}
     .sgrid td.s-amber{color:var(--a6);}
     .sgrid tr.s-section td{background:var(--b0);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);padding:4px 7px;border-top:1px solid var(--border);}
     .sgrid tr.s-section td:first-child{background:var(--b0);}
-    /* Monthly table */
+    .sgrid td.s-ge,.sgrid th.s-ge{border-right:1.5px solid var(--border);}
+    /* Monthly table — Option A: fields as rows, days as columns */
     .smtbl{width:100%;border-collapse:collapse;}
-    .smtbl th{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);padding:6px 10px;border-bottom:1px solid var(--border-light);text-align:right;background:var(--b0);}
+    .smtbl th{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);padding:5px 6px;border-bottom:1px solid var(--border-light);text-align:right;background:var(--b0);white-space:nowrap;}
     .smtbl th:first-child{text-align:left;}
-    .smtbl td{font-size:11px;padding:5px 10px;border-bottom:1px solid var(--border-light);text-align:right;color:var(--text);}
-    .smtbl td:first-child{text-align:left;color:var(--text-muted);font-size:11px;}
-    .smtbl tr.sm-wk td{background:var(--b0);font-weight:700;font-size:11px;}
-    .smtbl tr.sm-wk td:first-child{color:var(--text);}
-    .smtbl tr.sm-total td{font-weight:700;font-size:12px;border-top:1px solid var(--border);}
-    .smtbl tr.sm-total td:first-child{color:var(--text);}
+    .smtbl td{font-size:11px;padding:4px 6px;border-bottom:1px solid var(--border-light);text-align:right;color:var(--text);}
+    .smtbl td:first-child{text-align:left;font-size:10px;font-weight:700;color:var(--text-muted);}
+    .smtbl td.sm-wk{background:var(--b1);font-weight:700;font-size:11px;border-left:1px solid var(--border-light);}
+    .smtbl td.sm-wk.sm-green{color:var(--g5);}
+    .smtbl td.sm-wk.sm-amber{color:var(--a6);}
+    .smtbl td.sm-total{background:var(--b2);font-weight:800;font-size:11px;border-left:2px solid var(--border);}
+    .smtbl td.sm-total.sm-green{color:var(--g5);}
+    .smtbl td.sm-total.sm-amber{color:var(--a6);}
+    .smtbl tr.s-section td{background:var(--b0);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);padding:4px 7px;border-top:1px solid var(--border);}
     .smtbl td.sm-nodata{color:var(--text-faint);}
     .smtbl td.sm-green{color:var(--g5);}
     .smtbl td.sm-amber{color:var(--a6);}
+    .smtbl td.sm-ge,.smtbl th.sm-ge{border-right:1.5px solid var(--border);}
 
     .alloc-bucket.cash-deposit{border-color:var(--b3);background:var(--b0);grid-column:1/-1;}
     .alloc-bucket.cash-deposit:hover{background:var(--b1);border-color:var(--b5);}
@@ -6538,18 +6543,23 @@ let _sumTab = 'week';        // 'week' | 'month'
 let _sumWeekOffset = 0;      // 0 = current week (Mon-Sun), -1 = last week, etc.
 
 const SUM_FIELDS = [
-  {key:'net',    label:'Net sales',    section:'Sales',   fn:(d)=>calSales(d),                 fmt:'$', color:'green'},
-  {key:'cash',   label:'Cash sales',   section:null,      fn:(d)=>parseFloat(d.cashSales)||0,  fmt:'$'},
-  {key:'card',   label:'Card sales',   section:null,      fn:(d)=>parseFloat(d.cardSales)||0,  fmt:'$'},
-  {key:'fees',   label:'Card fees',    section:null,      fn:(d)=>parseFloat(d.cardFees)||0,   fmt:'$', color:'amber'},
-  {key:'venmo',  label:'Venmo/CashApp',section:null,      fn:(d)=>parseFloat(d.venmo)||0,      fmt:'$'},
-  {key:'cashapp',label:'CashApp (POS)',section:null,      fn:(d)=>parseFloat(d.cashAppPay)||0, fmt:'$'},
-  {key:'other',  label:'Other sales',  section:null,      fn:(d)=>parseFloat(d.otherSales)||0, fmt:'$'},
-  {key:'merch',  label:'Merch',        section:null,      fn:(d)=>parseFloat(d.merchSales)||0, fmt:'$'},
-  {key:'gc',     label:'Gift cards',   section:null,      fn:(d)=>parseFloat(d.giftCardSales)||0, fmt:'$'},
-  {key:'gcr',    label:'GC redeemed',  section:null,      fn:(d)=>parseFloat(d.giftCardRedeemed)||0, fmt:'$'},
-  {key:'dv',     label:'DV',           section:'Volume',  fn:(d)=>parseFloat(d.dv)||0,         fmt:'n'},
-  {key:'fcash',  label:'Fundraiser $', section:'Fundraiser', fn:(d)=>(parseFloat(d.fundraiserCash)||0)+(parseFloat(d.fundraiserCard)||0), fmt:'$'},
+  // ── Group 1: Core Sales ─────────────────────────────────────────────────────
+  {key:'net',     label:'Net Sales',     section:'Core Sales',  fn:(d)=>calSales(d),                                                          fmt:'$', color:'green'},
+  {key:'cash',    label:'Cash Sales',    section:null,          fn:(d)=>parseFloat(d.cashSales)||0,                                           fmt:'$'},
+  {key:'card',    label:'Card Sales',    section:null,          fn:(d)=>parseFloat(d.cardSales)||0,                                           fmt:'$'},
+  {key:'fees',    label:'Card Fees',     section:null,          fn:(d)=>parseFloat(d.cardFees)||0,                                            fmt:'$', color:'amber'},
+  {key:'gcr',     label:'GC Redeemed',  section:null,          fn:(d)=>parseFloat(d.giftCardRedeemed)||0,                                    fmt:'$'},
+  {key:'cashapp', label:'CashApp POS',  section:null,          fn:(d)=>parseFloat(d.cashAppPay)||0,                                          fmt:'$'},
+  {key:'venmo',   label:'Venmo',        section:null,          fn:(d)=>parseFloat(d.venmo)||0,                                               fmt:'$', groupEnd:true},
+  // ── Group 2: Other Sales ─────────────────────────────────────────────────────
+  {key:'other',   label:'Other Sales',  section:'Other Sales', fn:(d)=>parseFloat(d.otherSales)||0,                                          fmt:'$'},
+  {key:'merch',   label:'Merchandise',  section:null,          fn:(d)=>parseFloat(d.merchSales)||0,                                          fmt:'$'},
+  {key:'gc',      label:'GC Sales',     section:null,          fn:(d)=>parseFloat(d.giftCardSales)||0,                                       fmt:'$'},
+  {key:'gcf',     label:'GC Load Fees', section:null,          fn:(d)=>parseFloat(d.giftCardLoadFees)||0,                                    fmt:'$', color:'amber', groupEnd:true},
+  // ── Group 3: Fundraiser ──────────────────────────────────────────────────────
+  {key:'fund',    label:'Fundraiser',   section:'Fundraiser',  fn:(d)=>(parseFloat(d.fundraiserCash)||0)+(parseFloat(d.fundraiserCard)||0),  fmt:'$', groupEnd:true},
+  // ── Group 4: Volume ──────────────────────────────────────────────────────────
+  {key:'dv',      label:'DV',           section:'Volume',      fn:(d)=>parseFloat(d.dv)||0,                                                  fmt:'n'},
 ];
 
 function setHistView(mode) {
@@ -6696,13 +6706,26 @@ function renderWeekGrid(el) {
   // Week label
   const s = new Date(dates[0]+'T12:00:00'), e = new Date(dates[6]+'T12:00:00');
   const lbl = document.getElementById('sum-week-label');
-  if (lbl) lbl.textContent = months[s.getMonth()]+' '+s.getDate()+' – '+months[e.getMonth()]+' '+e.getDate()+', '+e.getFullYear();
+  if (lbl) lbl.textContent = months[s.getMonth()]+' '+s.getDate()+' \u2013 '+months[e.getMonth()]+' '+e.getDate()+', '+e.getFullYear();
 
   // Build day map
   const dayMap = {};
   ALL_DAYS.forEach(d => { if (dates.includes(d.date)) dayMap[d.date] = d.data||{}; });
 
-  // Column headers
+  // Helper: format a cell value
+  function fmtCell(val, fmt, color, extraCls) {
+    const cls = [
+      color==='green' ? 's-green' : color==='amber' ? 's-amber' : '',
+      extraCls||''
+    ].filter(Boolean).join(' ');
+    if (!val) return `<td class="s-empty${extraCls?' '+extraCls:''}">—</td>`;
+    let s;
+    if (fmt==='$') s = '$'+val.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+    else s = val.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1});
+    return `<td class="${cls}">${s}</td>`;
+  }
+
+  // Column headers — one per day + Total
   let thead = '<thead><tr><th>Field</th>';
   dates.forEach((ds, i) => {
     const d = new Date(ds+'T12:00:00');
@@ -6712,40 +6735,43 @@ function renderWeekGrid(el) {
   });
   thead += '<th class="s-total">Total</th></tr></thead>';
 
-  // Rows
+  // Rows — one per field, section header rows between groups
   let lastSection = null;
   let tbody = '<tbody>';
-  SUM_FIELDS.forEach(f => {
-    // Only show fields that have any data this week, OR are key fields
-    const keyFields = ['net','cash','card','fees','dv'];
-    const hasAnyData = dates.some(ds => dayMap[ds] && f.fn(dayMap[ds]) > 0);
-    if (!hasAnyData && !keyFields.includes(f.key)) return;
 
+  SUM_FIELDS.forEach(f => {
+    // Section header row
     if (f.section && f.section !== lastSection) {
       tbody += `<tr class="s-section"><td colspan="${dates.length+2}">${f.section}</td></tr>`;
       lastSection = f.section;
     }
 
+    // Skip fields with no data this week (except always-show fields)
+    const alwaysShow = ['net','cash','card','fees','gcr','cashapp','venmo','dv'];
+    const hasAnyData = dates.some(ds => dayMap[ds] && f.fn(dayMap[ds]) > 0);
+    if (!hasAnyData && !alwaysShow.includes(f.key)) return;
+
+    const geClass = f.groupEnd ? 's-ge' : '';
+
     let total = 0;
-    let row = `<tr><td>${f.label}</td>`;
+    let row = `<tr><td class="${geClass}">${f.label}</td>`;
     dates.forEach(ds => {
-      const d = new Date(ds+'T12:00:00');
-      const dow = d.getDay();
+      const dow = new Date(ds+'T12:00:00').getDay();
       const opDays = SETTINGS.opDays||[false,true,true,true,true,true,true];
       const closedDays = SETTINGS.closedDays||{};
       const isClosed = (!opDays[dow]||!!closedDays[ds])&&closedDays[ds]!=='open';
       const isFuture = ds > todayStr;
 
-      if (isFuture) { row += '<td class="s-empty">—</td>'; return; }
-      if (isClosed && !dayMap[ds]) { row += '<td class="s-closed">closed</td>'; return; }
-      if (!dayMap[ds]) { row += '<td class="s-empty">—</td>'; return; }
+      if (isFuture)               { row += `<td class="s-empty${geClass?' '+geClass:''}">—</td>`; return; }
+      if (isClosed && !dayMap[ds]){ row += `<td class="s-closed${geClass?' '+geClass:''}">cls</td>`; return; }
+      if (!dayMap[ds])            { row += `<td class="s-empty${geClass?' '+geClass:''}">—</td>`; return; }
 
       const val = f.fn(dayMap[ds]);
       total += val;
-      row += fmtSumVal(val, f.fmt, f.color);
+      row += fmtCell(val, f.fmt, f.color, geClass);
     });
     // Total column
-    row += fmtSumVal(total, f.fmt, f.color).replace('<td ', '<td class="s-total ').replace('s-total s-', 's-total s-');
+    row += fmtCell(total, f.fmt, f.color, 's-total');
     row += '</tr>';
     tbody += row;
   });
@@ -6759,120 +6785,119 @@ function renderMonthTable(el) {
   if (yr === null || mo === null) return;
 
   const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const DOWS_SHORT = ['Su','Mo','Tu','We','Th','Fr','Sa'];
   const todayStr = localToday();
   const daysInMonth = new Date(yr, mo+1, 0).getDate();
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-  // Build day map for this month
+  // Build date list and day map for the month
+  const dateCols = [];
+  for (let d = 1; d <= daysInMonth; d++) {
+    dateCols.push(`${yr}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`);
+  }
   const dayMap = {};
   ALL_DAYS.forEach(d => {
     const dt = new Date(d.date+'T00:00:00');
     if (dt.getFullYear()===yr && dt.getMonth()===mo) dayMap[d.date] = d.data||{};
   });
 
-  // All Enter tab fields as columns — no Days column
-  const cols = [
-    {key:'net',     label:'Net Sales',    fn:d=>calSales(d),                             fmt:'$',  cls:'sm-green'},
-    {key:'cash',    label:'Cash',         fn:d=>parseFloat(d.cashSales)||0,              fmt:'$',  cls:''},
-    {key:'card',    label:'Card',         fn:d=>parseFloat(d.cardSales)||0,              fmt:'$',  cls:''},
-    {key:'fees',    label:'Card Fees',    fn:d=>parseFloat(d.cardFees)||0,               fmt:'$',  cls:'sm-amber'},
-    {key:'gcr',     label:'GC Redeemed', fn:d=>parseFloat(d.giftCardRedeemed)||0,       fmt:'$',  cls:''},
-    {key:'cashapp', label:'CashApp POS',  fn:d=>parseFloat(d.cashAppPay)||0,             fmt:'$',  cls:''},
-    {key:'venmo',   label:'Venmo',        fn:d=>parseFloat(d.venmo)||0,                  fmt:'$',  cls:''},
-    {key:'other',   label:'Other',        fn:d=>parseFloat(d.otherSales)||0,             fmt:'$',  cls:''},
-    {key:'merch',   label:'Merch',        fn:d=>parseFloat(d.merchSales)||0,             fmt:'$',  cls:''},
-    {key:'gcs',     label:'GC Sales',     fn:d=>parseFloat(d.giftCardSales)||0,          fmt:'$',  cls:''},
-    {key:'gcf',     label:'GC Load Fees', fn:d=>parseFloat(d.giftCardLoadFees)||0,       fmt:'$',  cls:'sm-amber'},
-    {key:'fcash',   label:'Fund Cash',    fn:d=>parseFloat(d.fundraiserCash)||0,         fmt:'$',  cls:''},
-    {key:'fcard',   label:'Fund Card',    fn:d=>parseFloat(d.fundraiserCard)||0,         fmt:'$',  cls:''},
-    {key:'dv',      label:'DV',           fn:d=>parseFloat(d.dv)||0,                     fmt:'dv', cls:''},
-  ];
+  // Build week buckets (Sun–Sat groupings within the month)
+  const weeks = [];
+  let weekBuf = [];
+  dateCols.forEach((ds, i) => {
+    const dow = new Date(ds+'T12:00:00').getDay();
+    weekBuf.push(ds);
+    if (dow === 6 || i === dateCols.length-1) {
+      weeks.push([...weekBuf]);
+      weekBuf = [];
+    }
+  });
 
-  function fmtCell(val, fmt, cls) {
-    if (!val) return `<td class="sm-nodata">—</td>`;
+  // Helper: format a single value
+  function fmtV(val, fmt, color, extraCls) {
+    const colorCls = color==='green'?'sm-green':color==='amber'?'sm-amber':'';
+    const cls = [colorCls, extraCls||''].filter(Boolean).join(' ');
+    if (!val) return `<td class="sm-nodata${extraCls?' '+extraCls:''}">—</td>`;
     let s;
     if (fmt==='$') s = '$'+val.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-    else if (fmt==='dv') s = val.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
     else s = val.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1});
     return `<td class="${cls}">${s}</td>`;
   }
 
-  const thead = `<thead><tr><th style="position:sticky;left:0;background:var(--b0);z-index:2;min-width:100px;">Period</th>${cols.map(c=>`<th style="white-space:nowrap;">${c.label}</th>`).join('')}</tr></thead>`;
-
-  // Group days by Sun–Sat weeks
-  let tbody = '<tbody>';
-  let monthTotals = {};
-  cols.forEach(c => monthTotals[c.key] = 0);
-  let monthDays = 0;
-
-  // Find first Sunday on or before the 1st of month
-  let weekStart = new Date(yr, mo, 1);
-  while (weekStart.getDay() !== 0) weekStart.setDate(weekStart.getDate()-1);
-
-  while (weekStart.getMonth() <= mo || weekStart.getFullYear() < yr) {
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekStart.getDate()+6);
-    if (weekStart > new Date(yr, mo, daysInMonth)) break;
-
-    let weekTotals = {}; cols.forEach(c => weekTotals[c.key] = 0);
-    let weekDays = 0;
-    let hasWeekData = false;
-    let dayRows = '';
-
-    for (let d = new Date(weekStart); d <= weekEnd; d.setDate(d.getDate()+1)) {
-      if (d.getMonth() !== mo && !(d <= weekEnd && d.getMonth() !== mo)) continue;
-      if (d.getMonth() !== mo) continue;
-      const ds = fmtDateStr2(d);
+  // Build column header row
+  // Structure: Field label | day1 | day2 ... | Wk1 | day8 ... | Wk2 | ... | Month Total
+  let theadCols = `<th class="sticky-left" style="min-width:110px;position:sticky;left:0;background:var(--b0);z-index:3;">Field</th>`;
+  weeks.forEach((wk, wi) => {
+    wk.forEach(ds => {
+      const d = new Date(ds+'T12:00:00');
+      const isToday = ds === todayStr;
       const isFuture = ds > todayStr;
-      const data = dayMap[ds];
-      const dayNum = d.getDate();
-      const dayName = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
-      const dayLabel = `${dayName} ${months[d.getMonth()]} ${dayNum}`;
+      const dow = d.getDay();
+      const opDays = SETTINGS.opDays||[false,true,true,true,true,true,true];
+      const closedDays2 = SETTINGS.closedDays||{};
+      const isClosed = (!opDays[dow]||!!closedDays2[ds])&&closedDays2[ds]!=='open';
+      const dimCls = (isFuture||(isClosed&&!dayMap[ds])) ? 'style="color:var(--text-faint);"' : '';
+      const todayCls = isToday ? 'style="background:var(--b1);color:var(--b7);"' : '';
+      theadCols += `<th class="r" ${isToday?todayCls:dimCls}>${DOWS_SHORT[dow]}<br><span style="font-weight:400;">${d.getDate()}</span></th>`;
+    });
+    // Week subtotal column header
+    const wStart = new Date(wk[0]+'T12:00:00'), wEnd = new Date(wk[wk.length-1]+'T12:00:00');
+    theadCols += `<th class="r sm-wk-hdr" style="background:var(--b1);color:var(--b7);white-space:nowrap;">Wk ${wi+1}</th>`;
+  });
+  theadCols += `<th class="r sm-total-hdr" style="background:var(--b2);color:var(--b8);">Month</th>`;
+  const thead = `<thead><tr>${theadCols}</tr></thead>`;
 
-      if (!data || isFuture) {
-        const note = isFuture ? 'future' : 'no data';
-        dayRows += `<tr><td class="sm-nodata" style="position:sticky;left:0;background:var(--surface);z-index:1;">${dayLabel}</td>${cols.map(()=>'<td class="sm-nodata">—</td>').join('')}</tr>`;
-        continue;
-      }
+  // Rows — one per field
+  let lastSection = null;
+  let tbody = '<tbody>';
+  const totalCols = dateCols.length + weeks.length + 1; // days + week cols + month total
 
-      hasWeekData = true;
-      weekDays++;
-      let cells = '';
-      cols.forEach(c => {
-        const val = c.fn(data);
-        weekTotals[c.key] = (weekTotals[c.key]||0) + val;
-        monthTotals[c.key] = (monthTotals[c.key]||0) + val;
-        cells += fmtCell(val, c.fmt, c.cls);
-      });
-      monthDays++;
-      dayRows += `<tr><td style="position:sticky;left:0;background:var(--surface);z-index:1;">${dayLabel}</td>${cells}</tr>`;
+  SUM_FIELDS.forEach(f => {
+    // Section header row
+    if (f.section && f.section !== lastSection) {
+      tbody += `<tr class="s-section"><td colspan="${totalCols+1}" style="position:sticky;left:0;">${f.section}</td></tr>`;
+      lastSection = f.section;
     }
 
-    // Week label
-    const ws = weekStart.getMonth()===mo ? weekStart : new Date(yr,mo,1);
-    const we = weekEnd.getMonth()===mo ? weekEnd : new Date(yr,mo,daysInMonth);
-    const wLabel = `${months[ws.getMonth()]} ${ws.getDate()}–${we.getDate()}`;
+    // Skip zero fields unless always-show
+    const alwaysShow = ['net','cash','card','fees','gcr','cashapp','venmo','dv'];
+    const hasAnyData = dateCols.some(ds => dayMap[ds] && f.fn(dayMap[ds]) > 0);
+    if (!hasAnyData && !alwaysShow.includes(f.key)) return;
 
-    tbody += dayRows;
-    // Week subtotal
-    let wCells = cols.map(c => {
-      return fmtCell(weekTotals[c.key]||0, c.fmt, c.cls);
-    }).join('');
-    tbody += `<tr class="sm-wk"><td style="position:sticky;left:0;background:var(--b0);z-index:1;">${wLabel}</td>${wCells}</tr>`;
+    const geClass = f.groupEnd ? 'sm-ge' : '';
+    let monthTotal = 0;
+    let row = `<tr><td class="sticky-field${geClass?' '+geClass:''}" style="position:sticky;left:0;background:var(--surface);z-index:1;font-size:11px;font-weight:600;color:var(--text-muted);padding:5px 8px;white-space:nowrap;">${f.label}</td>`;
 
-    weekStart.setDate(weekStart.getDate()+7);
-    if (weekStart.getFullYear() > yr && mo < 11) break;
-    if (weekStart.getMonth() > mo && weekStart.getFullYear() >= yr) break;
-  }
+    weeks.forEach((wk, wi) => {
+      let weekTotal = 0;
+      wk.forEach(ds => {
+        const dow = new Date(ds+'T12:00:00').getDay();
+        const opDays = SETTINGS.opDays||[false,true,true,true,true,true,true];
+        const closedDays2 = SETTINGS.closedDays||{};
+        const isClosed = (!opDays[dow]||!!closedDays2[ds])&&closedDays2[ds]!=='open';
+        const isFuture = ds > todayStr;
+        if (isFuture || (isClosed && !dayMap[ds]) || !dayMap[ds]) {
+          row += `<td class="sm-nodata">—</td>`;
+          return;
+        }
+        const val = f.fn(dayMap[ds]);
+        weekTotal += val;
+        monthTotal += val;
+        row += fmtV(val, f.fmt, f.color, '');
+      });
+      // Week subtotal cell
+      row += fmtV(weekTotal, f.fmt, f.color, 'sm-wk');
+    });
 
-  // Month total
-  let mCells = cols.map(c => {
-    return fmtCell(monthTotals[c.key]||0, c.fmt, c.cls);
-  }).join('');
-  tbody += `<tr class="sm-total"><td style="position:sticky;left:0;background:var(--surface);z-index:1;">${MONTH_NAMES[mo]} ${yr}</td>${mCells}</tr>`;
+    // Month total cell
+    row += fmtV(monthTotal, f.fmt, f.color, 'sm-total');
+    row += '</tr>';
+    tbody += row;
+  });
   tbody += '</tbody>';
 
-  el.innerHTML = `<div style="overflow-x:auto;"><table class="smtbl" style="min-width:900px;">${thead}${tbody}</table></div>`;
+  // Total cols count for CSS min-width estimate
+  const approxCols = dateCols.length + weeks.length + 2;
+  el.innerHTML = `<div style="overflow-x:auto;"><table class="smtbl" style="min-width:${approxCols*52}px;">${thead}${tbody}</table></div>`;
 }
 
 
