@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-06 01:00:00 -->
+<!-- CACHE BUST: 2026-04-07 09:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -71,6 +71,9 @@ if('serviceWorker' in navigator){
     .tab.amber.active{color:var(--a6)}
     .tab.amber.active::after{background:var(--a5)}
     .tab.amber:hover{color:var(--a6)}
+    .tab.green.active{color:var(--g5)}
+    .tab.green.active::after{background:var(--g4)}
+    .tab.green:hover{color:var(--g5)}
     /* CONTENT */
     .content-area{position:absolute;top:calc(var(--nav-h) + var(--tab-h) + env(safe-area-inset-top,0px));left:0;right:0;bottom:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
     .tab-panel{display:none;padding:10px 12px}
@@ -916,6 +919,7 @@ if('serviceWorker' in navigator){
   <button class="tab amber"  onclick="switchTab('invhist')" id="tab-invhist" data-short="Inv Hist">Inv History</button>
   <div class="tab-divider"></div>
   <button class="tab"        onclick="switchTab('payouts')" id="tab-payouts" data-short="Payouts">Payouts</button>
+  <button class="tab green"  onclick="switchTab('expansion')" id="tab-expansion" data-short="Expansion">Expansion</button>
 </div>
 
 <div id="hist-sticky-header">
@@ -1739,6 +1743,191 @@ if('serviceWorker' in navigator){
 
   </div>
 </div>
+
+<!-- ═══════ EXPANSION TAB ═══════ -->
+<div class="tab-panel" id="panel-expansion">
+<div style="max-width:680px;margin:0 auto;width:100%;">
+
+  <div style="display:flex;gap:0;background:var(--b0);border-radius:var(--radius-sm);padding:2px;width:fit-content;margin-bottom:14px;">
+    <button id="exp-btn-proj" onclick="switchExpSub('proj')" style="padding:6px 16px;font-size:12px;font-weight:600;border:none;background:var(--surface);color:var(--b7);cursor:pointer;border-radius:6px;font-family:'DM Sans',sans-serif;transition:all 0.15s;box-shadow:var(--shadow-sm);">Projections</button>
+    <button id="exp-btn-csa" onclick="switchExpSub('csa')" style="padding:6px 16px;font-size:12px;font-weight:600;border:none;background:transparent;color:var(--text-muted);cursor:pointer;border-radius:6px;font-family:'DM Sans',sans-serif;transition:all 0.15s;">Club Sales Analysis</button>
+  </div>
+
+  <!-- ── PROJECTIONS ── -->
+  <div id="exp-sub-proj">
+    <div class="card" style="padding:14px;margin-bottom:10px;">
+      <div class="section-label" style="margin-top:0;">2025 performance</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;">
+        <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--text-faint);margin-bottom:2px;">Net sales</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:700;">$353,706</div>
+        </div>
+        <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--text-faint);margin-bottom:2px;">Avg monthly</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:700;">$29,475</div>
+        </div>
+        <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--text-faint);margin-bottom:2px;">Avg daily</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:700;">$1,134</div>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="padding:14px;margin-bottom:10px;">
+      <div class="section-label" style="margin-top:0;">Monthly revenue — 2025</div>
+      <div style="position:relative;height:180px;margin-top:8px;"><canvas id="exp-proj-chart"></canvas></div>
+    </div>
+    <div class="card" style="padding:14px;">
+      <div class="section-label" style="margin-top:0;">Growth scenarios — 2026</div>
+      <div style="font-size:11px;color:var(--text-faint);margin-bottom:8px;">Projected annual revenue at different growth rates.</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+        <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
+          <div style="font-size:10px;font-weight:600;color:var(--text-faint);margin-bottom:2px;">Conservative (5%)</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--b8);">$371k</div>
+        </div>
+        <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
+          <div style="font-size:10px;font-weight:600;color:var(--text-faint);margin-bottom:2px;">Moderate (15%)</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--b8);">$407k</div>
+        </div>
+        <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
+          <div style="font-size:10px;font-weight:600;color:var(--text-faint);margin-bottom:2px;">Aggressive (25%)</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--b8);">$442k</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CLUB SALES ANALYSIS ── -->
+  <div id="exp-sub-csa" style="display:none;">
+
+    <div class="card" style="padding:14px;margin-bottom:10px;">
+      <div class="section-label" style="margin-top:0;">Fixed monthly overhead</div>
+      <div style="font-size:11px;color:var(--text-faint);margin-bottom:8px;">Recurring costs that don't change with sales volume.</div>
+      <div class="field-row"><span class="field-label">Rent</span><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input csa-cost-input" value="1,625.00" style="width:100px;"/></div></div>
+      <div class="field-row"><span class="field-label">CAM</span><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input csa-cost-input" value="350.00" style="width:100px;"/></div></div>
+      <div class="field-row"><span class="field-label">Real estate tax</span><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input csa-cost-input" value="162.00" style="width:100px;"/></div></div>
+      <div class="field-row"><span class="field-label">Electric</span><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input csa-cost-input" value="281.28" style="width:100px;"/></div></div>
+      <div class="field-row"><span class="field-label">Natural gas</span><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input csa-cost-input" value="218.85" style="width:100px;"/></div></div>
+      <div class="field-row"><span class="field-label">Internet</span><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input csa-cost-input" value="160.40" style="width:100px;"/></div></div>
+      <div class="field-row"><span class="field-label">Water / sewer</span><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input csa-cost-input" value="95.42" style="width:100px;"/></div></div>
+      <div class="field-row"><span class="field-label">Insurance</span><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input csa-cost-input" value="145.78" style="width:100px;"/></div></div>
+      <div class="field-row"><span class="field-label">WebstaurantStore Platinum Plus</span><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input csa-cost-input" value="49.00" style="width:100px;"/></div></div>
+      <div class="field-row" style="border-bottom:none;"><span class="field-label">Square processing fees</span><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input csa-cost-input" value="730.41" style="width:100px;"/></div></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px 0;margin-top:4px;border-top:1.5px solid var(--border);font-weight:700;font-size:14px;">
+        <span>Total fixed overhead</span><span id="csa-total-fixed">$3,818.14 / mo</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:2px 10px 0;font-size:11px;color:var(--text-faint);">
+        <span>Daily fixed cost (÷ 30 days)</span><span id="csa-daily-fixed">$127.27 / day</span>
+      </div>
+    </div>
+
+    <div class="card" style="padding:14px;margin-bottom:10px;">
+      <div class="section-label" style="margin-top:0;">Product cost & margin</div>
+      <div style="font-size:11px;color:var(--text-faint);margin-bottom:8px;">Input cost vs. selling price at Supervisor 50% + disposables.</div>
+      <table style="width:100%;font-size:12px;border-collapse:collapse;">
+        <thead><tr style="border-bottom:1.5px solid var(--border);">
+          <th style="text-align:left;padding:6px 4px;font-weight:700;color:var(--text-faint);font-size:10px;text-transform:uppercase;letter-spacing:0.5px;">Product</th>
+          <th style="text-align:right;padding:6px 4px;font-weight:700;color:var(--text-faint);font-size:10px;text-transform:uppercase;letter-spacing:0.5px;">Cost</th>
+          <th style="text-align:right;padding:6px 4px;font-weight:700;color:var(--text-faint);font-size:10px;text-transform:uppercase;letter-spacing:0.5px;">Price</th>
+          <th style="text-align:right;padding:6px 4px;font-weight:700;color:var(--text-faint);font-size:10px;text-transform:uppercase;letter-spacing:0.5px;">Profit</th>
+          <th style="text-align:right;padding:6px 4px;font-weight:700;color:var(--text-faint);font-size:10px;text-transform:uppercase;letter-spacing:0.5px;">Margin</th>
+        </tr></thead>
+        <tbody style="font-weight:500;">
+          <tr style="border-bottom:1px solid var(--border-light);"><td style="padding:6px 4px;">42oz Boosted Collagen</td><td style="text-align:right;">$6.63</td><td style="text-align:right;">$12</td><td style="text-align:right;color:var(--g5);font-weight:600;">$5.37</td><td style="text-align:right;">45%</td></tr>
+          <tr style="border-bottom:1px solid var(--border-light);"><td style="padding:6px 4px;">42oz Boosted H3O</td><td style="text-align:right;">$6.00</td><td style="text-align:right;">$12</td><td style="text-align:right;color:var(--g5);font-weight:600;">$6.00</td><td style="text-align:right;">50%</td></tr>
+          <tr style="border-bottom:1px solid var(--border-light);"><td style="padding:6px 4px;">42oz Specialty</td><td style="text-align:right;">$7.81</td><td style="text-align:right;">$13</td><td style="text-align:right;color:var(--g5);font-weight:600;">$5.19</td><td style="text-align:right;">40%</td></tr>
+          <tr style="border-bottom:1px solid var(--border-light);"><td style="padding:6px 4px;">42oz Loaded</td><td style="text-align:right;">$5.12</td><td style="text-align:right;">$11</td><td style="text-align:right;color:var(--g5);font-weight:600;">$5.88</td><td style="text-align:right;">53%</td></tr>
+          <tr style="border-bottom:1px solid var(--border-light);"><td style="padding:6px 4px;">52oz Atomic Collagen</td><td style="text-align:right;">$8.53</td><td style="text-align:right;">$15</td><td style="text-align:right;color:var(--g5);font-weight:600;">$6.47</td><td style="text-align:right;">43%</td></tr>
+          <tr style="border-bottom:1px solid var(--border-light);"><td style="padding:6px 4px;">20oz Shake</td><td style="text-align:right;">$3.66</td><td style="text-align:right;">$9</td><td style="text-align:right;color:var(--g5);font-weight:600;">$5.34</td><td style="text-align:right;">59%</td></tr>
+          <tr style="border-bottom:1px solid var(--border-light);"><td style="padding:6px 4px;">32oz Shake Mega</td><td style="text-align:right;">$4.50</td><td style="text-align:right;">$13</td><td style="text-align:right;color:var(--g5);font-weight:600;">$8.50</td><td style="text-align:right;">65%</td></tr>
+          <tr><td style="padding:6px 4px;">Protein balls (6-pack)</td><td style="text-align:right;">$2.96</td><td style="text-align:right;">$8</td><td style="text-align:right;color:var(--g5);font-weight:600;">$5.04</td><td style="text-align:right;">63%</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" style="padding:14px;margin-bottom:10px;">
+      <div class="section-label" style="margin-top:0;">Labor</div>
+      <div style="font-size:11px;color:var(--text-faint);margin-bottom:8px;">Staff costs that scale with volume. Solo ceiling = max daily sales before needing help.</div>
+      <div class="field-row"><span class="field-label">Hourly wage</span><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" id="csa-wage" value="12.00" style="width:100px;"/></div></div>
+      <div class="field-row"><span class="field-label">Hours per shift</span><input class="field-input" id="csa-shift-hrs" value="8" style="width:100px;"/></div>
+      <div class="field-row" style="border-bottom:none;"><span class="field-label">Solo ceiling (daily sales)</span><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" id="csa-solo-ceil" value="960.00" style="width:100px;"/></div></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 10px 0;font-size:11px;color:var(--text-faint);">
+        <span>Employee cost per day</span><span style="font-weight:700;color:var(--text);" id="csa-emp-cost">$96.00</span>
+      </div>
+    </div>
+
+    <div class="card" style="padding:14px;margin-bottom:10px;">
+      <div class="section-label" style="margin-top:0;">Product mix</div>
+      <div style="font-size:11px;color:var(--text-faint);margin-bottom:8px;">Based on 2025 sales data. Adjust to model different scenarios.</div>
+      <div class="field-row"><span class="field-label">Boosted teas</span><input class="field-input csa-mix-input" value="38%" style="width:70px;"/></div>
+      <div class="field-row"><span class="field-label">Shakes</span><input class="field-input csa-mix-input" value="38%" style="width:70px;"/></div>
+      <div class="field-row"><span class="field-label">Specialty teas</span><input class="field-input csa-mix-input" value="14%" style="width:70px;"/></div>
+      <div class="field-row"><span class="field-label">Loaded teas</span><input class="field-input csa-mix-input" value="7%" style="width:70px;"/></div>
+      <div class="field-row" style="border-bottom:none;"><span class="field-label">Other</span><input class="field-input csa-mix-input" value="3%" style="width:70px;"/></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px 0;margin-top:4px;border-top:1.5px solid var(--border);font-weight:700;font-size:14px;">
+        <span>Wtd avg profit / drink</span><span style="color:var(--g5);" id="csa-wtd-profit">$5.86</span>
+      </div>
+    </div>
+
+    <div class="card" style="padding:14px;margin-bottom:10px;">
+      <div class="section-label" style="margin-top:0;">Profit goal</div>
+      <div style="font-size:11px;color:var(--text-faint);margin-bottom:10px;">How much you want to take home each month after all expenses.</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:11px;color:var(--text-faint);white-space:nowrap;">Monthly target</span>
+        <input type="range" min="0" max="15000" value="5000" step="500" id="csa-profit-slider" style="flex:1;height:4px;-webkit-appearance:none;appearance:none;background:var(--b1);border-radius:2px;outline:none;"/>
+        <span style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;min-width:65px;text-align:right;" id="csa-profit-val">$5,000</span>
+      </div>
+    </div>
+
+    <div class="card" style="padding:14px;margin-bottom:10px;background:var(--g0);border-color:#b8e0bc;">
+      <div class="section-label" style="margin-top:0;color:var(--g5);">Your daily target</div>
+      <div style="font-size:11px;color:var(--g5);opacity:0.7;margin-bottom:10px;">Minimum daily revenue to cover all costs and hit your profit goal.</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+        <div style="background:white;border:1px solid #b8e0bc;border-radius:var(--radius-sm);padding:10px;text-align:center;">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--text-faint);margin-bottom:2px;">Daily revenue</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:700;color:var(--g5);" id="csa-target-rev">$461</div>
+        </div>
+        <div style="background:white;border:1px solid #b8e0bc;border-radius:var(--radius-sm);padding:10px;text-align:center;">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--text-faint);margin-bottom:2px;">Drinks / day</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:700;color:var(--g5);" id="csa-target-drinks">41</div>
+        </div>
+        <div style="background:white;border:1px solid #b8e0bc;border-radius:var(--radius-sm);padding:10px;text-align:center;">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--text-faint);margin-bottom:2px;">Drinks / hour</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:700;color:var(--g5);" id="csa-target-dph">5.1</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="padding:14px;">
+      <div class="section-label" style="margin-top:0;">Benchmarks</div>
+      <div style="font-size:11px;color:var(--text-faint);margin-bottom:8px;">Revenue targets at different monthly income levels.</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+        <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
+          <div style="font-size:10px;font-weight:600;color:var(--text-faint);margin-bottom:2px;">Break even</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--b8);" id="csa-bench-0">$294</div>
+          <div style="font-size:10px;color:var(--text-faint);">/ day</div>
+        </div>
+        <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
+          <div style="font-size:10px;font-weight:600;color:var(--text-faint);margin-bottom:2px;">$3k / mo</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--b8);" id="csa-bench-3k">$394</div>
+          <div style="font-size:10px;color:var(--text-faint);">/ day</div>
+        </div>
+        <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
+          <div style="font-size:10px;font-weight:600;color:var(--text-faint);margin-bottom:2px;">$5k / mo</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--b8);" id="csa-bench-5k">$461</div>
+          <div style="font-size:10px;color:var(--text-faint);">/ day</div>
+        </div>
+        <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
+          <div style="font-size:10px;font-weight:600;color:var(--text-faint);margin-bottom:2px;">$10k / mo</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--b8);" id="csa-bench-10k">$627</div>
+          <div style="font-size:10px;color:var(--text-faint);">/ day</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
 </div><!-- /content-area -->
 
 <!-- HISTORY DETAIL MODAL -->
@@ -2024,7 +2213,6 @@ if('serviceWorker' in navigator){
       <div class="card" style="margin:0 0 10px;">
         <div class="detail-row"><span class="detail-row-label">Card Deposits</span><span class="detail-row-val" id="df-cardDeposits"></span></div>
         <div class="detail-row"><span class="detail-row-label">Total Sales</span><span class="detail-row-val green" id="df-totalSales"></span></div>
-        <div class="detail-row"><span class="detail-row-label">DV</span><span class="detail-row-val" id="df-dv"></span></div>
         <div class="detail-row"><span class="detail-row-label">Tax</span><span class="detail-row-val" id="df-tax"></span></div>
         <div class="detail-row"><span class="detail-row-label">Overhead</span><span class="detail-row-val" id="df-overhead"></span></div>
         <div class="detail-row"><span class="detail-row-label">Donation</span><span class="detail-row-val" id="df-donation"></span></div>
@@ -3130,7 +3318,86 @@ function switchTab(name){
       if(w)document.documentElement.style.setProperty('--invhist-cat-top',w.offsetHeight+'px');
     },50);
   }
+  if(name==='expansion'){csaInitChart();}
 }
+
+// ── EXPANSION TAB: Club Sales Analysis ──
+function switchExpSub(sub){
+  var bp=document.getElementById('exp-btn-proj'),bc=document.getElementById('exp-btn-csa');
+  bp.style.background=sub==='proj'?'var(--surface)':'transparent';
+  bp.style.color=sub==='proj'?'var(--b7)':'var(--text-muted)';
+  bp.style.boxShadow=sub==='proj'?'var(--shadow-sm)':'none';
+  bc.style.background=sub==='csa'?'var(--surface)':'transparent';
+  bc.style.color=sub==='csa'?'var(--b7)':'var(--text-muted)';
+  bc.style.boxShadow=sub==='csa'?'var(--shadow-sm)':'none';
+  document.getElementById('exp-sub-proj').style.display=sub==='proj'?'block':'none';
+  document.getElementById('exp-sub-csa').style.display=sub==='csa'?'block':'none';
+}
+var csaChartDone=false;
+function csaInitChart(){
+  if(csaChartDone||!document.getElementById('exp-proj-chart'))return;
+  var sc=document.createElement('script');
+  sc.src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js';
+  sc.onload=function(){
+    new Chart(document.getElementById('exp-proj-chart'),{type:'bar',data:{labels:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],datasets:[{data:[22834,27391,34521,33142,35286,32904,38112,28462,26718,22905,23484,27947],backgroundColor:'var(--b5)',borderRadius:4,barPercentage:0.7}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return '$'+c.raw.toLocaleString();}}}},scales:{x:{ticks:{autoSkip:false,font:{size:11,family:'DM Sans'},color:'#8fa3b3'},grid:{display:false}},y:{ticks:{callback:function(v){return '$'+(v/1000)+'k';},font:{size:11,family:'DM Sans'},color:'#8fa3b3'},grid:{color:'rgba(0,0,0,0.05)'}}}}});
+    csaChartDone=true;
+  };
+  document.head.appendChild(sc);
+}
+function csaRecalc(){
+  var total=0;
+  document.querySelectorAll('.csa-cost-input').forEach(function(el){total+=parseFloat(el.value.replace(/,/g,''))||0;});
+  var daily=total/30;
+  document.getElementById('csa-total-fixed').textContent='$'+total.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+' / mo';
+  document.getElementById('csa-daily-fixed').textContent='$'+daily.toFixed(2)+' / day';
+
+  var wage=parseFloat((document.getElementById('csa-wage').value||'0').replace(/,/g,''))||12;
+  var hrs=parseFloat(document.getElementById('csa-shift-hrs').value)||8;
+  document.getElementById('csa-emp-cost').textContent='$'+(wage*hrs).toFixed(2);
+
+  var profitPerDrink=[5.37,6.00,5.19,5.88,5.34,8.50]; // boosted,h3o,specialty,loaded,shake20,shake32
+  var pricePerDrink=[12,12,13,11,9,13];
+  var mixInputs=document.querySelectorAll('.csa-mix-input');
+  var mix=[];mixInputs.forEach(function(el){mix.push((parseFloat(el.value)||0)/100);});
+  // weighted: boosted=mix[0]*avg(collagen,h3o), shakes=mix[1]*avg(shake20,shake32), specialty=mix[2], loaded=mix[3], other=mix[4]
+  var wtdProfit=mix[0]*5.69+mix[1]*6.92+mix[2]*5.19+mix[3]*5.88+mix[4]*5.00;
+  var wtdPrice=mix[0]*12+mix[1]*11+mix[2]*13+mix[3]*11+mix[4]*10;
+  document.getElementById('csa-wtd-profit').textContent='$'+wtdProfit.toFixed(2);
+
+  var profitGoal=parseInt(document.getElementById('csa-profit-slider').value)||0;
+  document.getElementById('csa-profit-val').textContent='$'+profitGoal.toLocaleString();
+  var dailyGoal=profitGoal/30;
+  var soloCeil=parseFloat((document.getElementById('csa-solo-ceil').value||'0').replace(/,/g,''))||960;
+  var empCostDay=wage*hrs;
+
+  function calcDaily(monthlyProfit){
+    var dg=monthlyProfit/30;
+    var drinks=Math.ceil((daily+dg)/wtdProfit);
+    var rev=Math.round(drinks*wtdPrice);
+    if(rev>soloCeil)rev+=Math.ceil((rev-soloCeil)/soloCeil)*empCostDay;
+    return rev;
+  }
+  var targetRev=calcDaily(profitGoal);
+  var targetDrinks=Math.ceil(targetRev/wtdPrice);
+  var targetDph=(targetDrinks/hrs).toFixed(1);
+  document.getElementById('csa-target-rev').textContent='$'+targetRev.toLocaleString();
+  document.getElementById('csa-target-drinks').textContent=targetDrinks;
+  document.getElementById('csa-target-dph').textContent=targetDph;
+  document.getElementById('csa-bench-0').textContent='$'+calcDaily(0).toLocaleString();
+  document.getElementById('csa-bench-3k').textContent='$'+calcDaily(3000).toLocaleString();
+  document.getElementById('csa-bench-5k').textContent='$'+calcDaily(5000).toLocaleString();
+  document.getElementById('csa-bench-10k').textContent='$'+calcDaily(10000).toLocaleString();
+}
+(function(){
+  var sl=document.getElementById('csa-profit-slider');
+  if(!sl)return;
+  sl.addEventListener('input',csaRecalc);
+  document.querySelectorAll('.csa-cost-input,.csa-mix-input').forEach(function(el){el.addEventListener('change',csaRecalc);el.addEventListener('input',csaRecalc);});
+  ['csa-wage','csa-shift-hrs','csa-solo-ceil'].forEach(function(id){
+    var el=document.getElementById(id);if(el){el.addEventListener('change',csaRecalc);el.addEventListener('input',csaRecalc);}
+  });
+})();
+
 function toggleCollapse(t){const b=document.getElementById(t.dataset.target);t.classList.toggle('collapsed');b.classList.toggle('collapsed');}
 function pv(id){const el=document.getElementById(id);if(!el)return 0;return parseFloat(el.value.replace(/,/g,''))||0;}
 
@@ -4327,8 +4594,6 @@ function openDetail(date){
 
   document.getElementById('df-cardDeposits').textContent = fmt$(cardDep);
   document.getElementById('df-totalSales').textContent   = fmt$(totalS);
-  const dvVal = parseFloat(d.dv)||0;
-  document.getElementById('df-dv').textContent           = dvVal ? dvVal.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1}) : '--';
   document.getElementById('df-tax').textContent          = tax!==null ? fmt$(tax) : '--';
   document.getElementById('df-overhead').textContent     = ohFinal!==null ? fmt$(ohFinal) : '--';
   document.getElementById('df-donation').textContent     = (don&&don>0) ? fmt$(don) : '--';
