@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-07 22:00:00 -->
+<!-- CACHE BUST: 2026-04-07 23:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -1920,142 +1920,190 @@ if('serviceWorker' in navigator){
   <!-- ── CLUB VIABILITY ANALYZER ── -->
   <div id="exp-sub-csa">
 
-    <div class="card" style="padding:14px;margin-bottom:10px;">
-      <div onclick="document.getElementById('csa-overhead-body').style.display=document.getElementById('csa-overhead-body').style.display==='none'?'block':'none';this.querySelector('.csa-arrow').textContent=document.getElementById('csa-overhead-body').style.display==='none'?'▶':'▼';" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;">
-        <div>
-          <div class="section-label" style="margin-top:0;">Fixed monthly overhead</div>
-          <div style="font-size:11px;color:var(--text-faint);">Recurring costs that don't change with sales volume.</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-weight:700;font-size:14px;" id="csa-total-fixed-header">$3,818.14 / mo</span>
-          <span class="csa-arrow" style="font-size:10px;color:var(--text-faint);">▶</span>
-        </div>
-      </div>
-      <div id="csa-overhead-body" style="display:none;margin-top:8px;">
-      <div class="field-row"><span class="field-label">Rent</span><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input csa-cost-input" value="1,625.00" style="width:100px;"/></div></div>
-      <div class="field-row"><span class="field-label">CAM</span><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input csa-cost-input" value="350.00" style="width:100px;"/></div></div>
-      <div class="field-row"><span class="field-label">Real estate tax</span><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input csa-cost-input" value="162.00" style="width:100px;"/></div></div>
-      <div class="field-row"><span class="field-label">Electric</span><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input csa-cost-input" value="281.28" style="width:100px;"/></div></div>
-      <div class="field-row"><span class="field-label">Natural gas</span><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input csa-cost-input" value="218.85" style="width:100px;"/></div></div>
-      <div class="field-row"><span class="field-label">Internet</span><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input csa-cost-input" value="160.40" style="width:100px;"/></div></div>
-      <div class="field-row"><span class="field-label">Water / sewer</span><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input csa-cost-input" value="95.42" style="width:100px;"/></div></div>
-      <div class="field-row"><span class="field-label">Insurance</span><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input csa-cost-input" value="145.78" style="width:100px;"/></div></div>
-      <div class="field-row"><span class="field-label">WebstaurantStore Platinum Plus</span><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input csa-cost-input" value="49.00" style="width:100px;"/></div></div>
-      <div class="field-row" style="border-bottom:none;"><span class="field-label">Square processing fees</span><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input csa-cost-input" value="730.41" style="width:100px;"/></div></div>
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px 0;margin-top:4px;border-top:1.5px solid var(--border);font-weight:700;font-size:14px;">
-        <span>Total fixed overhead</span><span id="csa-total-fixed">$3,818.14 / mo</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:2px 10px 0;font-size:11px;color:var(--text-faint);">
-        <span>Daily fixed cost (÷ 30 days)</span><span id="csa-daily-fixed">$127.27 / day</span>
-      </div>
-      </div>
-    </div>
-
-    <div class="card" style="padding:14px;margin-bottom:10px;">
-      <div class="section-label" style="margin-top:0;">Product cost & margin</div>
-      <div style="font-size:11px;color:var(--text-faint);margin-bottom:8px;">Input cost vs. selling price at Supervisor 50% + disposables.</div>
-      <table style="width:100%;font-size:12px;border-collapse:collapse;">
-        <thead><tr style="border-bottom:1.5px solid var(--border);">
-          <th style="text-align:left;padding:6px 4px;font-weight:700;color:var(--text-faint);font-size:10px;text-transform:uppercase;letter-spacing:0.5px;">Product</th>
-          <th style="text-align:right;padding:6px 4px;font-weight:700;color:var(--text-faint);font-size:10px;text-transform:uppercase;letter-spacing:0.5px;">Cost</th>
-          <th style="text-align:right;padding:6px 4px;font-weight:700;color:var(--text-faint);font-size:10px;text-transform:uppercase;letter-spacing:0.5px;">Price</th>
-          <th style="text-align:right;padding:6px 4px;font-weight:700;color:var(--text-faint);font-size:10px;text-transform:uppercase;letter-spacing:0.5px;">Profit</th>
-          <th style="text-align:right;padding:6px 4px;font-weight:700;color:var(--text-faint);font-size:10px;text-transform:uppercase;letter-spacing:0.5px;">Margin</th>
-        </tr></thead>
-        <tbody style="font-weight:500;">
-          <tr style="border-bottom:1px solid var(--border-light);"><td style="padding:6px 4px;">42oz Boosted Collagen</td><td style="text-align:right;">$6.63</td><td style="text-align:right;">$12</td><td style="text-align:right;color:var(--g5);font-weight:600;">$5.37</td><td style="text-align:right;">45%</td></tr>
-          <tr style="border-bottom:1px solid var(--border-light);"><td style="padding:6px 4px;">42oz Boosted H3O</td><td style="text-align:right;">$6.00</td><td style="text-align:right;">$12</td><td style="text-align:right;color:var(--g5);font-weight:600;">$6.00</td><td style="text-align:right;">50%</td></tr>
-          <tr style="border-bottom:1px solid var(--border-light);"><td style="padding:6px 4px;">42oz Specialty</td><td style="text-align:right;">$7.81</td><td style="text-align:right;">$13</td><td style="text-align:right;color:var(--g5);font-weight:600;">$5.19</td><td style="text-align:right;">40%</td></tr>
-          <tr style="border-bottom:1px solid var(--border-light);"><td style="padding:6px 4px;">42oz Loaded</td><td style="text-align:right;">$5.12</td><td style="text-align:right;">$11</td><td style="text-align:right;color:var(--g5);font-weight:600;">$5.88</td><td style="text-align:right;">53%</td></tr>
-          <tr style="border-bottom:1px solid var(--border-light);"><td style="padding:6px 4px;">52oz Atomic Collagen</td><td style="text-align:right;">$8.53</td><td style="text-align:right;">$15</td><td style="text-align:right;color:var(--g5);font-weight:600;">$6.47</td><td style="text-align:right;">43%</td></tr>
-          <tr style="border-bottom:1px solid var(--border-light);"><td style="padding:6px 4px;">20oz Shake</td><td style="text-align:right;">$3.66</td><td style="text-align:right;">$9</td><td style="text-align:right;color:var(--g5);font-weight:600;">$5.34</td><td style="text-align:right;">59%</td></tr>
-          <tr style="border-bottom:1px solid var(--border-light);"><td style="padding:6px 4px;">32oz Shake Mega</td><td style="text-align:right;">$4.50</td><td style="text-align:right;">$13</td><td style="text-align:right;color:var(--g5);font-weight:600;">$8.50</td><td style="text-align:right;">65%</td></tr>
-          <tr><td style="padding:6px 4px;">Protein balls (6-pack)</td><td style="text-align:right;">$2.96</td><td style="text-align:right;">$8</td><td style="text-align:right;color:var(--g5);font-weight:600;">$5.04</td><td style="text-align:right;">63%</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="card" style="padding:14px;margin-bottom:10px;">
-      <div class="section-label" style="margin-top:0;">Labor</div>
-      <div style="font-size:11px;color:var(--text-faint);margin-bottom:8px;">Staff costs that scale with volume. Solo ceiling = max daily sales before needing help.</div>
-      <div class="field-row"><span class="field-label">Hourly wage</span><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" id="csa-wage" value="12.00" style="width:100px;"/></div></div>
-      <div class="field-row"><span class="field-label">Hours per shift</span><input class="field-input" id="csa-shift-hrs" value="8" style="width:100px;"/></div>
-      <div class="field-row" style="border-bottom:none;"><span class="field-label">Solo ceiling (daily sales)</span><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" id="csa-solo-ceil" value="960.00" style="width:100px;"/></div></div>
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 10px 0;font-size:11px;color:var(--text-faint);">
-        <span>Employee cost per day</span><span style="font-weight:700;color:var(--text);" id="csa-emp-cost">$96.00</span>
-      </div>
-    </div>
-
-    <div class="card" style="padding:14px;margin-bottom:10px;">
-      <div class="section-label" style="margin-top:0;">Product mix</div>
-      <div style="font-size:11px;color:var(--text-faint);margin-bottom:8px;">Based on 2025 sales data. Adjust to model different scenarios.</div>
-      <div class="field-row"><span class="field-label">Boosted teas</span><input class="field-input csa-mix-input" value="38%" style="width:70px;"/></div>
-      <div class="field-row"><span class="field-label">Shakes</span><input class="field-input csa-mix-input" value="38%" style="width:70px;"/></div>
-      <div class="field-row"><span class="field-label">Specialty teas</span><input class="field-input csa-mix-input" value="14%" style="width:70px;"/></div>
-      <div class="field-row"><span class="field-label">Loaded teas</span><input class="field-input csa-mix-input" value="7%" style="width:70px;"/></div>
-      <div class="field-row" style="border-bottom:none;"><span class="field-label">Other</span><input class="field-input csa-mix-input" value="3%" style="width:70px;"/></div>
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px 0;margin-top:4px;border-top:1.5px solid var(--border);font-weight:700;font-size:14px;">
-        <span>Wtd avg profit / drink</span><span style="color:var(--g5);" id="csa-wtd-profit">$5.86</span>
-      </div>
-    </div>
-
+    <!-- 1. PROFIT GOAL -->
     <div class="card" style="padding:14px;margin-bottom:10px;">
       <div class="section-label" style="margin-top:0;">Profit goal</div>
-      <div style="font-size:11px;color:var(--text-faint);margin-bottom:10px;">How much you want to take home each month after all expenses.</div>
+      <div style="font-size:11px;color:var(--text-faint);margin-bottom:12px;">How much you want to take home each month after all expenses.</div>
       <div style="display:flex;align-items:center;gap:10px;">
         <span style="font-size:11px;color:var(--text-faint);white-space:nowrap;">Monthly target</span>
-        <input type="range" min="0" max="15000" value="5000" step="500" id="csa-profit-slider" style="flex:1;height:4px;-webkit-appearance:none;appearance:none;background:var(--b1);border-radius:2px;outline:none;"/>
-        <span style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;min-width:65px;text-align:right;" id="csa-profit-val">$5,000</span>
+        <input type="range" min="0" max="15000" value="5000" step="500" id="cva-profit-slider" style="flex:1;min-width:0;height:4px;-webkit-appearance:none;appearance:none;background:var(--b1);border-radius:2px;outline:none;"/>
+        <span style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;min-width:68px;text-align:right;" id="cva-profit-val">$5,000</span>
       </div>
     </div>
 
+    <!-- 2. YOUR DAILY TARGET -->
     <div class="card" style="padding:14px;margin-bottom:10px;background:var(--g0);border-color:#b8e0bc;">
       <div class="section-label" style="margin-top:0;color:var(--g5);">Your daily target</div>
-      <div style="font-size:11px;color:var(--g5);opacity:0.7;margin-bottom:10px;">Minimum daily revenue to cover all costs and hit your profit goal.</div>
+      <div style="font-size:11px;color:var(--g5);opacity:0.8;margin-bottom:10px;">Min daily revenue to cover all costs and hit your goal.</div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
         <div style="background:white;border:1px solid #b8e0bc;border-radius:var(--radius-sm);padding:10px;text-align:center;">
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--text-faint);margin-bottom:2px;">Daily revenue</div>
-          <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:700;color:var(--g5);" id="csa-target-rev">$461</div>
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--text-faint);margin-bottom:2px;">Daily revenue</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:700;color:var(--g5);" id="cva-target-rev">—</div>
         </div>
         <div style="background:white;border:1px solid #b8e0bc;border-radius:var(--radius-sm);padding:10px;text-align:center;">
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--text-faint);margin-bottom:2px;">Drinks / day</div>
-          <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:700;color:var(--g5);" id="csa-target-drinks">41</div>
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--text-faint);margin-bottom:2px;">Drinks / day</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:700;color:var(--g5);" id="cva-target-drinks">—</div>
         </div>
         <div style="background:white;border:1px solid #b8e0bc;border-radius:var(--radius-sm);padding:10px;text-align:center;">
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--text-faint);margin-bottom:2px;">Drinks / hour</div>
-          <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:700;color:var(--g5);" id="csa-target-dph">5.1</div>
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--text-faint);margin-bottom:2px;">Drinks / hr</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:700;color:var(--g5);" id="cva-target-dph">—</div>
         </div>
       </div>
     </div>
 
-    <div class="card" style="padding:14px;">
+    <!-- 3. BENCHMARKS -->
+    <div class="card" style="padding:14px;margin-bottom:10px;">
       <div class="section-label" style="margin-top:0;">Benchmarks</div>
-      <div style="font-size:11px;color:var(--text-faint);margin-bottom:8px;">Revenue targets at different monthly income levels.</div>
+      <div style="font-size:11px;color:var(--text-faint);margin-bottom:8px;">Daily revenue needed at different monthly income levels.</div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
         <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
-          <div style="font-size:10px;font-weight:600;color:var(--text-faint);margin-bottom:2px;">Break even</div>
-          <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--b8);" id="csa-bench-0">$294</div>
-          <div style="font-size:10px;color:var(--text-faint);">/ day</div>
+          <div style="font-size:9px;font-weight:600;color:var(--text-faint);margin-bottom:2px;">Break even</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--b8);" id="cva-bench-0">—</div>
+          <div style="font-size:9px;color:var(--text-faint);">/ day</div>
         </div>
         <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
-          <div style="font-size:10px;font-weight:600;color:var(--text-faint);margin-bottom:2px;">$3k / mo</div>
-          <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--b8);" id="csa-bench-3k">$394</div>
-          <div style="font-size:10px;color:var(--text-faint);">/ day</div>
+          <div style="font-size:9px;font-weight:600;color:var(--text-faint);margin-bottom:2px;">$3k / mo</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--b8);" id="cva-bench-3k">—</div>
+          <div style="font-size:9px;color:var(--text-faint);">/ day</div>
         </div>
         <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
-          <div style="font-size:10px;font-weight:600;color:var(--text-faint);margin-bottom:2px;">$5k / mo</div>
-          <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--b8);" id="csa-bench-5k">$461</div>
-          <div style="font-size:10px;color:var(--text-faint);">/ day</div>
+          <div style="font-size:9px;font-weight:600;color:var(--text-faint);margin-bottom:2px;">$5k / mo</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--b8);" id="cva-bench-5k">—</div>
+          <div style="font-size:9px;color:var(--text-faint);">/ day</div>
         </div>
         <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
-          <div style="font-size:10px;font-weight:600;color:var(--text-faint);margin-bottom:2px;">$10k / mo</div>
-          <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--b8);" id="csa-bench-10k">$627</div>
-          <div style="font-size:10px;color:var(--text-faint);">/ day</div>
+          <div style="font-size:9px;font-weight:600;color:var(--text-faint);margin-bottom:2px;">$10k / mo</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--b8);" id="cva-bench-10k">—</div>
+          <div style="font-size:9px;color:var(--text-faint);">/ day</div>
         </div>
+      </div>
+    </div>
+
+    <!-- 4. FIXED MONTHLY EXPENSES (collapsible) -->
+    <div class="card" style="padding:0;margin-bottom:10px;overflow:hidden;">
+      <div onclick="cvaSectionTog('cva-exp-body','cva-exp-arr')" style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;cursor:pointer;user-select:none;">
+        <div>
+          <div class="section-label" style="margin:0;">Fixed monthly expenses</div>
+          <div style="font-size:11px;color:var(--text-faint);margin-top:2px;">Costs that don't change with sales volume.</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+          <span style="font-weight:700;font-size:13px;" id="cva-exp-hdr">$3,818.14 / mo</span>
+          <span id="cva-exp-arr" style="font-size:10px;color:var(--text-faint);">&#9656;</span>
+        </div>
+      </div>
+      <div id="cva-exp-body" style="display:none;padding:0 14px 12px;border-top:1px solid var(--border-light);">
+        <div id="cva-exp-rows" style="margin-top:8px;"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0 0;margin-top:4px;border-top:1.5px solid var(--border);font-weight:700;font-size:13px;">
+          <span>Total</span><span id="cva-exp-total">$3,818.14 / mo</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:2px 0 0;font-size:11px;color:var(--text-faint);">
+          <span>Daily (÷ 30)</span><span id="cva-exp-daily">$127.27 / day</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. LABOR (collapsible) -->
+    <div class="card" style="padding:0;margin-bottom:10px;overflow:hidden;">
+      <div onclick="cvaSectionTog('cva-lab-body','cva-lab-arr')" style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;cursor:pointer;user-select:none;">
+        <div>
+          <div class="section-label" style="margin:0;">Labor</div>
+          <div style="font-size:11px;color:var(--text-faint);margin-top:2px;">Staff costs that scale with volume.</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+          <span style="font-size:12px;font-weight:600;" id="cva-lab-hdr">$12.00/hr · 8hrs · $960 ceiling</span>
+          <span id="cva-lab-arr" style="font-size:10px;color:var(--text-faint);">&#9656;</span>
+        </div>
+      </div>
+      <div id="cva-lab-body" style="display:none;padding:0 14px 12px;border-top:1px solid var(--border-light);">
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px;">
+          <div class="field-row">
+            <span class="field-label">Hourly wage</span>
+            <div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" id="cva-wage" type="number" value="12.00" min="7.25" max="50" step="0.25" style="width:90px;" oninput="this.value=parseFloat(this.value||0).toFixed(2);cvaRecalc()"/></div>
+          </div>
+          <div class="field-row">
+            <span class="field-label">Hours per shift</span>
+            <select class="field-input" id="cva-shift-hrs" style="width:90px;padding:5px 8px;" onchange="cvaRecalc()">
+              <option value="2">2 hrs</option>
+              <option value="4">4 hrs</option>
+              <option value="6">6 hrs</option>
+              <option value="8" selected>8 hrs</option>
+              <option value="10">10 hrs</option>
+              <option value="12">12 hrs</option>
+            </select>
+          </div>
+          <div class="field-row" style="border-bottom:none;">
+            <span class="field-label">Solo ceiling (daily sales)</span>
+            <div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" id="cva-solo-ceil" type="number" value="960.00" min="0" step="10" style="width:90px;" oninput="this.value=parseFloat(this.value||0).toFixed(2);cvaRecalc()"/></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0 0;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-faint);">
+            <span>Employee cost per day</span>
+            <span style="font-weight:700;color:var(--text);" id="cva-emp-cost">$96.00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. PRODUCT MARGINS & SALES RATIOS (collapsible) -->
+    <div class="card" style="padding:0;margin-bottom:10px;overflow:hidden;">
+      <div onclick="cvaSectionTog('cva-prod-body','cva-prod-arr')" style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;cursor:pointer;user-select:none;">
+        <div>
+          <div class="section-label" style="margin:0;">Product margins &amp; sales ratios</div>
+          <div style="font-size:11px;color:var(--text-faint);margin-top:2px;">Cost · margin · mix · wtd avg profit.</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+          <span style="font-size:13px;font-weight:700;color:var(--g5);" id="cva-wtd-hdr">— / drink</span>
+          <span id="cva-prod-arr" style="font-size:10px;color:var(--text-faint);">&#9656;</span>
+        </div>
+      </div>
+      <div id="cva-prod-body" style="display:none;padding:0 14px 14px;border-top:1px solid var(--border-light);">
+
+        <!-- Cost & margin table -->
+        <div class="section-label" style="margin-top:12px;margin-bottom:6px;">Cost &amp; margin by product</div>
+        <div style="overflow-x:auto;">
+          <table style="width:100%;font-size:12px;border-collapse:collapse;min-width:340px;">
+            <thead><tr style="border-bottom:1.5px solid var(--border);">
+              <th style="text-align:left;padding:5px 4px;font-weight:700;color:var(--text-faint);font-size:10px;text-transform:uppercase;letter-spacing:0.4px;">Product</th>
+              <th style="text-align:right;padding:5px 4px;font-weight:700;color:var(--text-faint);font-size:10px;text-transform:uppercase;letter-spacing:0.4px;">Cost</th>
+              <th style="text-align:right;padding:5px 4px;font-weight:700;color:var(--text-faint);font-size:10px;text-transform:uppercase;letter-spacing:0.4px;">Sell</th>
+              <th style="text-align:right;padding:5px 4px;font-weight:700;color:var(--text-faint);font-size:10px;text-transform:uppercase;letter-spacing:0.4px;">Profit</th>
+              <th style="text-align:right;padding:5px 4px;font-weight:700;color:var(--text-faint);font-size:10px;text-transform:uppercase;letter-spacing:0.4px;">Margin</th>
+            </tr></thead>
+            <tbody id="cva-prod-table"></tbody>
+          </table>
+        </div>
+
+        <!-- Sales mix -->
+        <div class="section-label" style="margin-top:16px;margin-bottom:4px;">Sales mix</div>
+        <div style="font-size:11px;color:var(--text-faint);margin-bottom:10px;">Drag to adjust · tap 🔓 to protect a category · must total 100%</div>
+        <div id="cva-mix-badge" style="display:flex;justify-content:flex-end;margin-bottom:8px;"></div>
+        <div id="cva-mix-rows"></div>
+
+        <!-- Mega Teas drill-down -->
+        <div onclick="cvaTogTea()" style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:7px 10px;border-radius:var(--radius-sm);background:var(--b0);border:1px solid var(--border-light);user-select:none;margin-bottom:6px;">
+          <span style="font-size:11px;color:var(--text-muted);flex:1;">Mega Teas breakdown</span>
+          <span id="cva-tea-pill" style="font-size:11px;font-weight:700;color:var(--b7);background:var(--b1);border-radius:10px;padding:1px 8px;">—</span>
+          <span id="cva-tea-chev" style="font-size:10px;color:var(--text-faint);">&#9656;</span>
+        </div>
+        <div id="cva-tea-detail" style="display:none;border:1px solid var(--border-light);border-radius:var(--radius-sm);overflow:hidden;margin-bottom:12px;">
+          <div style="padding:6px 12px;background:var(--b0);border-bottom:1px solid var(--border-light);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);">Tea sub-mix · proportional to Mega Teas total</div>
+          <div style="padding:10px 12px;" id="cva-tea-rows"></div>
+          <div style="padding:4px 12px 10px;border-top:1px solid var(--border-light);display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:11px;color:var(--text-faint);">Wtd avg profit · teas only</span>
+            <span style="font-size:12px;font-weight:700;color:var(--g5);" id="cva-tea-avg">—</span>
+          </div>
+        </div>
+
+        <!-- Wtd avg footer -->
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0 0;border-top:1.5px solid var(--border);font-size:14px;font-weight:700;">
+          <span>Wtd avg profit / drink</span>
+          <span style="color:var(--g5);" id="cva-wtd-profit">—</span>
+        </div>
+
       </div>
     </div>
 
   </div>
+
 </div>
 </div>
 
@@ -3480,1730 +3528,334 @@ function csaInitChart(){
   };
   document.head.appendChild(sc);
 }
-function csaRecalc(){
-  var total=0;
-  document.querySelectorAll('.csa-cost-input').forEach(function(el){total+=parseFloat(el.value.replace(/,/g,''))||0;});
-  var daily=total/30;
-  document.getElementById('csa-total-fixed').textContent='$'+total.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+' / mo';
-  document.getElementById('csa-total-fixed-header').textContent='$'+total.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+' / mo';
-  document.getElementById('csa-daily-fixed').textContent='$'+daily.toFixed(2)+' / day';
 
-  var wage=parseFloat((document.getElementById('csa-wage').value||'0').replace(/,/g,''))||12;
-  var hrs=parseFloat(document.getElementById('csa-shift-hrs').value)||8;
-  document.getElementById('csa-emp-cost').textContent='$'+(wage*hrs).toFixed(2);
-
-  var profitPerDrink=[5.37,6.00,5.19,5.88,5.34,8.50]; // boosted,h3o,specialty,loaded,shake20,shake32
-  var pricePerDrink=[12,12,13,11,9,13];
-  var mixInputs=document.querySelectorAll('.csa-mix-input');
-  var mix=[];mixInputs.forEach(function(el){mix.push((parseFloat(el.value)||0)/100);});
-  // weighted: boosted=mix[0]*avg(collagen,h3o), shakes=mix[1]*avg(shake20,shake32), specialty=mix[2], loaded=mix[3], other=mix[4]
-  var wtdProfit=mix[0]*5.69+mix[1]*6.92+mix[2]*5.19+mix[3]*5.88+mix[4]*5.00;
-  var wtdPrice=mix[0]*12+mix[1]*11+mix[2]*13+mix[3]*11+mix[4]*10;
-  document.getElementById('csa-wtd-profit').textContent='$'+wtdProfit.toFixed(2);
-
-  var profitGoal=parseInt(document.getElementById('csa-profit-slider').value)||0;
-  document.getElementById('csa-profit-val').textContent='$'+profitGoal.toLocaleString();
-  var dailyGoal=profitGoal/30;
-  var soloCeil=parseFloat((document.getElementById('csa-solo-ceil').value||'0').replace(/,/g,''))||960;
-  var empCostDay=wage*hrs;
-
-  function calcDaily(monthlyProfit){
-    var dg=monthlyProfit/30;
-    var drinks=Math.ceil((daily+dg)/wtdProfit);
-    var rev=Math.round(drinks*wtdPrice);
-    if(rev>soloCeil)rev+=Math.ceil((rev-soloCeil)/soloCeil)*empCostDay;
-    return rev;
+// ── CVA: INGREDIENT COSTS (Supervisor 50%) ──
+var _CVA_I=(function(){
+  var tea30=20.44/30,tea60=35.82/60,nrg=15.11/60,pom=29.83/60,aloe=25.61/15;
+  var liftoff=48.86/30,collagen=38.68/34,h3o=30.70/60,cr7=25.50/60,bevMix=22.96/34;
+  var f1=33.62/30,pdm=53.57/30,cfmTbsp=7.76/25;
+  var hiProScoop=(30.76/14)/2,f1Scoop=(33.62/30)/2;
+  var disp=0.30,extra=0.25;
+  var boostAvg=(collagen+h3o+cr7)/3;
+  function tea(booster,sz){
+    if(sz===32)return tea30+aloe+booster+disp;
+    if(sz===42)return tea60+aloe+nrg+booster+disp;
+    if(sz===52)return tea60+aloe+nrg*2+liftoff+booster+disp;
+    if(sz==='elite')return tea60+aloe+nrg*2+liftoff*2+booster+disp;
+    return 0;
   }
-  var targetRev=calcDaily(profitGoal);
-  var targetDrinks=Math.ceil(targetRev/wtdPrice);
-  var targetDph=(targetDrinks/hrs).toFixed(1);
-  document.getElementById('csa-target-rev').textContent='$'+targetRev.toLocaleString();
-  document.getElementById('csa-target-drinks').textContent=targetDrinks;
-  document.getElementById('csa-target-dph').textContent=targetDph;
-  document.getElementById('csa-bench-0').textContent='$'+calcDaily(0).toLocaleString();
-  document.getElementById('csa-bench-3k').textContent='$'+calcDaily(3000).toLocaleString();
-  document.getElementById('csa-bench-5k').textContent='$'+calcDaily(5000).toLocaleString();
-  document.getElementById('csa-bench-10k').textContent='$'+calcDaily(10000).toLocaleString();
-}
-(function(){
-  var sl=document.getElementById('csa-profit-slider');
-  if(!sl)return;
-  sl.addEventListener('input',csaRecalc);
-  // Prevent range slider from capturing wheel/scroll — page scrolls normally when slider not focused
-  sl.addEventListener('wheel',function(e){
-    if(document.activeElement!==sl){e.preventDefault();}
-  },{ passive:false });
-  document.querySelectorAll('.csa-cost-input,.csa-mix-input').forEach(function(el){el.addEventListener('change',csaRecalc);el.addEventListener('input',csaRecalc);});
-  ['csa-wage','csa-shift-hrs','csa-solo-ceil'].forEach(function(id){
-    var el=document.getElementById(id);if(el){el.addEventListener('change',csaRecalc);el.addEventListener('input',csaRecalc);}
-  });
+  var scoops={20:2,32:3,42:4,52:5};
+  var PRODUCTS=[
+    {cat:'Loaded teas',  name:'32oz Loaded',          cost:tea(bevMix,32),          sell:9},
+    {cat:'Loaded teas',  name:'42oz Loaded',          cost:tea(bevMix,42),          sell:11},
+    {cat:'Loaded teas',  name:'52oz Loaded',          cost:tea(bevMix,52),          sell:14},
+    {cat:'Boosted teas', name:'32oz Boosted',         cost:tea(boostAvg,32),        sell:10},
+    {cat:'Boosted teas', name:'42oz Boosted',         cost:tea(boostAvg,42),        sell:12},
+    {cat:'Boosted teas', name:'52oz Boosted',         cost:tea(boostAvg,52),        sell:15},
+    {cat:'Specialty teas',name:'32oz Specialty',      cost:tea(boostAvg+pom,32),    sell:11},
+    {cat:'Specialty teas',name:'42oz Specialty',      cost:tea(boostAvg+pom,42),    sell:13},
+    {cat:'Specialty teas',name:'52oz Specialty',      cost:tea(boostAvg+pom,52),    sell:16},
+    {cat:'Elite Tea',    name:'52oz Elite Tea',        cost:tea(boostAvg,'elite'),   sell:24},
+    {cat:'Shakes',       name:'20oz Shake',            cost:f1+pdm+cfmTbsp*0.75+disp,   sell:9},
+    {cat:'Shakes',       name:'32oz Shake',            cost:f1*1.5+pdm*1.5+cfmTbsp*1.125+disp, sell:13},
+    {cat:'Shakes',       name:'42oz Shake',            cost:f1*2+pdm*2+cfmTbsp*1.125+disp,     sell:17},
+    {cat:'Chillers',     name:'20oz Chiller',          cost:scoops[20]*hiProScoop+scoops[20]*f1Scoop+disp+extra, sell:10},
+    {cat:'Chillers',     name:'32oz Chiller',          cost:scoops[32]*hiProScoop+scoops[32]*f1Scoop+disp+extra, sell:14},
+    {cat:'Chillers',     name:'42oz Chiller',          cost:scoops[42]*hiProScoop+scoops[42]*f1Scoop+disp+extra, sell:18},
+    {cat:'Chillers',     name:'52oz Chiller',          cost:scoops[52]*hiProScoop+scoops[52]*f1Scoop+disp+extra, sell:22},
+    {cat:'Protein Coffee',name:'20oz Protein Coffee',  cost:scoops[20]*hiProScoop+disp+extra, sell:7},
+    {cat:'Protein Coffee',name:'32oz Protein Coffee',  cost:scoops[32]*hiProScoop+disp+extra, sell:10},
+    {cat:'Protein Coffee',name:'42oz Protein Coffee',  cost:scoops[42]*hiProScoop+disp+extra, sell:13},
+    {cat:'Protein Coffee',name:'52oz Protein Coffee',  cost:scoops[52]*hiProScoop+disp+extra, sell:16},
+  ];
+  function catAvgProfit(catName){
+    var items=PRODUCTS.filter(function(p){return p.cat===catName;});
+    return items.reduce(function(s,p){return s+(p.sell-p.cost);},0)/items.length;
+  }
+  function catAvgPrice(catName){
+    var items=PRODUCTS.filter(function(p){return p.cat===catName;});
+    return items.reduce(function(s,p){return s+p.sell;},0)/items.length;
+  }
+  return {PRODUCTS:PRODUCTS,catAvgProfit:catAvgProfit,catAvgPrice:catAvgPrice};
 })();
 
-function toggleCollapse(t){const b=document.getElementById(t.dataset.target);t.classList.toggle('collapsed');b.classList.toggle('collapsed');}
-function pv(id){const el=document.getElementById(id);if(!el)return 0;return parseFloat(el.value.replace(/,/g,''))||0;}
+// ── CVA: STATE ──
+var _cvaExpenses=[
+  {l:'Rent',v:1625},{l:'CAM',v:350},{l:'Real estate tax',v:162},
+  {l:'Electric',v:281.28},{l:'Natural gas',v:218.85},{l:'Internet',v:160.40},
+  {l:'Water / sewer',v:95.42},{l:'Insurance',v:145.78},
+  {l:'WebstaurantStore Platinum Plus',v:49},{l:'Square processing fees',v:730.41}
+];
+var _cvaMix=[
+  {label:'Shakes',        profit:0,avgPrice:0,init:30,tea:false},
+  {label:'Mega Teas',     profit:0,avgPrice:0,init:45,tea:true},
+  {label:'Chillers',      profit:0,avgPrice:0,init:12,tea:false},
+  {label:'Protein Coffee',profit:0,avgPrice:0,init:10,tea:false},
+  {label:'Other',         profit:5.00,avgPrice:8,init:3,tea:false},
+];
+// pre-fill from ingredient data
+(function(){
+  var cats=['Shakes','Chillers','Protein Coffee'];
+  cats.forEach(function(c){
+    var item=_cvaMix.find(function(m){return m.label===c;});
+    if(item){item.profit=_CVA_I.catAvgProfit(c);item.avgPrice=_CVA_I.catAvgPrice(c);}
+  });
+})();
+var _cvaMixVals=_cvaMix.map(function(c){return c.init;});
+var _cvaMixLock=new Array(_cvaMix.length).fill(false);
+var _cvaTeaCats=[
+  {label:'Loaded',   profit:0,init:30},
+  {label:'Boosted',  profit:0,init:40},
+  {label:'Specialty',profit:0,init:20},
+  {label:'Elite',    profit:0,init:10},
+];
+(function(){
+  var map={Loaded:'Loaded teas',Boosted:'Boosted teas',Specialty:'Specialty teas',Elite:'Elite Tea'};
+  _cvaTeaCats.forEach(function(c){c.profit=_CVA_I.catAvgProfit(map[c.label]);});
+})();
+var _cvaTeaVals=_cvaTeaCats.map(function(c){return c.init;});
+var _cvaTeaLock=new Array(_cvaTeaCats.length).fill(false);
 
-// -- CURRENCY FORMATTING --
-const CURRENCY_FIELDS=['f-cashSales','f-cardSales','f-cardFees','f-giftCardRedeemed','f-cashAppPay','f-venmo','f-otherSales','f-merchSales','f-giftCardSales','f-giftCardLoadFees','f-fundraiserCash','f-fundraiserCard'];
-function fmtCurrencyVal(raw){
-  var n=parseFloat(String(raw).replace(/,/g,''));
-  if(isNaN(n)||raw===''||raw===undefined)return '';
-  return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+// ── CVA: HELPERS ──
+function cvaGetFixed(){return _cvaExpenses.reduce(function(s,e){return s+e.v;},0);}
+function cvaGetWage(){return parseFloat(document.getElementById('cva-wage').value)||12;}
+function cvaGetHrs(){return parseInt(document.getElementById('cva-shift-hrs').value)||8;}
+function cvaGetCeil(){return parseFloat(document.getElementById('cva-solo-ceil').value)||960;}
+function cvaTeaWtdProfit(){
+  var s=_cvaTeaVals.reduce(function(a,x){return a+x;},0);if(!s)return 7;
+  return _cvaTeaCats.reduce(function(a,c,i){return a+(_cvaTeaVals[i]/s)*c.profit;},0);
 }
-function onCurrencyFocus(el){
-  // Strip to raw number for easy editing
-  var raw=String(el.value).replace(/,/g,'');
-  el.value=raw==='0.00'||raw==='0'?'':raw;
+function cvaTeaWtdPrice(){
+  var teas=_CVA_I.PRODUCTS.filter(function(p){return p.cat==='Loaded teas'||p.cat==='Boosted teas'||p.cat==='Specialty teas'||p.cat==='Elite Tea';});
+  return teas.reduce(function(s,p){return s+p.sell;},0)/teas.length;
 }
-function onCurrencyBlur(el){
-  var raw=String(el.value).replace(/,/g,'');
-  if(raw===''){el.value='';return;}
-  var n=parseFloat(raw);
-  el.value=isNaN(n)?'':n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+function cvaOverallWtd(){
+  return _cvaMix.reduce(function(a,c,i){
+    var p=c.tea?cvaTeaWtdProfit():c.profit;
+    return a+(_cvaMixVals[i]/100)*p;
+  },0);
 }
-function formatAllCurrencyFields(){
-  CURRENCY_FIELDS.forEach(function(id){
-    var el=document.getElementById(id);
-    if(!el)return;
-    var raw=String(el.value).replace(/,/g,'');
-    if(raw==='')return;
-    var n=parseFloat(raw);
-    if(!isNaN(n))el.value=n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+function cvaOverallAvgPrice(){
+  return _cvaMix.reduce(function(a,c,i){
+    var p=c.tea?cvaTeaWtdPrice():c.avgPrice;
+    return a+(_cvaMixVals[i]/100)*p;
+  },0);
+}
+function cvaCalcTarget(monthlyProfit){
+  var fixed=cvaGetFixed(),daily=fixed/30;
+  var w=cvaOverallWtd(),avgP=cvaOverallAvgPrice();
+  var wage=cvaGetWage(),hrs=cvaGetHrs(),ceil=cvaGetCeil();
+  var empDay=wage*hrs,dg=monthlyProfit/30;
+  if(w<=0)return 0;
+  var drinks=Math.ceil((daily+dg)/w);
+  var rev=Math.round(drinks*(avgP||1));
+  if(rev>ceil)rev+=Math.ceil((rev-ceil)/ceil)*empDay;
+  return rev;
+}
+function cvaFmt$(v){return '$'+v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function cvaFmtD(v){return '$'+Math.round(v).toLocaleString();}
+function cvaFc(v){return '$'+v.toFixed(2);}
+function cvaST(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
+
+// ── CVA: SECTION TOGGLES ──
+function cvaSectionTog(bodyId,arrowId){
+  var b=document.getElementById(bodyId),a=document.getElementById(arrowId);
+  var open=b.style.display==='block';
+  b.style.display=open?'none':'block';
+  a.textContent=open?'▶':'▼';
+}
+function cvaTogTea(){
+  var d=document.getElementById('cva-tea-detail'),ch=document.getElementById('cva-tea-chev');
+  var open=d.style.display==='block';
+  d.style.display=open?'none':'block';
+  ch.textContent=open?'▶':'▼';
+}
+
+// ── CVA: REDISTRIBUTE ──
+function cvaRedist(vals,locks,changed,newVal,total){
+  var diff=newVal-vals[changed];if(!diff)return;
+  var ul=[],us=0;
+  for(var j=0;j<vals.length;j++)if(j!==changed&&!locks[j]){ul.push(j);us+=vals[j];}
+  if(!ul.length||!us)return;
+  vals[changed]=newVal;
+  var rem=total-vals.reduce(function(s,v,j){return(locks[j]||j===changed)?s+v:s;},0);
+  var asgn=0;
+  ul.forEach(function(j,i){
+    if(i<ul.length-1){vals[j]=Math.max(0,Math.round((vals[j]/us)*rem));asgn+=vals[j];}
+    else vals[j]=Math.max(0,rem-asgn);
   });
 }
-// Attach focus/blur handlers once DOM is ready
-document.addEventListener('DOMContentLoaded',function(){
-  CURRENCY_FIELDS.forEach(function(id){
-    var el=document.getElementById(id);
-    if(!el)return;
-    el.addEventListener('focus',function(){onCurrencyFocus(this);});
-    el.addEventListener('blur',function(){onCurrencyBlur(this);recalc();});
-  });
-});
-
-// -- FORMULAS with conditional display
-function getOwnerOpName(){
-  const ownerOp=SETTINGS.operators.find(o=>o.isOwner===true&&o.name);
-  return ownerOp?ownerOp.name:null;
-}
-
-function calcAll(){
-  const cashSales=pv('f-cashSales'),cardSales=pv('f-cardSales'),cardFees=pv('f-cardFees');
-  const cashAppPay=pv('f-cashAppPay'),venmo=pv('f-venmo');
-  const giftCardSales=pv('f-giftCardSales'),giftCardLoadFees=pv('f-giftCardLoadFees');
-  const otherSales=pv('f-otherSales'),merchSales=pv('f-merchSales');
-  const fundraiserCash=pv('f-fundraiserCash'),fundraiserCard=pv('f-fundraiserCard'),fundraiserPct=pv('f-fundraiserPct');
-  const dv=pv('f-dv');
-  const group1=cashSales>0&&cardSales>0&&cardFees>0;
-  const group2=group1&&dv>0;
-  const taxRate=SETTINGS.taxRate/100,ohRate=SETTINGS.ohRate/100,otherRate=SETTINGS.otherRate/100,merchRate=SETTINGS.merchRate/100,dvDelta=SETTINGS.dvDelta/100;
-  // Row 15: cardDeposits = cardSales - cardFees + cashAppPay - giftCardLoadFees
-  const cardDeposits=cardSales-cardFees+cashAppPay-giftCardLoadFees;
-  // Row 16: totalSales = cashSales + venmo + cardDeposits (no fundraiserCash -- that's outside Square)
-  const totalSales=cashSales+venmo+cardDeposits;
-  // Row 17: tax = totalSales * taxRate
-  const tax=group1?totalSales*taxRate:null;
-  // Row 14 pct donation = totalSales * pct%
-  const donation=group1&&fundraiserPct>0?totalSales*(fundraiserPct/100):0;
-  // Row 18: overhead = (totalSales-otherSales-merchSales-giftCardSales)*ohRate + merchSales*100% + otherSales*otherRate + giftCardSales*100% - pctDonation - fundraiserCard
-  const overhead=group1?((totalSales-otherSales-merchSales-giftCardSales)*ohRate)+(merchSales*merchRate)+(otherSales*otherRate)+(giftCardSales*1)-donation-fundraiserCard:null;
-  // Row 19: products = dv * (dvDelta+1)
-  const products=group2?dv*(dvDelta+1):null;
-  // Row 20: payouts = totalSales - tax - overhead - products - fundraiserCard
-  const payoutsRaw=group2&&tax!==null&&overhead!==null?totalSales-tax-overhead-products-fundraiserCard:null;
-  // Owner reinvestment: if checked, owner's share goes back to overhead
-  const ownerReinvest=document.getElementById('f-owner-reinvest')?.checked||false;
-  const op1Val=document.getElementById('f-op1')?.value||'';
-  const op2Val=document.getElementById('f-op2')?.value||'';
-  const ownerName=getOwnerOpName();
-  const ownerIsSelected=ownerName&&(op1Val===ownerName||op2Val===ownerName);
-  const opsCount=[op1Val,op2Val].filter(Boolean).length;
-  const ownerShare=(ownerReinvest&&ownerIsSelected&&payoutsRaw!==null&&opsCount>0)?payoutsRaw/opsCount:0;
-  const overhead2=overhead!==null?(overhead+ownerShare):null;
-  const payouts=payoutsRaw!==null?(payoutsRaw-ownerShare):null;
-  // Row 21: fundraiserTotal = fundraiserCard + fundraiserCash + pctDonation
-  const fundraiserTotal=fundraiserCard+fundraiserCash+donation;
-  // Row 32: $/DV -- use overhead2 (which includes reinvested share)
-  const perDV=group2&&overhead2!==null?(tax+overhead2+products+payouts+fundraiserTotal-fundraiserCash)/dv:null;
-  // Balance -- use overhead2 so balance check still passes with reinvestment
-  const hasFundraiser=fundraiserCard>0||fundraiserCash>0||fundraiserPct>0;
-  const balLHS=tax!==null&&overhead2!==null&&products!==null&&payouts!==null?Math.round((tax+overhead2+products+payouts+(hasFundraiser?fundraiserTotal:0))*100)/100:null;
-  const balRHS=group1?Math.round(totalSales*100)/100:null;
-  const balanced=balLHS!==null&&balRHS!==null?balLHS===balRHS:null;
-  const balDiff=balLHS!==null&&balRHS!==null?balLHS-balRHS:null;
-  return{cashSales,cardSales,cardFees,dv,venmo,fundraiserCard,fundraiserCash,donation,fundraiserTotal,hasFundraiser,cardDeposits,totalSales,tax,overhead:overhead2,products,payouts,perDV,group1,group2,balanced,balDiff,ownerReinvest,ownerShare};
-}
-
-function calcAllFromData(d){
-  const cashSales=parseFloat(d.cashSales)||0, cardSales=parseFloat(d.cardSales)||0, cardFees=parseFloat(d.cardFees)||0;
-  const cashAppPay=parseFloat(d.cashAppPay)||0, venmo=parseFloat(d.venmo)||0;
-  const giftCardSales=parseFloat(d.giftCardSales)||0, giftCardLoadFees=parseFloat(d.giftCardLoadFees)||0;
-  const otherSales=parseFloat(d.otherSales)||0, merchSales=parseFloat(d.merchSales)||0;
-  const fundraiserCash=parseFloat(d.fundraiserCash)||0, fundraiserCard=parseFloat(d.fundraiserCard)||0, fundraiserPct=parseFloat(d.fundraiserPct)||0;
-  const dv=parseFloat(d.dv)||0;
-  const group1=cashSales>0&&cardSales>0&&cardFees>0;
-  const group2=group1&&dv>0;
-  const taxRate=SETTINGS.taxRate/100,ohRate=SETTINGS.ohRate/100,otherRate=SETTINGS.otherRate/100,merchRate=SETTINGS.merchRate/100,dvDelta=SETTINGS.dvDelta/100;
-  const cardDeposits=cardSales-cardFees+cashAppPay-giftCardLoadFees;
-  const totalSales=cashSales+venmo+cardDeposits;
-  const tax=group1?totalSales*taxRate:null;
-  const donation=group1&&fundraiserPct>0?totalSales*(fundraiserPct/100):0;
-  const overhead=group1?((totalSales-otherSales-merchSales-giftCardSales)*ohRate)+(merchSales*merchRate)+(otherSales*otherRate)+(giftCardSales*1)-donation-fundraiserCard:null;
-  const products=group2?dv*(dvDelta+1):null;
-  const payoutsRaw=group2&&tax!==null&&overhead!==null?totalSales-tax-overhead-products-fundraiserCard:null;
-  const ownerReinvest=d.ownerReinvest||false;
-  const op1Val=d.op1||'', op2Val=d.op2||'';
-  const ownerName=getOwnerOpName();
-  const ownerIsSelected=ownerName&&(op1Val===ownerName||op2Val===ownerName);
-  const opsCount=[op1Val,op2Val].filter(Boolean).length;
-  const ownerShare=(ownerReinvest&&ownerIsSelected&&payoutsRaw!==null&&opsCount>0)?payoutsRaw/opsCount:0;
-  const overhead2=overhead!==null?(overhead+ownerShare):null;
-  const payouts=payoutsRaw!==null?(payoutsRaw-ownerShare):null;
-  const fundraiserTotal=fundraiserCard+fundraiserCash+donation;
-  const perDV=group2&&overhead2!==null?(tax+overhead2+products+payouts+fundraiserTotal-fundraiserCash)/dv:null;
-  const hasFundraiser=fundraiserCard>0||fundraiserCash>0||fundraiserPct>0;
-  const balLHS=tax!==null&&overhead2!==null&&products!==null&&payouts!==null?Math.round((tax+overhead2+products+payouts+(hasFundraiser?fundraiserTotal:0))*100)/100:null;
-  const balRHS=group1?Math.round(totalSales*100)/100:null;
-  const balanced=balLHS!==null&&balRHS!==null?balLHS===balRHS:null;
-  const balDiff=balLHS!==null&&balRHS!==null?balLHS-balRHS:null;
-  return{cashSales,cardSales,cardFees,dv,venmo,fundraiserCard,fundraiserCash,donation,fundraiserTotal,hasFundraiser,cardDeposits,totalSales,tax,overhead:overhead2,products,payouts,perDV,group1,group2,balanced,balDiff,ownerReinvest,ownerShare};
-}
-
-function fmt$(n){if(n===null||isNaN(n))return'$0.00';return'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
-function fmtN(n){if(n===null||isNaN(n))return'--';return n.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:1});}
-function fmtVP(n){if(n===null||n===undefined||isNaN(n))return'--';return Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
-
-function togglePwVis(id,btn){var el=document.getElementById(id);if(!el)return;var show=el.type==='password';el.type=show?'text':'password';btn.textContent=show?'🙈':'👁';}
-function markDirty(){
-  if(_entryDirty)return;
-  _entryDirty=true;
-  const saveBtn=document.getElementById('btn-save-day');
-  if(saveBtn){saveBtn.style.display='inline-flex';saveBtn.style.background='#c47c0a';saveBtn.textContent='Save ●';}
-  const badge=document.getElementById('unsaved-badge');
-  if(badge)badge.style.display='inline-flex';
-  const dow=document.getElementById('entry-date-dow');
-  if(dow&&!dow.querySelector('.unsaved-dot')){const s=document.createElement('span');s.className='unsaved-dot';s.style.cssText='font-size:11px;font-weight:600;color:#c47c0a;';s.textContent='· unsaved';dow.appendChild(s);}
-}
-function clearDirty(){
-  _entryDirty=false;
-  const saveBtn=document.getElementById('btn-save-day');
-  if(saveBtn){saveBtn.style.display='none';saveBtn.style.background='';saveBtn.textContent='Save';}
-  const badge=document.getElementById('unsaved-badge');
-  if(badge)badge.style.display='none';
-  const dot=document.getElementById('entry-date-dow')?.querySelector('.unsaved-dot');
-  if(dot)dot.remove();
-}
-let _pendingNavFn=null;
-function confirmNav(fn){
-  if(!_entryDirty){fn();return;}
-  _pendingNavFn=fn;
-  const modal=document.getElementById('unsaved-nav-modal');
-  const msg=document.getElementById('unsaved-nav-msg');
-  const date=document.getElementById('entry-date')?.value;
-  if(msg&&date){
-    const dt=new Date(date+'T00:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
-    msg.innerHTML=`You have unsaved changes for <strong>${dt}</strong>. What would you like to do?`;
-  }
-  if(modal)modal.style.display='flex';
-}
-async function unsavedNavSave(){
-  document.getElementById('unsaved-nav-modal').style.display='none';
-  await saveDay();
-  if(_pendingNavFn){_pendingNavFn();_pendingNavFn=null;}
-}
-function unsavedNavLeave(){
-  document.getElementById('unsaved-nav-modal').style.display='none';
-  clearDirty();
-  if(_pendingNavFn){_pendingNavFn();_pendingNavFn=null;}
-}
-function unsavedNavCancel(){
-  document.getElementById('unsaved-nav-modal').style.display='none';
-  _pendingNavFn=null;
-}
-
-
-function localToday() {
-  // Returns YYYY-MM-DD in the user's local timezone (not UTC)
-  const d = new Date();
-  return d.getFullYear() + '-' +
-    String(d.getMonth()+1).padStart(2,'0') + '-' +
-    String(d.getDate()).padStart(2,'0');
-}
-
-function shiftDay(dir){
-  const el=document.getElementById('entry-date');
-  if(!el||!el.value)return;
-  const d=new Date(el.value+'T00:00:00');
-  d.setDate(d.getDate()+dir);
-  const newDate=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-  const todayStr=localToday();
-  if(newDate>todayStr)return;
-  confirmNav(()=>{el.value=newDate;updateDateDisplay();loadDay();});
-}
-
-function goToToday(){
-  const todayStr=localToday();
-  confirmNav(()=>{
-    const dateEl=document.getElementById('entry-date');
-    if(dateEl)dateEl.value=todayStr;
-    updateDateDisplay();
-    loadDay();
+function cvaScaleTeas(newTotal){
+  var old=_cvaTeaVals.reduce(function(s,x){return s+x;},0);if(!old)return;
+  var asgn=0;
+  _cvaTeaVals.forEach(function(v,i){
+    if(i<_cvaTeaVals.length-1){_cvaTeaVals[i]=Math.round((v/old)*newTotal);asgn+=_cvaTeaVals[i];}
+    else _cvaTeaVals[i]=Math.max(0,newTotal-asgn);
   });
 }
 
-function recalc(userChanged=false){
-  if(!_loadingDay&&userChanged)markDirty();
-  if(!_loadingDay&&userChanged)scheduleDraftSave();
-  const c=calcAll();
-  setText('sum-sales',   c.group1?fmt$(c.totalSales):'--');
-  setText('sum-tax',     c.group1?fmt$(c.tax):'--');
-  setText('sum-oh',      c.group1?fmt$(c.overhead):'--');
-  setText('sum-prod',    c.group2?fmt$(c.products):'--');
-  setText('sum-payouts', c.group2?fmt$(c.payouts):'--');
-  setText('sum-perdv',   c.group2?'$/DV: '+fmt$(c.perDV):'$/DV: --');
-  // Rate indicators
-  setText('sum-tax-rate',  SETTINGS.taxRate+'%');
-  setText('sum-oh-rate',   SETTINGS.ohRate+'%');
-  setText('sum-prod-rate', SETTINGS.dvDelta>=0?'+'+SETTINGS.dvDelta+'% DV':SETTINGS.dvDelta+'% DV');
-  setText('sum-pay-rate',  '');
-  // Square deposit footer
-  setText('sum-sq-deposit', c.group1?fmt$(c.cardDeposits):'--');
-  // OH rate badges on Other Sales card
-  const badgeOther=document.getElementById('badge-otherRate');
-  const badgeMerch=document.getElementById('badge-merchRate');
-  if(badgeOther)badgeOther.textContent=SETTINGS.otherRate+'% OH';
-  if(badgeMerch)badgeMerch.textContent=SETTINGS.merchRate+'% OH';
-  // Fundraiser hero
-  const heroEl=document.getElementById('sum-fundraiser-hero');
-  if(heroEl)heroEl.classList.toggle('visible',c.hasFundraiser);
-  if(c.hasFundraiser){
-    setText('sum-fundraiser',fmt$(c.fundraiserTotal));
-    const fPct=parseFloat(document.getElementById('f-fundraiserPct')?.value||0);
-    const lines=[];
-    if(c.fundraiserCard>0)lines.push('Card: '+fmt$(c.fundraiserCard));
-    if(c.fundraiserCash>0)lines.push('Cash: '+fmt$(c.fundraiserCash));
-    if(fPct>0&&c.group1)lines.push(fPct+'% of deposits: '+fmt$(c.donation));
-    const bdEl=document.getElementById('sum-fundraiser-breakdown');
-    if(bdEl)bdEl.innerHTML=lines.map(l=>'<span>'+l+'</span>').join('');
-  }
-  // Donation % subtitle
-  const fPct=parseFloat(document.getElementById('f-fundraiserPct')?.value||0);
-  const subEl=document.getElementById('fundraiser-pct-subtitle');
-  if(subEl){
-    if(fPct>0&&c.group1){subEl.textContent=fPct+'% of deposits = '+fmt$(c.donation)+' donated';subEl.style.display='block';}
-    else{subEl.style.display='none';}
-  }
-  // Balance check
-  const balEl=document.getElementById('sum-balance');
-  if(c.balanced===null){balEl.textContent='Enter Cash Sales, Card Sales & Card Fees';balEl.className='balance-pending';}
-  else if(c.balanced){balEl.textContent='ok Balanced';balEl.className='balance-ok';}
-  else{balEl.textContent='&#10007; Off by '+fmt$(Math.abs(c.balDiff));balEl.className='balance-fail';}
-  renderOpsEarningsPreview();
-}
-
-// ── DRAFT AUTO-SAVE SYSTEM ────────────────────────────────────────────────────
-// Drafts stored in localStorage keyed by location + date.
-// A draft is a snapshot of all entry fields + a timestamp.
-// On loadDay: if draft exists and is newer than saved record, prompt or silently restore.
-// On saveDay / resetDayFields: clear the draft for that date.
-
-function _draftKey(date) {
-  return 'mct_draft_' + (LOCATION_ID || 'unknown') + '_' + date;
-}
-
-function _saveDraft() {
-  if (_loadingDay) return; // never save during programmatic load
-  const date = document.getElementById('entry-date')?.value;
-  if (!date) return;
-  const state = {};
-  _UNDO_FIELDS.forEach(k => {
-    const el = document.getElementById('f-' + k);
-    if (!el) return;
-    state[k] = el.type === 'checkbox' ? el.checked : el.value;
-  });
-  const draft = { ts: Date.now(), state };
-  try { localStorage.setItem(_draftKey(date), JSON.stringify(draft)); } catch(e) {}
-}
-
-function _clearDraft(date) {
-  try { localStorage.removeItem(_draftKey(date)); } catch(e) {}
-}
-
-function _loadDraft(date) {
-  try {
-    const raw = localStorage.getItem(_draftKey(date));
-    return raw ? JSON.parse(raw) : null;
-  } catch(e) { return null; }
-}
-
-function _applyDraft(draft) {
-  _loadingDay = true;
-  _UNDO_FIELDS.forEach(k => {
-    const el = document.getElementById('f-' + k);
-    if (!el || !(k in draft.state)) return;
-    if (el.type === 'checkbox') el.checked = draft.state[k];
-    else el.value = draft.state[k];
-  });
-  formatAllCurrencyFields();
-  const dvEl = document.getElementById('f-dv');
-  if (dvEl && dvEl.value && dvEl.value !== '0') {
-    const dvN = parseFloat(String(dvEl.value).replace(/,/g,''));
-    if (!isNaN(dvN) && dvN > 0) dvEl.value = dvN.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-  }
-  _loadingDay = false;
-}
-
-function _fmtDraftTime(ts) {
-  const d = new Date(ts);
-  const now = new Date();
-  const diffMin = Math.round((now - d) / 60000);
-  const timeStr = d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
-  if (diffMin < 1) return 'just now (' + timeStr + ')';
-  if (diffMin < 60) return diffMin + ' min ago (' + timeStr + ')';
-  const diffHr = Math.round(diffMin / 60);
-  if (diffHr < 24) return diffHr + ' hr ago (' + timeStr + ')';
-  return d.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' at ' + timeStr;
-}
-
-// Shown when draft restored silently (no saved record)
-function _showDraftBanner(ts) {
-  const banner = document.getElementById('draft-banner');
-  const timeEl = document.getElementById('draft-banner-time');
-  if (!banner) return;
-  if (timeEl) timeEl.textContent = 'from ' + _fmtDraftTime(ts);
-  banner.style.display = 'flex';
-}
-function dismissDraftBanner() {
-  const banner = document.getElementById('draft-banner');
-  if (banner) banner.style.display = 'none';
-}
-
-// Pending draft state for conflict modal
-let _pendingDraftConflict = null;
-
-function _showDraftConflictModal(draft, savedLoadFn) {
-  _pendingDraftConflict = { draft, savedLoadFn };
-  const timeEl = document.getElementById('draft-conflict-time');
-  if (timeEl) timeEl.textContent = _fmtDraftTime(draft.ts);
-  const modal = document.getElementById('draft-conflict-modal');
-  if (modal) modal.style.display = 'flex';
-}
-
-function draftConflictLoadDraft() {
-  const modal = document.getElementById('draft-conflict-modal');
-  if (modal) modal.style.display = 'none';
-  if (!_pendingDraftConflict) return;
-  _applyDraft(_pendingDraftConflict.draft);
-  updateClosedDayToggle(document.getElementById('entry-date').value);
-  clearUndoHistory();
-  _undoEnabled = true;
-  _undoStack.push(_captureFormState());
-  recalc();
-  markDirty();
-  _pendingDraftConflict = null;
-}
-
-function draftConflictKeepSaved() {
-  const modal = document.getElementById('draft-conflict-modal');
-  if (modal) modal.style.display = 'none';
-  if (!_pendingDraftConflict) return;
-  // Discard the draft — user chose saved record
-  const date = document.getElementById('entry-date')?.value;
-  if (date) _clearDraft(date);
-  _pendingDraftConflict = null;
-}
-
-// Debounced draft save — fires 800ms after last change
-let _draftSaveTimer = null;
-function scheduleDraftSave() {
-  if (_loadingDay) return;
-  clearTimeout(_draftSaveTimer);
-  _draftSaveTimer = setTimeout(_saveDraft, 800);
-}
-
-// ── END DRAFT SYSTEM ──────────────────────────────────────────────────────────
-
-const ENTRY_FIELDS=['cashSales','cardSales','cardFees','giftCardRedeemed','cashAppPay','venmo','otherSales','merchSales','giftCardSales','giftCardLoadFees','fundraiserCash','fundraiserCard','dv','notes'];
-
-function loadDay(){
-  const _dateInput=document.getElementById('entry-date');if(_dateInput)_dateInput.max=localToday();
-  dismissDraftBanner();
-  _loadingDay=true;
-  const date=document.getElementById('entry-date').value;
-  const ex=ALL_DAYS.find(d=>d.date===date);
-  const draft=_loadDraft(date);
-
-  if(ex){
-    // Saved record exists — load it first
-    const d=ex.data;
-    ENTRY_FIELDS.forEach(k=>{const el=document.getElementById('f-'+k);if(el)el.value=d[k]!==undefined?d[k]:'';});
-    const fp=document.getElementById('f-fundraiserPct');if(fp)fp.value=d.fundraiserPct||'0';
-    const o1=document.getElementById('f-op1'),o2=document.getElementById('f-op2');
-    if(o1&&d.op1!==undefined)o1.value=d.op1;if(o2&&d.op2!==undefined)o2.value=d.op2;
-    const h1=document.getElementById('f-op1-hrs'),h2=document.getElementById('f-op2-hrs');
-    if(h1)h1.value=d.op1Hrs||'';if(h2)h2.value=d.op2Hrs||'';
-    const rc=document.getElementById('f-owner-reinvest');if(rc)rc.checked=d.ownerReinvest===true;
-    formatAllCurrencyFields();
-    var dvEl=document.getElementById('f-dv');
-    if(dvEl&&dvEl.value&&dvEl.value!=='0'){var dvN=parseFloat(String(dvEl.value).replace(/,/g,''));if(!isNaN(dvN)&&dvN>0)dvEl.value=dvN.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
-    updateClosedDayToggle(date);
-    clearDirty();
-    clearUndoHistory();
-    _undoEnabled=true;
-    _undoStack.push(_captureFormState());
-    recalc();
-    _loadingDay=false;
-    // If a draft exists and is newer than the saved record, prompt the user
-    if(draft){
-      const savedTs=ex.data?._savedAt?new Date(ex.data._savedAt).getTime():0;
-      if(draft.ts>savedTs){
-        _showDraftConflictModal(draft,null);
-      } else {
-        _clearDraft(date); // draft is stale, silently discard
-      }
-    }
-  }else{
-    // No saved record — check for draft
-    ENTRY_FIELDS.forEach(k=>{const el=document.getElementById('f-'+k);if(el)el.value='';});
-    const fp=document.getElementById('f-fundraiserPct');if(fp)fp.value='0';
-    const rc=document.getElementById('f-owner-reinvest');if(rc)rc.checked=false;
-    const h1=document.getElementById('f-op1-hrs'),h2=document.getElementById('f-op2-hrs');
-    if(h1)h1.value='';if(h2)h2.value='';
-    formatAllCurrencyFields();
-    updateClosedDayToggle(date);
-    clearDirty();
-    clearUndoHistory();
-    _undoEnabled=true;
-    if(draft){
-      // Silently restore draft, show banner
-      _loadingDay=false; // allow applyDraft to work
-      _applyDraft(draft);
-      _undoStack.push(_captureFormState());
-      recalc();
-      markDirty();
-      _showDraftBanner(draft.ts);
-    }else{
-      _undoStack.push(_captureFormState());
-      recalc();
-      _loadingDay=false;
-    }
-  }
-}
-
-let _pendingSaveDupNote = null; // note from dup-op modal
-
-async function saveDay(){
-  const date=document.getElementById('entry-date').value;
-  if(!date){showToast('Please set a date','error');return;}
-  // Check for duplicate operators
-  const _op1v = document.getElementById('f-op1')?.value||'';
-  const _op2v = document.getElementById('f-op2')?.value||'';
-  if(_op1v && _op2v && _op1v === _op2v && _pendingSaveDupNote === null){
-    // Show confirmation modal
-    const dateDisp = new Date(date+'T00:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
-    const lbl = document.getElementById('dup-op-date-label');
-    const warn = document.getElementById('dup-op-warn-text');
-    const noteEl = document.getElementById('dup-op-note');
-    const saveBtn = document.getElementById('dup-op-save-btn');
-    if(lbl) lbl.textContent = dateDisp;
-    if(warn) warn.textContent = _op1v.split(' ')[0] + ' is selected in both operator slots.';
-    if(noteEl) noteEl.value = '';
-    if(saveBtn) saveBtn.disabled = true;
-    document.getElementById('dup-op-modal').style.display = 'flex';
-    return; // wait for modal confirmation
-  }
-  const c=calcAll();
-  const isClosedDay=document.getElementById('f-closed-day')?.checked||false;
-  const data={cashSales:pv('f-cashSales'),cardSales:pv('f-cardSales'),cardFees:pv('f-cardFees'),giftCardRedeemed:pv('f-giftCardRedeemed'),cashAppPay:pv('f-cashAppPay'),venmo:pv('f-venmo'),otherSales:pv('f-otherSales'),merchSales:pv('f-merchSales'),giftCardSales:pv('f-giftCardSales'),giftCardLoadFees:pv('f-giftCardLoadFees'),fundraiserCash:pv('f-fundraiserCash'),fundraiserCard:pv('f-fundraiserCard'),fundraiserPct:pv('f-fundraiserPct'),dv:pv('f-dv'),notes:(()=>{const base=document.getElementById('f-notes')?.value||'';const dup=_pendingSaveDupNote?'[Duplicate operator note: '+_pendingSaveDupNote+']':'';return base&&dup?base+'\n'+dup:dup||base;})(),op1:document.getElementById('f-op1')?.value||'',op2:document.getElementById('f-op2')?.value||'',op1Hrs:parseFloat(document.getElementById('f-op1-hrs')?.value)||0,op2Hrs:parseFloat(document.getElementById('f-op2-hrs')?.value)||0,closedDay:isClosedDay,totalSales:c.totalSales||0,overhead:c.overhead||0,taxes:c.tax||0,products:c.products||0,payouts:c.payouts||0,donation:c.donation||0,perDV:c.perDV||0,ownerReinvest:c.ownerReinvest||false,ownerShare:c.ownerShare||0,savedRates:{taxRate:SETTINGS.taxRate,ohRate:SETTINGS.ohRate,otherRate:SETTINGS.otherRate,merchRate:SETTINGS.merchRate,dvDelta:SETTINGS.dvDelta}};
-  // Track specific closed day overrides in settings
-  if(!SETTINGS.closedDays)SETTINGS.closedDays={};
-  const dow=new Date(date+'T00:00:00').getDay();
-  const opDays=SETTINGS.opDays||[false,true,true,true,true,true,true];
-  const isScheduledClosed=!opDays[dow];
-  if(isClosedDay&&!isScheduledClosed) SETTINGS.closedDays[date]=true;   // open day marked closed manually
-  else if(isClosedDay&&isScheduledClosed) delete SETTINGS.closedDays[date]; // scheduled closed, no override needed
-  else if(!isClosedDay&&isScheduledClosed) SETTINGS.closedDays[date]='open'; // scheduled closed but worked it
-  else delete SETTINGS.closedDays[date]; // open day, no override
-  if(IS_ADMIN_VIEW) data._adminEdit=new Date().toISOString(); // stamp when admin last edited
-  data._savedAt=new Date().toISOString(); // timestamp for draft comparison
-  const ex=ALL_DAYS.find(d=>d.date===date);let error;
-  if(ex){const{error:e}=await sb.from('days').update({data}).eq('id',ex.id);error=e;if(!e)ex.data=data;}
-  else{const{data:nr,error:e}=await sb.from('days').insert({location_id:LOCATION_ID,date,data}).select().single();error=e;if(!e&&nr)ALL_DAYS.unshift(nr);}
-  if(error){showToast('Save failed: '+error.message,'error');return;}
-  _clearDraft(date); // draft committed — remove it
-  showToast(IS_ADMIN_VIEW?'Saved (Admin Edit) ok':'Day saved ok','success');
-  _pendingSaveDupNote=null;
-  clearDirty();
-  clearUndoHistory();
-  _undoStack.push(_captureFormState()); // baseline after save
-  // Persist closedDays overrides to settings
-  sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID);
-  renderHistory();renderProjections();renderPayoutSnapshots();renderPaymentRegister();renderDashboardWidgets();
-}
-
-function renderDashboardWidgets(){
-  if(!ALL_DAYS.length) return;
-  const today = new Date();
-  const todayStr = today.toISOString().slice(0,10);
-
-  // Sort ascending for streak calculation
-  const sorted = [...ALL_DAYS].sort((a,b)=>a.date.localeCompare(b.date));
-  const dateSet = new Set(sorted.map(d=>d.date));
-
-  // -- STREAK --
-  let streak = 0, streakStart = null;
-  let cursor = new Date(today);
-  const opDays = SETTINGS.opDays || [false,true,true,true,true,true,true];
-  // If today is a closed day or not yet entered, start checking from yesterday
-  let checkStr = cursor.toISOString().slice(0,10);
-  if(!dateSet.has(checkStr)){
-    cursor.setDate(cursor.getDate()-1);
-  }
-  while(true){
-    const s = cursor.toISOString().slice(0,10);
-    const dow = cursor.getDay();
-    if(!opDays[dow]){
-      // Closed day -- skip without breaking streak
-      cursor.setDate(cursor.getDate()-1);
-      continue;
-    }
-    if(dateSet.has(s)){
-      streak++;
-      streakStart = s;
-      cursor.setDate(cursor.getDate()-1);
-    } else { break; }
-  }
-  const streakEl = document.getElementById('dw-streak-val');
-  const streakSubEl = document.getElementById('dw-streak-sub');
-  if(streakEl) streakEl.textContent = streak > 0 ? streak : '0';
-  if(streakSubEl){
-    if(streak > 1 && streakStart){
-      const d = new Date(streakStart+'T00:00:00');
-      streakSubEl.textContent = 'Since ' + d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
-    } else if(streak === 1){
-      streakSubEl.textContent = 'Started today';
-    } else {
-      // No streak -- show last entry date
-      const lastDay = sorted[sorted.length - 1];
-      if(lastDay){
-        const ld = new Date(lastDay.date+'T00:00:00');
-        streakSubEl.textContent = 'Last entry: ' + ld.toLocaleDateString('en-US',{month:'short',day:'numeric'});
-      } else {
-        streakSubEl.textContent = 'No entries yet';
-      }
-    }
-  }
-
-  // -- WEEKLY --
-  const dayOfWeek = today.getDay(); // 0=Sun
-  const weekStart = new Date(today);
-  weekStart.setDate(today.getDate() - dayOfWeek);
-  const weekStartStr = weekStart.toISOString().slice(0,10);
-  const weekDays = ALL_DAYS.filter(d => d.date >= weekStartStr && d.date <= todayStr);
-  const weekSales = weekDays.reduce((s,d)=>s+calSales(d.data||{}),0);
-  const weekEl = document.getElementById('dw-week-val');
-  const weekSubEl = document.getElementById('dw-week-sub');
-  if(weekEl) weekEl.textContent = fmt$(weekSales);
-  if(weekSubEl) weekSubEl.textContent = weekDays.length + ' day' + (weekDays.length!==1?'s':'') + ' entered';
-
-  // -- MONTHLY --
-  const monthStartStr = new Date(today.getFullYear(),today.getMonth(),1).toISOString().slice(0,10);
-  const monthEndStr = new Date(today.getFullYear(),today.getMonth()+1,0).toISOString().slice(0,10);
-  const monthDays = ALL_DAYS.filter(d => d.date >= monthStartStr && d.date <= monthEndStr);
-  const monthSales = monthDays.reduce((s,d)=>s+calSales(d.data||{}),0);
-  const monthDvTotal = monthDays.reduce((s,d)=>s+(parseFloat(d.data?.dv)||0),0);
-  const monthEl = document.getElementById('dw-month-val');
-  const monthSubEl = document.getElementById('dw-month-sub');
-  if(monthEl) monthEl.textContent = fmt$(monthSales);
-  if(monthSubEl){
-    const mn = today.toLocaleDateString('en-US',{month:'long'});
-    monthSubEl.textContent = mn + ' - ' + monthDays.length + ' day' + (monthDays.length!==1?'s':'') + ' entered';
-  }
-
-  // -- MONTH DV --
-  const dvEl = document.getElementById('dw-dv-val');
-  const dvSubEl = document.getElementById('dw-dv-sub');
-  const avgDv = monthDays.length > 0 ? monthDvTotal / monthDays.length : 0;
-  if(dvEl) dvEl.textContent = fmtN(monthDvTotal);
-  if(dvSubEl) dvSubEl.textContent = 'avg ' + fmtN(avgDv) + '/day';
-
-  // -- INVENTORY --
-  const invValEl = document.getElementById('dw-inv-val');
-  const invSubEl = document.getElementById('dw-inv-sub');
-  if(invValEl && invSubEl){
-    if(INV_SNAPSHOTS.length){
-      const last = INV_SNAPSHOTS[0];
-      const savedAt = new Date(last.saved_at);
-      const now = new Date();
-      const diffMs = now - savedAt;
-      const diffDays = Math.floor(diffMs / 86400000);
-      // Value: relative time
-      let valText;
-      if(diffDays === 0) valText = 'Today';
-      else if(diffDays === 1) valText = 'Yesterday';
-      else valText = diffDays + 'd ago';
-      invValEl.textContent = valText;
-      // Sub: exact date + time
-      invSubEl.textContent = savedAt.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' - ' + savedAt.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
-    } else {
-      invValEl.textContent = 'Never';
-      invSubEl.textContent = 'No snapshots yet';
-    }
-  }
-}
-
-const _OP_PALETTE = ['#4e6e86','#2d6a4f','#9e7e6a','#7a5c80','#b07d3a','#3a7a6e'];
-
-function getOpColor(name) {
-  // Stable color by name hash
-  if (!name) return _OP_PALETTE[0];
-  const ops = SETTINGS.operators || [];
-  const idx = ops.findIndex(o => o.name === name || (o.aliases||'').split(',').map(a=>a.trim()).includes(name));
-  return _OP_PALETTE[idx >= 0 ? idx % _OP_PALETTE.length : 0];
-}
-
-function clearOperators() {
-  const sel1 = document.getElementById('f-op1');
-  const sel2 = document.getElementById('f-op2');
-  if (sel1) sel1.value = '';
-  if (sel2) sel2.value = '';
-  // Reset hours to default
-  const hrs1 = document.getElementById('f-op1-hrs');
-  const hrs2 = document.getElementById('f-op2-hrs');
-  if (hrs1) hrs1.value = hrs1.options[0]?.value || '';
-  if (hrs2) hrs2.value = hrs2.options[0]?.value || '';
-  recalc(true);
-}
-
-function renderOpsEarningsPreview(){
-  const c = calcAll();
-  const reinvestRow = document.getElementById('reinvest-row');
-  const op1 = document.getElementById('f-op1')?.value || '';
-  const op2 = document.getElementById('f-op2')?.value || '';
-  const h1 = parseFloat(document.getElementById('f-op1-hrs')?.value) || 0;
-  const h2 = parseFloat(document.getElementById('f-op2-hrs')?.value) || 0;
-  const ops = [op1, op2].filter(Boolean);
-  const ownerName = getOwnerOpName();
-  const ownerIsSelected = ownerName && ops.includes(ownerName);
-
-  if(reinvestRow) reinvestRow.style.display = ownerIsSelected ? 'block' : 'none';
-
-  const totalHrs = h1 + h2;
-  const payouts = c.group2 && c.payouts !== null ? c.payouts : null;
-  const hourlyRate = (payouts !== null && totalHrs > 0) ? payouts / totalHrs : null;
-
-  // Op payout pills (in-row)
-  const pill1 = document.getElementById('op1-payout-pill');
-  const pill2 = document.getElementById('op2-payout-pill');
-  const pay1 = (op1 && payouts !== null) ? (hourlyRate !== null && h1 > 0 ? hourlyRate * h1 : (ops.length > 0 ? payouts / ops.length : null)) : null;
-  const pay2 = (op2 && payouts !== null) ? (hourlyRate !== null && h2 > 0 ? hourlyRate * h2 : (ops.length > 0 ? payouts / ops.length : null)) : null;
-  const isR1 = ownerName && op1 === ownerName && c.ownerReinvest;
-  const isR2 = ownerName && op2 === ownerName && c.ownerReinvest;
-
-  if(pill1){ pill1.textContent = op1 && pay1 !== null ? (isR1 ? '↩ reinvested' : fmt$(pay1)) : '--'; pill1.style.color = isR1 ? 'var(--b6)' : 'var(--g6)'; pill1.style.background = isR1 ? 'var(--b1)' : 'transparent'; }
-  if(pill2){ pill2.textContent = op2 && pay2 !== null ? (isR2 ? '↩ reinvested' : fmt$(pay2)) : '--'; pill2.style.color = isR2 ? 'var(--b6)' : 'var(--g6)'; pill2.style.background = isR2 ? 'var(--b1)' : 'transparent'; }
-
-  // Footer row — show when any operator selected
-  const footerRow = document.getElementById('ops-footer-row');
-  const pillsEl = document.getElementById('ops-payout-pills');
-  const rateVal = document.getElementById('ops-hourly-rate-val');
-  const totalHrsLabel = document.getElementById('ops-total-hrs-label');
-
-  // Duplicate operator detection
-  const warnBanner = document.getElementById('ops-dup-warning');
-  const warnText = document.getElementById('ops-dup-warning-text');
-  const isDup = op1 && op2 && op1 === op2;
-  if (warnBanner) warnBanner.style.display = isDup ? 'flex' : 'none';
-  if (warnText && isDup) warnText.textContent = op1.split(' ')[0] + ' is selected twice. You can still save — you will be asked to add a note explaining why.';
-  // Amber highlight on both selects
-  const sel1 = document.getElementById('f-op1');
-  const sel2 = document.getElementById('f-op2');
-  if (sel1) { sel1.style.borderColor = isDup ? '#f0b440' : ''; sel1.style.background = isDup ? '#fef7e8' : ''; }
-  if (sel2) { sel2.style.borderColor = isDup ? '#f0b440' : ''; sel2.style.background = isDup ? '#fef7e8' : ''; }
-
-  if (footerRow) {
-    if (ops.length > 0) {
-      footerRow.style.display = 'flex';
-      // Colored pills
-      if (pillsEl) {
-        const pillData = [{name:op1, pay:pay1, isR:isR1, h:h1}, {name:op2, pay:pay2, isR:isR2, h:h2}].filter(p => p.name);
-        pillsEl.innerHTML = pillData.map(p => {
-          const color = getOpColor(p.name);
-          const label = p.isR ? '↩' : (p.pay !== null ? fmt$(p.pay) : '--');
-          const initial = p.name.charAt(0).toUpperCase();
-          return `<span style="display:inline-flex;align-items:center;gap:4px;background:var(--b0);border:1px solid var(--border-light);border-radius:20px;padding:2px 8px 2px 4px;font-size:11px;font-weight:700;color:var(--text);">
-            <span style="width:14px;height:14px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:800;color:white;flex-shrink:0;">${initial}</span>
-            ${label}
-          </span>`;
-        }).join('');
-      }
-      // Hourly rate
-      if (hourlyRate !== null && totalHrs > 0) {
-        if (rateVal) rateVal.textContent = fmt$(hourlyRate) + '/hr';
-        if (totalHrsLabel) totalHrsLabel.textContent = totalHrs.toFixed(1) + ' total hrs';
-      } else {
-        if (rateVal) rateVal.textContent = '--';
-        if (totalHrsLabel) totalHrsLabel.textContent = '';
-      }
-    } else {
-      footerRow.style.display = 'none';
-    }
-  }
-}
-
-// Global helper: calculate real sales total from raw stored fields
-function calSales(d){if(!d)return 0;const cs=parseFloat(d.cashSales)||0,cas=parseFloat(d.cardSales)||0,cf=parseFloat(d.cardFees)||0,cap=parseFloat(d.cashAppPay)||0,gcf=parseFloat(d.giftCardLoadFees)||0,vm=parseFloat(d.venmo)||0;return cs+vm+(cas-cf+cap-gcf);}
-
-// History calendar state
-let _histCalYear=null,_histCalMonth=null;
-
-// -- FILL MISSING DV --
-function getMissingDvDays(){
-  return [...ALL_DAYS]
-    .filter(d=>calSales(d.data||{})>0 && !(parseFloat(d.data?.dv)||0))
-    .sort((a,b)=>a.date.localeCompare(b.date));
-}
-
-function updateFillDvBtn(){
-  const btn=document.getElementById('fill-dv-btn');
-  if(!btn)return;
-  const missing=getMissingDvDays();
-  btn.style.display=missing.length?'inline-block':'none';
-  btn.textContent=`\u25CF Fill missing DV (${missing.length})`;
-}
-
-function openFillDvModal(){
-  document.getElementById('fill-dv-modal').style.display='flex';
-  renderFillDvModal();
-}
-function closeFillDvModal(){document.getElementById('fill-dv-modal').style.display='none';}
-function closeFillDvOnBg(e){if(e.target===document.getElementById('fill-dv-modal'))closeFillDvModal();}
-
-function renderFillDvModal(){
-  const missing=getMissingDvDays();
-  const allWithSales=ALL_DAYS.filter(d=>calSales(d.data||{})>0);
-  const filled=allWithSales.filter(d=>parseFloat(d.data?.dv)||0);
-
-  // Title — use current hist cal month
-  const yr=_histCalYear,mo=_histCalMonth;
-  const title=document.getElementById('fdv-cal-title');
-  if(title)title.textContent=new Date(yr,mo,1).toLocaleDateString('en-US',{month:'long',year:'numeric'});
-
-  // Badges
-  const mb=document.getElementById('fdv-missing-badge');
-  const fb=document.getElementById('fdv-filled-badge');
-  if(mb)mb.textContent=`${missing.length} missing`;
-  if(fb)fb.textContent=`${filled.length} filled`;
-
-  // Progress
-  const prog=document.getElementById('fdv-progress');
-  if(prog)prog.textContent=`${filled.length} of ${allWithSales.length} filled`;
-
-  // Mini calendar for current month
-  const cal=document.getElementById('fdv-mini-cal');
-  if(cal){
-    const dayMap={};
-    ALL_DAYS.forEach(d=>{
-      const dt=new Date(d.date+'T00:00:00');
-      if(dt.getFullYear()===yr&&dt.getMonth()===mo) dayMap[d.date]=d.data||{};
-    });
-    const firstDay=new Date(yr,mo,1).getDay();
-    const daysInMonth=new Date(yr,mo+1,0).getDate();
-    const DOWS=['S','M','T','W','T','F','S'];
-    let html=DOWS.map(d=>`<div style="font-size:9px;font-weight:600;text-align:center;color:var(--text-faint);padding:1px 0;">${d}</div>`).join('');
-    for(let i=0;i<firstDay;i++) html+=`<div></div>`;
-    for(let d=1;d<=daysInMonth;d++){
-      const dateStr=`${yr}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const data=dayMap[dateStr];
-      if(!data){html+=`<div style="border-radius:4px;padding:2px;min-height:28px;"></div>`;continue;}
-      const hasSales=calSales(data)>0;
-      const hasDv=parseFloat(data.dv)||0;
-      const isMissing=hasSales&&!hasDv;
-      const bg=isMissing?'#FAEEDA':hasSales?'#EAF3DE':'var(--b0)';
-      const border=isMissing?'1px solid #EF9F27':hasSales?'1px solid #97C459':'1px solid var(--border-light)';
-      html+=`<div style="border-radius:4px;padding:2px 3px;min-height:28px;background:${bg};border:${border};">
-        <div style="font-size:9px;font-weight:600;color:var(--text-faint);">${d}</div>
-        ${hasDv?`<div style="font-size:9px;color:#3B6D11;">${fmtN(hasDv)}</div>`:(hasSales?`<div style="font-size:9px;color:#854F0B;">—</div>`:'')}
-      </div>`;
-    }
-    cal.innerHTML=html;
-  }
-
-  // List of missing days
-  const list=document.getElementById('fdv-list');
-  if(!list)return;
-  if(!missing.length){
-    list.innerHTML=`<div style="padding:24px;text-align:center;color:var(--text-faint);font-size:13px;">All days with sales have DV recorded.</div>`;
-    return;
-  }
-  list.innerHTML=missing.map((d,i)=>{
-    const dt=new Date(d.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-    const sales=fmt$(calSales(d.data||{}));
-    return`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border-light);" id="fdv-row-${d.date}">
-      <div>
-        <div style="font-size:13px;font-weight:600;color:var(--text);">${dt}</div>
-        <div style="font-size:12px;color:var(--text-faint);">${sales} sales</div>
-      </div>
-      <input type="text" inputmode="decimal" id="fdv-input-${d.date}" placeholder="0.00"
-        style="width:90px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--b0);font-size:14px;font-weight:600;text-align:right;color:var(--text);"
-        oninput="onFdvInput(this,'${d.date}')"
-        onkeydown="onFdvKey(event,${i},${missing.length})"/>
-    </div>`;
-  }).join('');
-  // Focus first
-  setTimeout(()=>{const first=document.getElementById(`fdv-input-${missing[0].date}`);if(first)first.focus();},100);
-}
-
-function onFdvInput(el,date){
-  const v=parseFloat(el.value.replace(/,/g,''));
-  const row=document.getElementById(`fdv-row-${date}`);
-  if(v>0){
-    el.style.borderColor='var(--g5)';el.style.background='rgba(125,232,138,0.08)';
-    if(row)row.style.background='rgba(125,232,138,0.05)';
-  } else {
-    el.style.borderColor='var(--border)';el.style.background='var(--b0)';
-    if(row)row.style.background='';
-  }
-}
-
-function onFdvKey(e,idx,total){
-  if(e.key==='Enter'||e.key==='Tab'){
-    e.preventDefault();
-    const missing=getMissingDvDays();
-    const next=missing[idx+1];
-    if(next){const el=document.getElementById(`fdv-input-${next.date}`);if(el){el.focus();el.select();}}
-  }
-}
-
-async function saveAllDv(){
-  const missing=getMissingDvDays();
-  let saved=0;
-  const btn=document.querySelector('#fill-dv-modal .btn-primary');
-  if(btn){btn.disabled=true;btn.textContent='Saving...';}
-
-  for(const d of missing){
-    const el=document.getElementById(`fdv-input-${d.date}`);
-    if(!el)continue;
-    const v=parseFloat(el.value.replace(/,/g,''));
-    if(!v||v<=0)continue;
-    const newData={...d.data,dv:v};
-    const{error}=await sb.from('days').update({data:newData}).eq('id',d.id);
-    if(!error){
-      d.data=newData;
-      saved++;
-    }
-  }
-
-  if(btn){btn.disabled=false;btn.textContent='Save all';}
-  if(saved>0){
-    showToast(`${saved} day${saved!==1?'s':''} updated`,'success');
-    renderHistory();
-    renderProjections();
-    renderDashboardWidgets();
-  }
-  updateFillDvBtn();
-  renderFillDvModal();
-}
-
-function renderHistory(){
-  const grid=document.getElementById('history-cal-grid');
-  if(!grid)return;
-  if(!ALL_DAYS.length){grid.innerHTML='<div class="empty-state">No entries yet.</div>';return;}
-  // Init to current month
-  if(_histCalYear===null){
-    const now=new Date();
-    _histCalYear=now.getFullYear();
-    _histCalMonth=now.getMonth();
-  }
-  renderHistCal();
-  updateFillDvBtn();
-}
-
-function histCalShift(dir){
-  _histCalMonth+=dir;
-  if(_histCalMonth>11){_histCalMonth=0;_histCalYear++;}
-  if(_histCalMonth<0){_histCalMonth=11;_histCalYear--;}
-  renderHistCal();
-}
-
-function renderHistCal(){
-  const grid=document.getElementById('history-cal-grid');
-  const label=document.getElementById('hist-cal-label');
-  if(!grid||!label)return;
-  const yr=_histCalYear,mo=_histCalMonth;
-  label.textContent=new Date(yr,mo,1).toLocaleDateString('en-US',{month:'long',year:'numeric'});
-
-  // Build date→data map for this month
-  const dayMap={};
-  ALL_DAYS.forEach(d=>{
-    const dt=new Date(d.date+'T00:00:00');
-    if(dt.getFullYear()===yr&&dt.getMonth()===mo) dayMap[d.date]=d.data||{};
-  });
-
-  // Month boundaries
-  const firstDay=new Date(yr,mo,1).getDay(); // 0=Sun
-  const daysInMonth=new Date(yr,mo+1,0).getDate();
-  const todayStr=new Date().toISOString().slice(0,10);
-
-  // Month total
-  const monthTotal=Object.values(dayMap).reduce((s,d)=>s+calSales(d),0);
-  const activeDays=Object.keys(dayMap).length;
-
-  // Check prev/next month availability
-  const allMonths=[...new Set(ALL_DAYS.map(d=>d.date.slice(0,7)))];
-  const thisMonthStr=`${yr}-${String(mo+1).padStart(2,'0')}`;
-  const now=new Date();
-  const currentMonthStr=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  const prevBtn=document.getElementById('hist-prev-btn');
-  const nextBtn=document.getElementById('hist-next-btn');
-  if(prevBtn) prevBtn.disabled=!allMonths.some(m=>m<thisMonthStr);
-  if(nextBtn) nextBtn.disabled=thisMonthStr>=currentMonthStr;
-
-  // Build calendar grid HTML
-  const DOWS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  let html=`<div class="hcal-month-total"><span class="hcal-month-total-label">${activeDays} day${activeDays!==1?'s':''} recorded</span><span class="hcal-month-total-val">${fmt$(monthTotal)}</span></div>`;
-  html+=`<div class="hcal-dow-row">${DOWS.map(d=>`<div class="hcal-dow">${d}</div>`).join('')}</div>`;
-
-  // Build weeks
-  let cells=[];
-  // Leading blanks
-  for(let i=0;i<firstDay;i++) cells.push(null);
-  for(let d=1;d<=daysInMonth;d++) cells.push(d);
-  // Trailing blanks to complete last week
-  while(cells.length%7!==0) cells.push(null);
-
-  // Group into weeks
-  const weeks=[];
-  for(let i=0;i<cells.length;i+=7) weeks.push(cells.slice(i,i+7));
-
-  weeks.forEach((week,wi)=>{
-    const weekDays=week.filter(Boolean);
-    const weekTotal=weekDays.reduce((s,d)=>{
-      const dateStr=`${yr}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      return s+calSales(dayMap[dateStr]||{});
-    },0);
-    const weekDvTotal=weekDays.reduce((s,d)=>{
-      const dateStr=`${yr}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      return s+(parseFloat((dayMap[dateStr]||{}).dv)||0);
-    },0);
-    const weekHasData=weekDays.some(d=>{
-      const dateStr=`${yr}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      return !!dayMap[dateStr];
-    });
-
-    html+=`<div class="hcal-week">`;
-    week.forEach(day=>{
-      if(day===null){html+=`<div class="hcal-day empty-day"></div>`;return;}
-      const dateStr=`${yr}-${String(mo+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-      const data=dayMap[dateStr];
-      const isToday=dateStr===todayStr;
-      const isFuture=dateStr>todayStr;
-      const dow=new Date(dateStr+'T00:00:00').getDay();
-      const opDays=SETTINGS.opDays||[false,true,true,true,true,true,true];
-      const isClosedBySchedule=!opDays[dow];
-      const closedDays=SETTINGS.closedDays||{};
-      const isClosedOverride=!!closedDays[dateStr];
-      const isOpenOverride=closedDays[dateStr]==='open';
-      const isClosed=(isClosedBySchedule||isClosedOverride)&&!isOpenOverride;
-
-      // msel mode state
-      const _isMsel = _histView === 'msel';
-      const _isMselSel = _isMsel && _mselDates.has(dateStr);
-      const _mselSelStyle = _isMselSel ? 'border:1.5px solid var(--b5);background:var(--b1);' : '';
-      const _mselChk = _isMsel
-        ? `<input type="checkbox" style="position:absolute;top:4px;right:4px;width:14px;height:14px;accent-color:var(--b5);pointer-events:none;z-index:1;" ${_isMselSel?'checked':''}/>`
-        : '';
-
-      if(data){
-        const ops=[data.op1,data.op2].filter(Boolean).join(', ');
-        const noteIcon=data.notes?'<span style="font-size:12px;line-height:1;">&#128221;</span>':'';
-        const adminIcon=data._adminEdit?'<span style="font-size:8px;color:var(--a5);">✎</span> ':'';
-        const closedBadge=data.closedDay?'<div class="hcal-closed-label">Closed</div>':'';
-        const _tr=data.transfers||{};
-        const _tkeys=['tax','overhead','herbalife','payouts'];
-        // Quadrant circle SVG
-        const _qColors=_tkeys.map(k=>_tr[k]?'#639922':'#f0b440');
-        const _cashDeposited=!!_tr['cashdeposit'];
-        const _centerFill=_cashDeposited?'#378ADD':'white';
-        const _qSvg=`<svg viewBox="0 0 22 22" style="width:20px;height:20px;display:block;">
-          <path d="M11,11 L11,3 A8,8 0 0,1 19,11 Z" fill="${_qColors[0]}"/>
-          <path d="M11,11 L19,11 A8,8 0 0,1 11,19 Z" fill="${_qColors[1]}"/>
-          <path d="M11,11 L11,19 A8,8 0 0,1 3,11 Z" fill="${_qColors[2]}"/>
-          <path d="M11,11 L3,11 A8,8 0 0,1 11,3 Z" fill="${_qColors[3]}"/>
-          <line x1="11" y1="3" x2="11" y2="19" stroke="white" stroke-width="1.2"/>
-          <line x1="3" y1="11" x2="19" y2="11" stroke="white" stroke-width="1.2"/>
-          <circle cx="11" cy="11" r="4" fill="${_centerFill}"/>
-          ${_cashDeposited?'<circle cx="11" cy="11" r="4" fill="none" stroke="white" stroke-width="1"/>':''}
-        </svg>`;
-        // Operator dots — assign color by position in SETTINGS.operators
-        const _opList=[data.op1,data.op2].filter(Boolean);
-        const _opDots=_opList.map(name=>{
-          const color=getOpColor(name);
-          const initial=(name||'?').charAt(0).toUpperCase();
-          return `<div style="width:14px;height:14px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:800;color:white;flex-shrink:0;">${initial}</div>`;
-        }).join('');
-        const _allDone=_tkeys.every(k=>_tr[k]);
-        const _salesNum=calSales(data);
-        const _dvNum=(parseFloat(data.dv)||0).toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1});
-        const _onclick = _isMsel ? `mselToggleDate('${dateStr}')` : `openDetail('${dateStr}');loadHistProjDay('${dateStr}')`;
-        const _borderStyle = _isMsel ? _mselSelStyle : (_allDone?'border-color:var(--g4);':'');
-        html+=`<div class="hcal-day has-data${isToday?' today-day':''}" onclick="${_onclick}" style="${_borderStyle}">
-          ${_mselChk}
-          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2px;">
-            <div class="hcal-dn" style="margin-bottom:0;">${day}</div>
-            <div style="display:flex;align-items:center;gap:2px;">${adminIcon}${noteIcon}</div>
-          </div>
-          <div class="hcal-val-sales">${fmt$(_salesNum)}<span class="hcal-net-suffix">NET</span></div>
-          <div class="hcal-val-dv">${_dvNum}<span class="hcal-dv-suffix">DV</span></div>
-          <div style="display:flex;gap:3px;margin-top:3px;">${_opDots}</div>
-          <div style="position:absolute;bottom:3px;right:3px;">${_qSvg}</div>
-          ${closedBadge}
-        </div>`;
-      } else if(isFuture){
-        html+=`<div class="hcal-day empty-day"><div class="hcal-dn">${day}</div></div>`;
-      } else if(isClosed){
-        const _onclick = _isMsel ? '' : `onclick="navToDate('${dateStr}')"`;
-        html+=`<div class="hcal-day closed-day${isToday?' today-day':''}" ${_onclick} title="Add entry for ${dateStr}">
-          <div class="hcal-dn">${day}</div>
-          <div class="hcal-closed-label">Closed</div>
-        </div>`;
-      } else {
-        const _onclick = _isMsel ? '' : `onclick="navToDate('${dateStr}')"`;
-        html+=`<div class="hcal-day no-data${isToday?' today-day':''}" ${_onclick} title="${_isMsel?'':'Add entry for '+dateStr}">
-          <div class="hcal-dn">${day}</div>
-          ${!_isMsel?'<div style="margin-top:auto;font-size:16px;font-weight:300;color:var(--b5);line-height:1;text-align:center;">+</div>':''}
-        </div>`;
-      }
-    });
-    html+=`</div>`;
-
-    if(weekHasData){
-      html+=`<div class="hcal-week-summary">
-        <span class="hcal-week-label">Week ${wi+1}</span>
-        <div style="display:flex;align-items:center;gap:20px;">
-          <div style="text-align:right;">
-            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:white;">Sales</div>
-            <div class="hcal-week-total">${fmt$(weekTotal)}</div>
-          </div>
-          <div style="text-align:right;">
-            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:white;">DV</div>
-            <div class="hcal-week-total">${fmtN(weekDvTotal)}</div>
-          </div>
-        </div>
-      </div>`;
-    }
-  });
-
-  grid.innerHTML=html;
-
-  // Update recorded bar visibility in msel mode
-  const _recBar = document.getElementById('msel-recorded-bar');
-  const _recLbl = document.getElementById('msel-recorded-lbl');
-  const _recAmt = document.getElementById('msel-recorded-amt');
-  if (_recBar) {
-    if (_histView === 'msel' && _mselDates.size > 0) {
-      _recBar.style.display = 'flex';
-      const _selTotal = [..._mselDates].reduce((s,dateStr) => {
-        const d = ALL_DAYS.find(x => x.date === dateStr);
-        return s + (d ? (calSales(d.data||{})||0) : 0);
-      }, 0);
-      if (_recLbl) _recLbl.textContent = _mselDates.size + ' DAY' + (_mselDates.size!==1?'S':'') + ' SELECTED';
-      if (_recAmt) _recAmt.textContent = fmt$(_selTotal);
-    } else {
-      _recBar.style.display = 'none';
-    }
-  }
-
-  renderHistAlloc();
-  renderReconWidget();
-  if(_histView==='sum')renderSummaryView();
-}
-function onClosedDayToggle(){
-  const checked=document.getElementById('f-closed-day')?.checked;
-  const label=document.getElementById('closed-day-label');
-  const wrap=document.getElementById('closed-day-wrap');
-  if(label){label.textContent=checked?'Closed':'Open';label.style.color=checked?'var(--r5)':'var(--text-faint)';}
-  if(wrap){wrap.style.background=checked?'rgba(220,38,38,0.06)':'var(--b0)';wrap.style.borderColor=checked?'rgba(220,38,38,0.2)':'var(--border-light)';}
-  markDirty();
-}
-
-function updateClosedDayToggle(date){
-  const cb=document.getElementById('f-closed-day');
-  const label=document.getElementById('closed-day-label');
-  const sub=document.getElementById('closed-day-sub');
-  const wrap=document.getElementById('closed-day-wrap');
-  if(!cb||!date)return;
-  const dow=new Date(date+'T00:00:00').getDay();
-  const opDays=SETTINGS.opDays||[false,true,true,true,true,true,true];
-  const isScheduledClosed=!opDays[dow];
-  const closedDays=SETTINGS.closedDays||{};
-  const ex=ALL_DAYS.find(d=>d.date===date);
-  const isOpenOverride=closedDays[date]==='open';
-  const isMarkedClosed=(ex?.data?.closedDay||isScheduledClosed||(closedDays[date]===true))&&!isOpenOverride;
-  cb.checked=isMarkedClosed;
-  // Disable checkbox on scheduled closed days — they're auto-closed
-  cb.disabled=false;
-  if(sub) sub.textContent=isOpenOverride?'Overridden — working a scheduled closed day':isScheduledClosed?'Scheduled closed day (from operating hours)':'Scheduled open day';
-  if(label){label.textContent=isMarkedClosed?'Closed':'Open';label.style.color=isMarkedClosed?'var(--r5)':'var(--text-faint)';}
-  if(wrap){wrap.style.background=isMarkedClosed?'rgba(220,38,38,0.06)':'var(--b0)';wrap.style.borderColor=isMarkedClosed?'rgba(220,38,38,0.2)':'var(--border-light)';}
-  const future=date>localToday();
-  if(wrap) wrap.style.display=future?'none':'flex';
-}
-
-function navToDate(d){
-  const dt=new Date(d+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-  confirmNav(()=>{
-    document.getElementById('entry-date').value=d;
-    updateDateDisplay();
-    loadDay();
-    switchTab('enter');
-    document.querySelector('.content-area').scrollTo({top:0,behavior:'smooth'});
-    showToast(`Editing ${dt}`);
+// ── CVA: RENDER EXPENSES ──
+function cvaRenderExp(){
+  var c=document.getElementById('cva-exp-rows');if(!c)return;
+  c.innerHTML='';
+  _cvaExpenses.forEach(function(e){
+    var row=document.createElement('div');
+    row.style.cssText='display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border-light);font-size:12px;';
+    row.innerHTML='<span style="color:var(--text-muted)">'+e.l+'</span><span style="font-weight:600">$'+e.v.toFixed(2)+'</span>';
+    c.appendChild(row);
   });
 }
 
-let _detailDate=null;
-function openDetail(date){
-  _detailDate=date;
-  const day=ALL_DAYS.find(d=>d.date===date);
-  if(!day)return;
-  const d=day.data||{};
-  const dt=new Date(date+'T00:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
-  document.getElementById('detail-date').textContent=dt.toUpperCase();
-
-  // Sales fields -- show $0.00 for zeros, dim if empty
-  const sfmt=(v)=>v?fmt$(v):`<span class="detail-row-val dim">--</span>`;
-  document.getElementById('df-cashSales').innerHTML       = fmt$(d.cashSales||0);
-  document.getElementById('df-cardSales').innerHTML       = fmt$(d.cardSales||0);
-  document.getElementById('df-cardFees').innerHTML        = fmt$(d.cardFees||0);
-  document.getElementById('df-giftCardRedeemed').innerHTML= sfmt(d.giftCardRedeemed);
-  document.getElementById('df-cashAppPay').innerHTML      = sfmt(d.cashAppPay);
-  document.getElementById('df-venmo').innerHTML           = sfmt(d.venmo);
-  document.getElementById('df-otherSales').innerHTML      = sfmt(d.otherSales);
-  document.getElementById('df-merchSales').innerHTML      = sfmt(d.merchSales);
-  document.getElementById('df-giftCardSales').innerHTML   = sfmt(d.giftCardSales);
-  document.getElementById('df-giftCardLoadFees').innerHTML= sfmt(d.giftCardLoadFees);
-
-  // Fundraiser
-  document.getElementById('df-fundraiserCash').innerHTML  = sfmt(d.fundraiserCash);
-  document.getElementById('df-fundraiserCard').innerHTML  = sfmt(d.fundraiserCard);
-  document.getElementById('df-fundraiserPct').innerHTML   = d.fundraiserPct?`${d.fundraiserPct}%`:`<span class="detail-row-val dim">--</span>`;
-
-  // Breakdown — use calcAllFromData() so we don't read stale DOM form values
-  const c = calcAllFromData(d);
-  const cardDep = c.cardDeposits;
-  const totalS  = c.totalSales;
-  const tax     = c.tax;
-  const ohFinal = c.overhead;
-  const don     = c.donation;
-  const prod    = c.products;
-  const pay     = c.payouts;
-
-  // Populate summary-box (Enter tab style)
-  setText('ds-sales',   c.group1 ? fmt$(totalS) : '--');
-  setText('ds-tax',     c.group1 ? fmt$(tax||0) : '--');
-  setText('ds-oh',      c.group1 ? fmt$(ohFinal||0) : '--');
-  setText('ds-prod',    c.group2 ? fmt$(prod||0) : '--');
-  setText('ds-payouts', c.group2 ? fmt$(pay||0) : '--');
-  setText('ds-perdv',   d.dv ? `$/DV: ${fmt$(c.perDV||0)}` : '');
-
-  // Fundraiser hero
-  const dsFundHero = document.getElementById('ds-fundraiser-hero');
-  const dsFundBreak = document.getElementById('ds-fundraiser-breakdown');
-  if(c.hasFundraiser){
-    dsFundHero.classList.add('visible');
-    setText('ds-fundraiser', fmt$(c.fundraiserTotal||0));
-    dsFundBreak.innerHTML = (d.fundraiserCash?`<span>Cash: ${fmt$(d.fundraiserCash)}</span>`:'') + (d.fundraiserCard?`<span>Card: ${fmt$(d.fundraiserCard)}</span>`:'') + (d.fundraiserPct?`<span>${d.fundraiserPct}% donation</span>`:'');
-  } else {
-    dsFundHero.classList.remove('visible');
-  }
-
-  // Balance indicator
-  const dsBalance = document.getElementById('ds-balance');
-  const dsOpsLabel = document.getElementById('ds-ops-label');
-  const ops2 = [d.op1,d.op2].filter(Boolean);
-  dsOpsLabel.textContent = ops2.length ? ops2.join(' · ') : '—';
-  if(c.group1){
-    if(c.balanced){ dsBalance.className='balance-ok'; dsBalance.textContent='✓ Balanced'; }
-    else { dsBalance.className='balance-fail'; dsBalance.textContent=`Off by ${fmt$(Math.abs(c.balDiff||0))}`; }
-  } else {
-    dsBalance.className='balance-pending'; dsBalance.textContent='Partial data';
-  }
-
-  // Fundraiser section visibility
-  const fundSec = document.getElementById('df-fundraiser-section');
-  if(fundSec) fundSec.style.display = c.hasFundraiser ? 'block' : 'none';
-
-  document.getElementById('df-cardDeposits').textContent = fmt$(cardDep);
-  document.getElementById('df-totalSales').textContent   = fmt$(totalS);
-  document.getElementById('df-tax').textContent          = tax!==null ? fmt$(tax) : '--';
-  document.getElementById('df-overhead').textContent     = ohFinal!==null ? fmt$(ohFinal) : '--';
-  document.getElementById('df-donation').textContent     = (don&&don>0) ? fmt$(don) : '--';
-  document.getElementById('df-products').textContent     = prod!==null ? fmt$(prod) : '--';
-  document.getElementById('df-payouts').textContent      = pay!==null ? fmt$(pay) : '--';
-
-  const ownerName = getOwnerOpName();
-  const reinvestTag = d.ownerReinvest ? ' <span style="font-size:10px;font-weight:700;background:#dbeafe;color:#1d4ed8;border-radius:4px;padding:1px 5px;vertical-align:middle;">&#8617; Reinvested</span>' : '';
-  const h1 = parseFloat(d.op1Hrs)||0, h2 = parseFloat(d.op2Hrs)||0;
-  const totalHrs = h1 + h2;
-  const hourlyRate = (c.payouts !== null && totalHrs > 0) ? c.payouts / totalHrs : null;
-
-  if(d.op1){
-    const isOwner1 = ownerName && d.op1===ownerName;
-    const hrsTag = h1 > 0 ? ` <span style="font-size:11px;color:var(--text-faint);font-weight:500;">${h1.toFixed(1)} hrs</span>` : '';
-    const payTag = hourlyRate !== null && h1 > 0 ? ` · <span style="font-weight:700;color:var(--g6);">${fmt$(hourlyRate*h1)}</span>` : '';
-    document.getElementById('df-op1').innerHTML = d.op1 + hrsTag + payTag + (isOwner1&&d.ownerReinvest?reinvestTag:'');
-  } else {
-    document.getElementById('df-op1').innerHTML = `<span class="detail-row-val dim">--</span>`;
-  }
-  if(d.op2){
-    const isOwner2 = ownerName && d.op2===ownerName;
-    const hrsTag = h2 > 0 ? ` <span style="font-size:11px;color:var(--text-faint);font-weight:500;">${h2.toFixed(1)} hrs</span>` : '';
-    const payTag = hourlyRate !== null && h2 > 0 ? ` · <span style="font-weight:700;color:var(--g6);">${fmt$(hourlyRate*h2)}</span>` : '';
-    document.getElementById('df-op2').innerHTML = d.op2 + hrsTag + payTag + (isOwner2&&d.ownerReinvest?reinvestTag:'');
-  } else {
-    document.getElementById('df-op2').innerHTML = `<span class="detail-row-val dim">--</span>`;
-  }
-  const hourlyRow = document.getElementById('df-hourly-row');
-  const hourlyRateEl = document.getElementById('df-hourly-rate');
-  if(hourlyRow && hourlyRateEl){
-    if(hourlyRate !== null){
-      hourlyRow.style.display = 'flex';
-      hourlyRateEl.textContent = fmt$(hourlyRate) + '/hr · ' + totalHrs.toFixed(1) + ' total hrs';
-    } else { hourlyRow.style.display = 'none'; }
-  }
-
-  // Notes
-  const notesSec=document.getElementById('df-notes-section');
-  if(d.notes&&d.notes.trim()){notesSec.style.display='block';document.getElementById('df-notes').textContent=d.notes;}
-  else{notesSec.style.display='none';}
-
-  // Edit button -- employees cannot edit
-  const editBtn=document.getElementById('detail-edit-btn');
-  if(USER_ROLE==='employee'){editBtn.style.display='none';}
-  else{editBtn.style.display='block';}
-
-  document.getElementById('detail-overlay').classList.add('open');
-}
-function closeDetail(){document.getElementById('detail-overlay').classList.remove('open');}
-function closeDetailOnBg(e){if(e.target===document.getElementById('detail-overlay'))closeDetail();}
-function editFromDetail(){closeDetail();if(_detailDate)navToDate(_detailDate);}
-
-let _projCalYear=null,_projCalMonth=null,_projSelectedDate=null;
-let _projBaseSales=0,_projBaseOh=0,_projBasePayouts=0,_projBaseTax=0,_projBaseProd=0,_projBaseDv=0,_projMult=1.0;
-
-function projCalShift(dir){
-  _projCalMonth+=dir;
-  if(_projCalMonth>11){_projCalMonth=0;_projCalYear++;}
-  if(_projCalMonth<0){_projCalMonth=11;_projCalYear--;}
-  renderProjCal();
-}
-
-function renderProjCal(){
-  const grid=document.getElementById('proj-cal-grid');
-  const label=document.getElementById('proj-cal-label');
-  if(!grid||!label)return;
-  const yr=_projCalYear,mo=_projCalMonth;
-  label.textContent=new Date(yr,mo,1).toLocaleDateString('en-US',{month:'long',year:'numeric'});
-
-  const dayMap={};
-  ALL_DAYS.forEach(d=>{
-    const dt=new Date(d.date+'T00:00:00');
-    if(dt.getFullYear()===yr&&dt.getMonth()===mo) dayMap[d.date]=d.data||{};
-  });
-
-  const firstDay=new Date(yr,mo,1).getDay();
-  const daysInMonth=new Date(yr,mo+1,0).getDate();
-  const _tnow=new Date();const todayStr=_tnow.getFullYear()+'-'+String(_tnow.getMonth()+1).padStart(2,'0')+'-'+String(_tnow.getDate()).padStart(2,'0');
-  const allMonths=[...new Set(ALL_DAYS.map(d=>d.date.slice(0,7)))];
-  const thisMonthStr=`${yr}-${String(mo+1).padStart(2,'0')}`;
-  const prevBtn=document.querySelector('[onclick="projCalShift(-1)"]');
-  const nextBtn=document.querySelector('[onclick="projCalShift(1)"]');
-  if(prevBtn) prevBtn.disabled=!allMonths.some(m=>m<thisMonthStr);
-  if(nextBtn) nextBtn.disabled=!allMonths.some(m=>m>thisMonthStr);
-
-  const DOWS=['S','M','T','W','T','F','S'];
-  let html=`<div class="pcal-dow-row">${DOWS.map(d=>`<div class="pcal-dow">${d}</div>`).join('')}</div>`;
-  let cells=[];
-  for(let i=0;i<firstDay;i++) cells.push(null);
-  for(let d=1;d<=daysInMonth;d++) cells.push(d);
-  while(cells.length%7!==0) cells.push(null);
-  const weeks=[];
-  for(let i=0;i<cells.length;i+=7) weeks.push(cells.slice(i,i+7));
-
-  weeks.forEach(week=>{
-    html+=`<div class="pcal-week">`;
-    week.forEach(day=>{
-      if(day===null){html+=`<div class="pcal-day empty-day"></div>`;return;}
-      const dateStr=`${yr}-${String(mo+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-      const data=dayMap[dateStr];
-      const isToday=dateStr===todayStr;
-      const isFuture=dateStr>todayStr;
-      const isSelected=dateStr===_projSelectedDate;
-      if(data){
-        const s=calSales(data);
-        const dv=parseFloat(data.dv)||0;
-        html+=`<div class="pcal-day has-data${isToday?' today-day':''}${isSelected?' selected':''}" onclick="loadProjDay('${dateStr}')">
-          <div class="pcal-dn">${day}</div>
-          <div class="pcal-slabel">Sales</div>
-          <div class="pcal-sval">${fmt$(s)}</div>
-          <div class="pcal-dvlabel">DV</div>
-          <div class="pcal-dvval">${dv.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
-        </div>`;
-      } else if(isFuture){
-        html+=`<div class="pcal-day empty-day"><div class="pcal-dn">${day}</div></div>`;
-      } else {
-        const _pdow=new Date(dateStr+'T00:00:00').getDay();
-        const _opDays=SETTINGS.opDays||[false,true,true,true,true,true,true];
-        const _closedDays=SETTINGS.closedDays||{};
-        const _isClosed=(!_opDays[_pdow]||!!_closedDays[dateStr])&&_closedDays[dateStr]!=='open';
-        if(_isClosed){
-          html+=`<div class="pcal-day closed-day"><div class="pcal-dn">${day}</div><div style="margin-top:auto;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);text-align:center;">Closed</div></div>`;
-        } else if(isToday){
-          html+=`<div class="pcal-day no-data today-day"><div class="pcal-dn">${day}</div><div style="margin-top:auto;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--b5);text-align:center;">Enter today</div></div>`;
-        } else {
-          html+=`<div class="pcal-day missing-data" onclick="navToDate('${dateStr}')"><div class="pcal-dn" style="color:var(--a6);">${day}</div><div style="margin-top:auto;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--a6);text-align:center;line-height:1.3;">Enter<br>data</div></div>`;
-        }
-      }
-    });
-    html+=`</div>`;
-  });
-  grid.innerHTML=html;
-}
-
-function renderProjections(){
-  // Init cal to most recent month with data
-  if(_projCalYear===null){
-    if(ALL_DAYS.length){
-      const d=new Date(ALL_DAYS[0].date+'T00:00:00');
-      _projCalYear=d.getFullYear();_projCalMonth=d.getMonth();
-    } else {
-      const now=new Date();_projCalYear=now.getFullYear();_projCalMonth=now.getMonth();
+// ── CVA: RENDER PRODUCT TABLE ──
+function cvaRenderTable(){
+  var tb=document.getElementById('cva-prod-table');if(!tb)return;
+  tb.innerHTML='';
+  var lastCat='';
+  _CVA_I.PRODUCTS.forEach(function(p){
+    if(p.cat!==lastCat){
+      var hr=document.createElement('tr');
+      hr.innerHTML='<td colspan="5" style="padding:6px 4px 3px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);background:var(--b0);">'+p.cat+'</td>';
+      tb.appendChild(hr);lastCat=p.cat;
     }
-  }
-  renderProjCal();
-
-  const now=new Date(),y=now.getFullYear(),m=now.getMonth();
-  const op=parseInt(document.getElementById('proj-opdays')?.value)||26;
-  const md=ALL_DAYS.filter(d=>{const dt=new Date(d.date+'T00:00:00');return dt.getFullYear()===y&&dt.getMonth()===m;});
-  const di=md.length,ts=md.reduce((s,d)=>s+calSales(d.data||{}),0),tdv=md.reduce((s,d)=>s+(d.data?.dv||0),0);
-  const as=di>0?ts/di:0,adv=di>0?tdv/di:0;
-  setText('proj-daysin',di);setText('proj-totalsales',fmt$(ts));setText('proj-avgsales',fmt$(as));
-  setText('proj-sales',fmt$(as*op));setText('proj-avgdv',fmtN(tdv));setText('proj-dv',fmtN(adv*op));
-}
-function loadProjDay(date){
-  if(!date){document.getElementById('proj-base-section').style.display='none';document.getElementById('proj-empty').style.display='block';return;}
-  const day=ALL_DAYS.find(d=>d.date===date);if(!day)return;
-  const d=day.data||{};
-  const c=calcAllFromData(d);
-  _projSelectedDate=date;
-  _projBaseSales=calSales(d);_projBaseOh=c.overhead||0;_projBasePayouts=c.payouts||0;
-  _projBaseTax=c.tax||0;_projBaseProd=c.products||0;_projBaseDv=d.dv||0;
-  const dt=new Date(date+'T00:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
-  const dateLabel=document.getElementById('proj-base-date-label');if(dateLabel)dateLabel.textContent=dt.toUpperCase();
-  const infoEl=document.getElementById('proj-day-info');
-  if(infoEl){infoEl.textContent=dt;infoEl.style.display='block';}
-  setText('proj-base-sales',fmt$(_projBaseSales));setText('proj-base-oh',fmt$(_projBaseOh));
-  setText('proj-base-payouts',fmt$(_projBasePayouts));setText('proj-base-tax',fmt$(_projBaseTax));
-  setText('proj-base-prod',fmt$(_projBaseProd));setText('proj-base-dv',fmtN(_projBaseDv));
-  document.getElementById('proj-base-section').style.display='block';
-  document.getElementById('proj-empty').style.display='none';
-  renderProjCal();
-  renderProjScenario();
-}
-function loadProjAvg(){
-  const now=new Date(),y=now.getFullYear(),m=now.getMonth();
-  const md=ALL_DAYS.filter(d=>{const dt=new Date(d.date+'T00:00:00');return dt.getFullYear()===y&&dt.getMonth()===m;});
-  if(!md.length){showToast('No entries this month yet','');return;}
-  const n=md.length;
-  _projBaseSales=md.reduce((s,d)=>s+calSales(d.data||{}),0)/n;
-  _projBaseOh=md.reduce((s,d)=>s+(d.data?.overhead||0),0)/n;
-  _projBasePayouts=md.reduce((s,d)=>s+(d.data?.payouts||0),0)/n;
-  _projBaseTax=md.reduce((s,d)=>s+(d.data?.taxes||0),0)/n;
-  _projBaseProd=md.reduce((s,d)=>s+(d.data?.products||0),0)/n;
-  _projBaseDv=md.reduce((s,d)=>s+(d.data?.dv||0),0)/n;
-  const picker=document.getElementById('proj-day-picker');if(picker)picker.value='';
-  const infoEl=document.getElementById('proj-day-info');
-  const avgLabel=document.getElementById('proj-base-date-label');if(avgLabel)avgLabel.textContent='AVG OF '+n+' DAYS — THIS MONTH';
-  if(infoEl){infoEl.textContent='Average of '+n+' days this month';infoEl.style.display='block';}
-  setText('proj-base-sales',fmt$(_projBaseSales));setText('proj-base-oh',fmt$(_projBaseOh));
-  setText('proj-base-payouts',fmt$(_projBasePayouts));setText('proj-base-tax',fmt$(_projBaseTax));
-  setText('proj-base-prod',fmt$(_projBaseProd));setText('proj-base-dv',fmtN(_projBaseDv));
-  document.getElementById('proj-base-section').style.display='block';
-  document.getElementById('proj-empty').style.display='none';
-  renderProjScenario();
-}
-let _projScenario=[0,10,20,30];
-
-function setScenarioPreset(btn,pcts){
-  _projScenario=pcts;
-  document.querySelectorAll('.proj-preset-btn').forEach(b=>b.classList.remove('active'));
-  if(btn)btn.classList.add('active');
-  renderProjScenario();
-}
-
-function adjustOpDays(dir){
-  const input=document.getElementById('proj-opdays');
-  const display=document.getElementById('proj-opdays-display');
-  let v=parseInt(input.value)||26;
-  v=Math.min(31,Math.max(20,v+dir));
-  input.value=v;
-  if(display)display.textContent=v;
-  renderProjScenario();
-}
-
-function setProjMult(mult,btn){
-  _projMult=mult;
-  renderProjScenario();
-}
-
-function renderProjScenario(){
-  const op=parseInt(document.getElementById('proj-opdays')?.value)||26;
-  const pcts=_projScenario||[0,10,20,30];
-  const mults=pcts.map(p=>1+p/100);
-
-  // Update column headers
-  ['proj-col-h0','proj-col-h1','proj-col-h2','proj-col-h3'].forEach((id,i)=>{
-    const el=document.getElementById(id);
-    if(el)el.textContent=pcts[i]===0?'Base':'+'+pcts[i]+'%';
+    var profit=p.sell-p.cost,margin=Math.round((profit/p.sell)*100);
+    var tr=document.createElement('tr');
+    tr.style.borderBottom='1px solid var(--border-light)';
+    tr.innerHTML='<td style="padding:5px 4px 5px 12px;color:var(--text);">'+p.name+'</td>'
+      +'<td style="text-align:right;padding:5px 4px;color:var(--text-muted);">'+cvaFc(p.cost)+'</td>'
+      +'<td style="text-align:right;padding:5px 4px;color:var(--text-muted);">$'+p.sell+'</td>'
+      +'<td style="text-align:right;padding:5px 4px;color:var(--g5);font-weight:600;">'+cvaFc(profit)+'</td>'
+      +'<td style="text-align:right;padding:5px 4px;color:var(--text-faint);">'+margin+'%</td>';
+    tb.appendChild(tr);
   });
+}
 
-  const labelStyle='font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-muted);padding:9px 10px;white-space:nowrap;border-radius:8px;background:var(--b0);border:1px solid var(--border-light);transition:background 0.1s;';
-  const cellStyle='padding:9px 14px;text-align:right;border-radius:8px;background:var(--surface);border:1px solid var(--border-light);transition:background 0.1s;';
-  const valStyle='font-family:\'Outfit\',sans-serif;font-size:14px;font-weight:600;color:var(--text);';
-  const renderRow=(r,ri)=>`<tr class="proj-grid-row">${'<td style="'+labelStyle+'" data-bg="var(--b0)" data-col="0" data-row="'+ri+'">'+r.label+'</td>'+r.vals.map((v,i)=>`<td style="${cellStyle}" data-bg="var(--surface)" data-col="${i+1}" data-row="${ri}"><span style="${valStyle}">${v}</span></td>`).join('')}</tr>`;
-  const sectionStyle='font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);padding:8px 4px 2px;background:transparent;border:none;';
-
-  const salesRows=[
-    {label:'Net Sales',      vals:mults.map(m=>fmt$(_projBaseSales*m))},
-    {label:'Payouts',        vals:mults.map(m=>fmt$(_projBasePayouts*m))},
-    {label:'Weekly (5d)',    vals:mults.map(m=>fmt$(_projBaseSales*m*5))},
-    {label:`Monthly (${op}d)`,vals:mults.map(m=>fmt$(_projBaseSales*m*op))},
-  ];
-  const dvRows=[
-    {label:'Daily DV',           vals:mults.map(m=>fmtN(_projBaseDv*m))},
-    {label:`Monthly DV (${op}d)`,vals:mults.map(m=>fmtN(_projBaseDv*m*op))},
-  ];
-  const sectionRow=label=>`<tr><td colspan="5" style="${sectionStyle}">${label}</td></tr>`;
-
-  const body=document.getElementById('proj-estimator-body');
-  if(body){
-    const allRows=[...salesRows,...dvRows];
-    body.innerHTML=
-      sectionRow('Sales')+salesRows.map((r,i)=>renderRow(r,i)).join('')+
-      sectionRow('Documented Volume')+dvRows.map((r,i)=>renderRow(r,salesRows.length+i)).join('');
-    document.getElementById('proj-estimator-grid').style.display='block';
-
-    // Crosshair: highlight left+up only (row label, column header, cells ≤ hovered col in same row, cells ≤ hovered row in same col)
-    const table=body.closest('table');
-    const thead=table.querySelector('thead');
-
-    body.querySelectorAll('td[data-col]').forEach(cell=>{
-      cell.addEventListener('mouseenter',function(){
-        const hovRow=parseInt(this.dataset.row);
-        const hovCol=parseInt(this.dataset.col);
-
-        // Reset all body cells
-        table.querySelectorAll('td[data-col]').forEach(td=>td.style.background=td.dataset.bg);
-        // Reset thead cells
-        thead.querySelectorAll('th[data-col]').forEach(th=>th.style.background='var(--b0)');
-
-        // Hovered cell — strongest
-        this.style.background='var(--b2)';
-
-        // Same row, columns to the LEFT (col < hovCol) including col 0 (label)
-        body.querySelectorAll(`td[data-row="${hovRow}"]`).forEach(td=>{
-          if(parseInt(td.dataset.col)<hovCol) td.style.background='var(--b1)';
-        });
-
-        // Same column, rows ABOVE (row < hovRow)
-        body.querySelectorAll(`td[data-col="${hovCol}"]`).forEach(td=>{
-          if(parseInt(td.dataset.row)<hovRow) td.style.background='var(--b1)';
-        });
-
-        // Column header
-        const th=thead.querySelector(`th[data-col="${hovCol}"]`);
-        if(th) th.style.background='var(--b1)';
+// ── CVA: RENDER MIX SLIDERS ──
+function cvaRenderMix(){
+  var c=document.getElementById('cva-mix-rows');if(!c)return;c.innerHTML='';
+  var tot=_cvaMixVals.reduce(function(s,x){return s+x;},0);
+  var bw=document.getElementById('cva-mix-badge');
+  if(bw)bw.innerHTML='<span style="font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;background:'+(tot===100?'var(--g0)':'var(--r0)')+';color:'+(tot===100?'var(--g5)':'var(--r5)')+';">'+tot+'%</span>';
+  _cvaMix.forEach(function(cat,i){
+    var row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:10px;margin-bottom:9px;';
+    var lbl=document.createElement('span');
+    lbl.style.cssText='font-size:12px;width:100px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:'+(cat.tea?'var(--b7)':'var(--text-muted)')+';'+(cat.tea?'font-weight:700;':'');
+    lbl.textContent=cat.label;
+    if(cat.label==='Other')lbl.innerHTML='Other <span style="font-size:10px;opacity:0.65;font-weight:400;">snacks, retail</span>';
+    var inp=document.createElement('input');
+    inp.type='range';inp.min=0;inp.max=100;inp.step=1;inp.value=_cvaMixVals[i];
+    inp.style.cssText='flex:1;min-width:0;height:4px;-webkit-appearance:none;appearance:none;background:var(--b1);border-radius:2px;outline:none;';
+    inp.disabled=_cvaMixLock[i];inp.style.opacity=_cvaMixLock[i]?'0.4':'1';
+    var pct=document.createElement('span');
+    pct.style.cssText='font-size:12px;font-weight:700;width:34px;text-align:right;flex-shrink:0;color:'+(cat.tea?'var(--b7)':'var(--text)');
+    pct.textContent=_cvaMixVals[i]+'%';
+    var btn=document.createElement('button');
+    btn.style.cssText='width:26px;height:26px;border-radius:5px;border:1px solid var(--border);background:'+(i<_cvaMixLock.length&&_cvaMixLock[i]?'var(--a1)':'transparent')+';cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;line-height:1;padding:0;';
+    btn.textContent=_cvaMixLock[i]?'🔒':'🔓';
+    (function(idx,isTea){
+      btn.addEventListener('click',function(){_cvaMixLock[idx]=!_cvaMixLock[idx];cvaRenderMix();cvaRecalc();});
+      inp.addEventListener('input',function(){
+        cvaRedist(_cvaMixVals,_cvaMixLock,idx,parseInt(this.value),100);
+        if(isTea)cvaScaleTeas(_cvaMixVals[idx]);
+        cvaRenderMix();cvaRenderTeaSub();cvaRecalc();
       });
-
-      cell.addEventListener('mouseleave',function(){
-        table.querySelectorAll('td[data-col]').forEach(td=>td.style.background=td.dataset.bg);
-        thead.querySelectorAll('th[data-col]').forEach(th=>th.style.background='var(--b0)');
-      });
-    });
-  }
-
-  // Current month actuals
-  const now=new Date(),y=now.getFullYear(),mo=now.getMonth();
-  const md=ALL_DAYS.filter(d=>{const dt=new Date(d.date+'T00:00:00');return dt.getFullYear()===y&&dt.getMonth()===mo;});
-  const di=md.length,ts=md.reduce((s,d)=>s+calSales(d.data||{}),0),tdv=md.reduce((s,d)=>s+(d.data?.dv||0),0);
-  const as=di>0?ts/di:0,adv=di>0?tdv/di:0;
-  setText('proj-daysin',di);setText('proj-totalsales',fmt$(ts));setText('proj-avgsales',fmt$(as));
-  setText('proj-sales',fmt$(as*op));setText('proj-avgdv',fmtN(tdv));setText('proj-dv',fmtN(adv*op));
+    })(i,cat.tea);
+    row.appendChild(lbl);row.appendChild(inp);row.appendChild(pct);row.appendChild(btn);
+    c.appendChild(row);
+  });
 }
-// ── WHAT-IF MODELER ──────────────────────────────────────────────
-var _wifMode='actual';
-var _wifDailySales=0;
-var _wifOpdays=26;
 
+// ── CVA: RENDER TEA SUB-MIX ──
+function cvaRenderTeaSub(){
+  var c=document.getElementById('cva-tea-rows');if(!c)return;c.innerHTML='';
+  var mega=_cvaMixVals[_cvaMix.findIndex(function(m){return m.tea;})];
+  cvaST('cva-tea-pill',mega+'%');
+  _cvaTeaCats.forEach(function(cat,i){
+    var row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:10px;margin-bottom:8px;';
+    var lbl=document.createElement('span');
+    lbl.style.cssText='font-size:12px;color:var(--text-muted);width:80px;flex-shrink:0;';
+    lbl.textContent=cat.label;
+    var inp=document.createElement('input');
+    inp.type='range';inp.min=0;inp.max=mega;inp.step=1;inp.value=_cvaTeaVals[i];
+    inp.style.cssText='flex:1;min-width:0;height:4px;-webkit-appearance:none;appearance:none;background:var(--b1);border-radius:2px;outline:none;';
+    inp.disabled=_cvaTeaLock[i];inp.style.opacity=_cvaTeaLock[i]?'0.4':'1';
+    var wrap=document.createElement('div');
+    wrap.style.cssText='width:54px;flex-shrink:0;text-align:right;';
+    var shareOfTea=mega>0?Math.round((_cvaTeaVals[i]/mega)*100):0;
+    wrap.innerHTML='<div style="font-size:12px;font-weight:700;">'+_cvaTeaVals[i]+'%</div>'
+      +'<div style="font-size:10px;color:var(--text-faint);">'+shareOfTea+'% of teas</div>';
+    var btn=document.createElement('button');
+    btn.style.cssText='width:26px;height:26px;border-radius:5px;border:1px solid var(--border);background:'+(i<_cvaTeaLock.length&&_cvaTeaLock[i]?'var(--a1)':'transparent')+';cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;line-height:1;padding:0;';
+    btn.textContent=_cvaTeaLock[i]?'🔒':'🔓';
+    (function(idx){
+      btn.addEventListener('click',function(){_cvaTeaLock[idx]=!_cvaTeaLock[idx];cvaRenderTeaSub();cvaRecalc();});
+      inp.addEventListener('input',function(){
+        cvaRedist(_cvaTeaVals,_cvaTeaLock,idx,parseInt(this.value),mega);
+        cvaRenderTeaSub();cvaRecalc();
+      });
+    })(i);
+    row.appendChild(lbl);row.appendChild(inp);row.appendChild(wrap);row.appendChild(btn);
+    c.appendChild(row);
+  });
+  cvaST('cva-tea-avg',cvaFc(cvaTeaWtdProfit()));
+}
+
+// ── CVA: MAIN RECALC ──
+function cvaRecalc(){
+  var fixed=cvaGetFixed(),wage=cvaGetWage(),hrs=cvaGetHrs(),ceil=cvaGetCeil();
+  var goal=parseInt(document.getElementById('cva-profit-slider').value)||0;
+  var w=cvaOverallWtd(),avgP=cvaOverallAvgPrice();
+
+  cvaST('cva-profit-val','$'+goal.toLocaleString());
+  cvaST('cva-wtd-profit',cvaFc(w));
+  cvaST('cva-wtd-hdr',cvaFc(w)+' / drink');
+  cvaST('cva-exp-hdr',cvaFmt$(fixed)+' / mo');
+  cvaST('cva-exp-total',cvaFmt$(fixed)+' / mo');
+  cvaST('cva-exp-daily',cvaFmt$(fixed/30)+' / day');
+  cvaST('cva-emp-cost',cvaFmt$(wage*hrs));
+  cvaST('cva-lab-hdr','$'+wage.toFixed(2)+'/hr \xb7 '+hrs+'hrs \xb7 $'+Math.round(ceil)+' ceiling');
+
+  var target=cvaCalcTarget(goal);
+  var drinks=Math.ceil(target/(avgP||1));
+  cvaST('cva-target-rev',cvaFmtD(target));
+  cvaST('cva-target-drinks',drinks);
+  cvaST('cva-target-dph',(drinks/(hrs||8)).toFixed(1));
+  cvaST('cva-bench-0',cvaFmtD(cvaCalcTarget(0)));
+  cvaST('cva-bench-3k',cvaFmtD(cvaCalcTarget(3000)));
+  cvaST('cva-bench-5k',cvaFmtD(cvaCalcTarget(5000)));
+  cvaST('cva-bench-10k',cvaFmtD(cvaCalcTarget(10000)));
+
+  var teaIdx=_cvaMix.findIndex(function(c){return c.tea;});
+  cvaST('cva-tea-pill',_cvaMixVals[teaIdx]+'%');
+  cvaST('cva-tea-avg',cvaFc(cvaTeaWtdProfit()));
+}
+
+// ── CVA: INIT ──
+(function(){
+  var sl=document.getElementById('cva-profit-slider');
+  if(!sl)return;
+  sl.addEventListener('wheel',function(e){if(document.activeElement!==sl){e.preventDefault();}},{passive:false});
+  cvaRenderExp();
+  cvaRenderTable();
+  cvaRenderMix();
+  cvaRenderTeaSub();
+  cvaRecalc();
+})();
+
+// ── wifGetCSA: reads from new CVA inputs ──
 function wifGetCSA(){
-  // Pull live values from CSA panel inputs
-  var fixedTotal=0;
-  document.querySelectorAll('.csa-cost-input').forEach(function(el){fixedTotal+=parseFloat(el.value.replace(/,/g,''))||0;});
-  var wage=parseFloat((document.getElementById('csa-wage').value||'0').replace(/,/g,''))||12;
-  var hrs=parseFloat(document.getElementById('csa-shift-hrs').value)||8;
-  var soloCeil=parseFloat((document.getElementById('csa-solo-ceil').value||'0').replace(/,/g,''))||960;
-  var mixInputs=document.querySelectorAll('.csa-mix-input');
-  var mix=[];mixInputs.forEach(function(el){mix.push((parseFloat(el.value)||0)/100);});
-  var wtdProfit=mix[0]*5.69+mix[1]*6.92+mix[2]*5.19+mix[3]*5.88+mix[4]*5.00;
-  var wtdPrice=mix[0]*12+mix[1]*11+mix[2]*13+mix[3]*11+mix[4]*10;
-  // Fallback if product mix not set up
-  if(!wtdProfit||isNaN(wtdProfit)){wtdProfit=5.86;wtdPrice=11.8;}
-  // Avg daily hrs: Mon-Fri=8, Sat=6, weighted over 6-day week
+  var fixedTotal=cvaGetFixed();
+  var wage=cvaGetWage();
+  var hrs=cvaGetHrs();
+  var soloCeil=cvaGetCeil();
+  var wtdProfit=cvaOverallWtd();
+  var wtdPrice=cvaOverallAvgPrice();
   var avgHrsPerDay=((8*5)+(6*1))/6;
   return{fixedTotal:fixedTotal,fixedDaily:fixedTotal/30,wage:wage,hrs:hrs,soloCeil:soloCeil,
     empCostDay:wage*hrs,wtdProfit:wtdProfit,wtdPrice:wtdPrice,avgHrsPerDay:avgHrsPerDay};
 }
 
-function wifSetMode(mode){
-  _wifMode=mode;
-  var ba=document.getElementById('wif-btn-actual'),bh=document.getElementById('wif-btn-hypo');
-  if(ba){ba.style.background=mode==='actual'?'var(--surface)':'transparent';ba.style.color=mode==='actual'?'var(--b7)':'var(--text-muted)';ba.style.boxShadow=mode==='actual'?'var(--shadow-sm)':'none';}
-  if(bh){bh.style.background=mode==='hypo'?'var(--surface)':'transparent';bh.style.color=mode==='hypo'?'var(--b7)':'var(--text-muted)';bh.style.boxShadow=mode==='hypo'?'var(--shadow-sm)':'none';}
-  document.getElementById('wif-input-actual').style.display=mode==='actual'?'block':'none';
-  document.getElementById('wif-input-hypo').style.display=mode==='hypo'?'block':'none';
-  // Keep results visible if already showing
-}
-
-function wifLoadActualDay(dateStr){
-  if(!dateStr)return;
-  var day=ALL_DAYS.find(function(d){return d.date===dateStr;});
-  if(!day){showToast('No entry found for that date','');return;}
-  var sales=calSales(day.data||{});
-  var dv=day.data?day.data.dv||0:0;
-  _wifDailySales=sales;
-  var dt=new Date(dateStr+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'long',day:'numeric',year:'numeric'});
-  document.getElementById('wif-actual-label').textContent=dt.toUpperCase();
-  document.getElementById('wif-actual-sales').textContent=fmt$(sales);
-  document.getElementById('wif-actual-dv').textContent=fmtN(dv)+' DV';
-  document.getElementById('wif-actual-loaded').style.display='block';
-  document.getElementById('wif-actual-empty').style.display='none';
-  wifRecalc();
-}
-
-function wifLoadAvg(){
-  var now=new Date(),y=now.getFullYear(),m=now.getMonth();
-  var md=ALL_DAYS.filter(function(d){var dt=new Date(d.date+'T00:00:00');return dt.getFullYear()===y&&dt.getMonth()===m;});
-  if(!md.length){showToast('No entries this month yet','');return;}
-  var n=md.length;
-  _wifDailySales=md.reduce(function(s,d){return s+calSales(d.data||{});},0)/n;
-  document.getElementById('wif-actual-label').textContent='AVG OF '+n+' DAYS — THIS MONTH';
-  document.getElementById('wif-actual-sales').textContent=fmt$(_wifDailySales);
-  document.getElementById('wif-actual-dv').textContent='avg / day';
-  document.getElementById('wif-actual-loaded').style.display='block';
-  document.getElementById('wif-actual-empty').style.display='none';
-  if(document.getElementById('wif-date-picker'))document.getElementById('wif-date-picker').value='';
-  wifRecalc();
-}
-
-function wifSetHypo(val){
-  var inp=document.getElementById('wif-hypo-input');
-  if(inp){inp.value=val;}
-  _wifDailySales=val;
-  wifRecalc();
-}
-
-function wifNudge(delta){
-  var inp=document.getElementById('wif-hypo-input');
-  var cur=parseFloat(inp?inp.value:0)||0;
-  var next=Math.max(0,cur+delta);
-  if(inp)inp.value=next;
-  _wifDailySales=next;
-  wifRecalc();
-}
-
-function wifAdjOp(dir){
-  var cur=parseInt(document.getElementById('wif-opdays').value)||26;
-  var next=Math.min(31,Math.max(20,cur+dir));
-  document.getElementById('wif-opdays').value=next;
-  document.getElementById('wif-opdays-display').textContent=next;
-  document.getElementById('wif-opdays-label').textContent=next+' days';
-  _wifOpdays=next;
-  wifRecalc();
-}
-
-function wifRecalc(){
-  var daily=_wifMode==='hypo'
-    ?(parseFloat(document.getElementById('wif-hypo-input').value)||0)
-    :_wifDailySales;
-  if(!daily){document.getElementById('wif-results').style.display='none';return;}
-  _wifDailySales=daily;
-
-  var op=parseInt(document.getElementById('wif-opdays').value)||26;
-  var weekly=daily*6;   // 6 operating days (Mon-Sat), weighted avg handles hours
-  var monthly=daily*op;
-  var annual=monthly*12;
-
-  var csa=wifGetCSA();
-  // Ingredient cost = revenue - gross profit. Gross profit = drinks * wtdProfit
-  // drinks per day = daily / wtdPrice
-  var drinksDay=daily/csa.wtdPrice;
-  var grossProfitDay=drinksDay*csa.wtdProfit;
-  var ingrCostDay=daily-grossProfitDay;
-
-  // Labor: kicks in when daily > soloCeil
-  var laborDay=daily>csa.soloCeil?csa.empCostDay:0;
-  var needsEmployee=daily>csa.soloCeil;
-
-  // Total costs
-  var totalCostDay=csa.fixedDaily+ingrCostDay+laborDay;
-  var profitDay=daily-totalCostDay;
-  var profitMonthly=profitDay*op;
-  var profitAnnual=profitMonthly*12;
-
-  var ingrMonthly=ingrCostDay*op;
-  var laborMonthly=laborDay*op;
-
-  // Volume & capacity
-  var dph=drinksDay/csa.avgHrsPerDay;
-
-  // Show results
-  document.getElementById('wif-results').style.display='block';
-  document.getElementById('wif-opdays-label').textContent=op+' days';
-
-  setText('wif-rev-daily',fmt$(daily));
-  setText('wif-rev-weekly',fmt$(weekly));
-  setText('wif-rev-monthly',fmt$(monthly));
-  setText('wif-rev-annual',fmt$(annual));
-
-  setText('wif-cost-fixed',fmt$(csa.fixedTotal));
-  setText('wif-cost-ingr',fmt$(ingrMonthly));
-  setText('wif-cost-labor',laborMonthly>0?fmt$(laborMonthly):'$0');
-
-  var badge=document.getElementById('wif-labor-badge');
-  if(badge)badge.style.display=needsEmployee?'block':'none';
-
-  function profitColor(v){return v>=0?'var(--g6,#1a7a45)':'#c0392b';}
-  function profitBg(v){return v>=0?'var(--b0)':'#fff8f8';}
-
-  setText('wif-profit-daily',fmt$(profitDay));
-  setText('wif-profit-monthly',fmt$(profitMonthly));
-  setText('wif-profit-annual',fmt$(profitAnnual));
-  var pd=document.getElementById('wif-profit-daily'),pm=document.getElementById('wif-profit-monthly'),pa=document.getElementById('wif-profit-annual');
-  if(pd){pd.style.color=profitColor(profitDay);}
-  if(pm){pm.style.color=profitColor(profitMonthly);}
-  if(pa){pa.style.color=profitColor(profitAnnual);}
-  var pdc=document.getElementById('wif-profit-daily-card'),pmc=document.getElementById('wif-profit-monthly-card'),pac=document.getElementById('wif-profit-annual-card');
-  if(pdc)pdc.style.background=profitBg(profitDay);
-  if(pmc)pmc.style.background=profitBg(profitMonthly);
-  if(pac){pac.style.background=profitAnnual>=0?'var(--b1)':'#fff0f0';pac.style.border=profitAnnual>=0?'1px solid var(--b3)':'1px solid #f5c6cb';}
-
-  setText('wif-vol-drinks',Math.round(drinksDay).toString());
-  setText('wif-vol-dph',dph.toFixed(1));
-  var ceilEl=document.getElementById('wif-vol-ceiling');
-  var ceilLabelEl=document.getElementById('wif-vol-ceiling-label');
-  if(ceilEl){ceilEl.textContent=fmt$(csa.soloCeil);ceilEl.style.color=needsEmployee?'#c0392b':'var(--g6,#1a7a45)';}
-  if(ceilLabelEl){ceilLabelEl.textContent=needsEmployee?'OVER ceiling':'Under ceiling';}
-}
 
 function renderWhatIf(){}
 
