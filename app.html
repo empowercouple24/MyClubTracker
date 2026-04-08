@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-08 15:00:00 -->
+<!-- CACHE BUST: 2026-04-08 17:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -302,7 +302,10 @@ if('serviceWorker' in navigator){
     .inv-dv-card{flex:1;background:rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;}
     .inv-dv-item-label{font-size:10px;opacity:0.65;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;font-weight:600;}
     .inv-dv-item-val{font-family:'Outfit',sans-serif;font-size:28px;font-weight:800;letter-spacing:-0.5px;line-height:1;}
-    .inv-cat-header{font-size:18px;font-weight:700;color:white;background:linear-gradient(135deg,var(--b8),var(--b6));padding:12px 16px;border-radius:var(--radius-sm) var(--radius-sm) 0 0;margin-top:8px;position:sticky;top:var(--inv-cat-top,100px);z-index:18;}
+    .inv-cat-header{font-size:18px;font-weight:700;color:white;background:linear-gradient(135deg,var(--b8),var(--b6));padding:12px 16px;border-radius:var(--radius-sm) var(--radius-sm) 0 0;margin-top:8px;position:sticky;top:var(--inv-cat-top,100px);z-index:18;display:flex;align-items:center;justify-content:space-between;}
+    .inv-cat-dv{display:flex;flex-direction:column;align-items:flex-end;gap:1px;}
+    .inv-cat-dv-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;opacity:0.65;}
+    .inv-cat-dv-val{font-size:22px;font-weight:800;letter-spacing:-0.5px;line-height:1;}
     .inv-table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border-light);border-radius:0 0 var(--radius-sm) var(--radius-sm);overflow:hidden;margin-bottom:2px;table-layout:fixed;}
     .inv-table th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);background:#f8fafc;padding:7px 8px;text-align:center;border-bottom:1px solid var(--border-light);vertical-align:middle;white-space:nowrap;}
     .inv-table th:first-child{text-align:left;padding:7px 14px;}
@@ -6535,7 +6538,7 @@ function renderInventory(){
     const catDvHave=items.reduce((s,p)=>{const q=invHave[p.sku]||0;return s+(p.vp||0)*q;},0);
     const catAnyFilled=items.some(p=>invHave[p.sku]!=null);
     const catDvNeed=items.reduce((s,p)=>{const q=invHave[p.sku]||0;const he=invHave[p.sku]!=null;const need=Math.max(0,(p.par||0)-q);return s+(he?(p.vp||0)*need:0);},0);
-    html+=`<div class="inv-cat-header">${cat}</div><table class="inv-table"><thead><tr><th style="text-align:left">Product</th><th>PAR<span class="th-sub">Full Stock</span></th><th>Need<span class="th-sub">Qty</span></th><th>DV<span class="th-sub">Product</span></th><th>Have<span class="th-sub">Qty</span></th><th>DV<span class="th-sub">Need</span></th></tr></thead><tbody>`;
+    html+=`<div class="inv-cat-header"><span>${cat}</span><div class="inv-cat-dv" id="cat-dvhave-${catSlug}"><div class="inv-cat-dv-label">DV Need</div><div class="inv-cat-dv-val">${catAnyFilled?fmtVP(catDvNeed):'--'}</div></div></div><table class="inv-table"><thead><tr><th style="text-align:left">Product</th><th>PAR<span class="th-sub">Full Stock</span></th><th>Need<span class="th-sub">Qty</span></th><th>DV<span class="th-sub">Product</span></th><th>Have<span class="th-sub">Qty</span></th><th>DV<span class="th-sub">Need</span></th></tr></thead><tbody>`;
     vis.forEach(p=>{
       const haveRaw=invHave[p.sku],have=haveRaw||0,haveEntered=haveRaw!=null&&haveRaw!==undefined;
       const need=Math.max(0,p.par-have),bc=need>0?'need':(haveEntered?'ok':'zero'),bt=need>0?need:(haveEntered?'ok':'--');
@@ -6555,11 +6558,6 @@ function renderInventory(){
         <td id="vptot-${p.sku}" class="dv-subtotal">${dvNeedStr}</td>
       </tr>`;
     });
-    html+=`<tr class="inv-cat-subtotal">
-      <td style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">${cat} Total</td>
-      <td></td><td></td><td></td><td></td>
-      <td id="cat-dvhave-${catSlug}" style="font-size:13px;font-weight:700;color:var(--b6);text-align:right;">${catAnyFilled?fmtVP(catDvNeed):'--'}</td>
-    </tr>`;
     html+='</tbody></table>';
   });
   document.getElementById('inv-body').innerHTML=html||'<div class="empty-state">No items.</div>';
@@ -6608,7 +6606,7 @@ function setHave(s,v){
     const catDvNeed=catItems.reduce((sum,p)=>{const q=invHave[p[2]]||0;const he=invHave[p[2]]!=null;const n=Math.max(0,(p[4]||0)-q);return sum+(he?(p[3]||0)*n:0);},0);
     const catHaveEl=document.getElementById('cat-dvhave-'+catSlug);
     const catNeedEl=document.getElementById('cat-dvneed-'+catSlug);
-    if(catHaveEl)catHaveEl.textContent=catAnyFilled?fmtVP(catDvNeed):'--';
+    if(catHaveEl){const valEl=catHaveEl.querySelector('.inv-cat-dv-val');if(valEl)valEl.textContent=catAnyFilled?fmtVP(catDvNeed):'--';}
     if(catNeedEl)catNeedEl.textContent=catAnyFilled?fmtVP(catDvNeed):'--';
   }
 }
@@ -6799,24 +6797,23 @@ var ORDER_PLANS=[];
 var _orderPlanActive=null; // {id, name, assignments:{sku:opName}, saved_at} — working plan in memory
 
 function goToOrderTab(){
+  if(!_orderPlanActive){
+    _orderPlanActive={id:null,assignments:{},saved_at:new Date().toISOString()};
+  }
   switchTab('order');
 }
 
 function renderOrderTab(){
+  if(!_orderPlanActive){
+    _orderPlanActive={id:null,assignments:{},saved_at:new Date().toISOString()};
+  }
   // Recalc sticky top offset
   setTimeout(()=>{
     const w=document.getElementById('order-sticky-wrap');
     if(w)document.documentElement.style.setProperty('--order-cat-top',w.offsetHeight+'px');
   },50);
   renderOrderPlanPicker();
-  if(_orderPlanActive){
-    renderOrderBody();
-  } else {
-    document.getElementById('order-body').innerHTML='<div class="empty-state">Start a new order plan or load a saved one above.</div>';
-    setText('order-total-dvneed','--');
-    setText('order-total-orderable','--');
-    setText('order-oos-note','');
-  }
+  renderOrderBody();
 }
 
 function renderOrderPlanPicker(){
@@ -6881,7 +6878,7 @@ function renderOrderBody(){
     }
   });
   if(!needItems.length){
-    document.getElementById('order-body').innerHTML='<div class="empty-state">No items with confirmed need. Enter inventory counts on the Inventory tab first.</div>';
+    document.getElementById('order-body').innerHTML='<div class="empty-state">No confirmed needs yet -- enter Have quantities on the Inventory tab first, then come back here.</div>';
     setText('order-total-dvneed','--');setText('order-total-orderable','--');setText('order-oos-note','');
     return;
   }
