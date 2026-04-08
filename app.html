@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-09 00:00:00 -->
+<!-- CACHE BUST: 2026-04-09 01:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -6637,7 +6637,7 @@ function renderInventory(){
       const dvNeedStr=haveEntered&&dvNeed>0?fmtVP(dvNeed):'--';
       const oosInfo=isOos&&oos.expectedDate?`<span class="oos-badge">OOS - ${new Date(oos.expectedDate+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>`:(isOos?`<span class="oos-badge">OOS</span>`:'');
       html+=`<tr class="${rowClass}" id="inv-row-${p.sku}">
-        <td><div class="inv-name-cell" style="display:flex;align-items:center;gap:7px;"><input type="checkbox" class="oos-check" title="Mark out of stock" ${isOos?'checked':''} onchange="toggleOos('${p.sku}','${escHtml(p.name)}',this)"/><div style="display:flex;align-items:baseline;gap:12px;overflow:hidden;"><span class="inv-name">${p.name}</span>${p.sku?`<span class="inv-sku">${p.sku}</span>`:''}</div>${oosInfo}</div></td>
+        <td><div class="inv-name-cell" style="display:flex;align-items:center;gap:7px;"><input type="checkbox" class="oos-check" tabindex="-1" title="Mark out of stock" ${isOos?'checked':''} onchange="toggleOos('${p.sku}','${escHtml(p.name)}',this)"/><div style="display:flex;align-items:baseline;gap:12px;overflow:hidden;"><span class="inv-name">${p.name}</span>${p.sku?`<span class="inv-sku">${p.sku}</span>`:''}</div>${oosInfo}</div></td>
         <td style="color:var(--text-muted);font-size:13px;">${p.par}</td>
         <td><span class="need-badge ${bc}">${bt}</span></td>
         <td class="dv-product">${p.vp||'--'}</td>
@@ -7043,7 +7043,7 @@ function renderOrderBody(){
       const dvSubStr=dvSub!=null?fmtVP(dvSub):'--';
       const oosInfo=isOos&&invOos[p.sku].expectedDate?`<span class="oos-badge">OOS - ${new Date(invOos[p.sku].expectedDate+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>`:(isOos?`<span class="oos-badge">OOS</span>`:'');
       html+=`<tr class="${rowClass}" id="order-row-${p.sku}">
-        <td><div class="inv-name-cell" style="display:flex;align-items:center;gap:7px;"><input type="checkbox" class="oos-check" title="Mark out of stock" ${isOos?'checked':''} onchange="toggleOos('${p.sku}','${escHtml(p.name)}',this)"/><div style="display:flex;align-items:baseline;gap:12px;overflow:hidden;"><span class="inv-name">${p.name}</span>${p.sku?`<span class="inv-sku">${p.sku}</span>`:''}</div>${oosInfo}</div></td>
+        <td><div class="inv-name-cell" style="display:flex;align-items:center;gap:7px;"><input type="checkbox" class="oos-check" tabindex="-1" title="Mark out of stock" ${isOos?'checked':''} onchange="toggleOos('${p.sku}','${escHtml(p.name)}',this)"/><div style="display:flex;align-items:baseline;gap:12px;overflow:hidden;"><span class="inv-name">${p.name}</span>${p.sku?`<span class="inv-sku">${p.sku}</span>`:''}</div>${oosInfo}</div></td>
         <td style="color:var(--b6);font-weight:700;">${p.need}</td>
         <td class="dv-product">${p.vp||'--'}</td>
         <td style="text-align:left;padding-left:8px;">${makeAssignBtn(p,isOos,assigned,ops)}</td>
