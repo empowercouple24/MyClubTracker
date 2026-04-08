@@ -314,6 +314,9 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
   <a href="request.html" style="font-size:12px;color:rgba(255,255,255,0.5);font-weight:600;text-decoration:none;margin-left:6px;">Request platform access →</a>
 </div>
 <div class="version" id="version-tag">MyClubTracker · v1.4.1</div>
+<div style="text-align:center;margin-top:10px;">
+  <a href="/privacy.html" style="font-size:11px;color:rgba(255,255,255,0.3);text-decoration:none;" onmouseover="this.style.color='rgba(255,255,255,0.6)'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">Privacy Policy</a>
+</div>
 <script>
 // Auto-set timestamp from when this file was last served by the server
 fetch(window.location.href, {method:'HEAD'}).then(function(r){
@@ -711,8 +714,5 @@ init(); // explicit call — _rawHash already captured before Supabase strips it
   }, CHECK_INTERVAL);
 })();
 </script>
-<div style="text-align:center;padding:16px;font-size:12px;color:#8fa3b3;">
-  <a href="/privacy.html" style="color:#8fa3b3;text-decoration:none;" onmouseover="this.style.color='#607e96'" onmouseout="this.style.color='#8fa3b3'">Privacy Policy</a>
-</div>
 </body>
 </html>
