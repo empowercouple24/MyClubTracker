@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-08 10:00:00 -->
+<!-- CACHE BUST: 2026-04-08 11:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -1995,67 +1995,113 @@ if('serviceWorker' in navigator){
 
         <div style="background:var(--b0);border:1px solid var(--b3,#85B7EB);border-radius:8px;padding:12px 14px;margin-bottom:10px;">
 
-          <!-- Daily input view -->
+          <!-- ── DAILY VIEW ── -->
           <div id="cva-sg-daily-view">
             <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--b6);margin-bottom:4px;">Daily sales goal</div>
             <div style="font-family:'Outfit',sans-serif;font-size:26px;font-weight:700;color:var(--text);line-height:1;" id="cva-sg-daily-disp">$769</div>
-            <div style="font-size:11px;margin-top:3px;" id="cva-rev-sublabel">per operating day</div>
+            <div style="font-size:11px;margin-top:3px;" id="cva-sg-daily-sublabel">per operating day</div>
+
+            <!-- Daily slider track -->
+            <div style="position:relative;padding:0 9px;margin-top:14px;">
+              <div style="position:relative;height:6px;border-radius:3px;background:var(--b1);cursor:pointer;">
+                <div id="cva-sg-d-fill-red" style="position:absolute;left:0;top:0;height:100%;border-radius:3px 0 0 3px;background:#E24B4A;pointer-events:none;"></div>
+                <div id="cva-sg-d-fill-blue" style="position:absolute;top:0;height:100%;background:var(--b5);pointer-events:none;"></div>
+                <div id="cva-sg-d-be-marker" style="position:absolute;top:50%;transform:translate(-50%,-50%);z-index:1;pointer-events:none;">
+                  <div style="width:2px;height:18px;background:#E24B4A;border-radius:1px;margin:0 auto;"></div>
+                </div>
+                <input type="range" id="cva-sg-d-slider" min="0" max="2000" step="10" value="769"
+                  oninput="cvaSgDailySliderInput()" onchange="cvaSgDailySliderInput()"
+                  style="position:absolute;top:50%;left:0;width:100%;transform:translateY(-50%);height:100%;opacity:0;cursor:pointer;margin:0;z-index:3;"/>
+                <div id="cva-sg-d-thumb" style="position:absolute;top:50%;width:18px;height:18px;border-radius:50%;background:var(--b5);border:2px solid var(--surface);transform:translate(-50%,-50%);pointer-events:none;z-index:2;box-shadow:0 0 0 3px rgba(55,138,221,0.2);"></div>
+              </div>
+              <div style="position:relative;height:28px;margin-top:5px;" id="cva-sg-d-hash-track"></div>
+            </div>
+
+            <!-- Daily chips -->
+            <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;align-items:center;" id="cva-sg-d-chips"></div>
+
+            <!-- Daily range max -->
+            <div style="display:flex;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap;">
+              <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);">Range max:</span>
+              <div style="display:flex;gap:4px;flex-wrap:wrap;" id="cva-sg-d-max-btns"></div>
+              <div style="display:flex;align-items:center;gap:4px;">
+                <span style="font-size:11px;color:var(--text-faint);">or</span>
+                <div style="display:flex;align-items:center;gap:3px;border:1px solid var(--border);border-radius:5px;padding:2px 6px;background:var(--surface);">
+                  <span style="font-size:11px;color:var(--text-faint);">$</span>
+                  <input type="number" id="cva-sg-d-max-input" min="500" max="10000" step="100" placeholder="other" style="border:none;background:transparent;font-size:11px;font-weight:600;color:var(--text);width:56px;outline:none;" onblur="cvaSgDailyApplyMaxInput()" onkeydown="if(event.key==='Enter')cvaSgDailyApplyMaxInput()"/>
+                </div>
+              </div>
+            </div>
+
+            <!-- Daily break even legend -->
+            <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+              <div style="width:10px;height:3px;background:#E24B4A;border-radius:2px;flex-shrink:0;"></div>
+              <span style="font-size:11px;color:#A32D2D;" id="cva-sg-d-be-legend">break even &middot; calculating&hellip;</span>
+            </div>
+
+            <!-- Daily estimated profit -->
+            <div id="cva-sg-d-profit-result" style="border-radius:8px;padding:12px 14px;margin-top:12px;background:var(--g0);border:1px solid #b8e0bc;">
+              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;color:var(--g5);" id="cva-sg-d-profit-label">Estimated monthly profit</div>
+              <div style="font-family:'Outfit',sans-serif;font-size:30px;font-weight:700;line-height:1;color:var(--g5);" id="cva-sg-d-profit-num">—</div>
+              <div style="font-size:11px;margin-top:8px;display:grid;grid-template-columns:1fr auto;gap:3px 12px;" id="cva-sg-d-profit-breakdown"></div>
+            </div>
           </div>
 
-          <!-- Monthly display view -->
+          <!-- ── MONTHLY VIEW ── -->
           <div id="cva-sg-monthly-view" style="display:none;">
             <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--b6);margin-bottom:4px;">Monthly sales goal</div>
             <div style="font-family:'Outfit',sans-serif;font-size:26px;font-weight:700;color:var(--text);line-height:1;" id="cva-rev-display">$20,000</div>
             <div style="font-size:11px;margin-top:3px;" id="cva-rev-sublabel">monthly sales revenue</div>
-          </div>
 
-          <!-- Two-tone slider track -->
-          <div style="position:relative;padding:0 9px;margin-top:14px;">
-            <div style="position:relative;height:6px;border-radius:3px;background:var(--b1);cursor:pointer;" id="cva-slider-track-wrap">
-              <div id="cva-fill-red" style="position:absolute;left:0;top:0;height:100%;border-radius:3px 0 0 3px;background:#E24B4A;pointer-events:none;"></div>
-              <div id="cva-fill-blue" style="position:absolute;top:0;height:100%;background:var(--b5);pointer-events:none;"></div>
-              <div id="cva-be-marker" style="position:absolute;top:50%;transform:translate(-50%,-50%);z-index:1;pointer-events:none;">
-                <div style="width:2px;height:18px;background:#E24B4A;border-radius:1px;margin:0 auto;"></div>
+            <!-- Monthly slider track (existing) -->
+            <div style="position:relative;padding:0 9px;margin-top:14px;">
+              <div style="position:relative;height:6px;border-radius:3px;background:var(--b1);cursor:pointer;" id="cva-slider-track-wrap">
+                <div id="cva-fill-red" style="position:absolute;left:0;top:0;height:100%;border-radius:3px 0 0 3px;background:#E24B4A;pointer-events:none;"></div>
+                <div id="cva-fill-blue" style="position:absolute;top:0;height:100%;background:var(--b5);pointer-events:none;"></div>
+                <div id="cva-be-marker" style="position:absolute;top:50%;transform:translate(-50%,-50%);z-index:1;pointer-events:none;">
+                  <div style="width:2px;height:18px;background:#E24B4A;border-radius:1px;margin:0 auto;"></div>
+                </div>
+                <input type="range" id="cva-rev-slider" min="0" max="80000" step="100" value="20000"
+                  oninput="cvaRevSliderInput()" onchange="cvaRevSliderInput()"
+                  style="position:absolute;top:50%;left:0;width:100%;transform:translateY(-50%);height:100%;opacity:0;cursor:pointer;margin:0;z-index:3;"/>
+                <div id="cva-thumb" style="position:absolute;top:50%;width:18px;height:18px;border-radius:50%;background:var(--b5);border:2px solid var(--surface);transform:translate(-50%,-50%);pointer-events:none;z-index:2;box-shadow:0 0 0 3px rgba(55,138,221,0.2);"></div>
               </div>
-              <input type="range" id="cva-rev-slider" min="0" max="80000" step="100" value="20000"
-                oninput="cvaRevSliderInput()" onchange="cvaRevSliderInput()"
-                style="position:absolute;top:50%;left:0;width:100%;transform:translateY(-50%);height:100%;opacity:0;cursor:pointer;margin:0;z-index:3;"/>
-              <div id="cva-thumb" style="position:absolute;top:50%;width:18px;height:18px;border-radius:50%;background:var(--b5);border:2px solid var(--surface);transform:translate(-50%,-50%);pointer-events:none;z-index:2;box-shadow:0 0 0 3px rgba(55,138,221,0.2);"></div>
+              <div style="position:relative;height:28px;margin-top:5px;" id="cva-hash-track"></div>
             </div>
-            <div style="position:relative;height:28px;margin-top:5px;" id="cva-hash-track"></div>
-          </div>
 
-          <!-- Chips + range max -->
-          <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;align-items:center;" id="cva-rev-chips"></div>
-          <div id="cva-custom-box" style="display:none;align-items:center;gap:6px;margin-top:8px;padding:8px 10px;background:var(--b0);border-radius:6px;border:1px solid var(--b4);">
-            <span style="font-size:12px;color:var(--text-faint);white-space:nowrap;">$</span>
-            <input type="text" inputmode="numeric" id="cva-custom-input" placeholder="e.g. 35000" style="flex:1;min-width:0;padding:5px 8px;font-size:14px;font-weight:600;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;"/>
-            <button onclick="cvaApplyCustom()" style="padding:5px 12px;border-radius:6px;border:none;background:var(--b5);color:#fff;font-size:12px;font-weight:600;cursor:pointer;">Set</button>
-          </div>
-          <div style="display:flex;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap;">
-            <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);">Range max:</span>
-            <div style="display:flex;gap:4px;flex-wrap:wrap;" id="cva-max-btns"></div>
-            <div style="display:flex;align-items:center;gap:4px;">
-              <span style="font-size:11px;color:var(--text-faint);">or</span>
-              <div style="display:flex;align-items:center;gap:3px;border:1px solid var(--border);border-radius:5px;padding:2px 6px;background:var(--surface);">
-                <span style="font-size:11px;color:var(--text-faint);">$</span>
-                <input type="number" id="cva-max-input" min="15000" max="500000" step="1000" placeholder="other" style="border:none;background:transparent;font-size:11px;font-weight:600;color:var(--text);width:56px;outline:none;" onblur="cvaApplyMaxInput()" onkeydown="if(event.key==='Enter')cvaApplyMaxInput()"/>
+            <!-- Monthly chips + range max -->
+            <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;align-items:center;" id="cva-rev-chips"></div>
+            <div id="cva-custom-box" style="display:none;align-items:center;gap:6px;margin-top:8px;padding:8px 10px;background:var(--b0);border-radius:6px;border:1px solid var(--b4);">
+              <span style="font-size:12px;color:var(--text-faint);white-space:nowrap;">$</span>
+              <input type="text" inputmode="numeric" id="cva-custom-input" placeholder="e.g. 35000" style="flex:1;min-width:0;padding:5px 8px;font-size:14px;font-weight:600;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;"/>
+              <button onclick="cvaApplyCustom()" style="padding:5px 12px;border-radius:6px;border:none;background:var(--b5);color:#fff;font-size:12px;font-weight:600;cursor:pointer;">Set</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap;">
+              <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);">Range max:</span>
+              <div style="display:flex;gap:4px;flex-wrap:wrap;" id="cva-max-btns"></div>
+              <div style="display:flex;align-items:center;gap:4px;">
+                <span style="font-size:11px;color:var(--text-faint);">or</span>
+                <div style="display:flex;align-items:center;gap:3px;border:1px solid var(--border);border-radius:5px;padding:2px 6px;background:var(--surface);">
+                  <span style="font-size:11px;color:var(--text-faint);">$</span>
+                  <input type="number" id="cva-max-input" min="15000" max="500000" step="1000" placeholder="other" style="border:none;background:transparent;font-size:11px;font-weight:600;color:var(--text);width:56px;outline:none;" onblur="cvaApplyMaxInput()" onkeydown="if(event.key==='Enter')cvaApplyMaxInput()"/>
+                </div>
               </div>
             </div>
+
+            <!-- Monthly break even legend -->
+            <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+              <div style="width:10px;height:3px;background:#E24B4A;border-radius:2px;flex-shrink:0;"></div>
+              <span style="font-size:11px;color:#A32D2D;" id="cva-be-legend">break even &middot; calculating&hellip;</span>
+            </div>
+
+            <!-- Monthly estimated profit -->
+            <div id="cva-profit-result" style="border-radius:8px;padding:12px 14px;margin-top:12px;background:var(--g0);border:1px solid #b8e0bc;">
+              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;color:var(--g5);" id="cva-profit-result-label">Estimated monthly profit</div>
+              <div style="font-family:'Outfit',sans-serif;font-size:30px;font-weight:700;line-height:1;color:var(--g5);" id="cva-profit-result-num">—</div>
+              <div style="font-size:11px;margin-top:8px;display:grid;grid-template-columns:1fr auto;gap:3px 12px;" id="cva-profit-breakdown"></div>
+            </div>
           </div>
 
-          <!-- Break even legend -->
-          <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
-            <div style="width:10px;height:3px;background:#E24B4A;border-radius:2px;flex-shrink:0;"></div>
-            <span style="font-size:11px;color:#A32D2D;" id="cva-be-legend">break even &middot; calculating&hellip;</span>
-          </div>
-
-          <!-- Estimated profit -->
-          <div id="cva-profit-result" style="border-radius:8px;padding:12px 14px;margin-top:12px;background:var(--g0);border:1px solid #b8e0bc;">
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;color:var(--g5);" id="cva-profit-result-label">Estimated monthly profit</div>
-            <div style="font-family:'Outfit',sans-serif;font-size:30px;font-weight:700;line-height:1;color:var(--g5);" id="cva-profit-result-num">—</div>
-            <div style="font-size:11px;margin-top:8px;display:grid;grid-template-columns:1fr auto;gap:3px 12px;" id="cva-profit-breakdown"></div>
-          </div>
         </div>
 
         <!-- Sales daily target widgets -->
@@ -4030,6 +4076,11 @@ var _cvaTopMode='profit';
 // Sales goal sub-mode: 'daily' or 'monthly' — daily is default
 var _cvaSgMode='daily';
 
+// Daily slider state (separate from monthly)
+var _cvaSgDailyMax=2000;
+var _cvaSgDailyMaxPresets=[500,1000,1500,2000];
+var _cvaSgDailyVal=769;
+
 // Profit goal state
 var _cvaProfChips=[1000,2000,3000,5000,7500,10000,15000,20000];
 var _cvaProfMajor=[0,5000,10000,15000,20000];
@@ -4221,7 +4272,153 @@ function cvaTopSetMode(mode){
   if(panelProf)panelProf.style.display=isProf?'block':'none';
   if(panelRev)panelRev.style.display=!isProf?'block':'none';
   if(isProf)cvaProfRecalc();
-  else cvaRecalc();
+  else{if(_cvaSgMode==='daily')cvaSgDailyRecalc();else cvaRecalc();}
+}
+
+// ── CVA: DAILY SLIDER CHIP GENERATION ──
+function cvaSgDailyGenChips(max){
+  var chips;
+  if(max<=500)       chips=[100,200,300,400,max];
+  else if(max<=1000) chips=[200,400,600,800,max];
+  else if(max<=1500) chips=[300,500,750,1000,max];
+  else if(max<=2000) chips=[300,500,750,1000,1500,max];
+  else {
+    var step=Math.round((max-0)/5/100)*100||100;
+    chips=[step,step*2,step*3,step*4,max];
+  }
+  return chips.filter(function(v,i,a){return a.indexOf(v)===i&&v>0&&v<=max;}).sort(function(a,b){return a-b;});
+}
+
+function cvaSgDailyApplyMax(max){
+  _cvaSgDailyMax=max;
+  var sl=document.getElementById('cva-sg-d-slider');if(sl){sl.max=max;if(_cvaSgDailyVal>max){_cvaSgDailyVal=max;sl.value=max;}}
+  cvaSgDailyBuildChips();
+  cvaSgDailyBuildHashmarks();
+  cvaSgDailyBuildMaxBtns();
+  cvaSgDailyRecalc();
+}
+function cvaSgDailyApplyMaxInput(){
+  var el=document.getElementById('cva-sg-d-max-input');if(!el||!el.value)return;
+  var v=Math.round(Math.max(200,parseFloat(el.value)||200)/100)*100;
+  el.value='';
+  cvaSgDailyApplyMax(v);
+}
+
+function cvaSgDailyBuildChips(){
+  var wrap=document.getElementById('cva-sg-d-chips');if(!wrap)return;
+  wrap.innerHTML='';
+  cvaSgDailyGenChips(_cvaSgDailyMax).forEach(function(v){
+    var c=document.createElement('span');
+    c.className='cva-sg-d-chip';
+    c.dataset.v=v;
+    c.textContent='$'+v.toLocaleString();
+    c.style.cssText='display:inline-block;padding:4px 9px;border:1px solid var(--border);border-radius:20px;font-size:11px;color:var(--text-muted);cursor:pointer;transition:all 0.1s;white-space:nowrap;';
+    c.onclick=function(){
+      _cvaSgDailyVal=v;
+      var sl=document.getElementById('cva-sg-d-slider');if(sl)sl.value=v;
+      cvaSgDailyRecalc();
+    };
+    wrap.appendChild(c);
+  });
+}
+
+function cvaSgDailyBuildHashmarks(){
+  var track=document.getElementById('cva-sg-d-hash-track');if(!track)return;
+  track.innerHTML='';
+  cvaSgDailyGenChips(_cvaSgDailyMax).forEach(function(v){
+    var pct=(v/_cvaSgDailyMax)*100;
+    var mk=document.createElement('div');
+    mk.style.cssText='position:absolute;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;';
+    mk.style.left=pct+'%';
+    mk.innerHTML='<div style="width:1.5px;height:8px;background:var(--border);"></div>'
+      +'<div style="font-size:10px;color:var(--text-faint);white-space:nowrap;">$'+v.toLocaleString()+'</div>';
+    mk.onclick=function(){_cvaSgDailyVal=v;var sl=document.getElementById('cva-sg-d-slider');if(sl)sl.value=v;cvaSgDailyRecalc();};
+    track.appendChild(mk);
+  });
+}
+
+function cvaSgDailyBuildMaxBtns(){
+  var wrap=document.getElementById('cva-sg-d-max-btns');if(!wrap)return;
+  wrap.innerHTML='';
+  _cvaSgDailyMaxPresets.forEach(function(v){
+    var b=document.createElement('button');
+    var isActive=v===_cvaSgDailyMax;
+    b.textContent='$'+v.toLocaleString();
+    b.style.cssText='padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid '+(isActive?'var(--b5)':'var(--border)')+';background:'+(isActive?'var(--b5)':'transparent')+';color:'+(isActive?'#fff':'var(--text-muted)')+';transition:all 0.1s;white-space:nowrap;';
+    b.onclick=function(){cvaSgDailyApplyMax(v);};
+    wrap.appendChild(b);
+  });
+}
+
+function cvaSgDailySliderInput(){
+  var sl=document.getElementById('cva-sg-d-slider');if(!sl)return;
+  _cvaSgDailyVal=Math.round(parseInt(sl.value,10)/10)*10;
+  cvaSgDailyRecalc();
+}
+
+function cvaSgDailyRecalc(){
+  var daily=_cvaSgDailyVal;
+  var rev=Math.round(daily*26/100)*100; // monthly equivalent
+  var pct=(daily/_cvaSgDailyMax)*100;
+
+  // Thumb + fill
+  var thumb=document.getElementById('cva-sg-d-thumb');if(thumb)thumb.style.left=pct+'%';
+
+  // Break even daily
+  var beDaily=Math.round(_cvaBreakEven/26/10)*10;
+  var bePct=(beDaily/_cvaSgDailyMax)*100;
+  var fillR=document.getElementById('cva-sg-d-fill-red');
+  var fillB=document.getElementById('cva-sg-d-fill-blue');
+  var beM=document.getElementById('cva-sg-d-be-marker');
+  if(fillR)fillR.style.width=Math.min(bePct,100)+'%';
+  if(beM)beM.style.left=Math.min(bePct,100)+'%';
+  if(fillB){
+    if(daily>beDaily&&bePct<100){fillB.style.left=bePct+'%';fillB.style.width=Math.max(0,pct-bePct)+'%';}
+    else{fillB.style.left=bePct+'%';fillB.style.width='0%';}
+  }
+
+  // Display
+  cvaST('cva-sg-daily-disp','$'+daily.toLocaleString());
+  var diff=rev-_cvaBreakEven;
+  var sub=document.getElementById('cva-sg-daily-sublabel');
+  if(sub){
+    if(daily===0){sub.textContent='per operating day';sub.style.color='var(--text-faint)';}
+    else if(diff>=0){sub.textContent='\xd7 26 days = $'+rev.toLocaleString()+' / mo \xb7 +$'+diff.toLocaleString()+' above break even';sub.style.color='#3B6D11';}
+    else{sub.textContent='\xd7 26 days = $'+rev.toLocaleString()+' / mo \xb7 \u2212$'+Math.abs(diff).toLocaleString()+' below break even';sub.style.color='#A32D2D';}
+  }
+
+  // Break even legend
+  cvaST('cva-sg-d-be-legend','break even \xb7 $'+Math.round(_cvaBreakEven/26/10)*10+' / day (\xb7 $'+_cvaBreakEven.toLocaleString()+' / mo)');
+
+  // Profit result card
+  var r=cvaRevCalcProfit(rev);
+  var isZero=daily===0;
+  var isCustom=r.customTier;
+  var isPos=!isZero&&!isCustom&&r.profit>=0;
+  var pc=document.getElementById('cva-sg-d-profit-result');
+  if(pc){pc.style.background=isZero?'var(--surface)':isCustom?'#FFF8E1':isPos?'var(--g0)':'#FCEBEB';pc.style.borderColor=isZero?'var(--border)':isCustom?'#FFD54F':isPos?'#b8e0bc':'#F7C1C1';}
+  var rl=document.getElementById('cva-sg-d-profit-label');
+  if(rl){rl.style.color=isZero?'var(--text-faint)':isCustom?'#856404':isPos?'var(--g5)':'#A32D2D';rl.textContent=isZero?'Set a daily target to see profit estimate':isCustom?'Custom staffing needed':isPos?'Estimated monthly profit':'Monthly shortfall';}
+  var rn=document.getElementById('cva-sg-d-profit-num');
+  if(rn){rn.style.color=isZero?'var(--text-faint)':isCustom?'#856404':isPos?'var(--g5)':'#A32D2D';rn.textContent=isZero?'\u2014':isCustom?'\u26a0\ufe0f 160+ drinks/day':(r.profit<0?'-':'')+'$'+Math.round(Math.abs(r.profit||0)).toLocaleString();}
+  var bd=document.getElementById('cva-sg-d-profit-breakdown');
+  if(bd){
+    if(isZero||isCustom){bd.innerHTML='';}
+    else{bd.innerHTML='<span style="color:var(--text-faint);">Fixed expenses</span><span style="text-align:right;font-weight:600;color:var(--text-muted);">-$'+Math.round(r.fixed).toLocaleString()+'</span>'+'<span style="color:var(--text-faint);">Ingredients (wtd avg)</span><span style="text-align:right;font-weight:600;color:var(--text-muted);">-$'+Math.round(r.ing).toLocaleString()+'</span>'+'<span style="color:var(--text-faint);">Labor (26 days)</span><span style="text-align:right;font-weight:600;color:var(--text-muted);">-$'+Math.round(r.lab||0).toLocaleString()+'</span>';}
+  }
+
+  // Daily target widgets (same 3 cards)
+  var drinks=Math.ceil(rev/((cvaOverallAvgPrice()||11.5)*26));
+  var hrs=cvaGetHrs()||8;
+  cvaST('cva-target-rev','$'+daily.toLocaleString());
+  cvaST('cva-target-drinks',isZero?'—':drinks);
+  cvaST('cva-target-dph',isZero?'—':(drinks/hrs).toFixed(1));
+
+  // Chip sync
+  document.querySelectorAll('.cva-sg-d-chip').forEach(function(c){
+    var active=parseInt(c.dataset.v)===daily;
+    c.style.background=active?'var(--b5)':'';c.style.color=active?'#fff':'';c.style.borderColor=active?'var(--b5)':'';
+  });
 }
 
 // ── CVA: SALES GOAL SUB-MODE (Daily default / Monthly) ──
@@ -4236,7 +4433,7 @@ function cvaSgSetMode(m){
   if(btnM){btnM.style.background=!isDaily?'var(--b5)':'transparent';btnM.style.color=!isDaily?'#fff':'var(--text-muted)';btnM.style.borderColor=!isDaily?'var(--b5)':'var(--border)';}
   if(viewD)viewD.style.display=isDaily?'block':'none';
   if(viewM)viewM.style.display=!isDaily?'block':'none';
-  // daily view is now display-only like monthly — no input to focus
+  if(isDaily)cvaSgDailyRecalc();else cvaRecalc();
 }
 
 // ── CVA: SALES GOAL DAILY INPUT ──
@@ -4624,6 +4821,9 @@ function cvaRecalc(){
   cvaRevBuildMaxBtns();
   cvaBuildProfChips();
   cvaBuildProfHashmarks();
+  cvaSgDailyBuildChips();
+  cvaSgDailyBuildHashmarks();
+  cvaSgDailyBuildMaxBtns();
   cvaRenderExp();
   cvaRenderTiers(0);
   cvaRenderTable();
@@ -4633,6 +4833,7 @@ function cvaRecalc(){
   cvaSetMode('monthly');
   cvaSgSetMode('daily');
   cvaTopSetMode('profit');
+  cvaSgDailyRecalc();
 })();
 
 // ── wifGetCSA: reads from new CVA inputs ──
