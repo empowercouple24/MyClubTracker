@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-08 03:00:00 -->
+<!-- CACHE BUST: 2026-04-08 04:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -1918,25 +1918,86 @@ if('serviceWorker' in navigator){
 
     <!-- 1. REVENUE TARGET SLIDER -->
     <div class="card" style="padding:14px;margin-bottom:10px;">
-      <div class="section-label" style="margin-top:0;">Monthly revenue target</div>
-      <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:14px;">
-        <div>
-          <div style="font-family:'Outfit',sans-serif;font-size:26px;font-weight:700;color:var(--text);line-height:1;" id="cva-rev-display">$20,000</div>
-          <div style="font-size:11px;color:var(--text-faint);margin-top:3px;" id="cva-rev-sublabel">monthly sales revenue</div>
+
+      <!-- Flip-mode cards -->
+      <div style="display:flex;align-items:stretch;gap:8px;margin-bottom:16px;">
+
+        <!-- Monthly card -->
+        <div id="cva-card-monthly" onclick="cvaSetMode('monthly')" style="flex:1;padding:10px 12px;border-radius:8px;border:1.5px solid var(--b4);cursor:pointer;background:var(--b0);transition:all 0.15s;">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--b6);margin-bottom:4px;">Monthly target</div>
+          <!-- display view -->
+          <div id="cva-mo-display">
+            <div style="font-family:'Outfit',sans-serif;font-size:26px;font-weight:700;color:var(--text);line-height:1;" id="cva-rev-display">$20,000</div>
+            <div style="font-size:11px;margin-top:3px;" id="cva-rev-sublabel">monthly sales revenue</div>
+          </div>
+          <!-- input view -->
+          <div id="cva-mo-input-wrap" style="display:none;">
+            <div style="display:flex;align-items:center;gap:4px;background:var(--surface);border:1px solid var(--b4);border-radius:6px;padding:4px 8px;">
+              <span style="font-size:13px;color:var(--text-faint);">$</span>
+              <input type="number" id="cva-mo-input" min="10000" max="80000" step="100" value="20000" style="border:none;background:transparent;font-size:18px;font-weight:700;color:var(--text);width:100px;outline:none;" oninput="cvaMonthlyInputChange()" onblur="cvaMonthlyInputBlur()"/>
+              <span style="font-size:11px;color:var(--text-faint);">/mo</span>
+            </div>
+            <div style="font-size:11px;margin-top:4px;" id="cva-mo-input-sub">monthly sales revenue</div>
+          </div>
         </div>
-        <div style="text-align:right;">
-          <div style="font-size:10px;color:var(--text-faint);">daily revenue</div>
-          <div style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;color:var(--text);" id="cva-rev-daily">—</div>
+
+        <!-- Flip button -->
+        <div onclick="cvaFlipMode()" style="display:flex;align-items:center;justify-content:center;width:30px;flex-shrink:0;cursor:pointer;color:var(--text-faint);font-size:16px;border-radius:6px;transition:background 0.1s;" onmouseover="this.style.background='var(--b1)'" onmouseout="this.style.background='transparent'">&#8646;</div>
+
+        <!-- Daily card -->
+        <div id="cva-card-daily" onclick="cvaSetMode('daily')" style="flex:1;padding:10px 12px;border-radius:8px;border:1.5px solid var(--border);cursor:pointer;background:var(--surface);transition:all 0.15s;">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);margin-bottom:4px;">Daily target</div>
+          <!-- display view -->
+          <div id="cva-daily-display">
+            <div style="font-family:'Outfit',sans-serif;font-size:26px;font-weight:700;color:var(--text);line-height:1;" id="cva-rev-daily">—</div>
+            <div style="font-size:11px;color:var(--text-faint);margin-top:3px;">per operating day</div>
+          </div>
+          <!-- input view -->
+          <div id="cva-daily-input-wrap" style="display:none;">
+            <div style="display:flex;align-items:center;gap:4px;background:var(--surface);border:1px solid var(--b4);border-radius:6px;padding:4px 8px;">
+              <span style="font-size:13px;color:var(--text-faint);">$</span>
+              <input type="number" id="cva-daily-input" min="1" step="1" value="769" style="border:none;background:transparent;font-size:18px;font-weight:700;color:var(--text);width:100px;outline:none;" oninput="cvaDailyInputChange()" onblur="cvaDailyInputBlur()"/>
+              <span style="font-size:11px;color:var(--text-faint);">/day</span>
+            </div>
+            <div style="font-size:11px;color:var(--text-faint);margin-top:4px;" id="cva-daily-hint">&times; 26 op days</div>
+          </div>
         </div>
+
       </div>
-      <input type="range" id="cva-rev-slider" min="10000" max="100000" step="500" value="20000" oninput="cvaRevSliderInput()" onchange="cvaRevSliderInput()" style="width:100%;height:5px;-webkit-appearance:none;appearance:none;border-radius:3px;outline:none;cursor:pointer;background:var(--b1);"/>
-      <div style="position:relative;height:28px;margin-top:5px;" id="cva-hash-track"></div>
+
+      <!-- Two-tone slider track -->
+      <div style="position:relative;padding:0 9px;">
+        <div style="position:relative;height:6px;border-radius:3px;background:var(--b1);cursor:pointer;" id="cva-slider-track-wrap">
+          <div id="cva-fill-red" style="position:absolute;left:0;top:0;height:100%;border-radius:3px 0 0 3px;background:#E24B4A;pointer-events:none;"></div>
+          <div id="cva-fill-blue" style="position:absolute;top:0;height:100%;background:var(--b5);pointer-events:none;"></div>
+          <div id="cva-be-marker" style="position:absolute;top:50%;transform:translate(-50%,-50%);z-index:1;pointer-events:none;">
+            <div style="width:2px;height:18px;background:#E24B4A;border-radius:1px;margin:0 auto;"></div>
+          </div>
+          <input type="range" id="cva-rev-slider" min="10000" max="80000" step="100" value="20000"
+            oninput="cvaRevSliderInput()" onchange="cvaRevSliderInput()"
+            style="position:absolute;top:50%;left:0;width:100%;transform:translateY(-50%);height:100%;opacity:0;cursor:pointer;margin:0;z-index:3;"/>
+          <div id="cva-thumb" style="position:absolute;top:50%;width:18px;height:18px;border-radius:50%;background:var(--b5);border:2px solid var(--surface);transform:translate(-50%,-50%);pointer-events:none;z-index:2;box-shadow:0 0 0 3px rgba(55,138,221,0.2);"></div>
+        </div>
+        <div style="position:relative;height:28px;margin-top:5px;" id="cva-hash-track"></div>
+      </div>
+
+      <!-- Chips -->
       <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;align-items:center;" id="cva-rev-chips"></div>
+
+      <!-- Custom input box -->
       <div id="cva-custom-box" style="display:none;align-items:center;gap:6px;margin-top:8px;padding:8px 10px;background:var(--b0);border-radius:6px;border:1px solid var(--b4);">
         <span style="font-size:12px;color:var(--text-faint);white-space:nowrap;">$</span>
         <input type="text" inputmode="numeric" id="cva-custom-input" placeholder="e.g. 55000" style="flex:1;min-width:0;padding:5px 8px;font-size:14px;font-weight:600;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;"/>
         <button onclick="cvaApplyCustom()" style="padding:5px 12px;border-radius:6px;border:none;background:var(--b5);color:#fff;font-size:12px;font-weight:600;cursor:pointer;">Set</button>
       </div>
+
+      <!-- Break even legend -->
+      <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+        <div style="width:10px;height:3px;background:#E24B4A;border-radius:2px;flex-shrink:0;"></div>
+        <span style="font-size:11px;color:#A32D2D;" id="cva-be-legend">break even &middot; calculating&hellip;</span>
+      </div>
+
+      <!-- Profit result card -->
       <div id="cva-profit-result" style="border-radius:8px;padding:12px 14px;margin-top:12px;background:var(--g0);border:1px solid #b8e0bc;">
         <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;color:var(--g5);" id="cva-profit-result-label">Estimated monthly profit</div>
         <div style="font-family:'Outfit',sans-serif;font-size:30px;font-weight:700;line-height:1;color:var(--g5);" id="cva-profit-result-num">—</div>
@@ -3898,14 +3959,16 @@ function cvaRenderTeaSub(){
 }
 
 // ── CVA: REVENUE SLIDER STATE ──
-var _cvaRevSliderMax=100000;
+var _cvaRevSliderMax=80000;
 var _cvaRevCustomActive=false;
-var _cvaRevChips=[10000,15000,20000,25000,30000,40000,50000,60000,75000,100000];
-var _cvaRevMajor=[10000,20000,30000,40000,50000,75000,100000];
-var _cvaSnapZone=2000;
+var _cvaRevChips=[10000,15000,20000,25000,30000,40000,50000,65000,80000];
+var _cvaRevMajor=[10000,20000,30000,40000,50000,65000,80000];
+var _cvaSnapZone=2500;
+var _cvaRevMode='monthly'; // 'monthly' or 'daily'
+var _cvaRevSuppressSync=false;
+var _cvaBreakEven=0; // computed live
 
 // ── CVA: STAFFING TIERS ──
-// max = upper drinks/day limit (null = unlimited), ops = additional operators (null = custom/unknown)
 var _cvaTiers=[
   {max:40,  ops:0,    label:'Just you'},
   {max:60,  ops:1,    label:'+1 operator'},
@@ -3914,63 +3977,203 @@ var _cvaTiers=[
   {max:null,ops:null, label:'\u26a0\ufe0f Custom'}
 ];
 
-function cvaRevFmtChip(v){return '$'+(v%1000===0?(v/1000)+'k':((v/1000).toFixed(1))+'k');}
+function cvaRevFmtChip(v){return '$'+(v/1000)+'k';}
 
-function cvaRevCalcProfit(rev){
+// ── CVA: BREAK EVEN SOLVER (iterative) ──
+function cvaCalcBreakEven(){
   var fixed=cvaGetFixed();
   var avgP=cvaOverallAvgPrice()||11.5;
   var avgW=cvaOverallWtd()||7.2;
   var avgCost=avgP-avgW;
-  var drinksPerDay=rev/(avgP*26);
-  var ingMo=avgCost*drinksPerDay*26;
-  var labDay=cvaTierLaborDay(drinksPerDay);
-  var labMo=labDay===null?null:labDay*26;
-  var profit=labMo===null?null:rev-fixed-ingMo-labMo;
-  return{fixed:fixed,ing:ingMo,lab:labMo,profit:profit,drinksPerDay:drinksPerDay,customTier:labMo===null};
+  var guess=fixed;
+  for(var i=0;i<8;i++){
+    var drinksDay=guess/(avgP*26);
+    var labDay=cvaTierLaborDay(drinksDay)||0;
+    var ingMo=avgCost*drinksDay*26;
+    var labMo=labDay*26;
+    var next=fixed+ingMo+labMo;
+    if(Math.abs(next-guess)<1)break;
+    guess=next;
+  }
+  return Math.round(guess/100)*100;
 }
 
-function cvaRevUpdateSliderTrack(){
-  var sl=document.getElementById('cva-rev-slider');if(!sl)return;
-  var v=parseInt(sl.value),mn=10000,mx=_cvaRevSliderMax;
-  var pct=Math.max(0,Math.min(100,((v-mn)/(mx-mn))*100));
-  sl.style.background='linear-gradient(to right,var(--b5) 0%,var(--b5) '+pct+'%,var(--b1) '+pct+'%,var(--b1) 100%)';
+// ── CVA: TWO-SEGMENT SCALE ──
+// 70% of track = $10k-$50k, 30% = $50k-$80k
+var _cvaBREAK=50000,_cvaMIN=10000,_cvaMAX=80000,_cvaBREAK_PCT=70;
+
+function cvaValToPct(v){
+  if(v<=_cvaBREAK)return((v-_cvaMIN)/(_cvaBREAK-_cvaMIN))*_cvaBREAK_PCT;
+  return _cvaBREAK_PCT+((v-_cvaBREAK)/(_cvaMAX-_cvaBREAK))*(100-_cvaBREAK_PCT);
+}
+function cvaPctToVal(p){
+  var raw=p<=_cvaBREAK_PCT
+    ?_cvaMIN+(p/_cvaBREAK_PCT)*(_cvaBREAK-_cvaMIN)
+    :_cvaBREAK+((p-_cvaBREAK_PCT)/(100-_cvaBREAK_PCT))*(_cvaMAX-_cvaBREAK);
+  return Math.round(Math.max(_cvaMIN,Math.min(_cvaMAX,raw))/100)*100;
 }
 
-function cvaRevSyncChips(v){
+// ── CVA: TRACK FILLS ──
+function cvaUpdateFills(monthly){
+  var bePct=_cvaBreakEven>=_cvaMIN?cvaValToPct(_cvaBreakEven):0;
+  var valPct=cvaValToPct(monthly);
+  var red=document.getElementById('cva-fill-red');
+  var blue=document.getElementById('cva-fill-blue');
+  var thumb=document.getElementById('cva-thumb');
+  var marker=document.getElementById('cva-be-marker');
+  if(red)red.style.width=bePct+'%';
+  if(marker)marker.style.left=bePct+'%';
+  if(blue){
+    if(monthly>_cvaBreakEven&&bePct>0){
+      blue.style.left=bePct+'%';
+      blue.style.width=(valPct-bePct)+'%';
+    } else {
+      blue.style.left=bePct+'%';
+      blue.style.width='0%';
+    }
+  }
+  if(thumb)thumb.style.left=valPct+'%';
+}
+
+// ── CVA: SUBLABEL / BE LEGEND ──
+function cvaUpdateSubAndLegend(monthly){
+  var diff=monthly-_cvaBreakEven;
+  var sub=document.getElementById('cva-rev-sublabel');
+  var moISub=document.getElementById('cva-mo-input-sub');
+  var legend=document.getElementById('cva-be-legend');
+  var txt,col;
+  if(diff>=0){txt='+$'+diff.toLocaleString()+' above break even';col='#3B6D11';}
+  else{txt='\u2212$'+Math.abs(diff).toLocaleString()+' below break even';col='#A32D2D';}
+  if(sub){sub.textContent=txt;sub.style.color=col;}
+  if(moISub){moISub.textContent=txt;moISub.style.color=col;}
+  if(legend)legend.textContent='break even \xb7 $'+_cvaBreakEven.toLocaleString()+' / mo \xb7 covers all costs with $0 profit';
+}
+
+// ── CVA: SYNC SLIDER FROM VALUE ──
+function cvaRevSyncSlider(monthly){
+  var sl=document.getElementById('cva-rev-slider');
+  if(sl)sl.value=Math.max(_cvaMIN,Math.min(_cvaMAX,monthly));
+}
+
+// ── CVA: MAIN RENDER (replaces old cvaRevUpdateSliderTrack + cvaRevSyncChips) ──
+function cvaRevRender(monthly,source){
+  var daily=monthly/26;
+  cvaRevSyncSlider(monthly);
+  cvaUpdateFills(monthly);
+  cvaUpdateSubAndLegend(monthly);
+  // Monthly card
+  cvaST('cva-rev-display','$'+monthly.toLocaleString());
+  // Daily card
+  cvaST('cva-rev-daily','$'+Math.round(daily).toLocaleString());
+  cvaST('cva-daily-hint','\xd7 26 op days = $'+monthly.toLocaleString()+' / mo');
+  // Sync inputs without feedback loop
+  if(source!=='mo-input'&&!_cvaRevSuppressSync){
+    _cvaRevSuppressSync=true;
+    var mi=document.getElementById('cva-mo-input');if(mi)mi.value=monthly;
+    _cvaRevSuppressSync=false;
+  }
+  if(source!=='daily-input'&&!_cvaRevSuppressSync){
+    _cvaRevSuppressSync=true;
+    var di=document.getElementById('cva-daily-input');if(di)di.value=Math.round(daily);
+    _cvaRevSuppressSync=false;
+  }
+  // Chips
   document.querySelectorAll('.cva-rev-chip:not(.cva-rev-custom-chip)').forEach(function(c){
-    c.style.background=parseInt(c.dataset.v)===v?'var(--b5)':'';
-    c.style.color=parseInt(c.dataset.v)===v?'#fff':'';
-    c.style.borderColor=parseInt(c.dataset.v)===v?'var(--b5)':'';
+    var active=parseInt(c.dataset.v)===monthly;
+    c.style.background=active?'var(--b5)':'';
+    c.style.color=active?'#fff':'';
+    c.style.borderColor=active?'var(--b5)':'';
   });
-  var cc=document.getElementById('cva-custom-chip');
-  if(cc){cc.style.background='';cc.style.color='';cc.style.borderColor='';}
 }
 
+// ── CVA: FLIP MODE ──
+function cvaSetMode(m){
+  _cvaRevMode=m;
+  var isMonthly=m==='monthly';
+  var cardMo=document.getElementById('cva-card-monthly');
+  var cardDa=document.getElementById('cva-card-daily');
+  if(cardMo){cardMo.style.borderColor=isMonthly?'var(--b5)':'var(--border)';cardMo.style.background=isMonthly?'var(--b0)':'var(--surface)';}
+  if(cardDa){cardDa.style.borderColor=!isMonthly?'var(--b5)':'var(--border)';cardDa.style.background=!isMonthly?'var(--b0)':'var(--surface)';}
+  var moDisp=document.getElementById('cva-mo-display');
+  var moInp=document.getElementById('cva-mo-input-wrap');
+  var daDisp=document.getElementById('cva-daily-display');
+  var daInp=document.getElementById('cva-daily-input-wrap');
+  if(moDisp)moDisp.style.display=isMonthly?'none':'block';
+  if(moInp)moInp.style.display=isMonthly?'block':'none';
+  if(daDisp)daDisp.style.display=!isMonthly?'none':'block';
+  if(daInp)daInp.style.display=!isMonthly?'block':'none';
+  if(isMonthly){setTimeout(function(){var el=document.getElementById('cva-mo-input');if(el)el.focus();},50);}
+  else{setTimeout(function(){var el=document.getElementById('cva-daily-input');if(el)el.focus();},50);}
+}
+function cvaFlipMode(){cvaSetMode(_cvaRevMode==='monthly'?'daily':'monthly');}
+
+// ── CVA: MONTHLY INPUT HANDLERS ──
+function cvaMonthlyInputChange(){
+  if(_cvaRevSuppressSync)return;
+  var el=document.getElementById('cva-mo-input');if(!el)return;
+  var v=Math.round(Math.max(_cvaMIN,Math.min(_cvaMAX,parseInt(el.value)||_cvaMIN))/100)*100;
+  cvaRevRender(v,'mo-input');
+  cvaRecalc();
+}
+function cvaMonthlyInputBlur(){
+  var el=document.getElementById('cva-mo-input');if(!el)return;
+  var v=Math.round(Math.max(_cvaMIN,Math.min(_cvaMAX,parseInt(el.value)||_cvaMIN))/100)*100;
+  var closest=_cvaRevChips.reduce(function(a,b){return Math.abs(b-v)<Math.abs(a-v)?b:a;});
+  if(Math.abs(closest-v)<=_cvaSnapZone)v=closest;
+  el.value=v;
+  cvaRevRender(v,'mo-input');
+  cvaRecalc();
+}
+
+// ── CVA: DAILY INPUT HANDLERS ──
+function cvaDailyInputChange(){
+  if(_cvaRevSuppressSync)return;
+  var el=document.getElementById('cva-daily-input');if(!el)return;
+  var daily=parseFloat(el.value)||0;if(daily<=0)return;
+  var monthly=Math.round(Math.max(_cvaMIN,Math.min(_cvaMAX,daily*26))/100)*100;
+  cvaRevRender(monthly,'daily-input');
+  cvaRecalc();
+}
+function cvaDailyInputBlur(){
+  var el=document.getElementById('cva-daily-input');if(!el)return;
+  var daily=parseFloat(el.value)||0;if(daily<=0)return;
+  var monthly=Math.round(Math.max(_cvaMIN,Math.min(_cvaMAX,daily*26))/100)*100;
+  var closest=_cvaRevChips.reduce(function(a,b){return Math.abs(b-monthly)<Math.abs(a-monthly)?b:a;});
+  if(Math.abs(closest-monthly)<=_cvaSnapZone)monthly=closest;
+  cvaRevRender(monthly,'daily-input');
+  cvaRecalc();
+}
+
+// ── CVA: SLIDER INPUT (range oninput) ──
 function cvaRevSliderInput(){
   _cvaRevCustomActive=false;
   var cb=document.getElementById('cva-custom-box');if(cb)cb.style.display='none';
-  var cc=document.getElementById('cva-custom-chip');if(cc){cc.style.background='';cc.style.color='';cc.style.borderColor='';}
-  cvaRevUpdateSliderTrack();
+  var sl=document.getElementById('cva-rev-slider');if(!sl)return;
+  var raw=parseInt(sl.value);
+  var v=Math.round(raw/100)*100;
+  cvaRevRender(v,'slider');
   cvaRecalc();
 }
 
 function cvaRevSnapOnRelease(){
   if(_cvaRevCustomActive)return;
   var sl=document.getElementById('cva-rev-slider');if(!sl)return;
-  var v=parseInt(sl.value);
+  var v=Math.round(parseInt(sl.value)/100)*100;
   var closest=_cvaRevChips.reduce(function(a,b){return Math.abs(b-v)<Math.abs(a-v)?b:a;});
-  if(Math.abs(closest-v)<=_cvaSnapZone){sl.value=closest;cvaRevUpdateSliderTrack();cvaRecalc();}
+  if(Math.abs(closest-v)<=_cvaSnapZone){
+    cvaRevRender(closest,'slider');
+    cvaRecalc();
+  }
 }
 
 function cvaRevSnapTo(v){
   _cvaRevCustomActive=false;
   var cb=document.getElementById('cva-custom-box');if(cb)cb.style.display='none';
-  var sl=document.getElementById('cva-rev-slider');if(!sl)return;
-  sl.value=v;
-  cvaRevUpdateSliderTrack();
+  cvaRevRender(v,'chip');
   cvaRecalc();
 }
 
+// ── CVA: CUSTOM BOX ──
 function cvaOpenCustom(){
   _cvaRevCustomActive=true;
   var cb=document.getElementById('cva-custom-box');if(cb)cb.style.display='flex';
@@ -3979,23 +4182,17 @@ function cvaOpenCustom(){
   document.querySelectorAll('.cva-rev-chip:not(.cva-rev-custom-chip)').forEach(function(c){c.style.background='';c.style.color='';c.style.borderColor='';});
   var inp=document.getElementById('cva-custom-input');if(inp){inp.focus();inp.select();}
 }
-
 function cvaApplyCustom(){
   var raw=document.getElementById('cva-custom-input').value.replace(/[^0-9]/g,'');
   var v=parseInt(raw)||0;if(v<=0)return;
-  var sl=document.getElementById('cva-rev-slider');if(!sl)return;
-  if(v>_cvaRevSliderMax){
-    _cvaRevSliderMax=Math.ceil(v/5000)*5000;
-    sl.max=_cvaRevSliderMax;
-    cvaRevBuildHashmarks();
-  }
-  if(v<10000)v=10000;
-  sl.value=v;
-  var sub=document.getElementById('cva-rev-sublabel');if(sub)sub.textContent='custom target \xb7 monthly revenue';
-  cvaRevUpdateSliderTrack();
+  v=Math.round(Math.max(_cvaMIN,Math.min(_cvaMAX,v))/100)*100;
+  _cvaRevCustomActive=false;
+  var cb=document.getElementById('cva-custom-box');if(cb)cb.style.display='none';
+  cvaRevRender(v,'chip');
   cvaRecalc();
 }
 
+// ── CVA: BUILD CHIPS ──
 function cvaRevBuildChips(){
   var wrap=document.getElementById('cva-rev-chips');if(!wrap)return;
   wrap.innerHTML='';
@@ -4005,7 +4202,6 @@ function cvaRevBuildChips(){
     c.dataset.v=v;
     c.textContent=cvaRevFmtChip(v);
     c.style.cssText='display:inline-block;padding:4px 9px;border:1px solid var(--border);border-radius:20px;font-size:11px;color:var(--text-muted);cursor:pointer;transition:all 0.1s;white-space:nowrap;';
-    if(v===20000){c.style.background='var(--b5)';c.style.color='#fff';c.style.borderColor='var(--b5)';}
     c.onclick=function(){cvaRevSnapTo(v);};
     wrap.appendChild(c);
   });
@@ -4018,11 +4214,12 @@ function cvaRevBuildChips(){
   wrap.appendChild(cc);
 }
 
+// ── CVA: BUILD HASHMARKS (two-segment scale) ──
 function cvaRevBuildHashmarks(){
   var track=document.getElementById('cva-hash-track');if(!track)return;
   track.innerHTML='';
   _cvaRevChips.forEach(function(m){
-    var p=((m-10000)/(_cvaRevSliderMax-10000))*100;
+    var p=cvaValToPct(m);
     var isMajor=_cvaRevMajor.indexOf(m)>=0;
     var mk=document.createElement('div');
     mk.style.cssText='position:absolute;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;';
@@ -4037,18 +4234,36 @@ function cvaRevBuildHashmarks(){
   });
 }
 
+function cvaRevCalcProfit(rev){
+  var fixed=cvaGetFixed();
+  var avgP=cvaOverallAvgPrice()||11.5;
+  var avgW=cvaOverallWtd()||7.2;
+  var avgCost=avgP-avgW;
+  var drinksPerDay=rev/(avgP*26);
+  var ingMo=avgCost*drinksPerDay*26;
+  var labDay=cvaTierLaborDay(drinksPerDay);
+  var labMo=labDay===null?null:labDay*26;
+  var profit=labMo===null?null:rev-fixed-ingMo-labMo;
+  return{fixed:fixed,ing:ingMo,lab:labMo,profit:profit,drinksPerDay:drinksPerDay,customTier:labMo===null};
+}
+
+function cvaRevUpdateSliderTrack(){} // deprecated - kept as no-op to avoid any stale references
+
 // ── CVA: MAIN RECALC ──
 function cvaRecalc(){
   var fixed=cvaGetFixed(),wage=cvaGetWage(),hrs=cvaGetHrs();
   var w=cvaOverallWtd(),avgP=cvaOverallAvgPrice();
 
+  // Recompute break even live
+  _cvaBreakEven=cvaCalcBreakEven();
+
   // Revenue slider values
   var sl=document.getElementById('cva-rev-slider');
-  var rev=sl?parseInt(sl.value)||20000:20000;
+  var rev=sl?Math.round((parseInt(sl.value)||20000)/100)*100:20000;
   var r=cvaRevCalcProfit(rev);
 
-  cvaST('cva-rev-display','$'+rev.toLocaleString());
-  cvaST('cva-rev-daily','$'+Math.round(rev/26).toLocaleString());
+  // Sync flip cards, track fills, sublabel, break even legend
+  cvaRevRender(rev,'recalc');
 
   // Profit result card
   var isCustom=r.customTier;
@@ -4071,8 +4286,7 @@ function cvaRecalc(){
      +'<span style="color:var(--text-faint);">Labor (26 days)</span><span style="text-align:right;font-weight:600;color:'+(isCustom?'#856404':'var(--text-muted)')+';">'+(isCustom?'custom \u26a0\ufe0f':'-$'+Math.round(r.lab).toLocaleString())+'</span>';
   }
 
-  if(!_cvaRevCustomActive)cvaRevSyncChips(rev);
-  cvaRevUpdateSliderTrack();
+  if(!_cvaRevCustomActive){} // chips synced via cvaRevRender above
 
   // Downstream outputs that depend on mix/labor inputs
   cvaST('cva-wtd-profit',cvaFc(w));
@@ -4107,6 +4321,7 @@ function cvaRecalc(){
 (function(){
   var sl=document.getElementById('cva-rev-slider');
   if(!sl)return;
+  // Snap on release (range input is transparent overlay over visual track)
   sl.addEventListener('mouseup',cvaRevSnapOnRelease);
   sl.addEventListener('touchend',cvaRevSnapOnRelease);
   sl.addEventListener('wheel',function(e){if(document.activeElement!==sl){e.preventDefault();}},{passive:false});
@@ -4125,6 +4340,7 @@ function cvaRecalc(){
   cvaRenderMix();
   cvaRenderTeaSub();
   cvaRecalc();
+  cvaSetMode('monthly');
 })();
 
 // ── wifGetCSA: reads from new CVA inputs ──
