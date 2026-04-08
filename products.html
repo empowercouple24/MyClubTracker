@@ -659,7 +659,7 @@ async function openPushModal(){
     const orgLocs = grouped[orgId];
     html += '<div class="org-section-hdr" data-sid="' + ('org-locs-'+gi) + '" onclick="toggleOrgSection(this.dataset.sid)">'
       +'<input type="checkbox" class="org-cb org-master-cb" data-org-idx="'+gi+'" checked '
-      +'onclick="event.stopPropagation();toggleOrgAll('+gi+',this.checked)" />'
+      +'onclick="event.stopPropagation();toggleOrgAll(this.dataset.orgIdx,this.checked)" />'
       +'<span class="org-name">'+escHtml(orgName)+'</span>'
       +'<span class="org-count">'+orgLocs.length+' location'+(orgLocs.length>1?'s':'')+'</span>'
       +'<span class="org-chev open" id="org-chev-'+gi+'">▶</span>'
@@ -678,7 +678,7 @@ async function openPushModal(){
   if(noOrg.length){
     html += '<div class="org-section-hdr" data-sid="org-locs-noorg" onclick="toggleOrgSection(this.dataset.sid)">'
       +'<input type="checkbox" class="org-cb org-master-cb" data-org-idx="noorg" checked '
-      +'onclick="event.stopPropagation();toggleOrgAll('noorg',this.checked)" />'
+      +'onclick="event.stopPropagation();toggleOrgAll(this.dataset.orgIdx,this.checked)" />'
       +'<span class="org-name" style="color:var(--text-faint);">No organization</span>'
       +'<span class="org-count">'+noOrg.length+' location'+(noOrg.length>1?'s':'')+'</span>'
       +'<span class="org-chev open" id="org-chev-noorg">▶</span>'
