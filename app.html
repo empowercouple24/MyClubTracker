@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-08 17:00:00 -->
+<!-- CACHE BUST: 2026-04-08 19:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -386,19 +386,27 @@ if('serviceWorker' in navigator){
     #panel-order .inv-table th:nth-child(3){width:76px}
     #panel-order .inv-table th:nth-child(4){width:150px}
     #panel-order .inv-table th:nth-child(5){width:88px}
-    .order-summary-row{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+    .order-summary-card{background:linear-gradient(135deg,var(--b8),var(--b6));border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;color:white;display:flex;flex-wrap:wrap;gap:10px;align-items:stretch;}
+    .order-op-chip{flex:1;min-width:120px;background:rgba(255,255,255,0.14);border-radius:8px;padding:10px 14px;}
+    .order-op-chip-name{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:rgba(255,255,255,0.85);margin-bottom:3px;}
+    .order-op-chip-dv{font-family:'Outfit',sans-serif;font-size:26px;font-weight:800;letter-spacing:-0.5px;line-height:1;color:white;}
+    .order-op-chip-sub{font-size:11px;color:rgba(255,255,255,0.75);margin-top:3px;}
+    .order-op-chip-unassigned{flex:0 0 auto;background:rgba(255,255,255,0.07);border-radius:8px;padding:8px 12px;display:flex;flex-direction:column;justify-content:center;min-width:90px;}
+    .order-op-chip-unassigned .order-op-chip-name{font-size:9px;color:rgba(255,255,255,0.5);}
+    .order-op-chip-unassigned .order-op-chip-dv{font-size:18px;color:rgba(255,255,255,0.55);}
+    .order-op-chip-unassigned .order-op-chip-sub{color:rgba(255,255,255,0.45);}
+    .order-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+    .order-plan-select{font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 10px;background:var(--surface);color:var(--text);outline:none;flex:1;}
     .order-sum-card{flex:1;min-width:110px;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:10px 12px;}
     .order-sum-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:4px;}
     .order-sum-val{font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;color:var(--b6);line-height:1;}
-    .order-op-card{flex:1;min-width:130px;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:10px 12px;border-left:3px solid var(--b5);}
-    .order-op-name{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:3px;}
-    .order-op-dv{font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;color:var(--b6);line-height:1;}
-    .order-op-sub{font-size:11px;color:var(--text-faint);margin-top:3px;}
     .order-archive-bar{background:var(--g0);border:1px solid var(--g3);border-radius:var(--radius);padding:10px 14px;display:flex;align-items:center;gap:10px;margin-bottom:12px;}
     .order-archive-msg{font-size:13px;font-weight:600;color:var(--g6);flex:1;}
-    .order-row-assigned td{opacity:0.4;}
-    .op-assign-select{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;border:1px solid var(--border);border-radius:4px;padding:3px 6px;background:var(--surface);color:var(--text);outline:none;width:100%;cursor:pointer;}
-    .op-assign-select.assigned{border-color:var(--b5);color:var(--b7);background:var(--b0);}
+    .order-row-assigned td{opacity:1;}
+    .order-row-assigned .inv-name{color:var(--text);font-weight:600;}
+    .op-assign-btn{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;border:1.5px solid var(--border);border-radius:20px;padding:5px 12px;background:var(--surface);color:var(--text-muted);cursor:pointer;white-space:nowrap;transition:all 0.15s;width:100%;text-align:center;}
+    .op-assign-btn.assigned{background:var(--b7);color:white;border-color:var(--b7);}
+    .op-assign-btn.oos-btn{background:var(--r0,#fee2e2);color:var(--r5,#ef4444);border-color:var(--r3,#fca5a5);cursor:default;}
     .inv-input:focus{border-color:var(--a4);box-shadow:0 0 0 2px rgba(224,152,32,0.15);background:#fff}
     .need-badge{display:inline-block;font-size:16px;font-weight:700;padding:3px 12px;border-radius:20px;min-width:36px;text-align:center;}
     .need-badge.need{background:#bfdbfe;color:#1d4ed8;}
@@ -583,9 +591,10 @@ if('serviceWorker' in navigator){
       #panel-order .inv-table th { font-size: 8px !important; padding: 5px 4px !important; }
       #panel-order .inv-table td { font-size: 12px !important; padding: 4px 4px !important; }
       #panel-order .inv-cat-header { font-size: 14px !important; padding: 8px 10px !important; }
-      .order-summary-row { gap: 6px !important; }
-      .order-op-card, .order-sum-card { min-width: 100px !important; padding: 8px 10px !important; }
-      .order-op-dv { font-size: 16px !important; }
+      .order-summary-card { gap: 6px !important; padding: 10px 12px !important; }
+      .order-op-chip { min-width: 100px !important; padding: 8px 10px !important; }
+      .order-op-chip-dv { font-size: 20px !important; }
+      .op-assign-btn { font-size: 11px !important; padding: 4px 8px !important; }
       .th-sub { display: none; }
 
       /* ── INVENTORY HEADER STATS ── */
@@ -1558,7 +1567,7 @@ if('serviceWorker' in navigator){
 <div class="tab-panel" id="panel-inv" style="padding:0;">
   <div id="inv-sticky-wrap">
     <div style="max-width:900px;margin:0 auto;padding:10px 12px 0;">
-      <div class="inv-header"><div class="inv-header-title">Inventory</div><div class="inv-dv-row"><div class="inv-dv-card" style="flex:1.2;"><div class="inv-dv-item-label">DV Need</div><div class="inv-dv-item-val" id="inv-total-dvneed">0</div><div style="font-size:10px;opacity:0.5;margin-top:4px;font-weight:500;">Have: <span id="inv-total-vp">0</span></div></div><div class="inv-dv-card" style="opacity:0.6;border-left:1px solid rgba(255,255,255,0.15);padding-left:14px;"><div class="inv-dv-item-label">Est. Retail Inv Balance</div><div class="inv-dv-item-val" id="inv-total-balance" style="font-size:18px;">0</div></div></div></div>
+      <div class="inv-header"><div class="inv-header-title">Inventory</div><div class="inv-dv-row" style="display:flex;gap:0;align-items:center;"><div style="flex:1;padding-right:16px;"><div class="inv-dv-item-label">DV Need</div><div class="inv-dv-item-val" id="inv-total-dvneed" style="font-size:38px;">0</div></div><div style="width:1px;align-self:stretch;background:rgba(255,255,255,0.15);margin:0 16px;"></div><div style="display:flex;gap:20px;align-items:flex-start;"><div><div class="inv-dv-item-label">Items to Order</div><div class="inv-dv-item-val" id="inv-total-itemcount" style="font-size:26px;opacity:0.85;">0</div></div><div><div class="inv-dv-item-label">Est. Retail Inv Balance</div><div class="inv-dv-item-val" id="inv-total-balance" style="font-size:26px;opacity:0.85;">0</div></div></div></div></div>
     </div>
     <div style="max-width:900px;margin:0 auto;padding:0 12px;">
       <div class="filter-row" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -1572,7 +1581,8 @@ if('serviceWorker' in navigator){
           <button class="btn btn-ghost" id="inv-snap-rename-btn" onclick="openInvSnapRename()" style="padding:4px 8px;font-size:12px;display:none;">✎ Rename</button>
           <button class="btn btn-ghost" id="inv-snap-delete-btn" onclick="invSnapDeleteConfirm()" style="padding:4px 8px;font-size:12px;display:none;color:var(--danger,#dc2626);">🗑</button>
         </div>
-        <button class="btn btn-primary" onclick="saveInvSnapshot()" style="margin-left:auto;">📸 Snapshot</button>
+        <button class="btn btn-ghost" onclick="clearAllInv()" id="inv-clear-btn" style="margin-left:auto;border-color:var(--r3,#fca5a5);color:var(--r6,#dc2626);background:var(--r0,#fee2e2);font-size:12px;">✕ Clear All</button>
+        <button class="btn btn-primary" onclick="saveInvSnapshot()">📸 Snapshot</button>
         <button class="btn btn-ghost" onclick="goToOrderTab()" style="border-color:var(--g4);color:var(--g6);">🛒 Go to Order</button>
       </div>
     </div>
@@ -1639,7 +1649,8 @@ if('serviceWorker' in navigator){
       </div>
     </div>
     <div style="max-width:900px;margin:0 auto;padding:6px 12px 0;">
-      <div style="display:flex;align-items:center;gap:8px;">
+      <div id="order-summary-card-wrap"></div>
+      <div class="order-toolbar">
         <select id="order-plan-picker" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 10px;background:var(--surface);color:var(--text);outline:none;flex:1;" onchange="loadOrderPlan(this.value)">
           <option value="">— No saved plans —</option>
         </select>
@@ -6524,12 +6535,37 @@ function renderWhatIf(){}
 function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
 
 function setInvFilter(f,btn){invFilter=f;document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));btn.classList.add('active');renderInventory();}
+function clearAllInv(){
+  const btn=document.getElementById('inv-clear-btn');
+  if(btn&&btn.dataset.confirming==='1'){
+    invHave={};
+    renderInventory();
+    btn.dataset.confirming='';
+    btn.textContent='✕ Clear All';
+    btn.style.background='';btn.style.color='var(--r6,#dc2626)';btn.style.borderColor='var(--r3,#fca5a5)';
+    showToast('Inventory cleared','success');
+  } else if(btn){
+    btn.dataset.confirming='1';
+    btn.textContent='Confirm clear?';
+    btn.style.background='var(--r5,#ef4444)';btn.style.color='#fff';btn.style.borderColor='var(--r5,#ef4444)';
+    setTimeout(()=>{
+      if(btn.dataset.confirming==='1'){
+        btn.dataset.confirming='';
+        btn.textContent='✕ Clear All';
+        btn.style.background='var(--r0,#fee2e2)';btn.style.color='var(--r6,#dc2626)';btn.style.borderColor='var(--r3,#fca5a5)';
+      }
+    },3000);
+  }
+}
 function renderInventory(){
   const cats={};PRODUCTS.forEach(p=>{if(!cats[p[0]])cats[p[0]]=[];cats[p[0]].push({cat:p[0],name:p[1],sku:p[2],vp:p[3],par:p[4]});});
-  let vp=0,u=0,totalDvNeed=0;
-  PRODUCTS.forEach(p=>{const q=invHave[p[2]]||0;vp+=(p[3]||0)*q;u+=q;const haveEntered=invHave[p[2]]!=null;const need=Math.max(0,(p[4]||0)-q);if(haveEntered)totalDvNeed+=(p[3]||0)*need;});
-  setText('inv-total-vp',fmtVP(vp));
+  let vp=0,u=0,totalDvNeed=0,itemCount=0;
+  PRODUCTS.forEach(p=>{const q=invHave[p[2]]||0;vp+=(p[3]||0)*q;u+=q;const haveEntered=invHave[p[2]]!=null;const need=Math.max(0,(p[4]||0)-q);if(haveEntered&&need>0){totalDvNeed+=(p[3]||0)*need;itemCount++;}else if(haveEntered)totalDvNeed+=(p[3]||0)*Math.max(0,need);});
+  // Recompute properly
+  totalDvNeed=0;itemCount=0;
+  PRODUCTS.forEach(p=>{const q=invHave[p[2]]||0;const haveEntered=invHave[p[2]]!=null;const need=Math.max(0,(p[4]||0)-q);if(haveEntered){totalDvNeed+=(p[3]||0)*need;if(need>0)itemCount++;}});
   setText('inv-total-dvneed',fmtVP(totalDvNeed));
+  setText('inv-total-itemcount',itemCount.toString());
   setText('inv-total-balance',fmtVP(vp+totalDvNeed));
   let html='';
   Object.entries(cats).forEach(([cat,items])=>{
@@ -6578,10 +6614,10 @@ function setHave(s,v){
   const parsed=parseInt(v);
   invHave[s]=(v===''||v===null||v===undefined||isNaN(parsed))?null:parsed;
   const have=invHave[s]||0;
-  let vp=0,totalDvNeed=0;
-  PRODUCTS.forEach(p=>{const q=invHave[p[2]]||0;vp+=(p[3]||0)*q;const he=invHave[p[2]]!=null;const need=Math.max(0,(p[4]||0)-q);if(he)totalDvNeed+=(p[3]||0)*need;});
-  setText('inv-total-vp',fmtVP(vp));
+  let vp=0,totalDvNeed=0,itemCount=0;
+  PRODUCTS.forEach(p=>{const q=invHave[p[2]]||0;vp+=(p[3]||0)*q;const he=invHave[p[2]]!=null;const need=Math.max(0,(p[4]||0)-q);if(he){totalDvNeed+=(p[3]||0)*need;if(need>0)itemCount++;}});
   setText('inv-total-dvneed',fmtVP(totalDvNeed));
+  setText('inv-total-itemcount',itemCount.toString());
   setText('inv-total-balance',fmtVP(vp+totalDvNeed));
   const prod=PRODUCTS.find(p=>p[2]===s);
   if(prod){
@@ -6906,26 +6942,30 @@ function renderOrderBody(){
   const totalAssigned=needItems.filter(p=>_orderPlanActive.assignments[p.sku]&&!invOos[p.sku]).length;
   const totalOrderable=needItems.filter(p=>!invOos[p.sku]).length;
   const allAssigned=totalAssigned>=totalOrderable&&totalOrderable>0;
+  // Build operator chips in summary card
+  let chipHtml='<div class="order-summary-card" id="order-summary-card">';
+  ops.forEach((o,i)=>{
+    chipHtml+=`<div class="order-op-chip"><div class="order-op-chip-name">${o}</div><div class="order-op-chip-dv" id="order-chip-dv-${i}">${fmtVP(opTotals[o])}</div><div class="order-op-chip-sub" id="order-chip-sub-${i}">DV &middot; ${opCounts[o]} products</div></div>`;
+  });
+  if(totalOrderable>totalAssigned){
+    chipHtml+=`<div class="order-op-chip-unassigned"><div class="order-op-chip-name">Unassigned</div><div class="order-op-chip-dv" id="order-chip-unassigned-dv">${totalOrderable-totalAssigned}</div><div class="order-op-chip-sub">remaining</div></div>`;
+  }
+  chipHtml+='</div>';
+  const summaryWrap=document.getElementById('order-summary-card-wrap');
+  if(summaryWrap)summaryWrap.innerHTML=chipHtml;
+  // One-click assign buttons — cycle through ops on each tap
+  const makeAssignBtn=(p,isOos,assigned,ops)=>{
+    if(isOos)return`<button class="op-assign-btn oos-btn" disabled>OOS</button>`;
+    const label=assigned||'-- Assign --';
+    const cls=assigned?'assigned':'';
+    return`<button class="op-assign-btn ${cls}" onclick="orderAssignCycle('${p.sku}',this)">${label}</button>`;
+  };
   // Build HTML
   let html='';
   // Archive bar
   if(allAssigned&&!_orderPlanActive.id){
     html+=`<div class="order-archive-bar"><span class="order-archive-msg">&#10003; All items assigned -- ready to save &amp; archive?</span><button class="btn btn-primary" onclick="archiveOrderPlan()" style="background:var(--g6);border-color:var(--g6);">&#128190; Save &amp; Archive</button></div>`;
   }
-  // Summary cards
-  html+='<div class="order-summary-row">';
-  ops.forEach((o,i)=>{
-    const unassigned=needItems.filter(p=>!invOos[p.sku]&&!_orderPlanActive.assignments[p.sku]).length;
-    const colors=['var(--b6)','var(--a6)','var(--g6)','var(--r6)'];
-    const borderColors=['var(--b5)','var(--a5)','var(--g5)','var(--r5)'];
-    html+=`<div class="order-op-card" style="border-left-color:${borderColors[i%borderColors.length]};"><div class="order-op-name">${o}</div><div class="order-op-dv" style="color:${colors[i%colors.length]};">${fmtVP(opTotals[o])}</div><div class="order-op-sub">DV &middot; ${opCounts[o]} products</div></div>`;
-  });
-  if(totalOrderable>totalAssigned){
-    html+=`<div class="order-op-card" style="border-left-color:var(--text-faint);opacity:0.6;"><div class="order-op-name">Unassigned</div><div class="order-op-dv" style="color:var(--text-faint);">${totalOrderable-totalAssigned}</div><div class="order-op-sub">products remaining</div></div>`;
-  }
-  html+='</div>';
-  // Op options HTML for selects
-  const opOptions=`<option value="">-- Assign --</option>`+ops.map(o=>`<option value="${o}">${o}</option>`).join('');
   // Group by category
   const cats={};
   needItems.forEach(p=>{if(!cats[p.cat])cats[p.cat]=[];cats[p.cat].push(p);});
@@ -6946,14 +6986,11 @@ function renderOrderBody(){
       const dvSub=(!isOos&&assigned)?(p.vp||0)*p.need:null;
       const dvSubStr=dvSub!=null?fmtVP(dvSub):'--';
       const oosInfo=isOos&&invOos[p.sku].expectedDate?`<span class="oos-badge">OOS - ${new Date(invOos[p.sku].expectedDate+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>`:(isOos?`<span class="oos-badge">OOS</span>`:'');
-      const selectHtml=isOos
-        ?`<span style="font-size:12px;color:var(--r5);font-weight:600;">OOS</span>`
-        :`<select class="op-assign-select${assigned?' assigned':''}" data-sku="${p.sku}" onchange="orderAssign('${p.sku}',this.value,this)">${opOptions.replace(`value="${assigned}"`,`value="${assigned}" selected`)}</select>`;
       html+=`<tr class="${rowClass}" id="order-row-${p.sku}">
         <td><div class="inv-name-cell" style="display:flex;align-items:center;gap:7px;"><input type="checkbox" class="oos-check" title="Mark out of stock" ${isOos?'checked':''} onchange="toggleOos('${p.sku}','${escHtml(p.name)}',this)"/><div style="display:flex;align-items:baseline;gap:12px;overflow:hidden;"><span class="inv-name">${p.name}</span>${p.sku?`<span class="inv-sku">${p.sku}</span>`:''}</div>${oosInfo}</div></td>
         <td style="color:var(--b6);font-weight:700;">${p.need}</td>
         <td class="dv-product">${p.vp||'--'}</td>
-        <td style="text-align:left;padding-left:8px;">${selectHtml}</td>
+        <td style="text-align:left;padding-left:8px;">${makeAssignBtn(p,isOos,assigned,ops)}</td>
         <td id="order-dvsub-${p.sku}" class="dv-subtotal">${dvSubStr}</td>
       </tr>`;
     });
@@ -6965,14 +7002,29 @@ function renderOrderBody(){
   orderRecalcCatTotals(cats);
 }
 
-function orderAssign(sku,opName,selectEl){
+function orderAssignCycle(sku,btn){
+  if(!_orderPlanActive)return;
+  const ops=(SETTINGS.operators||[]).filter(o=>o.visible!==false).map(o=>o.name);
+  const current=_orderPlanActive.assignments[sku]||'';
+  const idx=ops.indexOf(current);
+  const next=ops[(idx+1)%ops.length];
+  // If we've cycled back to first op after being on last op, go to unassigned first
+  const newAssign=(idx===ops.length-1)?'':(idx===-1?next:next);
+  const finalAssign=(idx===ops.length-1)?'':next;
+  orderAssign(sku,finalAssign,btn);
+}
+
+function orderAssign(sku,opName,btnEl){
   if(!_orderPlanActive)return;
   if(opName){
     _orderPlanActive.assignments[sku]=opName;
-    selectEl.classList.add('assigned');
   } else {
     delete _orderPlanActive.assignments[sku];
-    selectEl.classList.remove('assigned');
+  }
+  // Update button
+  if(btnEl){
+    btnEl.textContent=opName||'-- Assign --';
+    btnEl.className='op-assign-btn'+(opName?' assigned':'');
   }
   const row=document.getElementById('order-row-'+sku);
   if(row)row.className=opName?'order-row-assigned':'';
@@ -6986,7 +7038,7 @@ function orderAssign(sku,opName,selectEl){
     const cell=document.getElementById('order-dvsub-'+sku);
     if(cell)cell.textContent=dvSub!=null?fmtVP(dvSub):'--';
   }
-  // Recompute op totals and summary cards
+  // Recompute summary chips
   renderOrderSummaryCards();
   // Recalc archive bar visibility
   const body=document.getElementById('order-body');
@@ -7023,18 +7075,20 @@ function renderOrderSummaryCards(){
   });
   const totalOrderable=needItems.filter(p=>!invOos[p.sku]).length;
   const totalAssigned=needItems.filter(p=>_orderPlanActive.assignments[p.sku]&&!invOos[p.sku]).length;
-  const colors=['var(--b6)','var(--a6)','var(--g6)','var(--r6)'];
-  const borderColors=['var(--b5)','var(--a5)','var(--g5)','var(--r5)'];
-  const summaryRow=document.querySelector('.order-summary-row');
-  if(!summaryRow)return;
-  let html='';
+  // Update chip values in place
   ops.forEach((o,i)=>{
-    html+=`<div class="order-op-card" style="border-left-color:${borderColors[i%borderColors.length]};"><div class="order-op-name">${o}</div><div class="order-op-dv" style="color:${colors[i%colors.length]};">${fmtVP(opTotals[o])}</div><div class="order-op-sub">DV &middot; ${opCounts[o]} products</div></div>`;
+    const dvEl=document.getElementById('order-chip-dv-'+i);
+    const subEl=document.getElementById('order-chip-sub-'+i);
+    if(dvEl)dvEl.textContent=fmtVP(opTotals[o]);
+    if(subEl)subEl.textContent='DV \u00b7 '+opCounts[o]+' products';
   });
-  if(totalOrderable>totalAssigned){
-    html+=`<div class="order-op-card" style="border-left-color:var(--text-faint);opacity:0.6;"><div class="order-op-name">Unassigned</div><div class="order-op-dv" style="color:var(--text-faint);">${totalOrderable-totalAssigned}</div><div class="order-op-sub">products remaining</div></div>`;
+  const unassignedEl=document.getElementById('order-chip-unassigned-dv');
+  if(unassignedEl){
+    const rem=totalOrderable-totalAssigned;
+    unassignedEl.textContent=rem;
+    const chip=unassignedEl.closest('.order-op-chip-unassigned');
+    if(chip)chip.style.display=rem>0?'':'none';
   }
-  summaryRow.innerHTML=html;
 }
 
 function orderRecalcCatTotals(cats){
