@@ -4974,8 +4974,10 @@ function cvaExportPDF(){
   function doExport(){
     var jsPDF=window.jspdf&&window.jspdf.jsPDF;
     if(!jsPDF){if(btn){btn.textContent='Export PDF';btn.disabled=false;}return;}
+
+    // ── SETUP ──
     var doc=new jsPDF({orientation:'portrait',unit:'pt',format:'letter'});
-    var PW=612,PH=792,ML=48,MR=48,MT=48,CW=PW-ML-MR;
+    var PW=612,PH=792,ML=44,MR=44,MT=36,CW=PW-ML-MR;
     var y=MT;
     var mode=_cvaTopMode;
     var clubName=SETTINGS.clubName||'Nutrition Club';
@@ -4983,405 +4985,293 @@ function cvaExportPDF(){
     var dateStr=today.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
     var modeLabel=mode==='profit'?'Profit Goal Mode':'Sales Goal Mode';
 
-    // Colors
-    var C={green:'#2e7a35',greenLight:'#eaf6eb',greenBorder:'#b8e0bc',blue:'#607e96',blueDark:'#354e62',
-           text:'#354e62',muted:'#5b7087',faint:'#8fa3b3',border:'#cdd6e0',borderLight:'#e2e9f0',
+    var C={green:'#2e7a35',greenLight:'#eaf6eb',greenBorder:'#b8e0bc',
+           blue:'#607e96',blueDark:'#354e62',text:'#354e62',muted:'#5b7087',
+           faint:'#8fa3b3',border:'#cdd6e0',borderLight:'#e2e9f0',
            surface:'#ffffff',bg:'#f5f8fb',rowAlt:'#f7f9fb'};
 
-    function fmtD(v){return '$'+Math.round(v).toLocaleString();}
-    function fmtF(v){return '$'+v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
-    function fmtPct(v){return Math.round(v)+'%';}
+    function fD(v){return '$'+Math.round(v).toLocaleString();}
+    function fF(v){return '$'+parseFloat(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
 
-    // ── HEADER ──
-    doc.setFillColor(C.green);
-    doc.rect(ML,y,CW,2,'F');
-    y+=10;
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(16);
-    doc.setTextColor(C.blueDark);
-    doc.text(clubName,ML,y+14);
-    doc.setFont('helvetica','normal');
-    doc.setFontSize(9);
-    doc.setTextColor(C.muted);
-    doc.text('Cost vs. Actuals Report',PW-MR,y+6,{align:'right'});
-    doc.text(dateStr,PW-MR,y+16,{align:'right'});
-    doc.setFillColor(C.greenLight);
-    doc.setDrawColor(C.greenBorder);
-    doc.roundedRect(PW-MR-68,y+20,68,14,3,3,'FD');
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(8);
-    doc.setTextColor(C.green);
-    doc.text(modeLabel,PW-MR-34,y+29,{align:'center'});
-    y+=46;
-    doc.setDrawColor(C.border);
-    doc.setLineWidth(0.5);
-    doc.line(ML,y,PW-MR,y);
-    y+=14;
-
-    // ── SECTION HELPER ──
-    function sectionTitle(label){
-      doc.setFont('helvetica','bold');
-      doc.setFontSize(7.5);
-      doc.setTextColor(C.faint);
-      doc.text(label.toUpperCase(),ML,y);
-      y+=4;
-      doc.setDrawColor(C.borderLight);
-      doc.setLineWidth(0.4);
-      doc.line(ML,y,PW-MR,y);
-      y+=10;
-    }
-
-    // ── GOAL SUMMARY ──
-    sectionTitle('Goal summary');
+    // ── COMPUTED VALUES ──
     var fixed=cvaGetFixed();
     var avgP=cvaOverallAvgPrice()||11.5;
     var avgW=cvaOverallWtd()||7.2;
     var hrs=cvaGetHrs()||8;
-    var goalRev,goalDaily,goalDrinks,goalDPH,goalProfit,breakEven;
-    breakEven=_cvaBreakEven||cvaCalcBreakEven();
+    var wage=cvaGetWage();
+    var breakEven=cvaCalcBreakEven();
+
+    // Benchmarks: cvaCalcTarget returns daily rev — multiply by 26
+    var bench=[
+      {goal:'Break even', rev:breakEven,       note:'$0 profit'},
+      {goal:'$3,000 / mo',rev:cvaCalcTarget(3000)*26, note:''},
+      {goal:'$5,000 / mo',rev:cvaCalcTarget(5000)*26, note:''},
+      {goal:'$10,000 / mo',rev:cvaCalcTarget(10000)*26,note:''}
+    ];
+
+    var goalRev,goalProfit;
     if(mode==='profit'){
-      var pr=cvaCalcRevFromProfit(_cvaProfVal);
-      goalRev=pr;
-      goalDaily=Math.round(pr/26);
-      goalDrinks=Math.ceil(pr/(avgP*26));
-      goalDPH=parseFloat((goalDrinks/hrs).toFixed(1));
+      goalRev=cvaCalcRevFromProfit(_cvaProfVal);
       goalProfit=_cvaProfVal;
     } else {
       var sl=document.getElementById('cva-rev-slider');
       goalRev=sl?Math.round((parseInt(sl.value,10)||0)/100)*100:0;
-      goalDaily=Math.round(goalRev/26);
-      goalDrinks=Math.ceil(goalRev/(avgP*26));
-      goalDPH=parseFloat((goalDrinks/hrs).toFixed(1));
-      var r=cvaRevCalcProfit(goalRev);
-      goalProfit=r.profit;
+      goalProfit=cvaRevCalcProfit(goalRev).profit||0;
     }
-    var statW=(CW-16)/3;
-    var stats=[
-      {label:mode==='profit'?'Profit goal':'Daily sales target',val:mode==='profit'?fmtD(goalProfit):fmtD(goalDaily),sub:mode==='profit'?'per month take-home':fmtD(goalRev)+' / mo'},
-      {label:'Drinks / day',val:goalDrinks,sub:'at avg '+fmtF(avgP)},
-      {label:'Drinks / hour',val:goalDPH.toFixed(1),sub:hrs+' hr shift'}
-    ];
-    stats.forEach(function(s,i){
-      var sx=ML+i*(statW+8);
-      doc.setFillColor(C.bg);
-      doc.roundedRect(sx,y,statW,42,4,4,'F');
-      doc.setFont('helvetica','normal');
-      doc.setFontSize(7.5);
-      doc.setTextColor(C.faint);
-      doc.text(s.label,sx+8,y+11);
-      doc.setFont('helvetica','bold');
-      doc.setFontSize(15);
-      doc.setTextColor(i===0?C.green:C.blueDark);
-      doc.text(String(s.val),sx+8,y+27);
-      doc.setFont('helvetica','normal');
-      doc.setFontSize(7.5);
-      doc.setTextColor(C.faint);
-      doc.text(s.sub,sx+8,y+38);
-    });
-    y+=54;
+    var goalDaily=Math.round(goalRev/26);
+    var goalDrinks=Math.ceil(goalRev/(avgP*26));
+    var goalDPH=(goalDrinks/hrs).toFixed(1);
+    var r2=cvaRevCalcProfit(goalRev);
 
-    // ── BENCHMARKS ──
-    sectionTitle('Profit benchmarks · monthly revenue needed');
-    var benchmarks=[
-      {goal:'Break even',rev:fmtD(breakEven),note:'$0 profit',highlight:false},
-      {goal:'$3,000 / mo',rev:fmtD(cvaCalcTarget(3000)),note:'',highlight:false},
-      {goal:'$5,000 / mo',rev:fmtD(cvaCalcTarget(5000)),note:'',highlight:false},
-      {goal:'$10,000 / mo',rev:fmtD(cvaCalcTarget(10000)),note:'',highlight:false}
-    ];
-    var bw=(CW-12)/4;
-    benchmarks.forEach(function(b,i){
-      var bx=ML+i*(bw+4);
-      var isTarget=(mode==='profit'&&_cvaProfVal>=parseInt(b.goal.replace(/[^0-9]/g,''))||false);
-      doc.setFillColor(C.surface);
-      doc.setDrawColor(C.borderLight);
-      doc.setLineWidth(0.4);
-      doc.roundedRect(bx,y,bw,38,3,3,'FD');
-      doc.setFont('helvetica','normal');
-      doc.setFontSize(7.5);
-      doc.setTextColor(C.faint);
-      doc.text(b.goal,bx+bw/2,y+10,{align:'center'});
-      doc.setFont('helvetica','bold');
-      doc.setFontSize(12);
-      doc.setTextColor(C.blue);
-      doc.text(b.rev,bx+bw/2,y+24,{align:'center'});
-      if(b.note){
-        doc.setFont('helvetica','normal');
-        doc.setFontSize(7);
-        doc.setTextColor(C.faint);
-        doc.text(b.note,bx+bw/2,y+34,{align:'center'});
-      }
-    });
-    y+=50;
+    // Mix: index order is Shakes[0], Mega Teas[1], Chillers[2], Protein Coffee[3], Other[4]
+    var mixGenLabels=['Shake drinks','Tea drinks','Chiller drinks','Coffee drinks','Other'];
+    var mixColors=['#607e96','#2e7a35','#c47c0a','#534AB7','#8fa3b3'];
+    var teaGenLabels=['Tea type A','Tea type B','Tea type C','Tea type D'];
 
-    // ── TWO COLUMN: EXPENSES + LABOR ──
-    var colW=(CW-16)/2;
-    var colR=ML+colW+16;
-    var colYL=y,colYR=y;
-
-    // Left: Fixed expenses
-    sectionTitle('Fixed monthly expenses');
-    colYL=y;
-    _cvaExpenses.forEach(function(e,i){
-      if(i%2===0)doc.setFillColor(C.rowAlt); else doc.setFillColor(C.surface);
-      doc.rect(ML,colYL,colW,14,'F');
-      doc.setFont('helvetica','normal');
-      doc.setFontSize(8.5);
-      doc.setTextColor(C.muted);
-      doc.text(e.l,ML+6,colYL+9.5);
-      doc.setFont('helvetica','bold');
-      doc.setTextColor(C.text);
-      doc.text(fmtF(e.v),ML+colW-6,colYL+9.5,{align:'right'});
-      colYL+=14;
-    });
-    doc.setDrawColor(C.border);
-    doc.setLineWidth(0.7);
-    doc.line(ML,colYL,ML+colW,colYL);
-    colYL+=10;
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(8.5);
-    doc.setTextColor(C.green);
-    doc.text('Total',ML+6,colYL);
-    doc.text(fmtF(fixed),ML+colW-6,colYL,{align:'right'});
-    colYL+=10;
-    doc.setFont('helvetica','normal');
-    doc.setFontSize(7.5);
-    doc.setTextColor(C.faint);
-    doc.text(fmtF(fixed/26)+' / operating day',ML+6,colYL);
-    colYL+=16;
-
-    // Right: Labor
-    var laborY=y;
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(7.5);
-    doc.setTextColor(C.faint);
-    doc.text('LABOR ASSUMPTIONS',colR,laborY);
-    laborY+=4;
-    doc.setDrawColor(C.borderLight);
-    doc.setLineWidth(0.4);
-    doc.line(colR,laborY,colR+colW,laborY);
-    laborY+=10;
-    var wage=cvaGetWage();
-    var laborRows=[
-      {l:'Hourly wage',v:'$'+wage.toFixed(2)},
-      {l:'Shift length',v:hrs+' hrs'},
-      {l:'Cost / operator / day',v:'$'+Math.round(wage*hrs).toLocaleString()}
-    ];
-    laborRows.forEach(function(r,i){
-      if(i%2===0)doc.setFillColor(C.rowAlt); else doc.setFillColor(C.surface);
-      doc.rect(colR,laborY,colW,14,'F');
-      doc.setFont('helvetica','normal');
-      doc.setFontSize(8.5);
-      doc.setTextColor(C.muted);
-      doc.text(r.l,colR+6,laborY+9.5);
-      doc.setFont('helvetica','bold');
-      doc.setTextColor(C.text);
-      doc.text(r.v,colR+colW-6,laborY+9.5,{align:'right'});
-      laborY+=14;
-    });
-    laborY+=6;
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(7.5);
-    doc.setTextColor(C.faint);
-    doc.text('STAFFING TIERS',colR+6,laborY);
-    laborY+=10;
-    var activeDrinks=goalDrinks;
-    _cvaTiers.forEach(function(t){
-      if(t.ops===null)return;
-      var isActive=activeDrinks<=t.max||(t.max===null);
-      var prevActive=false;
-      if(isActive&&!prevActive){
-        doc.setFillColor(C.greenLight);
-        doc.setDrawColor(C.greenBorder);
-        doc.setLineWidth(0.4);
-        doc.roundedRect(colR,laborY,colW,14,2,2,'FD');
-        doc.setTextColor(C.green);
-        prevActive=true;
-      } else {
-        doc.setFillColor(C.surface);
-        doc.setTextColor(C.muted);
-        isActive=false;
-      }
-      var tierLabel='Up to '+t.max+' drinks';
-      var staffLabel=(t.ops+1)+' staff';
-      doc.setFont(isActive?'helvetica':'helvetica',isActive?'bold':'normal');
-      doc.setFontSize(8);
-      doc.text(tierLabel,colR+6,laborY+9.5);
-      doc.setFont('helvetica','bold');
-      doc.text(staffLabel,colR+colW-6,laborY+9.5,{align:'right'});
-      laborY+=14;
-    });
-
-    y=Math.max(colYL,laborY)+8;
-
-    // ── TWO COLUMN: PRODUCT MARGINS + SALES MIX ──
-    var col2YL=y,col2YR=y;
-
-    // Left: Product margins (generalized labels)
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(7.5);
-    doc.setTextColor(C.faint);
-    doc.text('PRODUCT MARGINS',ML,col2YL);
-    col2YL+=4;
-    doc.setDrawColor(C.borderLight);
-    doc.setLineWidth(0.4);
-    doc.line(ML,col2YL,ML+colW,col2YL);
-    col2YL+=8;
-    var colWidths=[colW*0.38,colW*0.18,colW*0.18,colW*0.14,colW*0.12];
-    var colHeaders=['Category','Cost','Sell','Profit','Margin'];
-    var cx=ML;
-    colHeaders.forEach(function(h,i){
+    // ── SECTION TITLE HELPER ──
+    function secTitle(label,sx,sw,sy){
       doc.setFont('helvetica','bold');
       doc.setFontSize(7);
       doc.setTextColor(C.faint);
-      var align=i===0?'left':'right';
-      doc.text(h,i===0?cx+4:cx+colWidths[i]-2,col2YL,{align:align});
-      cx+=colWidths[i];
-    });
-    col2YL+=3;
-    doc.line(ML,col2YL,ML+colW,col2YL);
-    col2YL+=8;
-    _cvaMix.forEach(function(cat,idx){
-      var pct=_cvaMixVals[idx];
-      if(pct===0)return;
-      var cost=parseFloat((cat.avgPrice-cat.profit).toFixed(2));
-      var sell=parseFloat(cat.avgPrice.toFixed(2));
-      var profit=parseFloat(cat.profit.toFixed(2));
-      var margin=sell>0?Math.round((profit/sell)*100):0;
-      var genLabel=['Tea drinks','Shake drinks','Chiller drinks','Coffee drinks','Other'][idx]||cat.label;
-      if(idx%2===0)doc.setFillColor(C.rowAlt); else doc.setFillColor(C.surface);
-      doc.rect(ML,col2YL,colW,13,'F');
-      var row=[genLabel,fmtF(cost),fmtF(sell),fmtF(profit),fmtPct(margin)];
-      cx=ML;
-      row.forEach(function(v,i){
-        doc.setFont('helvetica',i===3?'bold':'normal');
-        doc.setFontSize(8);
-        doc.setTextColor(i===3?C.green:C.muted);
-        var align=i===0?'left':'right';
-        doc.text(v,i===0?cx+4:cx+colWidths[i]-2,col2YL+9,{align:align});
-        cx+=colWidths[i];
-      });
-      col2YL+=13;
-    });
-    doc.setDrawColor(C.border);
-    doc.setLineWidth(0.7);
-    doc.line(ML,col2YL,ML+colW,col2YL);
-    col2YL+=9;
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(8);
-    doc.setTextColor(C.muted);
-    doc.text('Wtd avg profit / drink',ML+4,col2YL);
-    doc.setTextColor(C.green);
-    doc.text(fmtF(avgW),ML+colW-4,col2YL,{align:'right'});
-    col2YL+=16;
+      doc.text(label,sx,sy);
+      doc.setDrawColor(C.borderLight);
+      doc.setLineWidth(0.4);
+      doc.line(sx,sy+3,sx+sw,sy+3);
+      return sy+11;
+    }
 
-    // Right: Sales mix bar chart (generalized)
-    var mixY=y;
+    // ── HEADER ──
+    doc.setFillColor(C.green);
+    doc.rect(ML,y,CW,2,'F');
+    y+=8;
     doc.setFont('helvetica','bold');
-    doc.setFontSize(7.5);
-    doc.setTextColor(C.faint);
-    doc.text('SALES MIX',colR,mixY);
-    mixY+=4;
-    doc.setDrawColor(C.borderLight);
-    doc.setLineWidth(0.4);
-    doc.line(colR,mixY,colR+colW,mixY);
-    mixY+=12;
-    var mixColors=['#2e7a35','#607e96','#c47c0a','#534AB7','#8fa3b3'];
-    var mixLabels=['Tea drinks','Shake drinks','Chiller drinks','Coffee drinks','Other'];
-    var barMaxW=colW-60;
-    _cvaMixVals.forEach(function(pct,i){
-      if(pct===0)return;
-      doc.setFont('helvetica','normal');
-      doc.setFontSize(8);
-      doc.setTextColor(C.muted);
-      doc.text(mixLabels[i],colR+4,mixY+8);
-      doc.setFillColor(C.borderLight);
-      doc.roundedRect(colR+60,mixY+2,barMaxW,8,2,2,'F');
-      doc.setFillColor(mixColors[i]||C.green);
-      var barW=Math.max(4,Math.round((pct/100)*barMaxW));
-      doc.roundedRect(colR+60,mixY+2,barW,8,2,2,'F');
-      doc.setFont('helvetica','bold');
-      doc.setTextColor(C.text);
-      doc.text(pct+'%',colR+colW-2,mixY+8,{align:'right'});
-      mixY+=16;
-    });
-    // Tea sub-mix
-    mixY+=4;
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(7);
-    doc.setTextColor(C.faint);
-    doc.text('TEA SUB-MIX',colR+4,mixY);
-    mixY+=8;
-    var teaSubLabels=['Type A teas','Type B teas','Type C teas','Type D teas'];
-    var teaSubColors=['#2e7a35','#3d9e46','#5ab864','#88cc90'];
-    _cvaTeaVals.forEach(function(pct,i){
-      if(pct===0)return;
-      doc.setFont('helvetica','normal');
-      doc.setFontSize(7.5);
-      doc.setTextColor(C.muted);
-      doc.text(teaSubLabels[i]||('Tea type '+(i+1)),colR+4,mixY+7);
-      doc.setFillColor(C.borderLight);
-      doc.roundedRect(colR+60,mixY+1,barMaxW,7,2,2,'F');
-      doc.setFillColor(teaSubColors[i]||C.green);
-      var barW=Math.max(3,Math.round((pct/100)*barMaxW));
-      doc.roundedRect(colR+60,mixY+1,barW,7,2,2,'F');
-      doc.setFont('helvetica','bold');
-      doc.setFontSize(7.5);
-      doc.setTextColor(C.text);
-      doc.text(pct+'%',colR+colW-2,mixY+7,{align:'right'});
-      mixY+=13;
-    });
-
-    y=Math.max(col2YL,mixY)+10;
-
-    // ── PROFIT RESULT BOX ──
-    if(y>PH-180){doc.addPage();y=MT;}
-    doc.setFillColor(C.greenLight);
-    doc.setDrawColor(C.greenBorder);
-    doc.setLineWidth(0.5);
-    doc.roundedRect(ML,y,CW,56,5,5,'FD');
-    var r2=cvaRevCalcProfit(goalRev);
-    var profitVal=goalProfit||0;
-    var isPos=profitVal>=0;
+    doc.setFontSize(15);
+    doc.setTextColor(C.blueDark);
+    doc.text(clubName,ML,y+12);
     doc.setFont('helvetica','normal');
     doc.setFontSize(8.5);
-    doc.setTextColor(C.green);
-    doc.text('Estimated monthly result at '+fmtD(goalRev)+' revenue',ML+12,y+13);
+    doc.setTextColor(C.muted);
+    doc.text('Cost vs. Actuals Report',PW-MR,y+5,{align:'right'});
+    doc.text(dateStr,PW-MR,y+15,{align:'right'});
+    doc.setFillColor(C.greenLight);
+    doc.setDrawColor(C.greenBorder);
+    doc.roundedRect(PW-MR-70,y+20,70,13,3,3,'FD');
     doc.setFont('helvetica','bold');
-    doc.setFontSize(22);
-    doc.setTextColor(isPos?'#27500A':'#A32D2D');
-    doc.text((profitVal<0?'-':'')+fmtD(Math.abs(profitVal)),ML+12,y+36);
-    doc.setFont('helvetica','normal');
     doc.setFontSize(7.5);
     doc.setTextColor(C.green);
-    var bdParts=['Fixed expenses: -'+fmtD(r2.fixed),'  Ingredients: -'+fmtD(r2.ing||0),'  Labor: -'+fmtD(r2.lab||0)];
-    doc.text(bdParts.join('    '),ML+12,y+48);
-    // Break even on right
-    doc.setFont('helvetica','normal');
-    doc.setFontSize(7.5);
-    doc.setTextColor(C.green);
-    doc.text('Break even',PW-MR-12,y+13,{align:'right'});
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(14);
-    doc.setTextColor('#27500A');
-    doc.text(fmtD(breakEven)+' / mo',PW-MR-12,y+30,{align:'right'});
-    doc.setFont('helvetica','normal');
-    doc.setFontSize(7.5);
-    doc.setTextColor(C.green);
-    doc.text(fmtD(breakEven/26)+' / day',PW-MR-12,y+42,{align:'right'});
-    y+=68;
+    doc.text(modeLabel,PW-MR-35,y+28,{align:'center'});
+    y+=42;
+    doc.setDrawColor(C.border);
+    doc.setLineWidth(0.5);
+    doc.line(ML,y,PW-MR,y);
+    y+=10;
+
+    // ── GOAL SUMMARY (3 stat cards) ──
+    y=secTitle('GOAL SUMMARY',ML,CW,y);
+    var sW=(CW-12)/3;
+    var statDefs=[
+      {label:mode==='profit'?'Profit goal':'Daily sales target',
+       val:mode==='profit'?fD(goalProfit):fD(goalDaily),
+       sub:mode==='profit'?'per month take-home':fD(goalRev)+' / mo',color:C.green},
+      {label:'Drinks / day',val:String(goalDrinks),sub:'at avg '+fF(avgP),color:C.blueDark},
+      {label:'Drinks / hour',val:String(goalDPH),sub:hrs+' hr shift',color:C.blueDark}
+    ];
+    statDefs.forEach(function(s,i){
+      var sx=ML+i*(sW+6);
+      doc.setFillColor(C.bg);
+      doc.roundedRect(sx,y,sW,38,3,3,'F');
+      doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(C.faint);
+      doc.text(s.label,sx+7,y+10);
+      doc.setFont('helvetica','bold');doc.setFontSize(14);doc.setTextColor(s.color);
+      doc.text(s.val,sx+7,y+25);
+      doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(C.faint);
+      doc.text(s.sub,sx+7,y+34);
+    });
+    y+=46;
+
+    // ── BENCHMARKS ──
+    y=secTitle('PROFIT BENCHMARKS \xb7 MONTHLY REVENUE NEEDED',ML,CW,y);
+    var bW=(CW-12)/4;
+    bench.forEach(function(b,i){
+      var bx=ML+i*(bW+4);
+      doc.setFillColor(C.surface);doc.setDrawColor(C.borderLight);doc.setLineWidth(0.4);
+      doc.roundedRect(bx,y,bW,34,3,3,'FD');
+      doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(C.faint);
+      doc.text(b.goal,bx+bW/2,y+9,{align:'center'});
+      doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(C.blue);
+      doc.text(fD(b.rev),bx+bW/2,y+22,{align:'center'});
+      if(b.note){doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(C.faint);doc.text(b.note,bx+bW/2,y+30,{align:'center'});}
+    });
+    y+=42;
+
+    // ── TWO COLUMNS: EXPENSES (left) + LABOR (right) ──
+    var colW=(CW-14)/2, colR=ML+colW+14;
+    var lyL=y, lyR=y;
+
+    // Left: Fixed expenses
+    lyL=secTitle('FIXED MONTHLY EXPENSES',ML,colW,lyL);
+    _cvaExpenses.forEach(function(e,i){
+      if(i%2===0)doc.setFillColor(C.rowAlt);else doc.setFillColor(C.surface);
+      doc.rect(ML,lyL,colW,12,'F');
+      doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(C.muted);
+      doc.text(e.l,ML+5,lyL+8.5);
+      doc.setFont('helvetica','bold');doc.setTextColor(C.text);
+      doc.text(fF(e.v),ML+colW-4,lyL+8.5,{align:'right'});
+      lyL+=12;
+    });
+    doc.setDrawColor(C.border);doc.setLineWidth(0.6);doc.line(ML,lyL,ML+colW,lyL);
+    lyL+=8;
+    doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(C.green);
+    doc.text('Total',ML+5,lyL);doc.text(fF(fixed),ML+colW-4,lyL,{align:'right'});
+    lyL+=9;
+    doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(C.faint);
+    doc.text(fF(fixed/26)+' / operating day',ML+5,lyL);
+    lyL+=12;
+
+    // Right: Labor
+    lyR=secTitle('LABOR ASSUMPTIONS',colR,colW,lyR);
+    var labRows=[
+      {l:'Hourly wage',v:fF(wage)},
+      {l:'Shift length',v:hrs+' hrs'},
+      {l:'Cost / operator / day',v:fD(wage*hrs)}
+    ];
+    labRows.forEach(function(r,i){
+      if(i%2===0)doc.setFillColor(C.rowAlt);else doc.setFillColor(C.surface);
+      doc.rect(colR,lyR,colW,12,'F');
+      doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(C.muted);
+      doc.text(r.l,colR+5,lyR+8.5);
+      doc.setFont('helvetica','bold');doc.setTextColor(C.text);
+      doc.text(r.v,colR+colW-4,lyR+8.5,{align:'right'});
+      lyR+=12;
+    });
+    lyR+=6;
+    doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(C.faint);
+    doc.text('STAFFING TIERS',colR+5,lyR);lyR+=9;
+    var activeDrinks=goalDrinks;
+    var foundActive=false;
+    _cvaTiers.forEach(function(t){
+      if(t.ops===null)return;
+      var isActive=!foundActive&&(t.max===null||activeDrinks<=t.max);
+      if(isActive)foundActive=true;
+      if(isActive){
+        doc.setFillColor(C.greenLight);doc.setDrawColor(C.greenBorder);doc.setLineWidth(0.3);
+        doc.roundedRect(colR,lyR,colW,12,2,2,'FD');
+        doc.setTextColor(C.green);
+      } else {
+        doc.setFillColor(C.surface);doc.setTextColor(C.muted);
+      }
+      doc.setFont('helvetica',isActive?'bold':'normal');doc.setFontSize(7.5);
+      var rangeLabel=t.max?'Up to '+t.max+' drinks':'160+ drinks';
+      doc.text(rangeLabel,colR+5,lyR+8.5);
+      doc.setFont('helvetica','bold');
+      doc.text((t.ops+1)+' staff',colR+colW-4,lyR+8.5,{align:'right'});
+      lyR+=12;
+    });
+    lyR+=8;
+
+    y=Math.max(lyL,lyR);
+
+    // ── TWO COLUMNS: PRODUCT MARGINS (left) + SALES MIX (right) ──
+    var c2L=y, c2R=y;
+
+    // Left: Product margins
+    c2L=secTitle('PRODUCT MARGINS',ML,colW,c2L);
+    var cws=[colW*0.40,colW*0.17,colW*0.17,colW*0.14,colW*0.12];
+    var hdrs=['Category','Cost','Sell','Profit','Margin'];
+    var cx=ML;
+    hdrs.forEach(function(h,i){
+      doc.setFont('helvetica','bold');doc.setFontSize(6.5);doc.setTextColor(C.faint);
+      doc.text(h,i===0?cx+4:cx+cws[i]-2,c2L,{align:i===0?'left':'right'});
+      cx+=cws[i];
+    });
+    c2L+=3;doc.setDrawColor(C.borderLight);doc.setLineWidth(0.3);doc.line(ML,c2L,ML+colW,c2L);c2L+=6;
+    _cvaMix.forEach(function(cat,idx){
+      var pct=_cvaMixVals[idx];
+      var cost=cat.avgPrice-cat.profit;
+      var margin=cat.avgPrice>0?Math.round((cat.profit/cat.avgPrice)*100):0;
+      if(idx%2===0)doc.setFillColor(C.rowAlt);else doc.setFillColor(C.surface);
+      doc.rect(ML,c2L,colW,12,'F');
+      var row=[mixGenLabels[idx],fF(cost),fF(cat.avgPrice),fF(cat.profit),margin+'%'];
+      cx=ML;
+      row.forEach(function(v,i){
+        doc.setFont('helvetica',i===3?'bold':'normal');doc.setFontSize(7.5);
+        doc.setTextColor(i===3?C.green:C.muted);
+        doc.text(v,i===0?cx+4:cx+cws[i]-2,c2L+8.5,{align:i===0?'left':'right'});
+        cx+=cws[i];
+      });
+      c2L+=12;
+    });
+    doc.setDrawColor(C.border);doc.setLineWidth(0.6);doc.line(ML,c2L,ML+colW,c2L);c2L+=8;
+    doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(C.muted);
+    doc.text('Wtd avg profit / drink',ML+4,c2L);
+    doc.setTextColor(C.green);doc.text(fF(avgW),ML+colW-4,c2L,{align:'right'});
+    c2L+=12;
+
+    // Right: Sales mix bars
+    c2R=secTitle('SALES MIX',colR,colW,c2R);
+    var barMax=colW-56;
+    _cvaMixVals.forEach(function(pct,i){
+      doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(C.muted);
+      doc.text(mixGenLabels[i],colR+4,c2R+8);
+      doc.setFillColor(C.borderLight);doc.roundedRect(colR+54,c2R+2,barMax,7,2,2,'F');
+      doc.setFillColor(mixColors[i]||C.green);
+      doc.roundedRect(colR+54,c2R+2,Math.max(3,(pct/100)*barMax),7,2,2,'F');
+      doc.setFont('helvetica','bold');doc.setTextColor(C.text);
+      doc.text(pct+'%',colR+colW-2,c2R+8,{align:'right'});
+      c2R+=13;
+    });
+    c2R+=4;
+    doc.setFont('helvetica','bold');doc.setFontSize(6.5);doc.setTextColor(C.faint);
+    doc.text('TEA SUB-MIX',colR+4,c2R);c2R+=8;
+    _cvaTeaVals.forEach(function(pct,i){
+      doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(C.muted);
+      doc.text(teaGenLabels[i]||('Tea type '+(i+1)),colR+4,c2R+7);
+      doc.setFillColor(C.borderLight);doc.roundedRect(colR+54,c2R+1,barMax,6,2,2,'F');
+      doc.setFillColor(C.green);
+      doc.roundedRect(colR+54,c2R+1,Math.max(2,(pct/100)*barMax),6,2,2,'F');
+      doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(C.text);
+      doc.text(pct+'%',colR+colW-2,c2R+7,{align:'right'});
+      c2R+=12;
+    });
+
+    y=Math.max(c2L,c2R)+8;
+
+    // ── PROFIT RESULT BOX ──
+    var boxH=50;
+    doc.setFillColor(goalProfit>=0?C.greenLight:'#FCEBEB');
+    doc.setDrawColor(goalProfit>=0?C.greenBorder:'#F7C1C1');
+    doc.setLineWidth(0.5);
+    doc.roundedRect(ML,y,CW,boxH,5,5,'FD');
+    var profitColor=goalProfit>=0?'#27500A':'#A32D2D';
+    doc.setFont('helvetica','normal');doc.setFontSize(8);
+    doc.setTextColor(goalProfit>=0?C.green:'#A32D2D');
+    doc.text('Estimated monthly result at '+fD(goalRev)+' revenue',ML+10,y+12);
+    doc.setFont('helvetica','bold');doc.setFontSize(20);doc.setTextColor(profitColor);
+    doc.text((goalProfit<0?'-':'')+fD(Math.abs(goalProfit)),ML+10,y+32);
+    doc.setFont('helvetica','normal');doc.setFontSize(7);
+    doc.setTextColor(goalProfit>=0?C.green:'#A32D2D');
+    doc.text('Fixed: -'+fD(r2.fixed)+'    Ingredients: -'+fD(r2.ing||0)+'    Labor: -'+fD(r2.lab||0),ML+10,y+43);
+    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(goalProfit>=0?C.green:'#A32D2D');
+    doc.text('Break even',PW-MR-10,y+12,{align:'right'});
+    doc.setFont('helvetica','bold');doc.setFontSize(13);doc.setTextColor(profitColor);
+    doc.text(fD(breakEven)+' / mo',PW-MR-10,y+27,{align:'right'});
+    doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(C.faint);
+    doc.text(fD(breakEven/26)+' / day',PW-MR-10,y+38,{align:'right'});
+    y+=boxH+8;
 
     // ── FOOTER ──
-    doc.setDrawColor(C.borderLight);
-    doc.setLineWidth(0.4);
-    doc.line(ML,PH-30,PW-MR,PH-30);
-    doc.setFont('helvetica','normal');
-    doc.setFontSize(7.5);
-    doc.setTextColor(C.faint);
-    doc.text('MyClubTracker \xb7 myclubtracker.com',ML,PH-18);
-    doc.text('For planning purposes only \xb7 not financial advice',PW-MR,PH-18,{align:'right'});
+    doc.setDrawColor(C.borderLight);doc.setLineWidth(0.4);
+    doc.line(ML,PH-24,PW-MR,PH-24);
+    doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(C.faint);
+    doc.text('MyClubTracker \xb7 myclubtracker.com',ML,PH-13);
+    doc.text('For planning purposes only \xb7 not financial advice',PW-MR,PH-13,{align:'right'});
 
     // ── SAVE ──
-    var fname=(clubName.replace(/[^a-z0-9]/gi,'_').toLowerCase()||'club')+'_cva_'+today.getFullYear()+('0'+(today.getMonth()+1)).slice(-2)+('0'+today.getDate()).slice(-2)+'.pdf';
+    var defaultName=(clubName.replace(/[^a-z0-9]/gi,'_').toLowerCase()||'club')+'_cva_'
+      +today.getFullYear()+('0'+(today.getMonth()+1)).slice(-2)+('0'+today.getDate()).slice(-2)+'.pdf';
+    var fname=window.prompt('Save PDF as:',defaultName);
+    if(!fname){if(btn){btn.innerHTML='<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8M5 7l3 3 3-3M3 12.5h10"/></svg> Export PDF';btn.disabled=false;}return;}
+    if(!fname.toLowerCase().endsWith('.pdf'))fname=fname+'.pdf';
     doc.save(fname);
     if(btn){btn.innerHTML='<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8M5 7l3 3 3-3M3 12.5h10"/></svg> Export PDF';btn.disabled=false;}
   }
@@ -5396,7 +5286,6 @@ function cvaExportPDF(){
     document.head.appendChild(s);
   }
 }
-
 // ── CVA: INIT ──
 (function(){
   var sl=document.getElementById('cva-rev-slider');
