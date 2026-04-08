@@ -5269,10 +5269,31 @@ function cvaExportPDF(){
     // ── SAVE ──
     var defaultName=(clubName.replace(/[^a-z0-9]/gi,'_').toLowerCase()||'club')+'_cva_'
       +today.getFullYear()+('0'+(today.getMonth()+1)).slice(-2)+('0'+today.getDate()).slice(-2)+'.pdf';
-    var fname=window.prompt('Save PDF as:',defaultName);
-    if(!fname){if(btn){btn.innerHTML='<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8M5 7l3 3 3-3M3 12.5h10"/></svg> Export PDF';btn.disabled=false;}return;}
-    if(!fname.toLowerCase().endsWith('.pdf'))fname=fname+'.pdf';
-    doc.save(fname);
+    var pdfBlob=doc.output('blob');
+    function resetBtn(){if(btn){btn.innerHTML='<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8M5 7l3 3 3-3M3 12.5h10"/></svg> Export PDF';btn.disabled=false;}}
+    if(window.showSaveFilePicker){
+      window.showSaveFilePicker({
+        suggestedName:defaultName,
+        types:[{description:'PDF Document',accept:{'application/pdf':['.pdf']}}]
+      }).then(function(fileHandle){
+        return fileHandle.createWritable().then(function(writable){
+          return writable.write(pdfBlob).then(function(){return writable.close();});
+        });
+      }).then(function(){resetBtn();})
+      .catch(function(err){
+        if(err.name!=='AbortError'){
+          var url=URL.createObjectURL(pdfBlob);
+          var a=document.createElement('a');a.href=url;a.download=defaultName;a.click();
+          setTimeout(function(){URL.revokeObjectURL(url);},2000);
+        }
+        resetBtn();
+      });
+    } else {
+      var url=URL.createObjectURL(pdfBlob);
+      var a=document.createElement('a');a.href=url;a.download=defaultName;a.click();
+      setTimeout(function(){URL.revokeObjectURL(url);},2000);
+      resetBtn();
+    }
     if(btn){btn.innerHTML='<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8M5 7l3 3 3-3M3 12.5h10"/></svg> Export PDF';btn.disabled=false;}
   }
 
