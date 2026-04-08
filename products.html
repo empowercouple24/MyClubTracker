@@ -598,30 +598,40 @@ var _pushLocations = [];
 var _pushChanges   = [];
 
 function openPushPrompt(){
-  // Compute diff to show counts in prompt
-  var user_meta_check=function(){
-    sb.auth.getUser().then(function(res){
-      var user=res.data&&res.data.user;
-      var lastPushed=user&&user.user_metadata&&user.user_metadata.lastPushedProducts||null;
-      var baseline=lastPushed?JSON.parse(lastPushed):[];
-      var diff=computeDiff(baseline,products);
-      var adds=diff.filter(function(c){return c.type==='add';}).length;
-      var removes=diff.filter(function(c){return c.type==='remove';}).length;
-      var changes=diff.filter(function(c){return c.type==='change';}).length;
-      var pills=document.getElementById('push-prompt-pills');
-      if(pills){
-        var html='';
-        if(adds)html+='<span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;background:var(--g0);color:#27500A;border:1px solid var(--g1);">'+adds+' added</span>';
-        if(removes)html+='<span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;background:#FCEBEB;color:#A32D2D;border:1px solid #F7C1C1;">'+removes+' removed</span>';
-        if(changes)html+='<span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;background:var(--a0);color:var(--a7);border:1px solid var(--a1);">'+changes+' changed</span>';
-        pills.innerHTML=html||'<span style="font-size:11px;color:var(--text-faint);">No changes since last push</span>';
-      }
-      // If no changes, skip prompt entirely
-      if(!diff.length){showToast('Saved ✓ — no changes to push','success');return;}
-      document.getElementById('push-prompt-modal').classList.add('open');
-    });
-  };
-  user_meta_check();
+  sb.auth.getUser().then(function(res){
+    var user=res.data&&res.data.user;
+    var lastPushed=user&&user.user_metadata&&user.user_metadata.lastPushedProducts||null;
+
+    // First time ever saving — set current list as baseline and skip prompt
+    if(!lastPushed){
+      sb.auth.updateUser({data:{lastPushedProducts:JSON.stringify(products)}});
+      showToast('Saved ✓','success');
+      return;
+    }
+
+    var baseline=JSON.parse(lastPushed);
+    var diff=computeDiff(baseline,products);
+
+    // No changes since last push — skip prompt
+    if(!diff.length){
+      showToast('Saved ✓ — no changes to push','success');
+      return;
+    }
+
+    // Show prompt with diff pills
+    var adds=diff.filter(function(ch){return ch.type==='add';}).length;
+    var removes=diff.filter(function(ch){return ch.type==='remove';}).length;
+    var changes=diff.filter(function(ch){return ch.type==='change';}).length;
+    var pills=document.getElementById('push-prompt-pills');
+    if(pills){
+      var html='';
+      if(adds)html+='<span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;background:var(--g0);color:#27500A;border:1px solid var(--g1);">'+adds+' added</span>';
+      if(removes)html+='<span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;background:#FCEBEB;color:#A32D2D;border:1px solid #F7C1C1;">'+removes+' removed</span>';
+      if(changes)html+='<span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;background:var(--a0);color:var(--a7);border:1px solid var(--a1);">'+changes+' changed</span>';
+      pills.innerHTML=html;
+    }
+    document.getElementById('push-prompt-modal').classList.add('open');
+  });
 }
 
 function closePushPrompt(){

@@ -1392,8 +1392,8 @@ if('serviceWorker' in navigator){
             <span class="recon-brow-val out" id="recon-xfer-val">—</span>
           </div>
           <div class="recon-brow" id="recon-pending-brow" style="display:none;">
-            <span class="recon-brow-lbl">Pending Square deposits</span>
-            <span class="recon-brow-val in" id="recon-pending-brow-val">—</span>
+            <span class="recon-brow-lbl">Pending Square deposits (not yet in bank)</span>
+            <span class="recon-brow-val" style="color:rgba(255,255,255,0.5);font-size:11px;font-weight:700;" id="recon-pending-brow-val">—</span>
           </div>
         </div>
 
@@ -11173,6 +11173,7 @@ function renderReconWidget() {
 }
 
 function fillPendingFromToday(){
+  const btn = document.getElementById('recon-fill-today-btn');
   // Find today's saved entry in ALL_DAYS
   const todayStr = localToday();
   const todayEntry = ALL_DAYS.find(function(d){return d.date===todayStr;});
@@ -11186,18 +11187,23 @@ function fillPendingFromToday(){
     showToast('Today has no card deposits to add','');
     return;
   }
-  // Get existing pending value and add to it
+  // SET the pending field to today's card deposits (not additive)
   const el = document.getElementById('recon-pending-input');
   if(!el) return;
-  const existing = parseFloat((el.value||'').replace(/[$,]/g,''))||0;
-  const newVal = existing + cardDep;
-  el.value = '$'+newVal.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-  updateReconMatch();
+  el.value = '$'+cardDep.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  // Disable the button so it can't be clicked again
+  if(btn){
+    btn.disabled = true;
+    btn.style.opacity = '0.35';
+    btn.style.cursor = 'not-allowed';
+    btn.title = 'Today\'s pending deposits already added';
+  }
   // Open the widget body so user can see the change
   const body = document.getElementById('recon-body');
   const chev  = document.getElementById('recon-chev');
   if(body&&!body.classList.contains('open')){body.classList.add('open');if(chev)chev.classList.add('open');}
-  showToast('Added '+fmt$(cardDep)+' from today to Pending','success');
+  updateReconMatch();
+  showToast('Pending set to '+fmt$(cardDep)+' (today Square deposits)','success');
 }
 
 function resetReconFromDate(){
@@ -11217,6 +11223,9 @@ function reconPendingFocus() {
   const raw = el.value.replace(/[$,]/g, '').trim();
   if (raw && !isNaN(parseFloat(raw))) el.value = raw;
   el.select();
+  // Re-enable + Today button when user manually edits pending
+  const btn = document.getElementById('recon-fill-today-btn');
+  if(btn){ btn.disabled=false; btn.style.opacity=''; btn.style.cursor=''; btn.title="Fill Pending from today's unsettled card deposits"; }
 }
 
 function reconPendingBlur() {
@@ -11267,7 +11276,7 @@ function updateReconMatch() {
 
   // Show/hide pending row in breakdown
   if (pendingBrow)    pendingBrow.style.display    = pendingVal > 0 ? 'flex' : 'none';
-  if (pendingBrowVal) pendingBrowVal.textContent    = pendingVal > 0 ? '+' + fmt$(pendingVal) : '—';
+  if (pendingBrowVal) pendingBrowVal.textContent    = pendingVal > 0 ? fmt$(pendingVal) + ' unsettled' : '—';
 
   if (!rawBank || isNaN(bankVal)) {
     badge.className   = 'recon-match-badge none';
