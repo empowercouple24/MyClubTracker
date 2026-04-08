@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-08 14:00:00 -->
+<!-- CACHE BUST: 2026-04-08 15:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -6535,7 +6535,7 @@ function renderInventory(){
     const catDvHave=items.reduce((s,p)=>{const q=invHave[p.sku]||0;return s+(p.vp||0)*q;},0);
     const catAnyFilled=items.some(p=>invHave[p.sku]!=null);
     const catDvNeed=items.reduce((s,p)=>{const q=invHave[p.sku]||0;const he=invHave[p.sku]!=null;const need=Math.max(0,(p.par||0)-q);return s+(he?(p.vp||0)*need:0);},0);
-    html+=`<div class="inv-cat-header">${cat}</div><table class="inv-table"><thead><tr><th style="text-align:left">Product</th><th>PAR<span class="th-sub">Full Stock</span></th><th>Need<span class="th-sub">Qty</span></th><th>DV<span class="th-sub">Product</span></th><th>Have<span class="th-sub">Qty</span></th><th>DV<span class="th-sub">Subtotal</span></th></tr></thead><tbody>`;
+    html+=`<div class="inv-cat-header">${cat}</div><table class="inv-table"><thead><tr><th style="text-align:left">Product</th><th>PAR<span class="th-sub">Full Stock</span></th><th>Need<span class="th-sub">Qty</span></th><th>DV<span class="th-sub">Product</span></th><th>Have<span class="th-sub">Qty</span></th><th>DV<span class="th-sub">Need</span></th></tr></thead><tbody>`;
     vis.forEach(p=>{
       const haveRaw=invHave[p.sku],have=haveRaw||0,haveEntered=haveRaw!=null&&haveRaw!==undefined;
       const need=Math.max(0,p.par-have),bc=need>0?'need':(haveEntered?'ok':'zero'),bt=need>0?need:(haveEntered?'ok':'--');
@@ -6552,13 +6552,13 @@ function renderInventory(){
         <td><span class="need-badge ${bc}">${bt}</span></td>
         <td class="dv-product">${p.vp||'--'}</td>
         <td><input class="inv-input" type="number" min="0" value="${haveEntered?have:''}" oninput="setHave('${p.sku}',this.value)" onfocus="this.closest('tr').classList.add('inv-row-active')" onblur="this.closest('tr').classList.remove('inv-row-active')" ondblclick="this.select()" onclick="this.focus()" onwheel="this.blur()" ${isOos?'disabled style="opacity:0.4"':''}/></td>
-        <td id="vptot-${p.sku}" class="dv-subtotal">${dvHaveStr}</td>
+        <td id="vptot-${p.sku}" class="dv-subtotal">${dvNeedStr}</td>
       </tr>`;
     });
     html+=`<tr class="inv-cat-subtotal">
       <td style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">${cat} Total</td>
       <td></td><td></td><td></td><td></td>
-      <td id="cat-dvhave-${catSlug}" style="font-size:13px;font-weight:700;color:var(--b6);text-align:right;">${catAnyFilled?fmtVP(catDvHave):'--'}</td>
+      <td id="cat-dvhave-${catSlug}" style="font-size:13px;font-weight:700;color:var(--b6);text-align:right;">${catAnyFilled?fmtVP(catDvNeed):'--'}</td>
     </tr>`;
     html+='</tbody></table>';
   });
@@ -6593,7 +6593,7 @@ function setHave(s,v){
     const dvNeed=(prod[3]||0)*need;
     const haveCell=document.getElementById('vptot-'+s);
     const needCell=document.getElementById('dvneed-'+s);
-    if(haveCell)haveCell.textContent=haveEntered?fmtVP(dvHave):'--';
+    if(haveCell)haveCell.textContent=haveEntered?fmtVP(dvNeed):'--';
     if(needCell)needCell.textContent=(haveEntered&&dvNeed>0)?fmtVP(dvNeed):'--';
     // Update row need highlight
     const row=document.getElementById('inv-row-'+s);
@@ -6608,7 +6608,7 @@ function setHave(s,v){
     const catDvNeed=catItems.reduce((sum,p)=>{const q=invHave[p[2]]||0;const he=invHave[p[2]]!=null;const n=Math.max(0,(p[4]||0)-q);return sum+(he?(p[3]||0)*n:0);},0);
     const catHaveEl=document.getElementById('cat-dvhave-'+catSlug);
     const catNeedEl=document.getElementById('cat-dvneed-'+catSlug);
-    if(catHaveEl)catHaveEl.textContent=catAnyFilled?fmtVP(catDvHave):'--';
+    if(catHaveEl)catHaveEl.textContent=catAnyFilled?fmtVP(catDvNeed):'--';
     if(catNeedEl)catNeedEl.textContent=catAnyFilled?fmtVP(catDvNeed):'--';
   }
 }
