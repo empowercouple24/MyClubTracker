@@ -1347,7 +1347,7 @@ if('serviceWorker' in navigator){
         <div class="recon-banner-left">
           <div class="recon-banner-lbl">Unallocated Balance</div>
           <div class="recon-banner-val" id="recon-unalloc-val">—</div>
-          <div class="recon-banner-sub" id="recon-bank-sub">Card deposits + cash deposits &#8722; transfers &middot; 2026</div>
+          <div class="recon-banner-sub" id="recon-bank-sub">Card deposits + cash deposits − transfers</div>
         </div>
         <div class="recon-banner-right">
           <div class="recon-bank-pill" onclick="event.stopPropagation()">
@@ -1369,6 +1369,13 @@ if('serviceWorker' in navigator){
       <!-- BODY — expands on click, NOT sticky (scrolls away) -->
       <div class="recon-body" id="recon-body">
 
+        <!-- Lookback date picker -->
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:0.5px solid rgba(255,255,255,0.08);">
+          <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:rgba(255,255,255,0.45);">From</span>
+          <input type="date" id="recon-from-date" style="font-family:DM Sans,sans-serif;font-size:12px;font-weight:600;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:4px 8px;color:white;outline:none;cursor:pointer;" oninput="renderReconWidget()"/>
+          <span style="font-size:11px;color:rgba(255,255,255,0.35);">to today</span>
+          <button onclick="resetReconFromDate()" style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.4);background:none;border:none;cursor:pointer;padding:0 2px;margin-left:auto;">Reset</button>
+        </div>
         <!-- Summary breakdown rows -->
         <div class="recon-breakdown" id="recon-breakdown">
           <div class="recon-brow">
@@ -11062,7 +11069,8 @@ function calcReconTotals() {
   let unalloc           = 0;
   const unallocDays     = [];
 
-  const reconYearStart = new Date().getFullYear() + '-01-01';
+  const _reconFromEl = document.getElementById('recon-from-date');
+  const reconYearStart = (_reconFromEl && _reconFromEl.value) ? _reconFromEl.value : (new Date().getFullYear() + '-01-01');
 
   ALL_DAYS.forEach(d => {
     if (d.date < reconYearStart) return; // current year only
@@ -11122,6 +11130,18 @@ function renderReconWidget() {
   if (cashEl) cashEl.textContent = '+' + fmt$(totals.cashDeposits);
   const xferEl = document.getElementById('recon-xfer-val');
   if (xferEl) xferEl.textContent = '−' + fmt$(totals.transfers);
+  // Pre-fill recon from date if not set
+  const reconFromEl = document.getElementById('recon-from-date');
+  if (reconFromEl && !reconFromEl.value) {
+    reconFromEl.value = new Date().getFullYear() + '-01-01';
+  }
+  // Update subtitle with from date
+  const reconSub = document.getElementById('recon-bank-sub');
+  if (reconSub && reconFromEl && reconFromEl.value) {
+    const fd = new Date(reconFromEl.value + 'T00:00:00');
+    const fdStr = fd.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    reconSub.textContent = 'From ' + fdStr + ' – today';
+  }
   // Set bulk date default to end of last month
   const bulkDate = document.getElementById('recon-bulk-date');
   if (bulkDate && !bulkDate.value) {
@@ -11150,6 +11170,11 @@ function renderReconWidget() {
     listEl.style.display = _reconDaysOpen ? 'block' : 'none';
   }
   updateReconMatch();
+}
+
+function resetReconFromDate(){
+  const el = document.getElementById('recon-from-date');
+  if(el){ el.value = new Date().getFullYear() + '-01-01'; renderReconWidget(); }
 }
 
 function toggleReconDaysList() {
