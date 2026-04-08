@@ -3317,10 +3317,10 @@ function generateEmpCode(){
 function copyEmpCode(){
   const code=document.getElementById('s-emp-code')?.value||document.getElementById('s-emp-code-text')?.textContent||'';
   if(!code)return;
-  navigator.clipboard.writeText(code).then(()=>showToast('Code copied','success')).catch(()=>{
-    // Fallback
-    const el=document.createElement('input');el.value=code;document.body.appendChild(el);el.select();document.execCommand('copy');document.body.removeChild(el);
-    showToast('Code copied','success');
+  const signupUrl=window.location.origin+'/index.html?tab=register&code='+encodeURIComponent(code);
+  navigator.clipboard.writeText(signupUrl).then(()=>showToast('Signup link copied','success')).catch(()=>{
+    const el=document.createElement('input');el.value=signupUrl;document.body.appendChild(el);el.select();document.execCommand('copy');document.body.removeChild(el);
+    showToast('Signup link copied','success');
   });
 }
 
