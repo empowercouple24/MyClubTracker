@@ -35,27 +35,27 @@ if('serviceWorker' in navigator){
       --shadow-md:0 4px 20px rgba(30,45,61,0.09);
       --tab-h:44px;--nav-h:50px;--hist-hdr-h:0px;
     }
-    html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:13px}
+    html,body{height:100%;overflow:hidden;font-family:DM Sans,sans-serif;background:var(--bg);color:var(--text);font-size:13px}
     /* NAV */
     .topnav{background:var(--surface);border-bottom:1px solid var(--border-light);display:flex;align-items:center;gap:8px;padding:env(safe-area-inset-top,0px) 12px 0;min-height:calc(var(--nav-h) + env(safe-area-inset-top,0px));position:relative;z-index:50;box-shadow:var(--shadow-sm)}
     .nav-logo{width:28px;height:28px;background:white;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,0.1);cursor:pointer;}
     .nav-logo svg{width:24px;height:24px;}
     .nav-logo:hover{background:var(--b0);}
-    .nav-menu-btn{display:flex;align-items:center;gap:6px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;color:var(--b7);border:1.5px solid var(--b3);border-radius:20px;padding:5px 14px;background:white;cursor:pointer;max-width:260px;}
+    .nav-menu-btn{display:flex;align-items:center;gap:6px;font-family:DM Sans,sans-serif;font-size:13px;font-weight:700;color:var(--b7);border:1.5px solid var(--b3);border-radius:20px;padding:5px 14px;background:white;cursor:pointer;max-width:260px;}
     .nav-menu-btn:hover{background:var(--b0);}
     .nav-avatar{width:24px;height:24px;border-radius:50%;background:var(--b1);color:var(--b7);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;}
     .nav-avatar img{width:24px;height:24px;object-fit:cover;border-radius:50%;display:none;}
     .nav-drop{position:absolute;top:calc(100% + 6px);right:0;background:var(--surface);border:1px solid var(--border-light);border-radius:10px;box-shadow:0 4px 20px rgba(30,45,61,0.12);min-width:180px;z-index:999;display:none;}
     .nav-drop.open,#nav-dropdown.open{display:block;}
-    .nav-drop-item{display:flex;align-items:center;gap:9px;width:100%;padding:11px 16px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text);background:none;border:none;cursor:pointer;text-align:left;white-space:nowrap;}
+    .nav-drop-item{display:flex;align-items:center;gap:9px;width:100%;padding:11px 16px;font-family:DM Sans,sans-serif;font-size:14px;font-weight:500;color:var(--text);background:none;border:none;cursor:pointer;text-align:left;white-space:nowrap;}
     .nav-drop-item:hover{background:var(--b0);}
     .nav-drop-item.danger{color:var(--r5);}
     .nav-drop-item:first-child{border-radius:10px 10px 0 0;}
     .nav-drop-item:last-child{border-radius:0 0 10px 10px;}
     .nav-drop-divider{height:1px;background:var(--border-light);margin:3px 0;}
-    .nav-club-name{font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .nav-club-name{font-family:Outfit,sans-serif;font-size:14px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .nav-admin-badge{font-size:10px;font-weight:700;background:var(--b7);color:white;padding:2px 6px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase;flex-shrink:0}
-    .nav-btn{background:none;border:1px solid var(--border);border-radius:5px;padding:3px 9px;font-size:12px;font-weight:500;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:background 0.15s;flex-shrink:0}
+    .nav-btn{background:none;border:1px solid var(--border);border-radius:5px;padding:3px 9px;font-size:12px;font-weight:500;color:var(--text-muted);cursor:pointer;font-family:DM Sans,sans-serif;transition:background 0.15s;flex-shrink:0}
     .nav-btn:hover{background:var(--b0)}
     .nav-btn.back{color:var(--b6);border-color:var(--b3);background:var(--b0);font-weight:600}
     .nav-btn.back:hover{background:var(--b1)}
@@ -63,7 +63,7 @@ if('serviceWorker' in navigator){
     .tabbar{height:var(--tab-h);background:var(--surface);border-bottom:1px solid var(--border-light);display:flex;align-items:stretch;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;position:relative;z-index:40}
     .tabbar::-webkit-scrollbar{display:none}
     .tab-divider{width:1px;background:var(--border-light);margin:6px 0;flex-shrink:0}
-    .tab{flex-shrink:0;padding:0 13px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--text-muted);cursor:pointer;position:relative;transition:color 0.15s,background 0.15s;white-space:nowrap;border:none;background:none;font-family:'DM Sans',sans-serif}
+    .tab{flex-shrink:0;padding:0 13px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--text-muted);cursor:pointer;position:relative;transition:color 0.15s,background 0.15s;white-space:nowrap;border:none;background:none;font-family:DM Sans,sans-serif}
     .tab::after{content:'';position:absolute;bottom:0;left:6px;right:6px;height:2px;border-radius:2px 2px 0 0;background:transparent;transition:background 0.15s}
     .tab:hover{color:var(--text);background:var(--b0)}
     .tab.active{color:var(--b7)}
@@ -93,15 +93,15 @@ if('serviceWorker' in navigator){
     .input-wrap{display:flex;align-items:center;gap:3px}
     .input-prefix{font-size:13px;font-weight:600;color:var(--text-muted);flex-shrink:0}
     /* Inputs — no spinners */
-    .field-input{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 8px;width:110px;text-align:right;outline:none;transition:border-color 0.15s,box-shadow 0.15s;-moz-appearance:textfield}
+    .field-input{font-family:DM Sans,sans-serif;font-size:14px;font-weight:500;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 8px;width:110px;text-align:right;outline:none;transition:border-color 0.15s,box-shadow 0.15s;-moz-appearance:textfield}
     .field-input::-webkit-inner-spin-button,.field-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
     .field-input:focus{border-color:var(--b5);box-shadow:0 0 0 2px rgba(74,106,138,0.12);background:#fff}
     /* DV prominent full-width box */
     .dv-section{margin-bottom:10px}
     .dv-box{background:linear-gradient(135deg,var(--b7),var(--b6));border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow-md)}
-    .dv-box-label{font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:white;flex:1;letter-spacing:0.3px}
+    .dv-box-label{font-family:Outfit,sans-serif;font-size:14px;font-weight:700;color:white;flex:1;letter-spacing:0.3px}
     .dv-box-label span{display:block;font-size:10px;font-weight:400;opacity:0.6;margin-top:2px}
-    .dv-input{font-family:'Outfit',sans-serif;font-size:24px;font-weight:800;color:white;background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.35);border-radius:var(--radius-sm);padding:7px 12px;width:150px;text-align:right;outline:none;-moz-appearance:textfield;transition:border-color 0.15s,box-shadow 0.15s;letter-spacing:-0.5px}
+    .dv-input{font-family:Outfit,sans-serif;font-size:24px;font-weight:800;color:white;background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.35);border-radius:var(--radius-sm);padding:7px 12px;width:150px;text-align:right;outline:none;-moz-appearance:textfield;transition:border-color 0.15s,box-shadow 0.15s;letter-spacing:-0.5px}
     .dv-input::-webkit-inner-spin-button,.dv-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
     .dv-input:focus{border-color:rgba(255,255,255,0.7);box-shadow:0 0 0 3px rgba(255,255,255,0.15);background:rgba(255,255,255,0.22)}
     .dv-input::placeholder{color:rgba(255,255,255,0.8)}
@@ -130,12 +130,12 @@ if('serviceWorker' in navigator){
 }
     /* SUMMARY BOX */
     .summary-box{background:linear-gradient(135deg,var(--b8) 0%,var(--b7) 100%);border-radius:var(--radius);padding:14px 14px 12px;color:white;margin-bottom:10px}
-    .summary-title{font-family:'Outfit',sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;opacity:0.6;margin-bottom:6px}
+    .summary-title{font-family:Outfit,sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;opacity:0.6;margin-bottom:6px}
     .summary-hero{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;gap:10px}
     .summary-net-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;opacity:0.7;margin-bottom:2px}
-    .summary-net-val{font-family:'Outfit',sans-serif;font-size:38px;font-weight:800;letter-spacing:-1.5px;line-height:1;color:#7de88a}
+    .summary-net-val{font-family:Outfit,sans-serif;font-size:38px;font-weight:800;letter-spacing:-1.5px;line-height:1;color:#7de88a}
     .summary-fund-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;opacity:0.6;margin-bottom:4px}
-    .summary-fund-val{font-family:'Outfit',sans-serif;font-size:26px;font-weight:800;letter-spacing:-1px;line-height:1;color:white;margin-bottom:6px}
+    .summary-fund-val{font-family:Outfit,sans-serif;font-size:26px;font-weight:800;letter-spacing:-1px;line-height:1;color:white;margin-bottom:6px}
     .summary-fund-breakdown{font-size:10px;color:rgba(255,255,255,0.7);line-height:1.6;text-align:right}
     .summary-fund-breakdown span{display:block}
     .summary-hero-right{text-align:right;display:none}
@@ -144,13 +144,13 @@ if('serviceWorker' in navigator){
     .summary-card{background:rgba(255,255,255,0.13);border-radius:9px;padding:9px 14px;display:flex;align-items:center;justify-content:space-between}
     .summary-card-label{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:white}
     .summary-card-sub{font-size:11px;font-weight:500;color:rgba(255,255,255,0.65);margin-top:1px}
-    .summary-card-val{font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;letter-spacing:-0.5px;line-height:1;color:white}
+    .summary-card-val{font-family:Outfit,sans-serif;font-size:22px;font-weight:800;letter-spacing:-0.5px;line-height:1;color:white}
     .summary-card-rate{font-size:11px;font-weight:700;color:rgba(255,255,255,0.6);margin-left:8px;white-space:nowrap;flex-shrink:0;}
     .summary-balance{margin-top:2px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:space-between;font-size:11px}
     .sq-deposit-row{margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between;font-size:11px}
     .sq-deposit-label{color:rgba(125,232,138,0.75);font-weight:700;display:flex;align-items:center;gap:5px}
     .sq-deposit-formula{font-size:10px;color:rgba(255,255,255,0.75);margin-top:1px}
-    .sq-deposit-val{font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:#7de88a}
+    .sq-deposit-val{font-family:Outfit,sans-serif;font-size:14px;font-weight:800;color:#7de88a}
     .sq-dot{width:13px;height:13px;background:#7de88a;border-radius:3px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
     .sq-dot-inner{width:5px;height:5px;background:#1a2e20;border-radius:1px}
     .oh-badge{display:inline-block;font-size:10px;font-weight:700;padding:1px 5px;border-radius:3px;white-space:nowrap;margin-left:5px;vertical-align:middle}
@@ -158,7 +158,7 @@ if('serviceWorker' in navigator){
     .balance-fail{color:#ff8080;font-weight:600}
     .balance-pending{color:rgba(255,255,255,0.7);font-style:italic}
     /* BUTTONS */
-    .btn{font-family:'DM Sans',sans-serif;border:none;border-radius:var(--radius-sm);cursor:pointer;font-weight:600;transition:transform 0.12s,box-shadow 0.12s,opacity 0.12s;display:inline-flex;align-items:center;justify-content:center;gap:5px}
+    .btn{font-family:DM Sans,sans-serif;border:none;border-radius:var(--radius-sm);cursor:pointer;font-weight:600;transition:transform 0.12s,box-shadow 0.12s,opacity 0.12s;display:inline-flex;align-items:center;justify-content:center;gap:5px}
     .btn:active{transform:scale(0.97)}
     .btn:disabled{opacity:0.5;cursor:not-allowed}
     .btn-primary{background:linear-gradient(135deg,var(--b7),var(--b5));color:white;font-size:13px;padding:8px 16px;box-shadow:0 2px 10px rgba(58,84,112,0.25)}
@@ -171,8 +171,8 @@ if('serviceWorker' in navigator){
     .history-card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:10px 12px;margin-bottom:7px;cursor:pointer;transition:box-shadow 0.15s,border-color 0.15s;box-shadow:var(--shadow-sm)}
     .history-card:hover{box-shadow:var(--shadow-md);border-color:var(--b3)}
     .hcard-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-    .hcard-date{font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;color:var(--text)}
-    .hcard-sales{font-family:'Outfit',sans-serif;font-size:15px;font-weight:700;color:var(--g5)}
+    .hcard-date{font-family:Outfit,sans-serif;font-size:13px;font-weight:700;color:var(--text)}
+    .hcard-sales{font-family:Outfit,sans-serif;font-size:15px;font-weight:700;color:var(--g5)}
     .hcard-row{display:flex;gap:5px;flex-wrap:wrap}
     .hcard-pill{font-size:11px;font-weight:500;background:var(--b0);color:var(--text-muted);border-radius:20px;padding:2px 7px}
     /* HISTORY CALENDAR */
@@ -193,7 +193,7 @@ if('serviceWorker' in navigator){
     .hcal-dn{font-size:12px;font-weight:700;color:var(--text-faint);margin-bottom:3px;}
     .hcal-day.has-data .hcal-dn{color:var(--text-muted);}
     .hcal-sales-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--g6);white-space:nowrap;}
-    .hcal-sales{font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--g5);line-height:1.1;margin-bottom:2px;}
+    .hcal-sales{font-family:Outfit,sans-serif;font-size:14px;font-weight:800;color:var(--g5);line-height:1.1;margin-bottom:2px;}
     .hcal-dv-block{display:flex;flex-direction:column;margin:2px 0 0;}
     .hcal-net-suffix{font-size:8px;font-weight:700;color:var(--g5);opacity:0.7;margin-left:1px;letter-spacing:0.2px;}
     .hcal-dv-suffix{font-size:8px;font-weight:700;color:var(--text-faint);margin-left:1px;letter-spacing:0.2px;}
@@ -204,10 +204,10 @@ if('serviceWorker' in navigator){
     .hcal-extras{margin-top:3px;font-size:10px;color:var(--text-faint);}
     .hcal-week-summary{background:var(--b8);border-radius:var(--radius-sm);padding:6px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
     .hcal-week-label{font-size:10px;font-weight:700;text-transform:uppercase;color:white;}
-    .hcal-week-total{font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:white;line-height:1.2;}
+    .hcal-week-total{font-family:Outfit,sans-serif;font-size:14px;font-weight:800;color:white;line-height:1.2;}
     .hcal-month-total{background:var(--b8);border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;}
     .hcal-month-total-label{font-size:11px;font-weight:700;text-transform:uppercase;color:white;}
-    .hcal-month-total-val{font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;color:white;}
+    .hcal-month-total-val{font-family:Outfit,sans-serif;font-size:18px;font-weight:800;color:white;}
     /* ALLOCATIONS CAL */
     .acal-dow-row{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px;}
     .acal-dow{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-faint);text-align:center;padding:3px 0;}
@@ -224,7 +224,7 @@ if('serviceWorker' in navigator){
     .acal-day.today-day{box-shadow:0 0 0 2px var(--b5) !important;}
     .acal-dn{font-size:12px;font-weight:700;color:var(--text-faint);margin-bottom:2px;}
     .acal-day.none .acal-dn,.acal-day.partial .acal-dn,.acal-day.full .acal-dn{color:var(--text-muted);}
-    .acal-sales{font-family:'Outfit',sans-serif;font-size:12px;font-weight:800;color:var(--g5);line-height:1.1;margin-bottom:2px;}
+    .acal-sales{font-family:Outfit,sans-serif;font-size:12px;font-weight:800;color:var(--g5);line-height:1.1;margin-bottom:2px;}
     .acal-day.partial .acal-sales{color:var(--a6);}
     .acal-dots{display:flex;gap:3px;margin-top:auto;justify-content:center;padding-bottom:2px;}
     .acal-dot{width:7px;height:7px;border-radius:50%;background:var(--border);flex-shrink:0;transition:background 0.15s;}
@@ -234,7 +234,7 @@ if('serviceWorker' in navigator){
     .acal-day.full .acal-dot.done{background:var(--g4);}
     .acal-week-summary{background:var(--b8);border-radius:var(--radius-sm);padding:6px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
     .acal-week-label{font-size:10px;font-weight:700;text-transform:uppercase;color:white;}
-    .acal-week-val{font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:white;line-height:1.2;}
+    .acal-week-val{font-family:Outfit,sans-serif;font-size:14px;font-weight:800;color:white;line-height:1.2;}
     .acal-week-sub{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;color:rgba(255,255,255,0.75);}
     /* ALLOC BUCKET SHEET */
     .alloc-bucket-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:4px 0 16px;}
@@ -244,7 +244,7 @@ if('serviceWorker' in navigator){
     .alloc-bucket.transferred:hover{background:#d4f0d8;border-color:var(--g5);}
     .alloc-bucket-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:5px;}
     .alloc-bucket.transferred .alloc-bucket-label{color:var(--g5);opacity:0.8;}
-    .alloc-bucket-amt{font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;color:var(--text);}
+    .alloc-bucket-amt{font-family:Outfit,sans-serif;font-size:22px;font-weight:800;color:var(--text);}
     .alloc-bucket.transferred .alloc-bucket-amt{color:var(--g5);}
     .alloc-bucket-check{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;margin:8px auto 0;transition:all 0.15s;}
     .alloc-bucket.transferred .alloc-bucket-check{background:var(--g4);border-color:var(--g4);}
@@ -268,13 +268,13 @@ if('serviceWorker' in navigator){
     .pcal-day.has-data .pcal-dn{color:var(--text-muted);}
     .pcal-day.has-data.selected .pcal-dn{color:white;}
     .pcal-slabel{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--g6);line-height:1;}
-    .pcal-sval{font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--g5);line-height:1.2;}
+    .pcal-sval{font-family:Outfit,sans-serif;font-size:14px;font-weight:800;color:var(--g5);line-height:1.2;}
     .pcal-dvlabel{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--b4);margin-top:4px;line-height:1;}
     .pcal-dvval{font-size:13px;font-weight:700;color:var(--text);line-height:1.2;}
     .pcal-day.has-data.selected .pcal-slabel,.pcal-day.has-data.selected .pcal-sval,
     .pcal-day.has-data.selected .pcal-dvlabel,.pcal-day.has-data.selected .pcal-dvval{color:white;}
     /* PROJ PRESET BTNS */
-    .proj-preset-btn{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;transition:all 0.15s;}
+    .proj-preset-btn{font-family:DM Sans,sans-serif;font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;transition:all 0.15s;}
     .proj-preset-btn:hover{border-color:var(--b4);color:var(--text);}
     .proj-preset-btn.active{background:var(--b7);color:#fff;border-color:var(--b7);}
     /* PMULT CARDS */
@@ -286,24 +286,24 @@ if('serviceWorker' in navigator){
     .pmult-card.active{background:rgba(255,255,255,0.22);border-color:rgba(255,255,255,0.35);}
     .pmult-card-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;opacity:0.6;margin-bottom:3px;}
     .pmult-card-mult{font-size:11px;font-weight:800;opacity:0.75;margin-bottom:4px;}
-    .pmult-card-val{font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.5px;line-height:1;color:#7de88a;}
+    .pmult-card-val{font-family:Outfit,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.5px;line-height:1;color:#7de88a;}
     /* PROJECTIONS */
     .proj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px}
     .proj-cell{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:10px 8px;text-align:center;box-shadow:var(--shadow-sm)}
     .proj-cell-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:3px}
-    .proj-cell-val{font-family:'Outfit',sans-serif;font-size:15px;font-weight:700;color:var(--text);letter-spacing:-0.3px}
+    .proj-cell-val{font-family:Outfit,sans-serif;font-size:15px;font-weight:700;color:var(--text);letter-spacing:-0.3px}
     .proj-cell.highlight{background:var(--b8);border-color:var(--b7)}
     .proj-cell.highlight .proj-cell-label{color:rgba(255,255,255,0.8)}
     .proj-cell.highlight .proj-cell-val{color:white}
-    .proj-mult-btn{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;padding:7px 18px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;transition:all 0.15s;flex:1;}
+    .proj-mult-btn{font-family:DM Sans,sans-serif;font-size:13px;font-weight:700;padding:7px 18px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;transition:all 0.15s;flex:1;}
     .proj-mult-btn.active{background:var(--b7);color:#fff;border-color:var(--b7);}
     /* INVENTORY */
     .inv-header{background:linear-gradient(135deg,var(--b7),var(--b5));border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;color:white;}
-    .inv-header-title{font-family:'Outfit',sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;opacity:0.6;margin-bottom:8px}
+    .inv-header-title{font-family:Outfit,sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;opacity:0.6;margin-bottom:8px}
     .inv-dv-row{display:flex;gap:10px;}
     .inv-dv-card{flex:1;background:rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;}
     .inv-dv-item-label{font-size:10px;opacity:0.65;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;font-weight:600;}
-    .inv-dv-item-val{font-family:'Outfit',sans-serif;font-size:28px;font-weight:800;letter-spacing:-0.5px;line-height:1;}
+    .inv-dv-item-val{font-family:Outfit,sans-serif;font-size:28px;font-weight:800;letter-spacing:-0.5px;line-height:1;}
     .inv-cat-header{font-size:18px;font-weight:700;color:white;background:linear-gradient(135deg,var(--b8),var(--b6));padding:12px 16px;border-radius:var(--radius-sm) var(--radius-sm) 0 0;margin-top:8px;position:sticky;top:var(--inv-cat-top,100px);z-index:18;display:flex;align-items:center;justify-content:space-between;}
     .inv-cat-dv{display:flex;flex-direction:column;align-items:flex-end;gap:1px;}
     .inv-cat-dv-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;opacity:0.65;}
@@ -344,7 +344,7 @@ if('serviceWorker' in navigator){
     .dw-card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:12px 14px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow-sm);min-width:0;}
     .dw-icon{font-size:22px;flex-shrink:0;line-height:1;}
     .dw-body{min-width:0;flex:1;}
-    .dw-value{font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;color:var(--b7);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .dw-value{font-family:Outfit,sans-serif;font-size:18px;font-weight:800;color:var(--b7);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .dw-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-top:2px;}
     .dw-sub{font-size:10px;color:var(--text-faint);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .dw-streak .dw-value{color:var(--b7);}
@@ -357,14 +357,14 @@ if('serviceWorker' in navigator){
     @media(max-width:680px){.dw-row4{grid-template-columns:1fr 1fr;}}
     .dw-op-row{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--b0);border-radius:var(--radius-sm);}
     .dw-op-name{font-size:13px;font-weight:600;color:var(--text);}
-    .dw-op-amt{font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--g6,#16a34a);}
+    .dw-op-amt{font-family:Outfit,sans-serif;font-size:14px;font-weight:800;color:var(--g6,#16a34a);}
     .dw-op-amt.dim{color:var(--text-faint);font-size:12px;font-weight:500;}
     /* Operating day toggles */
-    .opday-btn{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;padding:5px 8px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);color:var(--text-faint);cursor:pointer;transition:all 0.15s;}
+    .opday-btn{font-family:DM Sans,sans-serif;font-size:11px;font-weight:700;padding:5px 8px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);color:var(--text-faint);cursor:pointer;transition:all 0.15s;}
     .opday-btn.active{background:var(--b7);color:#fff;border-color:var(--b7);}
     /* Profile avatar upload */
     .prof-avatar-wrap{position:relative;width:64px;height:64px;flex-shrink:0;cursor:pointer;}
-    .prof-avatar-circle{width:64px;height:64px;border-radius:50%;background:var(--b1);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;color:var(--b7);}
+    .prof-avatar-circle{width:64px;height:64px;border-radius:50%;background:var(--b1);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;font-family:Outfit,sans-serif;font-size:22px;font-weight:800;color:var(--b7);}
     .prof-avatar-circle img{width:64px;height:64px;object-fit:cover;border-radius:50%;}
     .prof-avatar-overlay{position:absolute;bottom:0;right:0;width:22px;height:22px;border-radius:50%;background:var(--b7);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;border:2px solid var(--surface);}
     /* Crop modal */
@@ -377,7 +377,7 @@ if('serviceWorker' in navigator){
     .inv-name{font-size:16px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .inv-sku{font-size:16px;color:var(--text-faint);flex-shrink:0;}
     .inv-name-sub{font-size:11px;color:var(--text-faint);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2;}
-    .inv-input{font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;width:54px;text-align:center;background:var(--b0);border:1px solid var(--border);border-radius:4px;padding:3px 2px;outline:none;-moz-appearance:textfield;transition:border-color 0.15s;display:block;margin:0 auto;}
+    .inv-input{font-family:DM Sans,sans-serif;font-size:16px;font-weight:600;width:54px;text-align:center;background:var(--b0);border:1px solid var(--border);border-radius:4px;padding:3px 2px;outline:none;-moz-appearance:textfield;transition:border-color 0.15s;display:block;margin:0 auto;}
     .dv-product{font-size:13px;font-weight:600;color:var(--g5);}
     .dv-subtotal{font-size:13px;font-weight:600;color:var(--b6);}
     .inv-input::-webkit-inner-spin-button,.inv-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
@@ -394,22 +394,22 @@ if('serviceWorker' in navigator){
     .order-summary-card{background:linear-gradient(135deg,var(--b8),var(--b6));border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;color:white;display:flex;flex-wrap:wrap;gap:10px;align-items:stretch;}
     .order-op-chip{flex:1;min-width:120px;background:rgba(255,255,255,0.14);border-radius:8px;padding:10px 14px;}
     .order-op-chip-name{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:rgba(255,255,255,0.85);margin-bottom:3px;}
-    .order-op-chip-dv{font-family:'Outfit',sans-serif;font-size:26px;font-weight:800;letter-spacing:-0.5px;line-height:1;color:white;}
+    .order-op-chip-dv{font-family:Outfit,sans-serif;font-size:26px;font-weight:800;letter-spacing:-0.5px;line-height:1;color:white;}
     .order-op-chip-sub{font-size:11px;color:rgba(255,255,255,0.75);margin-top:3px;}
     .order-op-chip-unassigned{flex:0 0 auto;background:rgba(255,255,255,0.07);border-radius:8px;padding:8px 12px;display:flex;flex-direction:column;justify-content:center;min-width:90px;}
     .order-op-chip-unassigned .order-op-chip-name{font-size:9px;color:rgba(255,255,255,0.5);}
     .order-op-chip-unassigned .order-op-chip-dv{font-size:18px;color:rgba(255,255,255,0.55);}
     .order-op-chip-unassigned .order-op-chip-sub{color:rgba(255,255,255,0.45);}
     .order-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
-    .order-plan-select{font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 10px;background:var(--surface);color:var(--text);outline:none;flex:1;}
+    .order-plan-select{font-family:DM Sans,sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 10px;background:var(--surface);color:var(--text);outline:none;flex:1;}
     .order-sum-card{flex:1;min-width:110px;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:10px 12px;}
     .order-sum-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:4px;}
-    .order-sum-val{font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;color:var(--b6);line-height:1;}
+    .order-sum-val{font-family:Outfit,sans-serif;font-size:22px;font-weight:800;color:var(--b6);line-height:1;}
     .order-archive-bar{background:var(--g0);border:1px solid var(--g3);border-radius:var(--radius);padding:10px 14px;display:flex;align-items:center;gap:10px;margin-bottom:12px;}
     .order-archive-msg{font-size:13px;font-weight:600;color:var(--g6);flex:1;}
     .order-row-assigned td{opacity:1;}
     .order-row-assigned .inv-name{color:var(--text);font-weight:600;}
-    .op-assign-btn{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;border:1.5px solid var(--border);border-radius:20px;padding:5px 12px;background:var(--surface);color:var(--text-muted);cursor:pointer;white-space:nowrap;transition:all 0.15s;width:100%;text-align:center;}
+    .op-assign-btn{font-family:DM Sans,sans-serif;font-size:12px;font-weight:700;border:1.5px solid var(--border);border-radius:20px;padding:5px 12px;background:var(--surface);color:var(--text-muted);cursor:pointer;white-space:nowrap;transition:all 0.15s;width:100%;text-align:center;}
     .op-assign-btn.assigned{background:var(--b7);color:white;border-color:var(--b7);}
     .op-assign-btn.oos-btn{background:var(--r0,#fee2e2);color:var(--r5,#ef4444);border-color:var(--r3,#fca5a5);cursor:default;}
     .op-color-trigger{width:26px;height:26px;border-radius:50%;cursor:pointer;flex-shrink:0;border:2px solid rgba(255,255,255,0.6);box-shadow:0 0 0 1.5px rgba(0,0,0,0.15);transition:transform 0.12s;}
@@ -428,26 +428,26 @@ if('serviceWorker' in navigator){
     /* PAYOUTS */
     .payout-day-card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:10px 12px;margin-bottom:7px;box-shadow:var(--shadow-sm)}
     .payout-day-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-    .payout-day-date{font-family:'Outfit',sans-serif;font-size:13px;font-weight:700}
+    .payout-day-date{font-family:Outfit,sans-serif;font-size:13px;font-weight:700}
     .payout-ops{display:flex;flex-direction:column;gap:4px}
     .payout-op-row{display:flex;justify-content:space-between;align-items:center;padding:4px 8px;background:var(--b0);border-radius:var(--radius-sm)}
     .payout-op-name{font-size:12px;font-weight:500;color:var(--text)}
-    .payout-op-amt{font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;color:var(--g5)}
+    .payout-op-amt{font-family:Outfit,sans-serif;font-size:13px;font-weight:700;color:var(--g5)}
     /* MODAL */
     .modal-overlay{position:fixed;inset:0;background:rgba(30,45,61,0.45);backdrop-filter:blur(4px);z-index:200;display:none;align-items:flex-end;justify-content:center}
     .modal-overlay.open{display:flex}
     .modal-sheet{background:var(--surface);border-radius:18px 18px 0 0;width:100%;max-width:720px;max-height:88vh;overflow-y:auto;padding:0 0 40px;animation:sheetUp 0.3s cubic-bezier(0.16,1,0.3,1)}
     @keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
     .modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 14px}
-    .modal-title{font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;color:var(--text);padding:0 16px;margin-bottom:14px}
+    .modal-title{font-family:Outfit,sans-serif;font-size:16px;font-weight:700;color:var(--text);padding:0 16px;margin-bottom:14px}
     .settings-group{margin-bottom:18px;padding:0 16px}
     .settings-group-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-faint);margin-bottom:7px}
     .settings-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-light);gap:10px}
     .settings-row:last-child{border-bottom:none}
     .settings-row label{font-size:13px;color:var(--text);flex:1}
-    .settings-row select,.settings-row input[type="text"]{font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 8px;outline:none;width:120px;transition:border-color 0.15s}
+    .settings-row select,.settings-row input[type="text"]{font-family:DM Sans,sans-serif;font-size:13px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 8px;outline:none;width:120px;transition:border-color 0.15s}
     .settings-row select:focus,.settings-row input[type="text"]:focus{border-color:var(--b5)}
-    .prof-input{width:252px!important;flex-shrink:0;font-family:'DM Sans',sans-serif;font-size:14px;background:var(--b0);border:1px solid var(--border);border-radius:6px;padding:8px 10px;outline:none;text-align:right;}
+    .prof-input{width:252px!important;flex-shrink:0;font-family:DM Sans,sans-serif;font-size:14px;background:var(--b0);border:1px solid var(--border);border-radius:6px;padding:8px 10px;outline:none;text-align:right;}
     /* LOADING/TOAST */
     #loading-overlay{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:300;}
     .load-spinner{width:32px;height:32px;border:3px solid var(--b1);border-top-color:var(--b6);border-radius:50%;animation:spin 0.8s linear infinite}
@@ -462,7 +462,7 @@ if('serviceWorker' in navigator){
     .empty-state{text-align:center;padding:40px 20px;color:var(--text-faint);font-size:13px}
     .filter-row{display:flex;gap:7px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
     #panel-inv .filter-row{margin-bottom:4px;}
-    .filter-chip{font-size:11px;font-weight:600;padding:4px 11px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;transition:all 0.15s;font-family:'DM Sans',sans-serif}
+    .filter-chip{font-size:11px;font-weight:600;padding:4px 11px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;transition:all 0.15s;font-family:DM Sans,sans-serif}
     .filter-chip.active{background:var(--b7);color:white;border-color:var(--b7)}
     .collapsible-toggle{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;cursor:pointer;font-size:12px;font-weight:600;color:var(--text-muted);border-bottom:1px solid var(--border-light);user-select:none;transition:background 0.12s}
     .collapsible-toggle:hover{background:var(--b0)}
@@ -471,7 +471,7 @@ if('serviceWorker' in navigator){
     .collapsible-body{overflow:hidden}
     .collapsible-body.collapsed{display:none}
     .date-nav{display:flex;align-items:center;gap:7px;margin-bottom:10px}
-    .date-display{flex:1;min-width:0;display:flex;align-items:center;gap:6px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;cursor:pointer;position:relative;user-select:none;overflow:hidden;}
+    .date-display{flex:1;min-width:0;display:flex;align-items:center;gap:6px;font-family:DM Sans,sans-serif;font-size:14px;font-weight:600;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;cursor:pointer;position:relative;user-select:none;overflow:hidden;}
     .date-display:hover{border-color:var(--b5);}
     .date-display-text{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .date-display-icon{font-size:15px;color:var(--text-faint);flex-shrink:0;}
@@ -485,8 +485,8 @@ if('serviceWorker' in navigator){
     @keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
     .detail-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 8px;flex-shrink:0;}
     .detail-header{padding:14px 16px 10px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;justify-content:space-between;gap:10px}
-    .detail-date{font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;color:var(--text)}
-    .detail-total{font-family:'Outfit',sans-serif;font-size:20px;font-weight:800;color:var(--g5)}
+    .detail-date{font-family:Outfit,sans-serif;font-size:17px;font-weight:800;color:var(--text)}
+    .detail-total{font-family:Outfit,sans-serif;font-size:20px;font-weight:800;color:var(--g5)}
     .detail-section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-faint);padding:10px 16px 4px}
     .detail-row{display:flex;justify-content:space-between;align-items:center;padding:6px 16px;border-bottom:1px solid var(--border-light)}
     .detail-row:last-child{border-bottom:none}
@@ -497,7 +497,7 @@ if('serviceWorker' in navigator){
     .detail-summary-box{margin:10px 16px;background:linear-gradient(135deg,var(--b8),var(--b7));border-radius:var(--radius);padding:12px 14px;color:white}
     .detail-summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 10px}
     .detail-summary-item-label{font-size:9px;opacity:0.55;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:1px}
-    .detail-summary-item-val{font-family:'Outfit',sans-serif;font-size:15px;font-weight:700;letter-spacing:-0.2px}
+    .detail-summary-item-val{font-family:Outfit,sans-serif;font-size:15px;font-weight:700;letter-spacing:-0.2px}
     .detail-summary-item-val.hl{color:#7de88a}
     .detail-notes-box{margin:0 16px;background:var(--b0);border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;color:var(--text-muted);line-height:1.5;white-space:pre-wrap}
     .detail-footer{padding:12px 16px;display:flex;gap:8px;flex-shrink:0;border-top:1px solid var(--border-light);background:var(--surface);}
@@ -706,7 +706,7 @@ if('serviceWorker' in navigator){
     .preg-meta{font-size:11px;color:var(--text-faint);}
     .preg-meta span{margin-right:8px;}
     .preg-right{text-align:right;}
-    .preg-amt{font-family:'Outfit',sans-serif;font-size:15px;font-weight:800;color:var(--text);margin-bottom:3px;}
+    .preg-amt{font-family:Outfit,sans-serif;font-size:15px;font-weight:800;color:var(--text);margin-bottom:3px;}
     .preg-acct{font-size:10px;color:var(--text-muted);background:var(--b0);padding:1px 7px;border-radius:10px;display:inline-block;border:1px solid var(--border-light);}
     .preg-show-more{text-align:center;padding:9px;font-size:12px;font-weight:600;color:var(--b6);cursor:pointer;border-top:1px solid var(--border-light);}
     .preg-show-more:hover{background:var(--b0);}
@@ -715,17 +715,17 @@ if('serviceWorker' in navigator){
     .preg-lookup-row{display:flex;gap:8px;padding:10px 14px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--border-light);}
     .preg-lookup-result{padding:12px 14px;display:flex;justify-content:space-between;align-items:center;}
     .preg-lookup-name{font-size:13px;color:var(--text-muted);}
-    .preg-lookup-amt{font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;color:var(--text);}
+    .preg-lookup-amt{font-family:Outfit,sans-serif;font-size:22px;font-weight:800;color:var(--text);}
     .preg-lookup-sub{font-size:11px;color:var(--text-faint);margin-top:1px;}
     /* Add/Edit sheet */
     .preg-sheet-field{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-bottom:1px solid var(--border-light);}
     .preg-sheet-field:last-of-type{border-bottom:none;}
     .preg-sheet-label{font-size:13px;color:var(--text-muted);flex-shrink:0;min-width:90px;}
-    .preg-sheet-input{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:var(--text);background:none;border:none;outline:none;text-align:right;flex:1;min-width:0;}
+    .preg-sheet-input{font-family:DM Sans,sans-serif;font-size:14px;font-weight:600;color:var(--text);background:none;border:none;outline:none;text-align:right;flex:1;min-width:0;}
     .preg-sheet-input::placeholder{color:var(--text-faint);font-weight:400;}
-    .preg-sheet-select{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:var(--text);background:none;border:none;outline:none;text-align:right;flex:1;cursor:pointer;}
+    .preg-sheet-select{font-family:DM Sans,sans-serif;font-size:14px;font-weight:600;color:var(--text);background:none;border:none;outline:none;text-align:right;flex:1;cursor:pointer;}
     .preg-period-wrap{display:flex;align-items:center;gap:6px;flex:1;justify-content:flex-end;}
-    .preg-period-input{font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 7px;outline:none;width:115px;text-align:center;}
+    .preg-period-input{font-family:DM Sans,sans-serif;font-size:13px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 7px;outline:none;width:115px;text-align:center;}
 
     /* ── PAYOUT DATE RANGE PICKER ── */
     .payout-preset-row{display:flex;gap:6px;flex-wrap:wrap;padding:10px 12px;border-bottom:1px solid var(--border-light);}
@@ -771,7 +771,7 @@ if('serviceWorker' in navigator){
     .preg-tbl tr:hover td{background:var(--b0);cursor:pointer;}
     .preg-tbl tr:last-child td{border-bottom:none;}
     .preg-td-payee{font-weight:600;color:var(--text);}
-    .preg-td-amt{font-weight:700;font-family:'Outfit',sans-serif;color:var(--text);text-align:right;}
+    .preg-td-amt{font-weight:700;font-family:Outfit,sans-serif;color:var(--text);text-align:right;}
     .preg-td-date{color:var(--text-muted);}
     .preg-td-check{font-family:monospace;color:var(--text-muted);}
     .preg-td-period{color:var(--text-muted);}
@@ -848,7 +848,7 @@ if('serviceWorker' in navigator){
     .msel-chip:has(input:checked){background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.35);color:white;}
     .msel-chip input[type=checkbox]{width:13px;height:13px;accent-color:var(--b5);cursor:pointer;flex-shrink:0;}
     .msel-preset-divider{width:1px;height:20px;background:rgba(255,255,255,0.15);flex-shrink:0;margin:0 2px;}
-    .msel-preset{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.45);cursor:pointer;white-space:nowrap;transition:all 0.12s;}
+    .msel-preset{font-family:DM Sans,sans-serif;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.45);cursor:pointer;white-space:nowrap;transition:all 0.12s;}
     .msel-preset:hover{background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.85);border-color:rgba(255,255,255,0.3);}
     .msel-preset.active{background:rgba(255,255,255,0.14);color:white;border-color:rgba(255,255,255,0.35);}
     .msel-breakdown{background:rgba(0,0,0,0.18);border-radius:8px;margin-top:10px;overflow:hidden;}
@@ -861,12 +861,12 @@ if('serviceWorker' in navigator){
     .msel-brow-days{font-size:11px;color:rgba(255,255,255,0.55);line-height:1.5;}
     .msel-brow-amt{font-size:13px;font-weight:700;color:white;flex-shrink:0;padding-left:12px;}
     .msel-brow.total-row .msel-brow-amt{font-size:16px;font-weight:800;}
-    .msel-run{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;padding:10px;border-radius:8px;border:none;background:white;color:var(--b8,#4e6e86);cursor:pointer;}
+    .msel-run{font-family:DM Sans,sans-serif;font-size:13px;font-weight:700;padding:10px;border-radius:8px;border:none;background:white;color:var(--b8,#4e6e86);cursor:pointer;}
     .msel-run:hover{background:var(--b1);}
     .msel-run:disabled{opacity:0.4;cursor:not-allowed;}
     .msel-recorded-bar{display:flex;align-items:center;justify-content:space-between;margin-top:8px;}
     .msel-recorded-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#7de88a;}
-    .msel-recorded-amt{font-family:'Outfit',sans-serif;font-size:15px;font-weight:800;color:#7de88a;}
+    .msel-recorded-amt{font-family:Outfit,sans-serif;font-size:15px;font-weight:800;color:#7de88a;}
 
     /* ── BANK RECONCILIATION WIDGET ── */
 
@@ -879,13 +879,13 @@ if('serviceWorker' in navigator){
     .recon-banner:hover{background:var(--b7);}
     .recon-banner-left{}
     .recon-banner-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.6);margin-bottom:3px;}
-    .recon-banner-val{font-family:'Outfit',sans-serif;font-size:20px;font-weight:800;color:white;line-height:1;}
+    .recon-banner-val{font-family:Outfit,sans-serif;font-size:20px;font-weight:800;color:white;line-height:1;}
     .recon-banner-sub{font-size:10px;color:rgba(255,255,255,0.45);margin-top:2px;}
     .recon-banner-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
     .recon-bank-pill{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,0.12);border-radius:20px;padding:5px 12px;}
     .recon-bank-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:rgba(255,255,255,0.55);white-space:nowrap;}
     .recon-bank-div{width:0.5px;height:13px;background:rgba(255,255,255,0.2);flex-shrink:0;}
-    .recon-bank-input{font-size:12px;font-weight:700;background:none;border:none;outline:none;color:white;width:95px;text-align:right;font-family:'DM Sans',sans-serif;}
+    .recon-bank-input{font-size:12px;font-weight:700;background:none;border:none;outline:none;color:white;width:95px;text-align:right;font-family:DM Sans,sans-serif;}
     .recon-bank-input::placeholder{color:rgba(255,255,255,0.3);font-weight:400;}
     .recon-match-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;flex-shrink:0;}
     .recon-match-badge.ok{background:var(--g0);color:var(--g5);}
@@ -912,9 +912,9 @@ if('serviceWorker' in navigator){
     .recon-chip.on .recon-chip-box::after{content:'';position:absolute;left:2px;top:0px;width:5px;height:8px;border:1.5px solid var(--b8);border-top:none;border-left:none;transform:rotate(45deg);}
     .recon-date-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
     .recon-date-lbl{font-size:11px;color:rgba(255,255,255,0.55);white-space:nowrap;}
-    .recon-date-input{font-size:12px;font-weight:600;padding:5px 10px;border-radius:7px;border:0.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.1);color:white;outline:none;font-family:'DM Sans',sans-serif;width:145px;}
+    .recon-date-input{font-size:12px;font-weight:600;padding:5px 10px;border-radius:7px;border:0.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.1);color:white;outline:none;font-family:DM Sans,sans-serif;width:145px;}
     .recon-date-input::-webkit-calendar-picker-indicator{filter:invert(1);opacity:0.5;}
-    .recon-run-btn{font-size:12px;font-weight:700;padding:5px 14px;border-radius:7px;border:none;background:white;color:var(--b8);cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif;}
+    .recon-run-btn{font-size:12px;font-weight:700;padding:5px 14px;border-radius:7px;border:none;background:white;color:var(--b8);cursor:pointer;white-space:nowrap;font-family:DM Sans,sans-serif;}
     .recon-run-btn:hover{background:var(--b1);}
     .recon-run-btn:disabled{opacity:0.4;cursor:default;}
     .recon-day-row{display:flex;justify-content:space-between;align-items:center;padding:5px 14px;border-bottom:0.5px solid rgba(255,255,255,0.06);cursor:pointer;}
@@ -1108,19 +1108,19 @@ if('serviceWorker' in navigator){
   <div id="draft-banner" style="display:none;align-items:center;gap:10px;background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:8px 12px;margin-bottom:6px;font-size:12px;color:#854F0B;">
     <span style="font-weight:700;">&#128196; Draft restored</span>
     <span id="draft-banner-time" style="flex:1;"></span>
-    <button onclick="dismissDraftBanner()" style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;background:none;border:1px solid #c47c0a;border-radius:5px;color:#854F0B;padding:2px 8px;cursor:pointer;">Dismiss</button>
+    <button onclick="dismissDraftBanner()" style="font-family:DM Sans,sans-serif;font-size:11px;font-weight:600;background:none;border:1px solid #c47c0a;border-radius:5px;color:#854F0B;padding:2px 8px;cursor:pointer;">Dismiss</button>
   </div>
 
   <!-- DRAFT vs SAVED PROMPT MODAL — shown when both a save and a draft exist -->
   <div id="draft-conflict-modal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(15,25,40,0.55);align-items:center;justify-content:center;padding:20px;">
     <div style="background:var(--surface);border-radius:16px;padding:24px;width:100%;max-width:360px;border:1px solid var(--border-light);box-shadow:0 8px 32px rgba(0,0,0,0.18);">
-      <div style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;color:var(--text);margin-bottom:6px;">Draft found</div>
+      <div style="font-family:Outfit,sans-serif;font-size:17px;font-weight:800;color:var(--text);margin-bottom:6px;">Draft found</div>
       <div style="font-size:13px;color:var(--text-muted);margin-bottom:6px;line-height:1.55;">A saved record exists for this date, but you also have an unsaved draft from:</div>
       <div id="draft-conflict-time" style="font-size:13px;font-weight:700;color:#854F0B;background:#fef3c7;border-radius:6px;padding:6px 10px;margin-bottom:16px;"></div>
       <div style="font-size:12px;color:var(--text-faint);margin-bottom:16px;line-height:1.5;">Load the draft instead of the saved record?</div>
       <div style="display:flex;flex-direction:column;gap:8px;">
-        <button onclick="draftConflictLoadDraft()" style="width:100%;padding:11px;border-radius:10px;background:var(--b7);color:#fff;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;">Yes, load my draft</button>
-        <button onclick="draftConflictKeepSaved()" style="width:100%;padding:11px;border-radius:10px;background:var(--b0);color:var(--text);border:1px solid var(--border);font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">No, use saved record</button>
+        <button onclick="draftConflictLoadDraft()" style="width:100%;padding:11px;border-radius:10px;background:var(--b7);color:#fff;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;">Yes, load my draft</button>
+        <button onclick="draftConflictKeepSaved()" style="width:100%;padding:11px;border-radius:10px;background:var(--b0);color:var(--text);border:1px solid var(--border);font-size:14px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif;">No, use saved record</button>
       </div>
     </div>
   </div>
@@ -1128,12 +1128,12 @@ if('serviceWorker' in navigator){
   <!-- UNSAVED NAV PROMPT MODAL -->
   <div id="unsaved-nav-modal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(15,25,40,0.55);align-items:center;justify-content:center;padding:20px;">
     <div style="background:var(--surface);border-radius:16px;padding:24px;width:100%;max-width:340px;border:1px solid var(--border-light);box-shadow:0 8px 32px rgba(0,0,0,0.18);">
-      <div style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;color:var(--text);margin-bottom:6px;">Unsaved changes</div>
+      <div style="font-family:Outfit,sans-serif;font-size:17px;font-weight:800;color:var(--text);margin-bottom:6px;">Unsaved changes</div>
       <div style="font-size:13px;color:var(--text-muted);margin-bottom:20px;line-height:1.55;" id="unsaved-nav-msg">You have unsaved changes for this day. What would you like to do?</div>
       <div style="display:flex;flex-direction:column;gap:8px;">
-        <button onclick="unsavedNavSave()" style="width:100%;padding:11px;border-radius:10px;background:var(--b7);color:#fff;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;">Save &amp; continue</button>
-        <button onclick="unsavedNavLeave()" style="width:100%;padding:11px;border-radius:10px;background:var(--b0);color:var(--text);border:1px solid var(--border);font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Leave without saving</button>
-        <button onclick="unsavedNavCancel()" style="width:100%;padding:8px;border-radius:10px;background:transparent;color:var(--text-faint);border:none;font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;">Cancel — stay on this day</button>
+        <button onclick="unsavedNavSave()" style="width:100%;padding:11px;border-radius:10px;background:var(--b7);color:#fff;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;">Save &amp; continue</button>
+        <button onclick="unsavedNavLeave()" style="width:100%;padding:11px;border-radius:10px;background:var(--b0);color:var(--text);border:1px solid var(--border);font-size:14px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif;">Leave without saving</button>
+        <button onclick="unsavedNavCancel()" style="width:100%;padding:8px;border-radius:10px;background:transparent;color:var(--text-faint);border:none;font-size:12px;font-weight:500;cursor:pointer;font-family:DM Sans,sans-serif;">Cancel — stay on this day</button>
       </div>
     </div>
   </div>
@@ -1245,20 +1245,20 @@ if('serviceWorker' in navigator){
         <!-- Op 1 row -->
         <div style="display:grid;grid-template-columns:1fr 90px 90px;gap:8px;padding:4px 10px;align-items:center;border-top:1px solid var(--border-light);">
           <select class="field-input" id="f-op1" onchange="recalc(true)" style="margin:0;"></select>
-          <select id="f-op1-hrs" onchange="recalc(true)" style="font-family:'DM Sans',sans-serif;font-size:13px;padding:5px 6px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--b0);color:var(--text);text-align:center;"></select>
-          <div id="op1-payout-pill" style="font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;color:var(--g6);border-radius:var(--radius-sm);padding:5px 8px;text-align:right;">--</div>
+          <select id="f-op1-hrs" onchange="recalc(true)" style="font-family:DM Sans,sans-serif;font-size:13px;padding:5px 6px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--b0);color:var(--text);text-align:center;"></select>
+          <div id="op1-payout-pill" style="font-family:Outfit,sans-serif;font-size:13px;font-weight:700;color:var(--g6);border-radius:var(--radius-sm);padding:5px 8px;text-align:right;">--</div>
         </div>
         <!-- Op 2 row -->
         <div style="display:grid;grid-template-columns:1fr 90px 90px;gap:8px;padding:4px 10px;align-items:center;border-top:1px solid var(--border-light);">
           <select class="field-input" id="f-op2" onchange="recalc(true)" style="margin:0;"></select>
-          <select id="f-op2-hrs" onchange="recalc(true)" style="font-family:'DM Sans',sans-serif;font-size:13px;padding:5px 6px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--b0);color:var(--text);text-align:center;"></select>
-          <div id="op2-payout-pill" style="font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;color:var(--g6);border-radius:var(--radius-sm);padding:5px 8px;text-align:right;">--</div>
+          <select id="f-op2-hrs" onchange="recalc(true)" style="font-family:DM Sans,sans-serif;font-size:13px;padding:5px 6px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--b0);color:var(--text);text-align:center;"></select>
+          <div id="op2-payout-pill" style="font-family:Outfit,sans-serif;font-size:13px;font-weight:700;color:var(--g6);border-radius:var(--radius-sm);padding:5px 8px;text-align:right;">--</div>
         </div>
         <!-- Calendar auto-fill bar -->
         <div id="gcal-enter-bar" style="display:none;align-items:center;gap:8px;padding:6px 10px;background:var(--b0);border-top:1px solid var(--border-light);">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--b7)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
           <span style="font-size:11px;color:var(--text-muted);flex:1;">Auto-fill from calendar</span>
-          <button onclick="gcalFillToday()" style="font-size:11px;font-weight:700;padding:4px 11px;border-radius:6px;border:1px solid var(--b5);background:var(--b1);color:var(--b7);cursor:pointer;font-family:'DM Sans',sans-serif;">Load Today</button>
+          <button onclick="gcalFillToday()" style="font-size:11px;font-weight:700;padding:4px 11px;border-radius:6px;border:1px solid var(--b5);background:var(--b1);color:var(--b7);cursor:pointer;font-family:DM Sans,sans-serif;">Load Today</button>
         </div>
         <!-- Duplicate operator warning banner -->
         <div id="ops-dup-warning" style="display:none;align-items:flex-start;gap:8px;padding:7px 12px;background:#fef7e8;border-top:1px solid #f0b440;">
@@ -1273,7 +1273,7 @@ if('serviceWorker' in navigator){
           </div>
           <div id="ops-hourly-rate-row" style="display:flex;flex-direction:column;align-items:flex-end;">
             <span id="ops-total-hrs-label" style="font-size:10px;font-weight:600;color:var(--text-faint);"></span>
-            <span id="ops-hourly-rate-val" style="font-family:'Outfit',sans-serif;font-size:15px;font-weight:800;color:var(--b7);">--</span>
+            <span id="ops-hourly-rate-val" style="font-family:Outfit,sans-serif;font-size:15px;font-weight:800;color:var(--b7);">--</span>
           </div>
         </div>
         <!-- Reinvest -->
@@ -1425,7 +1425,7 @@ if('serviceWorker' in navigator){
     <div id="history-cal-nav" style="display:flex;align-items:center;justify-content:space-between;padding:6px 0 4px;">
       <div style="display:flex;align-items:center;gap:6px;">
         <button class="btn btn-ghost" id="hist-prev-btn" onclick="histCalShift(-1)" style="padding:5px 12px;font-size:16px;">&#8592;</button>
-        <span id="hist-cal-label" style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:var(--text);"></span>
+        <span id="hist-cal-label" style="font-family:Outfit,sans-serif;font-size:16px;font-weight:800;color:var(--text);"></span>
         <button id="fill-dv-btn" onclick="openFillDvModal()" style="display:none;font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;background:#854F0B;color:#fff;border:none;cursor:pointer;">&#9679; Fill missing DV</button>
         <button class="btn btn-ghost" id="hist-next-btn" onclick="histCalShift(1)" style="padding:5px 12px;font-size:16px;">&#8594;</button>
       </div>
@@ -1447,7 +1447,7 @@ if('serviceWorker' in navigator){
       <div class="msel-panel" id="msel-bulk-panel">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
           <div class="msel-title" id="msel-panel-title">MARK COMPLETE — 0 DAYS SELECTED</div>
-          <button onclick="mselClearAll()" style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.4);background:none;border:none;cursor:pointer;padding:0;font-family:'DM Sans',sans-serif;">Clear all</button>
+          <button onclick="mselClearAll()" style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.4);background:none;border:none;cursor:pointer;padding:0;font-family:DM Sans,sans-serif;">Clear all</button>
         </div>
         <div class="msel-pills" id="msel-pills">
           <span class="msel-empty">Tap days on the calendar below to select them</span>
@@ -1511,7 +1511,7 @@ if('serviceWorker' in navigator){
             <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
               <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">Days/mo</span>
               <button onclick="adjustHistOpDays(-1)" style="width:26px;height:26px;border-radius:50%;border:1px solid var(--border);background:var(--b0);font-size:15px;font-weight:700;cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center;line-height:1;">&#8722;</button>
-              <span id="hist-proj-opdays-display" style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:var(--text);min-width:24px;text-align:center;">26</span>
+              <span id="hist-proj-opdays-display" style="font-family:Outfit,sans-serif;font-size:16px;font-weight:800;color:var(--text);min-width:24px;text-align:center;">26</span>
               <button onclick="adjustHistOpDays(1)" style="width:26px;height:26px;border-radius:50%;border:1px solid var(--border);background:var(--b0);font-size:15px;font-weight:700;cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center;line-height:1;">+</button>
             </div>
           </div>
@@ -1526,7 +1526,7 @@ if('serviceWorker' in navigator){
   <div style="max-width:900px;margin:0 auto;width:100%;">
     <div id="alloc-cal-nav" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <button class="btn btn-ghost" id="alloc-prev-btn" onclick="allocCalShift(-1)" style="padding:5px 12px;font-size:16px;">&#8592;</button>
-      <span id="alloc-cal-label" style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:var(--text);"></span>
+      <span id="alloc-cal-label" style="font-family:Outfit,sans-serif;font-size:16px;font-weight:800;color:var(--text);"></span>
       <button class="btn btn-ghost" id="alloc-next-btn" onclick="allocCalShift(1)" style="padding:5px 12px;font-size:16px;">&#8594;</button>
     </div>
     <div id="alloc-cal-grid" style="width:100%;"></div>
@@ -1555,7 +1555,7 @@ if('serviceWorker' in navigator){
 
     <!-- Page heading -->
     <div style="margin-bottom:18px;">
-      <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;color:var(--text);letter-spacing:-0.5px;margin-bottom:4px;">Sales Projections</div>
+      <div style="font-family:Outfit,sans-serif;font-size:22px;font-weight:800;color:var(--text);letter-spacing:-0.5px;margin-bottom:4px;">Sales Projections</div>
       <div style="font-size:13px;color:var(--text-faint);line-height:1.5;">Pick a day from your history or use your monthly average as a base, then see what your numbers look like at different sales increases.</div>
     </div>
 
@@ -1565,7 +1565,7 @@ if('serviceWorker' in navigator){
       <!-- Mini cal nav -->
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
         <button class="btn btn-ghost" onclick="projCalShift(-1)" style="padding:3px 10px;font-size:13px;">&#8592;</button>
-        <span id="proj-cal-label" style="font-family:'Outfit',sans-serif;font-size:13px;font-weight:800;color:var(--text);"></span>
+        <span id="proj-cal-label" style="font-family:Outfit,sans-serif;font-size:13px;font-weight:800;color:var(--text);"></span>
         <button class="btn btn-ghost" onclick="projCalShift(1)" style="padding:3px 10px;font-size:13px;">&#8594;</button>
       </div>
       <!-- Mini cal grid -->
@@ -1591,7 +1591,7 @@ if('serviceWorker' in navigator){
         <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
           <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">Days/mo</span>
           <button onclick="adjustOpDays(-1)" style="width:26px;height:26px;border-radius:50%;border:1px solid var(--border);background:var(--b0);font-size:15px;font-weight:700;cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center;line-height:1;">−</button>
-          <span id="proj-opdays-display" style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:var(--text);min-width:24px;text-align:center;">26</span>
+          <span id="proj-opdays-display" style="font-family:Outfit,sans-serif;font-size:16px;font-weight:800;color:var(--text);min-width:24px;text-align:center;">26</span>
           <button onclick="adjustOpDays(1)" style="width:26px;height:26px;border-radius:50%;border:1px solid var(--border);background:var(--b0);font-size:15px;font-weight:700;cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center;line-height:1;">+</button>
         </div>
       </div>
@@ -1662,7 +1662,7 @@ if('serviceWorker' in navigator){
         <button class="filter-chip" onclick="setInvFilter('need',this)">Need</button>
         <div style="display:flex;align-items:center;gap:6px;margin-left:8px;">
           <label style="font-size:11px;font-weight:600;color:var(--text-faint);white-space:nowrap;">Snapshot:</label>
-          <select id="inv-snapshot-picker" style="font-family:'DM Sans',sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 8px;background:var(--surface);color:var(--text);outline:none;" onchange="loadInvSnapshot(this.value)">
+          <select id="inv-snapshot-picker" style="font-family:DM Sans,sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 8px;background:var(--surface);color:var(--text);outline:none;" onchange="loadInvSnapshot(this.value)">
             <option value="">— Current —</option>
           </select>
           <button class="btn btn-ghost" id="inv-snap-rename-btn" onclick="openInvSnapRename()" style="padding:4px 8px;font-size:12px;display:none;">✎ Rename</button>
@@ -1681,7 +1681,7 @@ if('serviceWorker' in navigator){
 <div class="modal-overlay" id="crop-modal" style="display:none;align-items:center;justify-content:center;z-index:400;">
   <div class="modal-sheet" style="max-width:360px;width:100%;border-radius:var(--radius);padding:0;overflow:hidden;">
     <div style="background:var(--b8);padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;">
-      <div style="font-family:'Outfit',sans-serif;font-size:15px;font-weight:700;color:#fff;">Crop Photo</div>
+      <div style="font-family:Outfit,sans-serif;font-size:15px;font-weight:700;color:#fff;">Crop Photo</div>
       <div style="font-size:11px;color:rgba(255,255,255,0.8);">Drag to pan · Pinch to zoom</div>
     </div>
     <div style="position:relative;background:#111;display:flex;align-items:center;justify-content:center;overflow:hidden;" id="crop-canvas-wrap">
@@ -1710,11 +1710,11 @@ if('serviceWorker' in navigator){
       <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:12px;" id="oos-product-name"></div>
       <div style="margin-bottom:12px;">
         <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);display:block;margin-bottom:5px;">Note (optional)</label>
-        <textarea id="oos-note" rows="3" placeholder="e.g. Backordered from Herbalife, check mid-April" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;outline:none;resize:vertical;box-sizing:border-box;"></textarea>
+        <textarea id="oos-note" rows="3" placeholder="e.g. Backordered from Herbalife, check mid-April" style="width:100%;font-family:DM Sans,sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;outline:none;resize:vertical;box-sizing:border-box;"></textarea>
       </div>
       <div style="margin-bottom:16px;">
         <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);display:block;margin-bottom:5px;">Expected Availability</label>
-        <input type="date" id="oos-date" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;outline:none;background:var(--surface);color:var(--text);width:100%;box-sizing:border-box;"/>
+        <input type="date" id="oos-date" style="font-family:DM Sans,sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;outline:none;background:var(--surface);color:var(--text);width:100%;box-sizing:border-box;"/>
       </div>
       <div style="display:flex;gap:8px;">
         <button class="btn btn-primary" onclick="saveOos()" style="flex:1;">Save</button>
@@ -1738,7 +1738,7 @@ if('serviceWorker' in navigator){
     <div style="max-width:900px;margin:0 auto;padding:6px 12px 0;">
       <div id="order-summary-card-wrap"></div>
       <div class="order-toolbar">
-        <select id="order-plan-picker" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 10px;background:var(--surface);color:var(--text);outline:none;flex:1;" onchange="loadOrderPlan(this.value)">
+        <select id="order-plan-picker" style="font-family:DM Sans,sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 10px;background:var(--surface);color:var(--text);outline:none;flex:1;" onchange="loadOrderPlan(this.value)">
           <option value="">— No saved plans —</option>
         </select>
         <button class="btn btn-ghost" id="order-rename-btn" onclick="openOrderRename()" style="padding:5px 10px;font-size:12px;flex-shrink:0;display:none;">✎ Rename</button>
@@ -1783,7 +1783,7 @@ if('serviceWorker' in navigator){
         </div>
         <span style="font-size:11px;color:var(--b5);">&#9998; Edit</span>
         <button class="btn btn-primary" style="font-size:12px;padding:5px 14px;margin-left:6px;" onclick="event.stopPropagation();renderPayouts();">Load</button>
-        <button id="gcal-payout-btn" onclick="event.stopPropagation();gcalLoadPayoutShifts();" style="display:none;font-size:12px;padding:5px 12px;margin-left:0;border-radius:var(--radius-sm);border:1px solid var(--b5);background:var(--b1);color:var(--b7);font-family:'DM Sans',sans-serif;font-weight:700;cursor:pointer;white-space:nowrap;display:none;align-items:center;gap:5px;">
+        <button id="gcal-payout-btn" onclick="event.stopPropagation();gcalLoadPayoutShifts();" style="display:none;font-size:12px;padding:5px 12px;margin-left:0;border-radius:var(--radius-sm);border:1px solid var(--b5);background:var(--b1);color:var(--b7);font-family:DM Sans,sans-serif;font-weight:700;cursor:pointer;white-space:nowrap;display:none;align-items:center;gap:5px;">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
           Shifts
         </button>
@@ -1802,7 +1802,7 @@ if('serviceWorker' in navigator){
       <div class="card" style="margin-bottom:12px;">
         <div class="field-row" style="flex-direction:column;align-items:stretch;gap:8px;padding:8px 10px;">
           <input type="text" id="payout-snap-label" placeholder="Label (optional) e.g. Mary — March week 1"
-            style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;outline:none;width:100%;box-sizing:border-box;"/>
+            style="font-family:DM Sans,sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;outline:none;width:100%;box-sizing:border-box;"/>
           <button class="btn btn-primary" onclick="savePayoutSnapshot()" style="align-self:flex-end;min-width:140px;">💾 Save Snapshot</button>
         </div>
       </div>
@@ -1831,7 +1831,7 @@ if('serviceWorker' in navigator){
             <span id="sp-gcal-badge" style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--border-light);color:var(--text-faint);">Not connected</span>
           </div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
-            <input type="text" id="sp-gcal-client-id" placeholder="OAuth Client ID" style="font-family:'DM Sans',sans-serif;font-size:11px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 8px;outline:none;width:220px;display:none;"/>
+            <input type="text" id="sp-gcal-client-id" placeholder="OAuth Client ID" style="font-family:DM Sans,sans-serif;font-size:11px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 8px;outline:none;width:220px;display:none;"/>
             <button class="btn btn-primary" onclick="spGcalConnect()" id="sp-gcal-connect-btn" style="font-size:11px;padding:5px 12px;">Connect Calendar</button>
             <button class="btn btn-ghost btn-sm" onclick="gcalPickCalendar()" id="sp-gcal-pick-btn" style="font-size:11px;display:none;">Change calendar</button>
             <button class="btn btn-ghost btn-sm" onclick="gcalDisconnect()" id="sp-gcal-disconnect-btn" style="font-size:11px;display:none;color:var(--danger,#dc2626);">Disconnect</button>
@@ -1865,7 +1865,7 @@ if('serviceWorker' in navigator){
     </div>
     <div id="payee-lookup-body" class="card" style="margin-bottom:12px;">
       <div class="preg-lookup-row" style="gap:8px;flex-wrap:wrap;">
-        <select id="preg-lookup-payee" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 8px;background:var(--surface);color:var(--text);outline:none;flex:1;min-width:140px;"></select>
+        <select id="preg-lookup-payee" style="font-family:DM Sans,sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 8px;background:var(--surface);color:var(--text);outline:none;flex:1;min-width:140px;"></select>
         <div class="payout-range-bar" onclick="openCalPickerForLookup()" style="flex:2;min-width:200px;border-radius:var(--radius-sm);border:1px solid var(--border);">
           <div style="flex:1;display:flex;align-items:center;gap:6px;">
             <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">From</span>
@@ -1913,10 +1913,10 @@ if('serviceWorker' in navigator){
           <div class="preg-fchip" onclick="setPregFilter('lastyear',this)">Last Year</div>
         </div>
         <div style="display:flex;gap:8px;padding:6px 12px 8px;flex-wrap:wrap;border-bottom:1px solid var(--border-light);">
-          <select id="preg-filter-payee" onchange="setPregPayeeFilter(this.value)" style="font-family:'DM Sans',sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 8px;background:var(--surface);color:var(--text);outline:none;flex:1;min-width:120px;">
+          <select id="preg-filter-payee" onchange="setPregPayeeFilter(this.value)" style="font-family:DM Sans,sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 8px;background:var(--surface);color:var(--text);outline:none;flex:1;min-width:120px;">
             <option value="">All Payees</option>
           </select>
-          <select id="preg-filter-account" onchange="setPregAccountFilter(this.value)" style="font-family:'DM Sans',sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 8px;background:var(--surface);color:var(--text);outline:none;flex:1;min-width:120px;">
+          <select id="preg-filter-account" onchange="setPregAccountFilter(this.value)" style="font-family:DM Sans,sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 8px;background:var(--surface);color:var(--text);outline:none;flex:1;min-width:120px;">
             <option value="">All Accounts</option>
             <option value="check">Check</option>
             <option value="venmo">Venmo</option>
@@ -1946,8 +1946,8 @@ if('serviceWorker' in navigator){
 <div style="max-width:680px;margin:0 auto;width:100%;">
 
   <div style="display:flex;gap:0;background:var(--b0);border-radius:var(--radius-sm);padding:2px;width:fit-content;margin-bottom:14px;">
-    <button id="exp-btn-proj" onclick="switchExpSub('proj')" style="padding:6px 16px;font-size:12px;font-weight:600;border:none;background:transparent;color:var(--text-muted);cursor:pointer;border-radius:6px;font-family:'DM Sans',sans-serif;transition:all 0.15s;">Projections</button>
-    <button id="exp-btn-csa" onclick="switchExpSub('csa')" style="padding:6px 16px;font-size:12px;font-weight:600;border:none;background:var(--surface);color:var(--b7);cursor:pointer;border-radius:6px;font-family:'DM Sans',sans-serif;transition:all 0.15s;box-shadow:var(--shadow-sm);">Club Viability Analyzer</button>
+    <button id="exp-btn-proj" onclick="switchExpSub('proj')" style="padding:6px 16px;font-size:12px;font-weight:600;border:none;background:transparent;color:var(--text-muted);cursor:pointer;border-radius:6px;font-family:DM Sans,sans-serif;transition:all 0.15s;">Projections</button>
+    <button id="exp-btn-csa" onclick="switchExpSub('csa')" style="padding:6px 16px;font-size:12px;font-weight:600;border:none;background:var(--surface);color:var(--b7);cursor:pointer;border-radius:6px;font-family:DM Sans,sans-serif;transition:all 0.15s;box-shadow:var(--shadow-sm);">Club Viability Analyzer</button>
   </div>
 
   <!-- ── PROJECTIONS ── -->
@@ -1956,8 +1956,8 @@ if('serviceWorker' in navigator){
 
     <!-- Mode toggle -->
     <div style="display:flex;gap:0;background:var(--b0);border-radius:var(--radius-sm);padding:2px;width:fit-content;margin-bottom:12px;">
-      <button id="wif-btn-actual" onclick="wifSetMode('actual')" style="padding:6px 18px;font-size:12px;font-weight:600;border:none;background:var(--surface);color:var(--b7);cursor:pointer;border-radius:6px;font-family:'DM Sans',sans-serif;transition:all 0.15s;box-shadow:var(--shadow-sm);">Actual Day</button>
-      <button id="wif-btn-hypo" onclick="wifSetMode('hypo')" style="padding:6px 18px;font-size:12px;font-weight:600;border:none;background:transparent;color:var(--text-muted);cursor:pointer;border-radius:6px;font-family:'DM Sans',sans-serif;transition:all 0.15s;">What-If</button>
+      <button id="wif-btn-actual" onclick="wifSetMode('actual')" style="padding:6px 18px;font-size:12px;font-weight:600;border:none;background:var(--surface);color:var(--b7);cursor:pointer;border-radius:6px;font-family:DM Sans,sans-serif;transition:all 0.15s;box-shadow:var(--shadow-sm);">Actual Day</button>
+      <button id="wif-btn-hypo" onclick="wifSetMode('hypo')" style="padding:6px 18px;font-size:12px;font-weight:600;border:none;background:transparent;color:var(--text-muted);cursor:pointer;border-radius:6px;font-family:DM Sans,sans-serif;transition:all 0.15s;">What-If</button>
     </div>
 
     <!-- Input card -->
@@ -1968,14 +1968,14 @@ if('serviceWorker' in navigator){
         <div class="section-label" style="margin-top:0;">Pick a real sales day</div>
         <div style="font-size:12px;color:var(--text-faint);margin-bottom:10px;">Select a date to load that day's actual net sales and extrapolate forward.</div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-          <input type="date" id="wif-date-picker" style="padding:8px 12px;border:1px solid var(--border-light);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;cursor:pointer;" onchange="wifLoadActualDay(this.value)"/>
-          <button onclick="wifLoadAvg()" style="padding:7px 14px;font-size:12px;font-weight:600;background:var(--b1);color:var(--b8);border:none;border-radius:var(--radius-sm);cursor:pointer;font-family:'DM Sans',sans-serif;">Use this month's avg</button>
+          <input type="date" id="wif-date-picker" style="padding:8px 12px;border:1px solid var(--border-light);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-size:14px;font-family:DM Sans,sans-serif;cursor:pointer;" onchange="wifLoadActualDay(this.value)"/>
+          <button onclick="wifLoadAvg()" style="padding:7px 14px;font-size:12px;font-weight:600;background:var(--b1);color:var(--b8);border:none;border-radius:var(--radius-sm);cursor:pointer;font-family:DM Sans,sans-serif;">Use this month's avg</button>
         </div>
         <div id="wif-actual-loaded" style="display:none;margin-top:12px;padding:10px 12px;background:var(--b0);border-radius:var(--radius-sm);border-left:3px solid var(--b5);">
           <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);margin-bottom:4px;" id="wif-actual-label">--</div>
           <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:baseline;">
-            <div><span style="font-family:'Outfit',sans-serif;font-size:26px;font-weight:800;color:var(--text);" id="wif-actual-sales">--</span><span style="font-size:11px;color:var(--text-faint);margin-left:4px;">net sales</span></div>
-            <div><span style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;color:var(--text-muted);" id="wif-actual-dv">--</span><span style="font-size:11px;color:var(--text-faint);margin-left:4px;">DV</span></div>
+            <div><span style="font-family:Outfit,sans-serif;font-size:26px;font-weight:800;color:var(--text);" id="wif-actual-sales">--</span><span style="font-size:11px;color:var(--text-faint);margin-left:4px;">net sales</span></div>
+            <div><span style="font-family:Outfit,sans-serif;font-size:16px;font-weight:700;color:var(--text-muted);" id="wif-actual-dv">--</span><span style="font-size:11px;color:var(--text-faint);margin-left:4px;">DV</span></div>
           </div>
         </div>
         <div id="wif-actual-empty" style="margin-top:10px;font-size:12px;color:var(--text-faint);">No data loaded yet.</div>
@@ -1988,7 +1988,7 @@ if('serviceWorker' in navigator){
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           <div style="display:flex;align-items:center;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);overflow:hidden;">
             <span style="padding:0 10px;font-size:15px;color:var(--text-muted);font-weight:600;">$</span>
-            <input type="number" id="wif-hypo-input" min="0" max="9999" step="50" placeholder="1000" style="padding:9px 12px 9px 0;border:none;background:transparent;color:var(--text);font-size:18px;font-weight:700;font-family:'Outfit',sans-serif;width:120px;outline:none;" oninput="wifRecalc()"/>
+            <input type="number" id="wif-hypo-input" min="0" max="9999" step="50" placeholder="1000" style="padding:9px 12px 9px 0;border:none;background:transparent;color:var(--text);font-size:18px;font-weight:700;font-family:Outfit,sans-serif;width:120px;outline:none;" oninput="wifRecalc()"/>
           </div>
           <div style="display:flex;gap:4px;">
             <button onclick="wifNudge(50)" style="padding:6px 10px;font-size:12px;background:var(--b1);color:var(--b8);border:none;border-radius:var(--radius-sm);cursor:pointer;font-weight:700;">+$50</button>
@@ -2016,7 +2016,7 @@ if('serviceWorker' in navigator){
         <span style="font-size:12px;font-weight:600;color:var(--text-muted);">Operating days / month</span>
         <div style="display:flex;align-items:center;gap:8px;">
           <button onclick="wifAdjOp(-1)" style="width:26px;height:26px;border:1px solid var(--border-light);background:var(--surface);border-radius:50%;cursor:pointer;font-size:14px;font-weight:700;color:var(--text-muted);">-</button>
-          <span style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;min-width:28px;text-align:center;" id="wif-opdays-display">26</span>
+          <span style="font-family:Outfit,sans-serif;font-size:16px;font-weight:700;min-width:28px;text-align:center;" id="wif-opdays-display">26</span>
           <input type="hidden" id="wif-opdays" value="26"/>
           <button onclick="wifAdjOp(1)" style="width:26px;height:26px;border:none;background:var(--b5);border-radius:50%;cursor:pointer;font-size:14px;font-weight:700;color:#fff;">+</button>
         </div>
@@ -2028,21 +2028,21 @@ if('serviceWorker' in navigator){
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px;">
           <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
             <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);margin-bottom:4px;">Daily</div>
-            <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;color:var(--text);" id="wif-rev-daily">--</div>
+            <div style="font-family:Outfit,sans-serif;font-size:18px;font-weight:800;color:var(--text);" id="wif-rev-daily">--</div>
           </div>
           <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
             <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);margin-bottom:4px;">Weekly</div>
-            <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;color:var(--text);" id="wif-rev-weekly">--</div>
+            <div style="font-family:Outfit,sans-serif;font-size:18px;font-weight:800;color:var(--text);" id="wif-rev-weekly">--</div>
             <div style="font-size:9px;color:var(--text-faint);margin-top:2px;">6 days</div>
           </div>
           <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
             <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);margin-bottom:4px;">Monthly</div>
-            <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;color:var(--text);" id="wif-rev-monthly">--</div>
+            <div style="font-family:Outfit,sans-serif;font-size:18px;font-weight:800;color:var(--text);" id="wif-rev-monthly">--</div>
             <div style="font-size:9px;color:var(--text-faint);margin-top:2px;" id="wif-opdays-label">26 days</div>
           </div>
           <div style="background:var(--b2);border-radius:var(--radius-sm);padding:10px;text-align:center;border:1px solid var(--b3);">
             <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--b6);margin-bottom:4px;">Annual</div>
-            <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;color:var(--b8);" id="wif-rev-annual">--</div>
+            <div style="font-family:Outfit,sans-serif;font-size:18px;font-weight:800;color:var(--b8);" id="wif-rev-annual">--</div>
           </div>
         </div>
       </div>
@@ -2057,29 +2057,29 @@ if('serviceWorker' in navigator){
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px;">
           <div style="background:var(--b0);border-radius:var(--radius-sm);padding:8px;text-align:center;">
             <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--text-faint);margin-bottom:3px;">Fixed OH / mo</div>
-            <div style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:var(--text-muted);" id="wif-cost-fixed">--</div>
+            <div style="font-family:Outfit,sans-serif;font-size:14px;font-weight:700;color:var(--text-muted);" id="wif-cost-fixed">--</div>
           </div>
           <div style="background:var(--b0);border-radius:var(--radius-sm);padding:8px;text-align:center;">
             <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--text-faint);margin-bottom:3px;">Ingredients / mo</div>
-            <div style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:var(--text-muted);" id="wif-cost-ingr">--</div>
+            <div style="font-family:Outfit,sans-serif;font-size:14px;font-weight:700;color:var(--text-muted);" id="wif-cost-ingr">--</div>
           </div>
           <div style="background:var(--b0);border-radius:var(--radius-sm);padding:8px;text-align:center;">
             <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--text-faint);margin-bottom:3px;">Labor / mo</div>
-            <div style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:var(--text-muted);" id="wif-cost-labor">--</div>
+            <div style="font-family:Outfit,sans-serif;font-size:14px;font-weight:700;color:var(--text-muted);" id="wif-cost-labor">--</div>
           </div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
           <div style="border-radius:var(--radius-sm);padding:10px;text-align:center;" id="wif-profit-daily-card">
             <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);margin-bottom:4px;">Daily profit</div>
-            <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;" id="wif-profit-daily">--</div>
+            <div style="font-family:Outfit,sans-serif;font-size:18px;font-weight:800;" id="wif-profit-daily">--</div>
           </div>
           <div style="border-radius:var(--radius-sm);padding:10px;text-align:center;" id="wif-profit-monthly-card">
             <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);margin-bottom:4px;">Monthly profit</div>
-            <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;" id="wif-profit-monthly">--</div>
+            <div style="font-family:Outfit,sans-serif;font-size:18px;font-weight:800;" id="wif-profit-monthly">--</div>
           </div>
           <div style="border-radius:var(--radius-sm);padding:10px;text-align:center;" id="wif-profit-annual-card">
             <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);margin-bottom:4px;">Annual profit</div>
-            <div style="font-family:'Outfit',sans-serif;font-size:20px;font-weight:800;" id="wif-profit-annual">--</div>
+            <div style="font-family:Outfit,sans-serif;font-size:20px;font-weight:800;" id="wif-profit-annual">--</div>
           </div>
         </div>
       </div>
@@ -2090,15 +2090,15 @@ if('serviceWorker' in navigator){
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;">
           <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
             <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);margin-bottom:4px;">Drinks / day</div>
-            <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;color:var(--text);" id="wif-vol-drinks">--</div>
+            <div style="font-family:Outfit,sans-serif;font-size:22px;font-weight:800;color:var(--text);" id="wif-vol-drinks">--</div>
           </div>
           <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
             <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);margin-bottom:4px;">Drinks / hr</div>
-            <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;color:var(--text);" id="wif-vol-dph">--</div>
+            <div style="font-family:Outfit,sans-serif;font-size:22px;font-weight:800;color:var(--text);" id="wif-vol-dph">--</div>
           </div>
           <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
             <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);margin-bottom:4px;">Solo ceiling</div>
-            <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;" id="wif-vol-ceiling">--</div>
+            <div style="font-family:Outfit,sans-serif;font-size:22px;font-weight:800;" id="wif-vol-ceiling">--</div>
             <div style="font-size:9px;color:var(--text-faint);margin-top:2px;" id="wif-vol-ceiling-label">--</div>
           </div>
         </div>
@@ -2118,7 +2118,7 @@ if('serviceWorker' in navigator){
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;">
         <button id="cva-mode-prof-btn" onclick="cvaTopSetMode('profit')" style="padding:4px 14px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--g5);background:var(--g5);color:#fff;transition:all 0.1s;">Profit goal</button>
         <button id="cva-mode-rev-btn" onclick="cvaTopSetMode('revenue')" style="padding:4px 14px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text-muted);transition:all 0.1s;">Sales goal</button>
-        <button onclick="cvaExportPDF()" id="cva-pdf-btn" style="margin-left:auto;display:flex;align-items:center;gap:5px;padding:4px 11px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);font-family:'DM Sans',sans-serif;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--b5)';this.style.color='var(--b7)';" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)';">
+        <button onclick="cvaExportPDF()" id="cva-pdf-btn" style="margin-left:auto;display:flex;align-items:center;gap:5px;padding:4px 11px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);font-family:DM Sans,sans-serif;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--b5)';this.style.color='var(--b7)';" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)';">
           <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8M5 7l3 3 3-3M3 12.5h10"/></svg>
           Export PDF
         </button>
@@ -2128,7 +2128,7 @@ if('serviceWorker' in navigator){
       <div id="cva-panel-profit">
         <div style="background:var(--g0);border:1px solid #b8e0bc;border-radius:8px;padding:12px 14px;margin-bottom:10px;">
           <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--g5);margin-bottom:4px;">Monthly profit goal</div>
-          <div style="font-family:'Outfit',sans-serif;font-size:26px;font-weight:700;color:var(--g6,#1a7a45);line-height:1;" id="cva-pg-display">$5,000</div>
+          <div style="font-family:Outfit,sans-serif;font-size:26px;font-weight:700;color:var(--g6,#1a7a45);line-height:1;" id="cva-pg-display">$5,000</div>
           <div style="font-size:11px;color:var(--g5);margin-top:3px;" id="cva-pg-sublabel">per month take-home after all costs</div>
 
           <!-- Profit slider -->
@@ -2148,11 +2148,11 @@ if('serviceWorker' in navigator){
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
             <div style="background:white;border:1px solid #b8e0bc;border-radius:8px;padding:10px 12px;">
               <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--g5);margin-bottom:3px;">Sales needed / mo</div>
-              <div style="font-family:'Outfit',sans-serif;font-size:20px;font-weight:700;color:var(--g6,#1a7a45);" id="cva-pg-rev-needed">—</div>
+              <div style="font-family:Outfit,sans-serif;font-size:20px;font-weight:700;color:var(--g6,#1a7a45);" id="cva-pg-rev-needed">—</div>
             </div>
             <div style="background:white;border:1px solid #b8e0bc;border-radius:8px;padding:10px 12px;">
               <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--g5);margin-bottom:3px;">Daily sales needed</div>
-              <div style="font-family:'Outfit',sans-serif;font-size:20px;font-weight:700;color:var(--g6,#1a7a45);" id="cva-pg-day-needed">—</div>
+              <div style="font-family:Outfit,sans-serif;font-size:20px;font-weight:700;color:var(--g6,#1a7a45);" id="cva-pg-day-needed">—</div>
             </div>
           </div>
 
@@ -2169,15 +2169,15 @@ if('serviceWorker' in navigator){
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
             <div style="background:white;border:1px solid #b8e0bc;border-radius:6px;padding:10px;text-align:center;">
               <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--g5);margin-bottom:2px;">Daily revenue</div>
-              <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:700;color:var(--g6,#1a7a45);" id="cva-pg-target-rev">—</div>
+              <div style="font-family:Outfit,sans-serif;font-size:22px;font-weight:700;color:var(--g6,#1a7a45);" id="cva-pg-target-rev">—</div>
             </div>
             <div style="background:white;border:1px solid #b8e0bc;border-radius:6px;padding:10px;text-align:center;">
               <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--g5);margin-bottom:2px;">Drinks / day</div>
-              <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:700;color:var(--g6,#1a7a45);" id="cva-pg-target-drinks">—</div>
+              <div style="font-family:Outfit,sans-serif;font-size:22px;font-weight:700;color:var(--g6,#1a7a45);" id="cva-pg-target-drinks">—</div>
             </div>
             <div style="background:white;border:1px solid #b8e0bc;border-radius:6px;padding:10px;text-align:center;">
               <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--g5);margin-bottom:2px;">Drinks / hr</div>
-              <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:700;color:var(--g6,#1a7a45);" id="cva-pg-target-dph">—</div>
+              <div style="font-family:Outfit,sans-serif;font-size:22px;font-weight:700;color:var(--g6,#1a7a45);" id="cva-pg-target-dph">—</div>
             </div>
           </div>
         </div>
@@ -2197,7 +2197,7 @@ if('serviceWorker' in navigator){
           <!-- ── DAILY VIEW ── -->
           <div id="cva-sg-daily-view">
             <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--b6);margin-bottom:4px;">Daily sales goal</div>
-            <div style="font-family:'Outfit',sans-serif;font-size:26px;font-weight:700;color:var(--text);line-height:1;" id="cva-sg-daily-disp">$769</div>
+            <div style="font-family:Outfit,sans-serif;font-size:26px;font-weight:700;color:var(--text);line-height:1;" id="cva-sg-daily-disp">$769</div>
             <div style="font-size:11px;margin-top:3px;" id="cva-sg-daily-sublabel">per operating day</div>
 
             <!-- Daily slider track -->
@@ -2241,7 +2241,7 @@ if('serviceWorker' in navigator){
             <!-- Daily estimated profit -->
             <div id="cva-sg-d-profit-result" style="border-radius:8px;padding:12px 14px;margin-top:12px;background:var(--g0);border:1px solid #b8e0bc;">
               <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;color:var(--g5);" id="cva-sg-d-profit-label">Estimated monthly profit</div>
-              <div style="font-family:'Outfit',sans-serif;font-size:30px;font-weight:700;line-height:1;color:var(--g5);" id="cva-sg-d-profit-num">—</div>
+              <div style="font-family:Outfit,sans-serif;font-size:30px;font-weight:700;line-height:1;color:var(--g5);" id="cva-sg-d-profit-num">—</div>
               <div style="font-size:11px;margin-top:8px;display:grid;grid-template-columns:1fr auto;gap:3px 12px;" id="cva-sg-d-profit-breakdown"></div>
             </div>
           </div>
@@ -2249,7 +2249,7 @@ if('serviceWorker' in navigator){
           <!-- ── MONTHLY VIEW ── -->
           <div id="cva-sg-monthly-view" style="display:none;">
             <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--b6);margin-bottom:4px;">Monthly sales goal</div>
-            <div style="font-family:'Outfit',sans-serif;font-size:26px;font-weight:700;color:var(--text);line-height:1;" id="cva-rev-display">$20,000</div>
+            <div style="font-family:Outfit,sans-serif;font-size:26px;font-weight:700;color:var(--text);line-height:1;" id="cva-rev-display">$20,000</div>
             <div style="font-size:11px;margin-top:3px;" id="cva-rev-sublabel">monthly sales revenue</div>
 
             <!-- Monthly slider track (existing) -->
@@ -2296,7 +2296,7 @@ if('serviceWorker' in navigator){
             <!-- Monthly estimated profit -->
             <div id="cva-profit-result" style="border-radius:8px;padding:12px 14px;margin-top:12px;background:var(--g0);border:1px solid #b8e0bc;">
               <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;color:var(--g5);" id="cva-profit-result-label">Estimated monthly profit</div>
-              <div style="font-family:'Outfit',sans-serif;font-size:30px;font-weight:700;line-height:1;color:var(--g5);" id="cva-profit-result-num">—</div>
+              <div style="font-family:Outfit,sans-serif;font-size:30px;font-weight:700;line-height:1;color:var(--g5);" id="cva-profit-result-num">—</div>
               <div style="font-size:11px;margin-top:8px;display:grid;grid-template-columns:1fr auto;gap:3px 12px;" id="cva-profit-breakdown"></div>
             </div>
           </div>
@@ -2309,15 +2309,15 @@ if('serviceWorker' in navigator){
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
             <div style="background:white;border:1px solid var(--b3,#85B7EB);border-radius:6px;padding:10px;text-align:center;">
               <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--b6);margin-bottom:2px;">Daily revenue</div>
-              <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:700;color:var(--b7,#185FA5);" id="cva-target-rev">—</div>
+              <div style="font-family:Outfit,sans-serif;font-size:22px;font-weight:700;color:var(--b7,#185FA5);" id="cva-target-rev">—</div>
             </div>
             <div style="background:white;border:1px solid var(--b3,#85B7EB);border-radius:6px;padding:10px;text-align:center;">
               <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--b6);margin-bottom:2px;">Drinks / day</div>
-              <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:700;color:var(--b7,#185FA5);" id="cva-target-drinks">—</div>
+              <div style="font-family:Outfit,sans-serif;font-size:22px;font-weight:700;color:var(--b7,#185FA5);" id="cva-target-drinks">—</div>
             </div>
             <div style="background:white;border:1px solid var(--b3,#85B7EB);border-radius:6px;padding:10px;text-align:center;">
               <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--b6);margin-bottom:2px;">Drinks / hr</div>
-              <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:700;color:var(--b7,#185FA5);" id="cva-target-dph">—</div>
+              <div style="font-family:Outfit,sans-serif;font-size:22px;font-weight:700;color:var(--b7,#185FA5);" id="cva-target-dph">—</div>
             </div>
           </div>
         </div>
@@ -2333,22 +2333,22 @@ if('serviceWorker' in navigator){
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
         <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
           <div style="font-size:9px;font-weight:600;color:var(--text-faint);margin-bottom:2px;">Break even</div>
-          <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--b8);" id="cva-bench-0">—</div>
+          <div style="font-family:Outfit,sans-serif;font-size:18px;font-weight:700;color:var(--b8);" id="cva-bench-0">—</div>
           <div style="font-size:9px;color:var(--text-faint);">/ day</div>
         </div>
         <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
           <div style="font-size:9px;font-weight:600;color:var(--text-faint);margin-bottom:2px;">$3k / mo</div>
-          <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--b8);" id="cva-bench-3k">—</div>
+          <div style="font-family:Outfit,sans-serif;font-size:18px;font-weight:700;color:var(--b8);" id="cva-bench-3k">—</div>
           <div style="font-size:9px;color:var(--text-faint);">/ day</div>
         </div>
         <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
           <div style="font-size:9px;font-weight:600;color:var(--text-faint);margin-bottom:2px;">$5k / mo</div>
-          <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--b8);" id="cva-bench-5k">—</div>
+          <div style="font-family:Outfit,sans-serif;font-size:18px;font-weight:700;color:var(--b8);" id="cva-bench-5k">—</div>
           <div style="font-size:9px;color:var(--text-faint);">/ day</div>
         </div>
         <div style="background:var(--b0);border-radius:var(--radius-sm);padding:10px;text-align:center;">
           <div style="font-size:9px;font-weight:600;color:var(--text-faint);margin-bottom:2px;">$10k / mo</div>
-          <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:var(--b8);" id="cva-bench-10k">—</div>
+          <div style="font-family:Outfit,sans-serif;font-size:18px;font-weight:700;color:var(--b8);" id="cva-bench-10k">—</div>
           <div style="font-size:9px;color:var(--text-faint);">/ day</div>
         </div>
       </div>
@@ -2503,7 +2503,7 @@ if('serviceWorker' in navigator){
       <!-- Mini status calendar -->
       <div style="padding:12px 16px 0;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-          <span style="font-family:'Outfit',sans-serif;font-size:15px;font-weight:800;color:var(--text);" id="fdv-cal-title">March 2026</span>
+          <span style="font-family:Outfit,sans-serif;font-size:15px;font-weight:800;color:var(--text);" id="fdv-cal-title">March 2026</span>
           <div style="display:flex;gap:6px;">
             <span id="fdv-missing-badge" style="font-size:11px;padding:2px 8px;border-radius:20px;background:#FAEEDA;color:#854F0B;font-weight:600;"></span>
             <span id="fdv-filled-badge" style="font-size:11px;padding:2px 8px;border-radius:20px;background:#EAF3DE;color:#3B6D11;font-weight:600;"></span>
@@ -2536,7 +2536,7 @@ if('serviceWorker' in navigator){
     <div class="detail-handle"></div>
     <div style="padding:0 16px;overflow-y:auto;flex:1;">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0 6px;">
-        <div style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;color:var(--text);" id="alloc-detail-date"></div>
+        <div style="font-family:Outfit,sans-serif;font-size:17px;font-weight:800;color:var(--text);" id="alloc-detail-date"></div>
         <div style="font-size:12px;color:var(--text-faint);" id="alloc-detail-status"></div>
       </div>
       <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">Total Sales: <span style="font-weight:700;color:var(--g5);" id="alloc-detail-sales"></span></div>
@@ -2582,7 +2582,7 @@ if('serviceWorker' in navigator){
   <div style="background:var(--surface);border-radius:18px 18px 0 0;width:100%;max-width:480px;animation:sheetUp 0.3s cubic-bezier(0.16,1,0.3,1);">
     <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0;"></div>
     <div style="padding:14px 16px 10px;border-bottom:1px solid var(--border-light);">
-      <div style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;color:var(--text);">Duplicate operator — add a note</div>
+      <div style="font-family:Outfit,sans-serif;font-size:17px;font-weight:800;color:var(--text);">Duplicate operator — add a note</div>
       <div style="font-size:12px;color:var(--text-faint);margin-top:2px;" id="dup-op-date-label"></div>
     </div>
     <div style="display:flex;align-items:center;gap:8px;background:#fef7e8;border-top:1px solid #f0b440;border-bottom:1px solid #f0b440;padding:10px 16px;">
@@ -2593,7 +2593,7 @@ if('serviceWorker' in navigator){
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:6px;">Note (required)</div>
       <textarea id="dup-op-note" rows="3" placeholder="e.g. Mary covered both open and close shifts today…"
         oninput="document.getElementById('dup-op-save-btn').disabled=!this.value.trim();"
-        style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;padding:9px 11px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--b0);color:var(--text);resize:none;outline:none;line-height:1.4;"></textarea>
+        style="width:100%;font-family:DM Sans,sans-serif;font-size:13px;padding:9px 11px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--b0);color:var(--text);resize:none;outline:none;line-height:1.4;"></textarea>
     </div>
     <div style="display:flex;gap:8px;padding:0 16px 16px;">
       <button onclick="closeDupOpModal()" class="btn btn-ghost" style="flex:1;">Go back</button>
@@ -2609,7 +2609,7 @@ if('serviceWorker' in navigator){
     <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 14px;"></div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
       <div>
-        <div style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;color:var(--text);">Select Date Range</div>
+        <div style="font-family:Outfit,sans-serif;font-size:17px;font-weight:800;color:var(--text);">Select Date Range</div>
         <div style="font-size:12px;color:var(--text-faint);margin-top:2px;" id="cal-picker-hint">Tap a start date</div>
       </div>
       <button onclick="closeCalPicker()" style="background:none;border:none;font-size:20px;color:var(--text-faint);cursor:pointer;">&#10005;</button>
@@ -2653,7 +2653,7 @@ if('serviceWorker' in navigator){
   <div style="background:var(--surface);border-radius:18px 18px 0 0;width:100%;max-width:560px;max-height:92vh;display:flex;flex-direction:column;animation:sheetUp 0.3s cubic-bezier(0.16,1,0.3,1);">
     <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0;flex-shrink:0;"></div>
     <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px 10px;flex-shrink:0;border-bottom:1px solid var(--border-light);">
-      <span style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;color:var(--text);">Approve & Post Payroll</span>
+      <span style="font-family:Outfit,sans-serif;font-size:17px;font-weight:800;color:var(--text);">Approve & Post Payroll</span>
       <span id="payroll-approve-range" style="font-size:11px;color:var(--text-faint);"></span>
     </div>
     <div style="overflow-y:auto;flex:1;">
@@ -2695,7 +2695,7 @@ if('serviceWorker' in navigator){
     <div style="flex-shrink:0;padding:12px 16px;border-top:1px solid var(--border-light);display:flex;flex-direction:column;gap:8px;">
       <div style="display:flex;justify-content:space-between;align-items:center;padding:0 2px 6px;">
         <span style="font-size:13px;font-weight:700;color:var(--text-muted);">Total</span>
-        <span style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;color:var(--g5);" id="payroll-approve-total">$0.00</span>
+        <span style="font-family:Outfit,sans-serif;font-size:18px;font-weight:800;color:var(--g5);" id="payroll-approve-total">$0.00</span>
       </div>
       <div style="display:flex;gap:8px;">
         <button onclick="closePayrollApproveModal()" class="btn btn-ghost" style="flex:1;">Cancel</button>
@@ -2713,7 +2713,7 @@ if('serviceWorker' in navigator){
     <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0;flex-shrink:0;"></div>
     <div style="padding:12px 16px 10px;border-bottom:1px solid var(--border-light);flex-shrink:0;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
       <div>
-        <div style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;color:var(--text);">Product List Updates</div>
+        <div style="font-family:Outfit,sans-serif;font-size:17px;font-weight:800;color:var(--text);">Product List Updates</div>
         <div style="font-size:12px;color:var(--text-faint);margin-top:2px;" id="prod-update-meta"></div>
       </div>
       <button onclick="dismissProdUpdate()" style="font-size:11px;color:var(--text-faint);background:none;border:none;cursor:pointer;padding:4px;flex-shrink:0;">Dismiss</button>
@@ -2736,8 +2736,8 @@ if('serviceWorker' in navigator){
   <div style="background:var(--surface);border-radius:18px 18px 0 0;width:100%;max-width:560px;max-height:92vh;display:flex;flex-direction:column;animation:sheetUp 0.3s cubic-bezier(0.16,1,0.3,1);">
     <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0;flex-shrink:0;"></div>
     <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px 10px;flex-shrink:0;border-bottom:1px solid var(--border-light);">
-      <span style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;color:var(--text);" id="preg-sheet-title">Add Payment</span>
-      <button id="preg-delete-btn" onclick="deletePregEntry()" style="display:none;font-size:12px;color:var(--r5);background:var(--r0);border:1px solid var(--r5);border-radius:6px;padding:4px 10px;cursor:pointer;font-family:'DM Sans',sans-serif;">Delete</button>
+      <span style="font-family:Outfit,sans-serif;font-size:17px;font-weight:800;color:var(--text);" id="preg-sheet-title">Add Payment</span>
+      <button id="preg-delete-btn" onclick="deletePregEntry()" style="display:none;font-size:12px;color:var(--r5);background:var(--r0);border:1px solid var(--r5);border-radius:6px;padding:4px 10px;cursor:pointer;font-family:DM Sans,sans-serif;">Delete</button>
     </div>
     <div style="overflow-y:auto;flex:1;">
       <div class="preg-sheet-field">
@@ -2930,7 +2930,7 @@ if('serviceWorker' in navigator){
     <div style="padding:0 16px 20px;">
       <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:6px;margin-top:4px;">Snapshot name <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></div>
       <input type="text" id="snap-save-name" placeholder="e.g. Pre-order count, Week 2..."
-        style="width:100%;font-family:'DM Sans',sans-serif;font-size:14px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;outline:none;box-sizing:border-box;"
+        style="width:100%;font-family:DM Sans,sans-serif;font-size:14px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;outline:none;box-sizing:border-box;"
         oninput="snapSaveUpdatePreview()" onkeydown="if(event.key==='Enter')document.getElementById('snap-save-initials-input').focus()"/>
       <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-top:14px;margin-bottom:8px;">Who is taking this count?</div>
       <div id="snap-save-op-chips" style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px;"></div>
@@ -2942,7 +2942,7 @@ if('serviceWorker' in navigator){
       <div style="display:flex;align-items:center;gap:10px;">
         <div id="snap-save-avatar-preview" style="width:36px;height:36px;border-radius:50%;background:var(--b5);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;">?</div>
         <input type="text" id="snap-save-initials-input" maxlength="3" placeholder="e.g. JN"
-          style="width:72px;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;outline:none;text-align:center;box-sizing:border-box;"
+          style="width:72px;font-family:DM Sans,sans-serif;font-size:16px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;outline:none;text-align:center;box-sizing:border-box;"
           oninput="snapSaveInitialsInput(this.value)"/>
         <div style="font-size:11px;color:var(--text-faint);line-height:1.5;">Clears operator<br>selection above</div>
       </div>
@@ -2967,7 +2967,7 @@ if('serviceWorker' in navigator){
     <div style="padding:0 16px 16px;">
       <div style="font-size:11px;color:var(--text-faint);margin-bottom:8px;" id="snap-rename-current"></div>
       <input type="text" id="snap-rename-input" placeholder="e.g. Pre-order count, March week 2…"
-        style="width:100%;font-family:'DM Sans',sans-serif;font-size:14px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;outline:none;box-sizing:border-box;margin-bottom:14px;"
+        style="width:100%;font-family:DM Sans,sans-serif;font-size:14px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;outline:none;box-sizing:border-box;margin-bottom:14px;"
         onkeydown="if(event.key==='Enter')saveSnapRename()"/>
       <div style="display:flex;gap:8px;">
         <button class="btn btn-primary" onclick="saveSnapRename()" style="flex:1;">Save</button>
@@ -3063,7 +3063,7 @@ if('serviceWorker' in navigator){
             <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:6px;">Operator Invite Code</div>
             <div style="display:flex;gap:8px;align-items:center;">
               <div id="s-emp-code-display" onclick="copyEmpCode()" title="Click to copy"
-                style="flex:1;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;color:var(--b7);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;cursor:pointer;user-select:all;display:flex;align-items:center;gap:8px;">
+                style="flex:1;font-family:DM Sans,sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;color:var(--b7);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;cursor:pointer;user-select:all;display:flex;align-items:center;gap:8px;">
                 <span id="s-emp-code-text" style="flex:1;"></span>
                 <span style="font-size:10px;font-weight:500;color:var(--text-faint);letter-spacing:0;">copy</span>
               </div>
@@ -3075,7 +3075,7 @@ if('serviceWorker' in navigator){
           <div id="emp-invite-panel" style="display:none;margin-top:8px;">
             <div style="display:flex;gap:8px;align-items:center;">
               <input type="email" id="emp-invite-email" placeholder="operator@email.com"
-                style="flex:1;font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 10px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--b0);color:var(--text);outline:none;"/>
+                style="flex:1;font-family:DM Sans,sans-serif;font-size:13px;padding:7px 10px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--b0);color:var(--text);outline:none;"/>
               <button class="btn btn-primary" onclick="sendEmpInviteEmail()" style="white-space:nowrap;flex-shrink:0;font-size:12px;padding:7px 14px;">Send Invite</button>
             </div>
             <div style="font-size:11px;color:var(--text-faint);margin-top:5px;">They'll receive an email with the invite code and a link to register.</div>
@@ -3114,8 +3114,8 @@ if('serviceWorker' in navigator){
         <button id="app-cp-toggle" class="btn btn-ghost btn-sm" onclick="toggleAppCP()" style="font-size:12px;">Change →</button>
       </div>
       <div id="app-cp-panel" style="display:none;">
-        <div class="settings-row"><label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);">New Password</label><div style="position:relative;display:flex;align-items:center;flex:1;"><input type="password" id="app-cp-new" placeholder="New password" style="font-family:'DM Sans',sans-serif;font-size:14px;background:var(--b0);border:1px solid var(--border);border-radius:6px;padding:8px 10px;outline:none;flex:1;text-align:right;padding-right:36px;"/><button type="button" onclick="togglePwVis('app-cp-new',this)" tabindex="-1" style="position:absolute;right:8px;background:none;border:none;cursor:pointer;font-size:15px;color:#8fa3b3;padding:0;line-height:1;" title="Show/hide">👁</button></div></div>
-        <div class="settings-row"><label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);">Confirm Password</label><div style="position:relative;display:flex;align-items:center;flex:1;"><input type="password" id="app-cp-confirm" placeholder="Repeat new password" style="font-family:'DM Sans',sans-serif;font-size:14px;background:var(--b0);border:1px solid var(--border);border-radius:6px;padding:8px 10px;outline:none;flex:1;text-align:right;padding-right:36px;"/><button type="button" onclick="togglePwVis('app-cp-confirm',this)" tabindex="-1" style="position:absolute;right:8px;background:none;border:none;cursor:pointer;font-size:15px;color:#8fa3b3;padding:0;line-height:1;" title="Show/hide">👁</button></div></div>
+        <div class="settings-row"><label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);">New Password</label><div style="position:relative;display:flex;align-items:center;flex:1;"><input type="password" id="app-cp-new" placeholder="New password" style="font-family:DM Sans,sans-serif;font-size:14px;background:var(--b0);border:1px solid var(--border);border-radius:6px;padding:8px 10px;outline:none;flex:1;text-align:right;padding-right:36px;"/><button type="button" onclick="togglePwVis('app-cp-new',this)" tabindex="-1" style="position:absolute;right:8px;background:none;border:none;cursor:pointer;font-size:15px;color:#8fa3b3;padding:0;line-height:1;" title="Show/hide">👁</button></div></div>
+        <div class="settings-row"><label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);">Confirm Password</label><div style="position:relative;display:flex;align-items:center;flex:1;"><input type="password" id="app-cp-confirm" placeholder="Repeat new password" style="font-family:DM Sans,sans-serif;font-size:14px;background:var(--b0);border:1px solid var(--border);border-radius:6px;padding:8px 10px;outline:none;flex:1;text-align:right;padding-right:36px;"/><button type="button" onclick="togglePwVis('app-cp-confirm',this)" tabindex="-1" style="position:absolute;right:8px;background:none;border:none;cursor:pointer;font-size:15px;color:#8fa3b3;padding:0;line-height:1;" title="Show/hide">👁</button></div></div>
         <div id="app-cp-msg" style="display:none;padding:8px;font-size:12px;border-radius:6px;margin-top:4px;"></div>
         <button class="btn btn-primary btn-full" onclick="doAppChangePassword()" style="margin-top:8px;">Update Password</button>
       </div>
@@ -3403,7 +3403,7 @@ async function loadTeamMembers(){
         <div style="font-size:11px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(m.email)}</div>
       </div>
       <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-        <select onchange="changeTeamRole('${m.id}',this.value,this)" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:3px 6px;border-radius:5px;border:1px solid var(--border);background:var(--surface);color:${roleColor};cursor:pointer;outline:none;">
+        <select onchange="changeTeamRole('${m.id}',this.value,this)" style="font-family:DM Sans,sans-serif;font-size:12px;font-weight:600;padding:3px 6px;border-radius:5px;border:1px solid var(--border);background:var(--surface);color:${roleColor};cursor:pointer;outline:none;">
           <option value="owner"    ${m.role==='owner'   ?'selected':''}>Owner</option>
           <option value="employee" ${m.role==='employee'?'selected':''}>Operator</option>
         </select>
@@ -5196,7 +5196,7 @@ function buildStaffRatesUI(employees){
       +'<input type="number" min="0" max="999" step="0.25" placeholder="0.00" value="'+escHtml(String(rate))+'" '
       +'data-uid="'+escHtml(emp.id)+'" data-name="'+escHtml(emp.name)+'" '
       +'onchange="saveStaffRate(this)" '
-      +'style="width:72px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 6px;outline:none;text-align:right;background:var(--b0);color:var(--text);"/>'
+      +'style="width:72px;font-family:DM Sans,sans-serif;font-size:14px;font-weight:600;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 6px;outline:none;text-align:right;background:var(--b0);color:var(--text);"/>'
       +'<span style="font-size:11px;color:var(--text-faint);">/hr</span>'
       +'</div></div>';
   }).join('');
@@ -5362,14 +5362,14 @@ function spRenderResults(byPerson,unmatched,from,to){
         +'<div style="font-size:11px;color:var(--text-faint);">'+data.totalHrs+' hrs · '+rateStr+'</div>'
         +'</div>'
         +'<div style="text-align:right;flex-shrink:0;">'
-        +(pay!==null?'<div style="font-family:'Outfit',sans-serif;font-size:15px;font-weight:800;color:var(--g5);">$'+pay.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>':'<div style="font-size:12px;color:var(--text-faint);">--</div>')
+        +(pay!==null?'<div style="font-family:Outfit,sans-serif;font-size:15px;font-weight:800;color:var(--g5);">$'+pay.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>':'<div style="font-size:12px;color:var(--text-faint);">--</div>')
         +'</div>'
         +'</div>';
     });
     if(grandTotal>0){
       html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0 4px;border-top:1.5px solid var(--border);">'
         +'<span style="font-size:13px;font-weight:700;">Total Staff Pay</span>'
-        +'<span style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:var(--g5);">$'+grandTotal.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+'</span>'
+        +'<span style="font-family:Outfit,sans-serif;font-size:16px;font-weight:800;color:var(--g5);">$'+grandTotal.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+'</span>'
         +'</div>';
     }
   } else {
@@ -5391,7 +5391,7 @@ function spRenderResults(byPerson,unmatched,from,to){
         +'<div style="font-size:11px;color:var(--a6);margin-bottom:6px;">'+dateStr+(u.timeStr||'')+(u.hrs?' · '+u.hrs+' hrs':'')+'</div>'
         +'<select data-sp-idx="'+i+'" data-hrs="'+u.hrs+'" data-date="'+(u.date||'')+'" data-title="'+escHtml(u.title)+'" '
         +'onchange="spAssignUnmatched(this)" '
-        +'style="width:100%;font-family:'DM Sans',sans-serif;font-size:12px;border:1px solid var(--a3);border-radius:var(--radius-sm);padding:5px 8px;outline:none;background:var(--surface);">'
+        +'style="width:100%;font-family:DM Sans,sans-serif;font-size:12px;border:1px solid var(--a3);border-radius:var(--radius-sm);padding:5px 8px;outline:none;background:var(--surface);">'
         +opts+'</select>'
         +'</div>';
     });
@@ -5516,7 +5516,7 @@ function gcalFetchCalendars(token,cb){
 function gcalShowCalendarPicker(cals){
   var opts=cals.map(function(c){return '<option value="'+c.id+'">'+c.summary+'</option>';}).join('');
   var html='<div style="font-size:13px;color:var(--text-muted);margin-bottom:10px;">Choose the shared club calendar:</div>'
-    +'<select id="gcal-cal-picker-sel" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;outline:none;margin-bottom:14px;">'+opts+'</select>'
+    +'<select id="gcal-cal-picker-sel" style="width:100%;font-family:DM Sans,sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;outline:none;margin-bottom:14px;">'+opts+'</select>'
     +'<div style="display:flex;gap:8px;">'
     +'<button class="btn btn-primary" style="flex:1;" onclick="gcalSaveCalendar()">Use this calendar</button>'
     +'<button class="btn btn-ghost" onclick="gcalCloseShiftsModal()">Cancel</button>'
@@ -5713,7 +5713,7 @@ function gcalShowShiftsModal(matched,unmatched,mode){
         +'<div style="display:flex;align-items:center;gap:8px;">'
         +'<select data-unmatched-idx="'+i+'" data-hrs="'+hrs+'" data-date="'+(u.date||'')+'" '
         +'onchange="gcalAssignUnmatched(this)" '
-        +'style="flex:1;font-family:'DM Sans',sans-serif;font-size:12px;border:1px solid var(--a3);border-radius:var(--radius-sm);padding:5px 8px;outline:none;background:var(--surface);">'
+        +'style="flex:1;font-family:DM Sans,sans-serif;font-size:12px;border:1px solid var(--a3);border-radius:var(--radius-sm);padding:5px 8px;outline:none;background:var(--surface);">'
         +opOpts+'</select>'
         +'</div></div>';
     });
@@ -5776,7 +5776,7 @@ function gcalRenderPayoutShifts(shifts){
       +'<div style="display:flex;align-items:center;gap:8px;">'
       +'<div style="width:26px;height:26px;border-radius:50%;background:'+color+';display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;">'+initials+'</div>'
       +'<div class="payout-op-name">'+op+'</div></div>'
-      +'<div style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:var(--b7);">'+data.totalHrs+' hrs</div>'
+      +'<div style="font-family:Outfit,sans-serif;font-size:14px;font-weight:700;color:var(--b7);">'+data.totalHrs+' hrs</div>'
       +'</div>';
   }).join('');
   var card='<div class="section-label" style="display:flex;align-items:center;gap:6px;margin-top:0;">'
@@ -8690,7 +8690,7 @@ function renderPayouts(){
       return`<div class="payout-op-row"><div class="payout-op-name">${o}</div><div class="payout-op-amt">${fmt$(sh)}</div></div>`;
     }).join('');
     return`<div class="payout-day-card">
-      <div class="payout-day-header"><div class="payout-day-date">${dt}</div><div style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:var(--g5)">${fmt$(py)}</div></div>
+      <div class="payout-day-header"><div class="payout-day-date">${dt}</div><div style="font-family:Outfit,sans-serif;font-size:14px;font-weight:700;color:var(--g5)">${fmt$(py)}</div></div>
       <div class="payout-ops">${opRows||'<div style="font-size:11px;color:var(--text-faint)">No operators</div>'}</div>
     </div>`;
   }).join('');
@@ -8706,10 +8706,10 @@ function renderPayouts(){
       ${Object.entries(ot).map(([o,t])=>`<div class="payout-op-row" style="background:var(--b1);margin-bottom:4px;"><div class="payout-op-name" style="font-weight:700;">${o}</div><div class="payout-op-amt" style="font-size:15px;">${fmt$(t)}</div></div>`).join('')||'<div style="font-size:12px;color:var(--text-faint)">No operators found in this range.</div>'}
       <div style="display:flex;justify-content:space-between;padding:8px 8px 0;margin-top:6px;border-top:1px solid var(--border-light);">
         <span style="font-weight:700;font-size:13px;">Total Payouts</span>
-        <span style="font-family:'Outfit',sans-serif;font-size:15px;font-weight:800;color:var(--g5)">${fmt$(grand)}</span>
+        <span style="font-family:Outfit,sans-serif;font-size:15px;font-weight:800;color:var(--g5)">${fmt$(grand)}</span>
       </div>
       <div style="padding:8px 8px 0;margin-top:6px;">
-        <button onclick="openPayrollApproveModal()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:7px;padding:9px 14px;border-radius:var(--radius-sm);border:1.5px solid var(--g4);background:var(--g0);color:var(--g5);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">
+        <button onclick="openPayrollApproveModal()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:7px;padding:9px 14px;border-radius:var(--radius-sm);border:1.5px solid var(--g4);background:var(--g0);color:var(--g5);font-family:DM Sans,sans-serif;font-size:13px;font-weight:700;cursor:pointer;">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
           Approve &amp; Post to Register
         </button>
@@ -8774,7 +8774,7 @@ function openPayrollApproveModal(){
       +'<div style="font-size:14px;font-weight:700;color:var(--text);">'+escHtml(p.payee)+'</div>'
       +'<div style="font-size:11px;color:var(--text-faint);">Operator payout</div>'
       +'</div>'
-      +'<div style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:var(--text);">$'+p.amount.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>'
+      +'<div style="font-family:Outfit,sans-serif;font-size:16px;font-weight:800;color:var(--text);">$'+p.amount.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>'
       +'</div>';
   });
   if(rowsEl) rowsEl.innerHTML = html;
@@ -8899,7 +8899,7 @@ function renderPayoutSnapshots(){
           <div style="font-size:10px;color:var(--text-faint);margin-top:2px;">Saved ${savedFmt}</div>
         </div>
         <div style="display:flex;align-items:center;gap:10px;">
-          <div style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:var(--g5)">${fmt$(s.grand||0)}</div>
+          <div style="font-family:Outfit,sans-serif;font-size:14px;font-weight:700;color:var(--g5)">${fmt$(s.grand||0)}</div>
           <button onclick="event.stopPropagation();deletePayoutSnap(${i})" style="background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:13px;padding:2px 4px;" title="Delete">&#128465;</button>
         </div>
       </div>
@@ -9109,11 +9109,11 @@ function renderAllocCal() {
       html += `<div style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);margin-bottom:6px;overflow:hidden;box-shadow:var(--shadow-sm);">`;
       html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--border-light);cursor:pointer;" onclick="openAllocDetail('${day.dateStr}')">`;
       html += `<span style="font-size:13px;font-weight:700;color:var(--text);">${day.label}</span>`;
-      html += `<span style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--text);">${fmt$(day.dayRemaining)}</span>`;
+      html += `<span style="font-family:Outfit,sans-serif;font-size:14px;font-weight:800;color:var(--text);">${fmt$(day.dayRemaining)}</span>`;
       html += `</div><div style="display:flex;flex-wrap:wrap;gap:0;">`;
       day.items.forEach((item,idx) => {
         const br = idx < day.items.length-1 ? 'border-right:1px solid var(--border-light);' : '';
-        html += `<div style="flex:1;min-width:80px;padding:7px 12px;${br}"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:2px;">${item.label}</div><div style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--text);">${fmt$(item.amt)}</div></div>`;
+        html += `<div style="flex:1;min-width:80px;padding:7px 12px;${br}"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:2px;">${item.label}</div><div style="font-family:Outfit,sans-serif;font-size:14px;font-weight:800;color:var(--text);">${fmt$(item.amt)}</div></div>`;
       });
       html += `</div></div>`;
     });
@@ -9592,7 +9592,7 @@ function renderBulkEditBody() {
       </div>
       <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
         <span style="font-size:11px;color:var(--text-faint);">→</span>
-        <select class="bulk-edit-target" data-from="${escHtml(p)}" style="font-family:'DM Sans',sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 8px;background:var(--surface);color:var(--text);outline:none;max-width:140px;">
+        <select class="bulk-edit-target" data-from="${escHtml(p)}" style="font-family:DM Sans,sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 8px;background:var(--surface);color:var(--text);outline:none;max-width:140px;">
           <option value="">-- Keep as is --</option>
           ${allPayees}
         </select>
@@ -9966,9 +9966,9 @@ function openReconDiag() {
   html += `<div style="background:var(--b0);border-radius:var(--radius);padding:12px 14px;margin-bottom:14px;">`;
   html += `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:8px;">Amounts excluded from bank reconciliation</div>`;
   html += `<div style="display:flex;gap:16px;flex-wrap:wrap;">`;
-  if (venmoTotal > 0) html += `<div><div style="font-size:11px;color:var(--text-faint);">Venmo / CashApp (App)</div><div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;color:var(--a6);">${fmt$(venmoTotal)}</div></div>`;
-  if (gcfTotal > 0)   html += `<div><div style="font-size:11px;color:var(--text-faint);">GC Load Fees (unallocated days)</div><div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;color:var(--a6);">${fmt$(gcfTotal)}</div></div>`;
-  html += `<div style="margin-left:auto;text-align:right;"><div style="font-size:11px;color:var(--text-faint);">Total variance</div><div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;color:var(--b8);">${fmt$(grandTotal)}</div></div>`;
+  if (venmoTotal > 0) html += `<div><div style="font-size:11px;color:var(--text-faint);">Venmo / CashApp (App)</div><div style="font-family:Outfit,sans-serif;font-size:18px;font-weight:800;color:var(--a6);">${fmt$(venmoTotal)}</div></div>`;
+  if (gcfTotal > 0)   html += `<div><div style="font-size:11px;color:var(--text-faint);">GC Load Fees (unallocated days)</div><div style="font-family:Outfit,sans-serif;font-size:18px;font-weight:800;color:var(--a6);">${fmt$(gcfTotal)}</div></div>`;
+  html += `<div style="margin-left:auto;text-align:right;"><div style="font-size:11px;color:var(--text-faint);">Total variance</div><div style="font-family:Outfit,sans-serif;font-size:18px;font-weight:800;color:var(--b8);">${fmt$(grandTotal)}</div></div>`;
   html += `</div></div>`;
 
   if (rows.length === 0) {
@@ -10087,14 +10087,14 @@ function renderHistAlloc() {
         const flex = isCash ? 'flex:1.6;' : 'flex:1;';
         return `<div data-bucket="${k}" data-transferred="${transferred?'1':'0'}" style="${flex}min-width:60px;padding:6px 8px;${br}background:${bg};">
           <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:${labelColor};margin-bottom:2px;">${BUCKET_LABELS[k]}${check}</div>
-          <div style="font-family:'Outfit',sans-serif;font-size:12px;font-weight:800;color:${valColor};">${fmt$(day.bv[i])}</div>
+          <div style="font-family:Outfit,sans-serif;font-size:12px;font-weight:800;color:${valColor};">${fmt$(day.bv[i])}</div>
         </div>`;
       }).join('');
       const pendingAmt = day.keys.reduce((s,k,i) => s + (day.tr[k] ? 0 : day.bv[i]), 0);
       return `<div data-date="${day.dateStr}" style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);margin-bottom:6px;overflow:hidden;box-shadow:var(--shadow-sm);cursor:pointer;transition:border-color 0.15s,box-shadow 0.15s;" onclick="openAllocDetail('${day.dateStr}')">
         <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid #a8bfcf;background:#b2c4d4;">
           <span style="font-size:13px;font-weight:700;color:#1e3040;">${day.label}</span>
-          <span style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--text);">${fmt$(pendingAmt)}</span>
+          <span style="font-family:Outfit,sans-serif;font-size:14px;font-weight:800;color:var(--text);">${fmt$(pendingAmt)}</span>
         </div>
         <div style="display:flex;flex-wrap:wrap;">${buckets}</div>
       </div>`;
@@ -11005,7 +11005,7 @@ function renderMonthTable(el) {
   el.innerHTML = `
     <div id="sum-toolbar" style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--border-light);background:var(--b0);">
       <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);">${monthLabel}</span>
-      <button onclick="printSummaryPDF()" style="display:flex;align-items:center;gap:5px;padding:5px 13px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;background:var(--b8);color:white;border:none;font-family:'DM Sans',sans-serif;">&#11015; Export PDF</button>
+      <button onclick="printSummaryPDF()" style="display:flex;align-items:center;gap:5px;padding:5px 13px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;background:var(--b8);color:white;border:none;font-family:DM Sans,sans-serif;">&#11015; Export PDF</button>
     </div>
     <div style="overflow-x:auto;" id="sum-table-wrap"><table class="smtbl" style="min-width:${approxCols*52}px;">${thead}${tbody}</table></div>`;
 }
@@ -11365,7 +11365,7 @@ function buildPayAccountsUI() {
   el.innerHTML = accounts.map((a,i) => `
     <div class="settings-row">
       <input type="text" value="${a.replace(/"/g,'&quot;')}" onchange="updatePayAccount(${i},this.value)"
-        style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 8px;outline:none;flex:1;background:var(--b0);color:var(--text);"/>
+        style="font-family:DM Sans,sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 8px;outline:none;flex:1;background:var(--b0);color:var(--text);"/>
       <button onclick="removePayAccount(${i})" style="background:none;border:none;color:var(--r5);cursor:pointer;font-size:16px;padding:0 4px;flex-shrink:0;">×</button>
     </div>`).join('');
 }
@@ -11546,7 +11546,7 @@ function openLocSwitcher(){
     return `<div ${_divAttrs}>
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
         <div>
-          <div style="font-family:'Outfit',sans-serif;font-size:15px;font-weight:700;color:var(--text);">${loc.name||'Location'}</div>
+          <div style="font-family:Outfit,sans-serif;font-size:15px;font-weight:700;color:var(--text);">${loc.name||'Location'}</div>
           <div style="font-size:12px;color:var(--text-faint);margin-top:2px;">${loc.address||''}</div>
         </div>
         ${isCurrent?'<span style="font-size:11px;font-weight:700;background:var(--b1);color:var(--b6);border:1px solid var(--b2);padding:2px 8px;border-radius:20px;">Current</span>':'<span style="font-size:12px;color:var(--b6);">Switch -></span>'}
@@ -11864,7 +11864,7 @@ safeInit();
 <div id="loc-switcher-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;align-items:center;justify-content:center;padding:16px;">
   <div style="background:var(--surface);border-radius:var(--radius);width:100%;max-width:480px;box-shadow:0 16px 48px rgba(0,0,0,0.25);overflow:hidden;max-height:80vh;display:flex;flex-direction:column;">
     <div style="padding:18px 20px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;justify-content:space-between;">
-      <div style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;color:var(--text);">Switch Location</div>
+      <div style="font-family:Outfit,sans-serif;font-size:17px;font-weight:800;color:var(--text);">Switch Location</div>
       <button onclick="closeLocSwitcher()" style="background:none;border:none;font-size:18px;color:var(--text-faint);cursor:pointer;padding:2px 6px;">✕</button>
     </div>
     <div id="loc-switcher-list" style="padding:12px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:8px;"></div>
