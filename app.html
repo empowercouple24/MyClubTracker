@@ -656,7 +656,7 @@ if('serviceWorker' in navigator){
 
       /* ── INVENTORY TOOLBAR — single row ── */
       .filter-row { flex-wrap: nowrap !important; overflow-x: auto; gap: 5px !important; padding: 4px 0 !important; }
-      .filter-row > div { flex-shrink: 0; }
+      .filter-row > div { flex-shrink: 1; min-width: 0; }
       .filter-row > div label { display: none !important; }
       #inv-clear-btn { order: unset; margin-left: 0 !important; }
 
@@ -1657,20 +1657,19 @@ if('serviceWorker' in navigator){
       <div class="inv-header"><div class="inv-header-title">Inventory</div><div class="inv-dv-row" style="display:flex;gap:0;align-items:center;"><div style="flex:1;padding-right:16px;"><div class="inv-dv-item-label">DV Need</div><div class="inv-dv-item-val" id="inv-total-dvneed" style="font-size:38px;">0</div></div><div style="width:1px;align-self:stretch;background:rgba(255,255,255,0.15);margin:0 16px;"></div><div style="display:flex;gap:20px;align-items:flex-start;"><div><div class="inv-dv-item-label">Items to Order</div><div class="inv-dv-item-val" id="inv-total-itemcount" style="font-size:26px;opacity:0.85;">0</div></div><div><div class="inv-dv-item-label">Est. Retail Inv Balance</div><div class="inv-dv-item-val" id="inv-total-balance" style="font-size:26px;opacity:0.85;">0</div></div></div></div></div>
     </div>
     <div style="max-width:900px;margin:0 auto;padding:0 12px;">
-      <div class="filter-row" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-        <button class="filter-chip active" onclick="setInvFilter('all',this)">All</button>
-        <button class="filter-chip" onclick="setInvFilter('need',this)">Need</button>
-        <div style="display:flex;align-items:center;gap:6px;margin-left:8px;">
-          <label style="font-size:11px;font-weight:600;color:var(--text-faint);white-space:nowrap;">Snapshot:</label>
-          <select id="inv-snapshot-picker" style="font-family:DM Sans,sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 8px;background:var(--surface);color:var(--text);outline:none;" onchange="loadInvSnapshot(this.value)">
+      <div class="filter-row" style="display:flex;align-items:center;gap:8px;flex-wrap:nowrap;overflow-x:auto;">
+        <button class="filter-chip active" onclick="setInvFilter('all',this)" style="flex-shrink:0;">All</button>
+        <button class="filter-chip" onclick="setInvFilter('need',this)" style="flex-shrink:0;">Need</button>
+        <div style="display:flex;align-items:center;gap:6px;margin-left:8px;flex:1;min-width:0;overflow:hidden;">
+          <label style="font-size:11px;font-weight:600;color:var(--text-faint);white-space:nowrap;flex-shrink:0;">Snapshot:</label>
+          <select id="inv-snapshot-picker" style="font-family:DM Sans,sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 8px;background:var(--surface);color:var(--text);outline:none;min-width:0;flex:1;max-width:320px;overflow:hidden;text-overflow:ellipsis;" onchange="loadInvSnapshot(this.value)">
             <option value="">— Current —</option>
           </select>
-          <button class="btn btn-ghost" id="inv-snap-rename-btn" onclick="openInvSnapRename()" style="padding:4px 8px;font-size:12px;display:none;">✎ Rename</button>
-          <button class="btn btn-ghost" id="inv-snap-delete-btn" onclick="invSnapDeleteConfirm()" style="padding:4px 8px;font-size:12px;display:none;color:var(--danger,#dc2626);">🗑</button>
+          <button class="btn btn-ghost" id="inv-snap-rename-btn" onclick="openInvSnapRename()" style="padding:4px 8px;font-size:12px;display:none;flex-shrink:0;">✎ Rename</button>
+          <button class="btn btn-ghost" id="inv-snap-delete-btn" onclick="invSnapDeleteConfirm()" style="padding:4px 8px;font-size:12px;display:none;color:var(--danger,#dc2626);flex-shrink:0;">🗑</button>
         </div>
-        <button class="btn btn-ghost" onclick="clearAllInv()" id="inv-clear-btn" style="margin-left:auto;border-color:var(--r3,#fca5a5);color:var(--r6,#dc2626);background:var(--r0,#fee2e2);font-size:12px;">✕ Clear</button>
-        <button class="btn btn-primary" onclick="saveInvSnapshot()">📸 Snapshot</button>
-        <button class="btn btn-ghost" onclick="goToOrderTab()" style="border-color:var(--g4);color:var(--g6);">🛒 Go to Order</button>
+        <button class="btn btn-ghost" onclick="clearAllInv()" id="inv-clear-btn" style="flex-shrink:0;border-color:var(--r3,#fca5a5);color:var(--r6,#dc2626);background:var(--r0,#fee2e2);font-size:12px;">✕ Clear</button>
+        <button class="btn btn-primary" onclick="saveInvSnapshot()" style="flex-shrink:0;">📸 Snapshot</button>
       </div>
     </div>
   </div>
@@ -1831,7 +1830,7 @@ if('serviceWorker' in navigator){
             <span id="sp-gcal-badge" style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--border-light);color:var(--text-faint);">Not connected</span>
           </div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
-            <input type="text" id="sp-gcal-client-id" placeholder="OAuth Client ID" style="font-family:DM Sans,sans-serif;font-size:11px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 8px;outline:none;width:220px;display:none;"/>
+            <!-- OAuth Client ID pre-configured in SETTINGS -->
             <button class="btn btn-primary" onclick="spGcalConnect()" id="sp-gcal-connect-btn" style="font-size:11px;padding:5px 12px;">Connect Calendar</button>
             <button class="btn btn-ghost btn-sm" onclick="gcalPickCalendar()" id="sp-gcal-pick-btn" style="font-size:11px;display:none;">Change calendar</button>
             <button class="btn btn-ghost btn-sm" onclick="gcalDisconnect()" id="sp-gcal-disconnect-btn" style="font-size:11px;display:none;color:var(--danger,#dc2626);">Disconnect</button>
@@ -5271,15 +5270,7 @@ function openCalPickerForSP(){
 }
 
 function spGcalConnect(){
-  const inp=document.getElementById('sp-gcal-client-id');
-  if(inp&&inp.style.display==='none'){
-    inp.style.display='block';inp.focus();return;
-  }
-  const clientId=(inp?inp.value:'')||'';
-  if(clientId){
-    if(!SETTINGS.gcal)SETTINGS.gcal={};
-    SETTINGS.gcal.clientId=clientId;
-  }
+  // Client ID is pre-configured in SETTINGS.gcal.clientId — connect directly
   gcalConnect();
 }
 
