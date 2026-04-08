@@ -1360,6 +1360,7 @@ if('serviceWorker' in navigator){
             <div class="recon-bank-div"></div>
             <input class="recon-bank-input" id="recon-pending-input" placeholder="$0.00" oninput="updateReconMatch()" onfocus="reconPendingFocus()" onblur="reconPendingBlur()" type="text" inputmode="decimal"/>
           </div>
+          <button onclick="event.stopPropagation();fillPendingFromToday()" id="recon-fill-today-btn" title="Fill Pending from today's unsettled card deposits" style="background:rgba(255,255,255,0.12);border:none;border-radius:20px;padding:3px 9px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.7);cursor:pointer;flex-shrink:0;white-space:nowrap;">+ Today</button>
           <span class="recon-match-badge none" id="recon-match-badge">&#8212;</span>
           <button onclick="event.stopPropagation();openReconDiag()" title="Diagnose discrepancy" style="background:rgba(255,255,255,0.12);border:none;border-radius:20px;padding:3px 9px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.7);cursor:pointer;flex-shrink:0;">&#128269; Diagnose</button>
           <span class="recon-chev" id="recon-chev">&#9662;</span>
@@ -11170,6 +11171,34 @@ function renderReconWidget() {
     listEl.style.display = _reconDaysOpen ? 'block' : 'none';
   }
   updateReconMatch();
+}
+
+function fillPendingFromToday(){
+  // Find today's saved entry in ALL_DAYS
+  const todayStr = localToday();
+  const todayEntry = ALL_DAYS.find(function(d){return d.date===todayStr;});
+  if(!todayEntry||!todayEntry.data){
+    showToast('No saved entry for today yet','');
+    return;
+  }
+  const c = calcAllFromData(todayEntry.data);
+  const cardDep = c.cardDeposits||0;
+  if(!cardDep){
+    showToast('Today has no card deposits to add','');
+    return;
+  }
+  // Get existing pending value and add to it
+  const el = document.getElementById('recon-pending-input');
+  if(!el) return;
+  const existing = parseFloat((el.value||'').replace(/[$,]/g,''))||0;
+  const newVal = existing + cardDep;
+  el.value = '$'+newVal.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  updateReconMatch();
+  // Open the widget body so user can see the change
+  const body = document.getElementById('recon-body');
+  const chev  = document.getElementById('recon-chev');
+  if(body&&!body.classList.contains('open')){body.classList.add('open');if(chev)chev.classList.add('open');}
+  showToast('Added '+fmt$(cardDep)+' from today to Pending','success');
 }
 
 function resetReconFromDate(){
