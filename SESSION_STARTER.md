@@ -103,6 +103,24 @@ Specifically:
 
 ---
 
+## Session Handoff — IMPORTANT
+
+When I agree to start a new conversation, before I leave the current chat Claude must prompt me to write a session summary. Specifically:
+
+- **Prompt me with something like:** *"Before you go, let me write a detailed session summary you can paste into the new chat. This will give the next Claude full context on everything we did today."*
+- Then immediately produce a detailed session summary covering:
+  - Every feature built or changed this session, with enough detail that a new Claude instance could understand what was done and why
+  - Every bug fixed and what the root cause was
+  - Any decisions made (options considered, which was chosen and why)
+  - Files modified and what changed in each
+  - Anything that was tested and confirmed working
+  - Anything still pending, broken, or left for next session
+  - Any key learnings, gotchas, or rules discovered this session that should be remembered
+- Format it clearly so I can copy it and paste it at the top of the new conversation along with my repo ZIP
+- The goal is zero loss of context between sessions — the new Claude should feel like it was in the room the whole time
+
+---
+
 ## Session Ready Confirmation
 
 After reading this file, reply with:
