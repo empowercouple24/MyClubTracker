@@ -36,8 +36,9 @@ if(location.protocol==='http:'&&location.hostname!=='localhost'){
     .nav-back:hover{background:var(--b1)}
     .nav-title{font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .nav-count{font-size:12px;font-weight:600;color:var(--text-faint);flex-shrink:0}
-    .nav-save{background:linear-gradient(135deg,var(--a6),var(--a4));color:white;border:none;border-radius:5px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;flex-shrink:0;box-shadow:0 2px 8px rgba(160,96,0,0.25)}
+    .nav-save{background:linear-gradient(135deg,var(--b7),var(--b5));color:white;border:none;border-radius:var(--radius-sm);padding:7px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;flex-shrink:0;box-shadow:0 2px 8px rgba(58,84,112,0.3);transition:opacity 0.15s;}
     .nav-save:hover{opacity:0.9}
+    .nav-save:disabled{opacity:0.35;cursor:not-allowed;box-shadow:none;}
 
     /* CONTENT */
     .content-area{position:absolute;top:calc(var(--nav-h) + env(safe-area-inset-top,0px));left:0;right:0;bottom:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
@@ -158,8 +159,7 @@ if(location.protocol==='http:'&&location.hostname!=='localhost'){
     .btn-push:disabled{opacity:0.5;cursor:not-allowed}
     .btn-ghost-push{background:var(--surface);color:var(--text-muted);border:1px solid var(--border);border-radius:8px;padding:11px 16px;font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;flex:1}
     /* Unsaved indicator */
-    .unsaved-dot{display:inline-block;width:7px;height:7px;background:#e09820;border-radius:50%;margin-left:5px;vertical-align:middle;animation:pulse 1.5s ease-in-out infinite}
-    @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+    /* unsaved-dot removed — save button state used instead */
   </style>
 </head>
 <body>
@@ -170,8 +170,9 @@ if(location.protocol==='http:'&&location.hostname!=='localhost'){
 <nav class="topnav">
   <button class="nav-back" onclick="goBack()">← Back</button>
   <div class="nav-title" id="nav-title">Products</div>
-  <div class="nav-count" id="nav-count"></div>
-  <button class="nav-save" onclick="saveProducts()" id="save-btn">Save</button>
+  <div style="flex:1;"></div>
+  <div class="nav-count" id="nav-count" style="margin-right:10px;"></div>
+  <button class="nav-save" onclick="saveProducts()" id="save-btn" disabled>Save</button>
 </nav>
 
 <div class="content-area">
@@ -185,7 +186,7 @@ if(location.protocol==='http:'&&location.hostname!=='localhost'){
     </select>
     <button class="btn-add" onclick="openAddProduct()">+ Product</button>
     <button class="btn-reset" onclick="confirmReset()">↺ Reset Defaults</button>
-    <button class="btn-push-toolbar" id="push-toolbar-btn" onclick="openPushModal()" style="display:none;background:linear-gradient(135deg,var(--b7),var(--b5));color:white;border:none;border-radius:var(--radius-sm);padding:7px 12px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;flex-shrink:0;">&#128228; Push to Clubs</button>
+    <!-- Push to Clubs triggered via Save flow -->
   </div>
 
   <div id="product-list"></div>
@@ -208,6 +209,22 @@ if(location.protocol==='http:'&&location.hostname!=='localhost'){
 <div class="toast" id="toast"></div>
 
 <!-- PUSH TO CLUBS MODAL -->
+<!-- PUSH PROMPT MODAL -->
+<div class="modal-overlay" id="push-prompt-modal" style="align-items:center;justify-content:center;">
+  <div class="modal-box" style="max-width:320px;">
+    <div class="modal-icon" style="font-size:24px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--b7)" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </div>
+    <div class="modal-title">Saved. Push to clubs?</div>
+    <div id="push-prompt-pills" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px;flex-wrap:wrap;"></div>
+    <div class="modal-body" style="margin-bottom:16px;">Review changes and choose which locations receive the update.</div>
+    <div class="modal-btns">
+      <button class="modal-btn-cancel" onclick="closePushPrompt()">Skip</button>
+      <button class="modal-btn-danger" style="background:var(--b7);" onclick="closePushPrompt();openPushModal()">Review &amp; Push →</button>
+    </div>
+  </div>
+</div>
+
 <div class="push-overlay" id="push-modal">
   <div class="push-sheet">
     <div class="push-handle"></div>
@@ -345,9 +362,8 @@ async function init(){
     products=stored?JSON.parse(stored):DEFAULT_PRODUCTS.map(p=>[...p]);
     buildCatFilter();renderAll();
     document.getElementById('loading-overlay').classList.add('hidden');
-    // Show push button for global mode
-    const _pb=document.getElementById('push-toolbar-btn');
-    if(_pb)_pb.style.display='';
+    // Save starts disabled — activated when change detected
+    const _sb=document.getElementById('save-btn');if(_sb)_sb.disabled=true;
     return;
   }
 
@@ -396,7 +412,7 @@ function renderAll(){
     cats[cat].push({p,i});
   });
   const total=products.length;
-  document.getElementById('nav-count').innerHTML=`${total} products${unsaved?'<span class="unsaved-dot"></span>':''}`;
+  document.getElementById('nav-count').innerHTML=`${total} products`;
 
   const el=document.getElementById('product-list');
   if(!Object.keys(cats).length){el.innerHTML='<div class="empty-state">No products match your filter.</div>';return;}
@@ -449,7 +465,9 @@ function rowHTML(p,i){
 function updateField(idx,col,val){products[idx][col]=val;markUnsaved();}
 function markUnsaved(){
   unsaved=true;
-  document.getElementById('nav-count').innerHTML=`${products.length} products<span class="unsaved-dot"></span>`;
+  document.getElementById('nav-count').innerHTML=`${products.length} products`;
+  const btn=document.getElementById('save-btn');
+  if(btn){btn.disabled=false;}
 }
 
 // ── ADD PRODUCT ──
@@ -527,17 +545,17 @@ async function saveProducts(){
     // Also update sessionStorage so admin-settings page can read it back
     sessionStorage.setItem('globalProductsEdit',JSON.stringify(products));
     unsaved=false;
+    const btn=document.getElementById('save-btn');if(btn)btn.disabled=true;
     document.getElementById('nav-count').innerHTML=`${products.length} products`;
-    showToast('Global products saved \u2713','success');
-    // Show push button now that global list is saved
-    const pb = document.getElementById('push-toolbar-btn');
-    if(pb) pb.style.display='';
+    // Show push prompt
+    openPushPrompt();
     return;
   }
   SETTINGS.customProducts=products.map(p=>[...p]);
   const{error}=await sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID);
   if(error){showToast('Save failed: '+error.message,'error');return;}
   unsaved=false;
+  const _sb2=document.getElementById('save-btn');if(_sb2)_sb2.disabled=true;
   document.getElementById('nav-count').innerHTML=`${products.length} products`;
   showToast('Products saved ✓','success');
 }
@@ -578,6 +596,37 @@ function computeDiff(oldList, newList){
 
 var _pushLocations = [];
 var _pushChanges   = [];
+
+function openPushPrompt(){
+  // Compute diff to show counts in prompt
+  var user_meta_check=function(){
+    sb.auth.getUser().then(function(res){
+      var user=res.data&&res.data.user;
+      var lastPushed=user&&user.user_metadata&&user.user_metadata.lastPushedProducts||null;
+      var baseline=lastPushed?JSON.parse(lastPushed):[];
+      var diff=computeDiff(baseline,products);
+      var adds=diff.filter(function(c){return c.type==='add';}).length;
+      var removes=diff.filter(function(c){return c.type==='remove';}).length;
+      var changes=diff.filter(function(c){return c.type==='change';}).length;
+      var pills=document.getElementById('push-prompt-pills');
+      if(pills){
+        var html='';
+        if(adds)html+='<span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;background:var(--g0);color:#27500A;border:1px solid var(--g1);">'+adds+' added</span>';
+        if(removes)html+='<span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;background:#FCEBEB;color:#A32D2D;border:1px solid #F7C1C1;">'+removes+' removed</span>';
+        if(changes)html+='<span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;background:var(--a0);color:var(--a7);border:1px solid var(--a1);">'+changes+' changed</span>';
+        pills.innerHTML=html||'<span style="font-size:11px;color:var(--text-faint);">No changes since last push</span>';
+      }
+      // If no changes, skip prompt entirely
+      if(!diff.length){showToast('Saved ✓ — no changes to push','success');return;}
+      document.getElementById('push-prompt-modal').classList.add('open');
+    });
+  };
+  user_meta_check();
+}
+
+function closePushPrompt(){
+  document.getElementById('push-prompt-modal').classList.remove('open');
+}
 
 async function openPushModal(){
   // Load last pushed snapshot from admin metadata
