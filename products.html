@@ -121,6 +121,33 @@ if(location.protocol==='http:'&&location.hostname!=='localhost'){
     .modal-btn-cancel{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;background:var(--surface);color:var(--text-muted);border:1px solid var(--border);border-radius:8px;padding:11px 16px;cursor:pointer}
     .modal-btn-cancel:hover{background:var(--b0)}
 
+    /* PUSH MODAL */
+    .push-overlay{position:fixed;inset:0;background:rgba(30,45,61,0.45);backdrop-filter:blur(4px);z-index:210;display:none;align-items:flex-end;justify-content:center}
+    .push-overlay.open{display:flex}
+    .push-sheet{background:var(--surface);border-radius:18px 18px 0 0;width:100%;max-width:600px;max-height:88vh;display:flex;flex-direction:column;animation:sheetUp 0.3s cubic-bezier(0.16,1,0.3,1)}
+    @keyframes sheetUp{from{transform:translateY(60px);opacity:0}to{transform:none;opacity:1}}
+    .push-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0;flex-shrink:0}
+    .push-header{padding:12px 16px 10px;border-bottom:1px solid var(--border-light);flex-shrink:0;display:flex;align-items:center;justify-content:space-between}
+    .push-title{font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;color:var(--text)}
+    .push-body{overflow-y:auto;flex:1;padding:0}
+    .push-footer{padding:12px 16px;border-top:1px solid var(--border-light);flex-shrink:0;display:flex;gap:8px}
+    .diff-row{display:flex;align-items:flex-start;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border-light)}
+    .diff-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap;flex-shrink:0;margin-top:2px}
+    .diff-badge.add{background:var(--g0);color:var(--g5);border:1px solid #b8e0bc}
+    .diff-badge.remove{background:#FCEBEB;color:#A32D2D;border:1px solid #F7C1C1}
+    .diff-badge.change{background:var(--a0);color:var(--a7);border:1px solid var(--a1)}
+    .diff-name{font-size:13px;font-weight:600;color:var(--text);flex:1}
+    .diff-detail{font-size:11px;color:var(--text-faint);margin-top:2px}
+    .diff-detail s{color:#A32D2D;text-decoration-color:#A32D2D}
+    .diff-detail ins{color:var(--g5);text-decoration:none;font-weight:600}
+    .loc-check-row{display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid var(--border-light);cursor:pointer}
+    .loc-check-row:hover{background:var(--b0)}
+    .loc-check-row input[type=checkbox]{width:16px;height:16px;accent-color:var(--b6);cursor:pointer;flex-shrink:0}
+    .push-section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);padding:10px 16px 4px;background:var(--bg)}
+    .btn-push{background:linear-gradient(135deg,var(--b7),var(--b5));color:white;border:none;border-radius:8px;padding:11px 18px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;flex:2;display:flex;align-items:center;justify-content:center;gap:7px}
+    .btn-push:hover{opacity:0.9}
+    .btn-push:disabled{opacity:0.5;cursor:not-allowed}
+    .btn-ghost-push{background:var(--surface);color:var(--text-muted);border:1px solid var(--border);border-radius:8px;padding:11px 16px;font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;flex:1}
     /* Unsaved indicator */
     .unsaved-dot{display:inline-block;width:7px;height:7px;background:#e09820;border-radius:50%;margin-left:5px;vertical-align:middle;animation:pulse 1.5s ease-in-out infinite}
     @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
@@ -149,6 +176,7 @@ if(location.protocol==='http:'&&location.hostname!=='localhost'){
     </select>
     <button class="btn-add" onclick="openAddProduct()">+ Product</button>
     <button class="btn-reset" onclick="confirmReset()">↺ Reset Defaults</button>
+    <button class="btn-push-toolbar" id="push-toolbar-btn" onclick="openPushModal()" style="display:none;background:linear-gradient(135deg,var(--b7),var(--b5));color:white;border:none;border-radius:var(--radius-sm);padding:7px 12px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;flex-shrink:0;">&#128228; Push to Clubs</button>
   </div>
 
   <div id="product-list"></div>
@@ -169,6 +197,25 @@ if(location.protocol==='http:'&&location.hostname!=='localhost'){
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- PUSH TO CLUBS MODAL -->
+<div class="push-overlay" id="push-modal">
+  <div class="push-sheet">
+    <div class="push-handle"></div>
+    <div class="push-header">
+      <span class="push-title">Push Updates to Clubs</span>
+      <span id="push-diff-summary" style="font-size:12px;color:var(--text-faint);"></span>
+    </div>
+    <div class="push-body" id="push-body"></div>
+    <div class="push-footer">
+      <button class="btn-ghost-push" onclick="closePushModal()">Cancel</button>
+      <button class="btn-push" id="push-send-btn" onclick="executePush()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Send to Selected
+      </button>
+    </div>
+  </div>
+</div>
 
 <script>
 const SUPABASE_URL='https://ndaqlamzlaucigvnhgfu.supabase.co';
@@ -289,6 +336,9 @@ async function init(){
     products=stored?JSON.parse(stored):DEFAULT_PRODUCTS.map(p=>[...p]);
     buildCatFilter();renderAll();
     document.getElementById('loading-overlay').classList.add('hidden');
+    // Show push button for global mode
+    const _pb=document.getElementById('push-toolbar-btn');
+    if(_pb)_pb.style.display='';
     return;
   }
 
@@ -469,7 +519,10 @@ async function saveProducts(){
     sessionStorage.setItem('globalProductsEdit',JSON.stringify(products));
     unsaved=false;
     document.getElementById('nav-count').innerHTML=`${products.length} products`;
-    showToast('Global products saved ✓','success');
+    showToast('Global products saved \u2713','success');
+    // Show push button now that global list is saved
+    const pb = document.getElementById('push-toolbar-btn');
+    if(pb) pb.style.display='';
     return;
   }
   SETTINGS.customProducts=products.map(p=>[...p]);
@@ -478,6 +531,135 @@ async function saveProducts(){
   unsaved=false;
   document.getElementById('nav-count').innerHTML=`${products.length} products`;
   showToast('Products saved ✓','success');
+}
+
+// ── DIFF ENGINE ──
+function computeDiff(oldList, newList){
+  // oldList/newList: arrays of [cat, name, sku, vp, par]
+  const changes = [];
+  const oldBySku = {};
+  const newBySku = {};
+  oldList.forEach(function(p){ if(p[2]) oldBySku[p[2]] = p; });
+  newList.forEach(function(p){ if(p[2]) newBySku[p[2]] = p; });
+  // Added
+  newList.forEach(function(p){
+    if(!p[2] || !oldBySku[p[2]]){
+      changes.push({type:'add', sku:p[2]||'', name:p[1], cat:p[0], vp:p[3], par:p[4]});
+    }
+  });
+  // Removed
+  oldList.forEach(function(p){
+    if(!p[2] || !newBySku[p[2]]){
+      changes.push({type:'remove', sku:p[2]||'', name:p[1], cat:p[0]});
+    }
+  });
+  // Changed
+  newList.forEach(function(p){
+    const old = p[2] && oldBySku[p[2]];
+    if(!old) return;
+    const diffs = [];
+    if(old[1] !== p[1]) diffs.push({field:'name', from:old[1], to:p[1]});
+    if(parseFloat(old[3]||0) !== parseFloat(p[3]||0)) diffs.push({field:'vp', from:old[3], to:p[3]});
+    if(parseInt(old[4]||0) !== parseInt(p[4]||0)) diffs.push({field:'par', from:old[4], to:p[4]});
+    if(old[0] !== p[0]) diffs.push({field:'cat', from:old[0], to:p[0]});
+    if(diffs.length) changes.push({type:'change', sku:p[2], name:p[1], cat:p[0], diffs});
+  });
+  return changes;
+}
+
+var _pushLocations = [];
+var _pushChanges   = [];
+
+async function openPushModal(){
+  // Load last pushed snapshot from admin metadata
+  const{data:{user}} = await sb.auth.getUser();
+  const lastPushed = user.user_metadata?.lastPushedProducts || null;
+  const baseline   = lastPushed ? JSON.parse(lastPushed) : [];
+  _pushChanges = computeDiff(baseline, products);
+
+  if(!_pushChanges.length){
+    showToast('No changes since last push','');
+    return;
+  }
+
+  // Load all locations
+  const{data:locs} = await sb.from('locations').select('id,name').order('name');
+  _pushLocations = locs||[];
+
+  // Build modal body
+  const body = document.getElementById('push-body');
+  const summary = document.getElementById('push-diff-summary');
+  const adds    = _pushChanges.filter(c=>c.type==='add').length;
+  const removes = _pushChanges.filter(c=>c.type==='remove').length;
+  const changes = _pushChanges.filter(c=>c.type==='change').length;
+  const parts   = [];
+  if(adds)    parts.push(adds+' added');
+  if(removes) parts.push(removes+' removed');
+  if(changes) parts.push(changes+' changed');
+  if(summary) summary.textContent = parts.join(' · ');
+
+  let html = '<div class="push-section-label">Changes to push</div>';
+  _pushChanges.forEach(function(ch){
+    const badge = ch.type==='add'?'add':ch.type==='remove'?'remove':'change';
+    const label = ch.type==='add'?'New':ch.type==='remove'?'Removed':'Changed';
+    let detail  = '';
+    if(ch.type==='change' && ch.diffs){
+      detail = ch.diffs.map(function(d){
+        return d.field.toUpperCase()+': <s>'+escHtml(String(d.from||''))+'</s> → <ins>'+escHtml(String(d.to||''))+'</ins>';
+      }).join(' &nbsp;&middot;&nbsp; ');
+    } else if(ch.type==='add'){
+      detail = escHtml(ch.cat)+' &middot; SKU '+escHtml(ch.sku)+' &middot; VP '+escHtml(String(ch.vp||''))+' &middot; PAR '+escHtml(String(ch.par||''));
+    } else {
+      detail = escHtml(ch.cat)+' &middot; SKU '+escHtml(ch.sku);
+    }
+    html += '<div class="diff-row"><span class="diff-badge '+badge+'">'+label+'</span>'
+      +'<div><div class="diff-name">'+escHtml(ch.name)+'</div>'
+      +'<div class="diff-detail">'+detail+'</div></div></div>';
+  });
+
+  html += '<div class="push-section-label" style="margin-top:8px;">Send to locations</div>';
+  html += '<div style="display:flex;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid var(--border-light);">'
+    +'<input type="checkbox" id="push-select-all" style="width:16px;height:16px;accent-color:var(--b6);cursor:pointer;" onchange="selectAllPush(this.checked)"/>'
+    +'<label for="push-select-all" style="font-size:13px;font-weight:600;color:var(--text-muted);cursor:pointer;">Select all ('+_pushLocations.length+' locations)</label>'
+    +'</div>';
+  _pushLocations.forEach(function(loc){
+    html += '<div class="loc-check-row" onclick="this.querySelector('input').click()">'
+      +'<input type="checkbox" class="push-loc-cb" data-loc-id="'+loc.id+'" onclick="event.stopPropagation()"/>'
+      +'<span style="font-size:13px;color:var(--text);">'+escHtml(loc.name)+'</span>'
+      +'</div>';
+  });
+
+  if(body) body.innerHTML = html;
+  document.getElementById('push-modal').classList.add('open');
+}
+
+function closePushModal(){
+  document.getElementById('push-modal').classList.remove('open');
+}
+
+function selectAllPush(val){
+  document.querySelectorAll('.push-loc-cb').forEach(function(cb){cb.checked=val;});
+}
+
+async function executePush(){
+  const selected = Array.from(document.querySelectorAll('.push-loc-cb:checked')).map(function(cb){return cb.dataset.locId;});
+  if(!selected.length){showToast('Select at least one location','error');return;}
+  const btn = document.getElementById('push-send-btn');
+  if(btn){btn.disabled=true;btn.textContent='Sending…';}
+
+  // Insert a product_updates row per location
+  const rows = selected.map(function(lid){
+    return{location_id:lid, changes:_pushChanges, status:'pending'};
+  });
+  const{error} = await sb.from('product_updates').insert(rows);
+  if(error){showToast('Push failed: '+error.message,'error');if(btn){btn.disabled=false;btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Send to Selected';}return;}
+
+  // Save current list as lastPushedProducts snapshot
+  await sb.auth.updateUser({data:{lastPushedProducts:JSON.stringify(products)}});
+
+  closePushModal();
+  showToast('Pushed to '+selected.length+' location'+(selected.length>1?'s':''),'success');
+  if(btn){btn.disabled=false;btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Send to Selected';}
 }
 
 // ── NAV ──

@@ -1254,6 +1254,12 @@ if('serviceWorker' in navigator){
           <select id="f-op2-hrs" onchange="recalc(true)" style="font-family:'DM Sans',sans-serif;font-size:13px;padding:5px 6px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--b0);color:var(--text);text-align:center;"></select>
           <div id="op2-payout-pill" style="font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;color:var(--g6);border-radius:var(--radius-sm);padding:5px 8px;text-align:right;">--</div>
         </div>
+        <!-- Calendar auto-fill bar -->
+        <div id="gcal-enter-bar" style="display:none;align-items:center;gap:8px;padding:6px 10px;background:var(--b0);border-top:1px solid var(--border-light);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--b7)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span style="font-size:11px;color:var(--text-muted);flex:1;">Auto-fill from calendar</span>
+          <button onclick="gcalFillToday()" style="font-size:11px;font-weight:700;padding:4px 11px;border-radius:6px;border:1px solid var(--b5);background:var(--b1);color:var(--b7);cursor:pointer;font-family:'DM Sans',sans-serif;">Load Today</button>
+        </div>
         <!-- Duplicate operator warning banner -->
         <div id="ops-dup-warning" style="display:none;align-items:flex-start;gap:8px;padding:7px 12px;background:#fef7e8;border-top:1px solid #f0b440;">
           <span style="font-size:13px;flex-shrink:0;margin-top:1px;">&#9888;&#65039;</span>
@@ -1777,6 +1783,10 @@ if('serviceWorker' in navigator){
         </div>
         <span style="font-size:11px;color:var(--b5);">&#9998; Edit</span>
         <button class="btn btn-primary" style="font-size:12px;padding:5px 14px;margin-left:6px;" onclick="event.stopPropagation();renderPayouts();">Load</button>
+        <button id="gcal-payout-btn" onclick="event.stopPropagation();gcalLoadPayoutShifts();" style="display:none;font-size:12px;padding:5px 12px;margin-left:0;border-radius:var(--radius-sm);border:1px solid var(--b5);background:var(--b1);color:var(--b7);font-family:'DM Sans',sans-serif;font-weight:700;cursor:pointer;white-space:nowrap;display:none;align-items:center;gap:5px;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Shifts
+        </button>
       </div>
       <!-- Hidden date inputs kept for renderPayouts() compatibility -->
       <input type="hidden" id="payout-from"/>
@@ -1804,6 +1814,48 @@ if('serviceWorker' in navigator){
         <span>Saved Snapshots</span>
       </div>
       <div id="payout-snaps-list"></div>
+    </div>
+
+    <!-- ── STAFF PAYROLL ── -->
+    <div id="staff-payroll-section" style="margin-bottom:4px;">
+      <div class="section-label" id="staff-payroll-header" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="toggleStaffPayroll()">
+        <span>Staff Payroll</span>
+        <span id="staff-payroll-chevron" style="font-size:12px;color:var(--text-faint);">&#9660;</span>
+      </div>
+      <div id="staff-payroll-body" class="card" style="margin-bottom:12px;padding:0;overflow:hidden;">
+        <!-- Calendar connection bar -->
+        <div style="padding:10px 14px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--b7)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span style="font-size:12px;font-weight:600;color:var(--text-muted);">Google Calendar</span>
+            <span id="sp-gcal-badge" style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--border-light);color:var(--text-faint);">Not connected</span>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+            <input type="text" id="sp-gcal-client-id" placeholder="OAuth Client ID" style="font-family:'DM Sans',sans-serif;font-size:11px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 8px;outline:none;width:220px;display:none;"/>
+            <button class="btn btn-primary" onclick="spGcalConnect()" id="sp-gcal-connect-btn" style="font-size:11px;padding:5px 12px;">Connect Calendar</button>
+            <button class="btn btn-ghost btn-sm" onclick="gcalPickCalendar()" id="sp-gcal-pick-btn" style="font-size:11px;display:none;">Change calendar</button>
+            <button class="btn btn-ghost btn-sm" onclick="gcalDisconnect()" id="sp-gcal-disconnect-btn" style="font-size:11px;display:none;color:var(--danger,#dc2626);">Disconnect</button>
+          </div>
+        </div>
+        <!-- Date range + load -->
+        <div id="sp-range-bar" style="display:none;padding:10px 14px;border-bottom:1px solid var(--border-light);display:none;align-items:center;gap:8px;flex-wrap:wrap;">
+          <div class="payout-range-bar" onclick="openSpCalPicker()" style="flex:1;min-width:200px;border-radius:var(--radius-sm);border:1px solid var(--border);">
+            <div style="flex:1;display:flex;align-items:center;gap:6px;">
+              <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">From</span>
+              <span class="payout-range-val" id="sp-from-lbl">--</span>
+              <span style="font-size:12px;color:var(--text-faint);">&#8594;</span>
+              <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">To</span>
+              <span class="payout-range-val" id="sp-to-lbl">--</span>
+            </div>
+            <span style="font-size:11px;color:var(--b5);">&#9998; Edit</span>
+          </div>
+          <input type="hidden" id="sp-from"/>
+          <input type="hidden" id="sp-to"/>
+          <button class="btn btn-primary" onclick="spLoadShifts()" style="font-size:12px;padding:5px 14px;white-space:nowrap;">Load Shifts</button>
+        </div>
+        <!-- Results -->
+        <div id="sp-results" style="padding:0 14px 4px;"></div>
+      </div>
     </div>
 
     <!-- Payee Lookup -->
@@ -2597,6 +2649,89 @@ if('serviceWorker' in navigator){
   </div>
 </div>
 
+<div class="modal-overlay" id="payroll-approve-modal" onclick="payrollApproveBg(event)" style="display:none;align-items:flex-end;justify-content:center;z-index:260;">
+  <div style="background:var(--surface);border-radius:18px 18px 0 0;width:100%;max-width:560px;max-height:92vh;display:flex;flex-direction:column;animation:sheetUp 0.3s cubic-bezier(0.16,1,0.3,1);">
+    <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0;flex-shrink:0;"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px 10px;flex-shrink:0;border-bottom:1px solid var(--border-light);">
+      <span style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;color:var(--text);">Approve & Post Payroll</span>
+      <span id="payroll-approve-range" style="font-size:11px;color:var(--text-faint);"></span>
+    </div>
+    <div style="overflow-y:auto;flex:1;">
+      <!-- Summary rows — populated by JS -->
+      <div id="payroll-approve-rows" style="padding:0 16px;"></div>
+      <!-- Divider -->
+      <div style="height:1px;background:var(--border-light);margin:0 16px;"></div>
+      <!-- Payment fields -->
+      <div class="preg-sheet-field">
+        <span class="preg-sheet-label">Pay Date</span>
+        <input type="date" id="payroll-f-date" class="preg-sheet-input" style="width:auto;text-align:right;"/>
+      </div>
+      <div class="preg-sheet-field">
+        <span class="preg-sheet-label">Method</span>
+        <select id="payroll-f-method" class="preg-sheet-select" onchange="payrollMethodChange()">
+          <option value="check">Check</option>
+          <option value="venmo">Venmo</option>
+          <option value="cash">Cash</option>
+          <option value="direct_deposit">Direct Deposit</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div id="payroll-checknum-row" class="preg-sheet-field">
+        <span class="preg-sheet-label">Check # start</span>
+        <div style="display:flex;align-items:center;gap:6px;flex:1;justify-content:flex-end;">
+          <input type="text" inputmode="numeric" id="payroll-f-checknum" class="preg-sheet-input" placeholder="Auto" style="width:90px;"/>
+          <span style="font-size:11px;color:var(--text-faint);" id="payroll-checknum-hint">sequential per payee</span>
+        </div>
+      </div>
+      <div class="preg-sheet-field">
+        <span class="preg-sheet-label">Account</span>
+        <select id="payroll-f-account" class="preg-sheet-select"></select>
+      </div>
+      <div class="preg-sheet-field" style="border-bottom:none;">
+        <span class="preg-sheet-label">Notes</span>
+        <input type="text" id="payroll-f-notes" class="preg-sheet-input" placeholder="e.g. Payroll week 2..."/>
+      </div>
+    </div>
+    <div style="flex-shrink:0;padding:12px 16px;border-top:1px solid var(--border-light);display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:0 2px 6px;">
+        <span style="font-size:13px;font-weight:700;color:var(--text-muted);">Total</span>
+        <span style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;color:var(--g5);" id="payroll-approve-total">$0.00</span>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="closePayrollApproveModal()" class="btn btn-ghost" style="flex:1;">Cancel</button>
+        <button onclick="postPayrollToRegister()" class="btn btn-primary" style="flex:2;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg>
+          Confirm &amp; Post to Register
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="prod-update-modal" style="display:none;align-items:flex-end;justify-content:center;z-index:280;">
+  <div style="background:var(--surface);border-radius:18px 18px 0 0;width:100%;max-width:600px;max-height:92vh;display:flex;flex-direction:column;animation:sheetUp 0.3s cubic-bezier(0.16,1,0.3,1);">
+    <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0;flex-shrink:0;"></div>
+    <div style="padding:12px 16px 10px;border-bottom:1px solid var(--border-light);flex-shrink:0;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
+      <div>
+        <div style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;color:var(--text);">Product List Updates</div>
+        <div style="font-size:12px;color:var(--text-faint);margin-top:2px;" id="prod-update-meta"></div>
+      </div>
+      <button onclick="dismissProdUpdate()" style="font-size:11px;color:var(--text-faint);background:none;border:none;cursor:pointer;padding:4px;flex-shrink:0;">Dismiss</button>
+    </div>
+    <div style="font-size:12px;color:var(--text-muted);padding:10px 16px;background:var(--b0);border-bottom:1px solid var(--border-light);line-height:1.5;">
+      Review each change below. Toggle off any you do not want to apply, then tap Accept.
+    </div>
+    <div style="overflow-y:auto;flex:1;" id="prod-update-rows"></div>
+    <div style="flex-shrink:0;padding:12px 16px;border-top:1px solid var(--border-light);display:flex;gap:8px;">
+      <button onclick="dismissProdUpdate()" class="btn btn-ghost" style="flex:1;">Skip for now</button>
+      <button onclick="applyProdUpdate()" class="btn btn-primary" style="flex:2;display:flex;align-items:center;justify-content:center;gap:6px;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Accept Selected
+      </button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="preg-sheet-overlay" onclick="closePregSheetOnBg(event)" style="display:none;align-items:flex-end;justify-content:center;z-index:250;">
   <div style="background:var(--surface);border-radius:18px 18px 0 0;width:100%;max-width:560px;max-height:92vh;display:flex;flex-direction:column;animation:sheetUp 0.3s cubic-bezier(0.16,1,0.3,1);">
     <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0;flex-shrink:0;"></div>
@@ -2775,6 +2910,56 @@ if('serviceWorker' in navigator){
 
 <!-- SETTINGS MODAL -->
 <!-- SNAPSHOT RENAME MODAL -->
+<div class="modal-overlay" id="gcal-shifts-modal" onclick="gcalShiftsModalBg(event)" style="display:none;align-items:flex-end;justify-content:center;">
+  <div class="modal-sheet" style="max-width:480px;">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="gcal-shifts-title">Calendar Shifts</div>
+    <div style="padding:0 16px 20px;">
+      <div id="gcal-shifts-body" style="max-height:55vh;overflow-y:auto;"></div>
+      <div style="display:flex;gap:8px;margin-top:14px;">
+        <button class="btn btn-primary" onclick="gcalApplyShifts()" style="flex:1;" id="gcal-shifts-apply-btn">Apply Shifts</button>
+        <button class="btn btn-ghost" onclick="gcalCloseShiftsModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="snap-save-modal" onclick="closeSnapSaveOnBg(event)" style="display:none;align-items:flex-end;justify-content:center;">
+  <div class="modal-sheet" style="max-width:420px;">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Save Inventory Snapshot</div>
+    <div style="padding:0 16px 20px;">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:6px;margin-top:4px;">Snapshot name <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></div>
+      <input type="text" id="snap-save-name" placeholder="e.g. Pre-order count, Week 2..."
+        style="width:100%;font-family:'DM Sans',sans-serif;font-size:14px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;outline:none;box-sizing:border-box;"
+        oninput="snapSaveUpdatePreview()" onkeydown="if(event.key==='Enter')document.getElementById('snap-save-initials-input').focus()"/>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-top:14px;margin-bottom:8px;">Who is taking this count?</div>
+      <div id="snap-save-op-chips" style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px;"></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <div style="flex:1;height:1px;background:var(--border-light);"></div>
+        <span style="font-size:11px;color:var(--text-faint);">or type initials</span>
+        <div style="flex:1;height:1px;background:var(--border-light);"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div id="snap-save-avatar-preview" style="width:36px;height:36px;border-radius:50%;background:var(--b5);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;">?</div>
+        <input type="text" id="snap-save-initials-input" maxlength="3" placeholder="e.g. JN"
+          style="width:72px;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;outline:none;text-align:center;box-sizing:border-box;"
+          oninput="snapSaveInitialsInput(this.value)"/>
+        <div style="font-size:11px;color:var(--text-faint);line-height:1.5;">Clears operator<br>selection above</div>
+      </div>
+      <div id="snap-save-preview" style="background:var(--b0);border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:10px 12px;margin-top:14px;display:flex;align-items:center;gap:10px;">
+        <div id="snap-save-preview-avatar" style="width:34px;height:34px;border-radius:50%;background:var(--b5);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;"></div>
+        <div>
+          <div id="snap-save-preview-label" style="font-size:13px;font-weight:700;color:var(--text);"></div>
+          <div id="snap-save-preview-dt" style="font-size:11px;color:var(--text-faint);margin-top:1px;"></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:16px;">
+        <button class="btn btn-primary" onclick="confirmSaveSnapshot()" style="flex:1;">Save Snapshot</button>
+        <button class="btn btn-ghost" onclick="closeSnapSaveModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay" id="snap-rename-modal" onclick="closeSnapRenameOnBg(event)" style="display:none;">
   <div class="modal-sheet" style="max-width:380px;">
     <div class="modal-handle"></div>
@@ -2912,6 +3097,16 @@ if('serviceWorker' in navigator){
       </div>
     </div>
 
+    <!-- ── GOOGLE CALENDAR ── -->
+    <!-- Google Calendar lives in Payouts tab -->
+    <!-- ── STAFF PAY RATES (owner only) ── -->
+    <div id="prof-staff-rates-section" style="display:none;">
+      <div class="settings-group">
+        <div class="settings-group-title">Staff Pay Rates</div>
+        <div style="font-size:11px;color:var(--text-faint);padding:0 0 8px;">Hourly rates for operators not in the 4-slot list. Auto-populated from your team members.</div>
+        <div id="s-staff-rates-list"></div>
+      </div>
+    </div>
     <!-- ── CHANGE PASSWORD (all roles) ── -->
     <div style="padding:0 16px 12px;">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--border-light);">
@@ -2954,7 +3149,7 @@ let _entryDirty=false; // tracks unsaved edits on the Enter tab
 let _loadingDay=false; // suppresses markDirty during programmatic field loads
 let invOos={}; // {sku: {note:'', expectedDate:''}} -- out of stock map
 const DAY_NAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-let SETTINGS={clubName:'',taxRate:1.25,ohRate:32,otherRate:50,merchRate:100,dvDelta:3,
+let SETTINGS={clubName:'',taxRate:1.25,ohRate:32,otherRate:50,merchRate:100,dvDelta:3,gcal:{clientId:'618368859945-nsqok0t0aleg609dp89pftu478fa7ba2.apps.googleusercontent.com',calendarId:'',token:'',tokenExpiry:0},
   opDays:[false,true,true,true,true,true,true],
   operators:[{name:'Operator 1',visible:true,aliases:''},{name:'Operator 2',visible:true,aliases:''},{name:'Operator 3',visible:false,aliases:''},{name:'Operator 4',visible:false,aliases:''}]};
 
@@ -3184,6 +3379,9 @@ async function loadTeamMembers(){
   const primaryOwners=members.filter(m=>m.role==='owner'||m.role==='admin');
   const otherOwners=[];
   const employees=members.filter(m=>m.role!=='owner'&&m.role!=='admin');
+  // Build staff pay rates UI from employee list
+  const empForRates=employees.map(function(m){return{id:m.id,name:[m.first_name,m.last_name].filter(Boolean).join(' ')||m.display_name||m.email,email:m.email};});
+  buildStaffRatesUI(empForRates);
 
   const renderPrimaryOwner=(m,badge='Primary Owner')=>{
     const name=[m.first_name,m.last_name].filter(Boolean).join(' ')||m.display_name||m.email;
@@ -3265,6 +3463,7 @@ async function saveProfileAndSettings(){
     SETTINGS.otherRate=parseFloat(document.getElementById('s-otherrate')?.value||SETTINGS.otherRate);
     SETTINGS.merchRate=parseFloat(document.getElementById('s-merchrate')?.value||SETTINGS.merchRate);
     SETTINGS.dvDelta=parseFloat(document.getElementById('s-dvdelta')?.value||SETTINGS.dvDelta);
+    // staffRates saved live via saveStaffRate() oninput — no need to collect here
     SETTINGS.operators=[0,1,2,3].map(i=>({name:document.getElementById('s-op-'+i)?.value.trim()||'',visible:SETTINGS.operators[i]?.visible!==false,isOwner:SETTINGS.operators[i]?.isOwner===true,aliases:document.getElementById('s-alias-'+i)?.value.trim()||'',color:SETTINGS.operators[i]?.color||null}));
     // opDays are toggled live into SETTINGS.opDays directly -- no read needed here
     const empCode=document.getElementById('s-emp-code')?.value.trim();
@@ -3819,6 +4018,10 @@ async function init(){
   if(_finalNcn && SETTINGS.clubName) _finalNcn.textContent = SETTINGS.clubName;
   /* overlay hidden by default */
   if(OPEN_SETTINGS)setTimeout(()=>openSettings(),300);
+  // Check for pending product updates (owner/admin only, not admin drill-in view)
+  if((USER_ROLE==='owner'||USER_ROLE==='admin')&&!IS_ADMIN_VIEW){
+    setTimeout(checkPendingProductUpdates, 800);
+  }
 }
 function setLoadText(t){document.getElementById('load-text').textContent=t;}
 function setNavLocation(name, address, owner){
@@ -4970,6 +5173,773 @@ function cvaRecalc(){
   cvaST('cva-tea-avg',cvaFc(cvaTeaWtdProfit()));
 }
 
+// ── STAFF PAY RATES ──
+
+function buildStaffRatesUI(employees){
+  // employees: [{id, name, email}] — role=employee, not in 4-slot operators
+  const section = document.getElementById('prof-staff-rates-section');
+  const list = document.getElementById('s-staff-rates-list');
+  if(!section||!list)return;
+  if(!employees||!employees.length){section.style.display='none';return;}
+  section.style.display='block';
+  if(!SETTINGS.staffRates)SETTINGS.staffRates=[];
+  list.innerHTML = employees.map(function(emp){
+    const saved = SETTINGS.staffRates.find(function(r){return r.userId===emp.id;})||{};
+    const rate = saved.hourlyRate||'';
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-light);gap:10px;">'
+      +'<div style="min-width:0;flex:1;">'
+      +'<div style="font-size:13px;font-weight:600;color:var(--text);">'+escHtml(emp.name)+'</div>'
+      +'<div style="font-size:11px;color:var(--text-faint);">'+escHtml(emp.email)+'</div>'
+      +'</div>'
+      +'<div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">'
+      +'<span style="font-size:13px;font-weight:600;color:var(--text-muted);">$</span>'
+      +'<input type="number" min="0" max="999" step="0.25" placeholder="0.00" value="'+escHtml(String(rate))+'" '
+      +'data-uid="'+escHtml(emp.id)+'" data-name="'+escHtml(emp.name)+'" '
+      +'onchange="saveStaffRate(this)" '
+      +'style="width:72px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 6px;outline:none;text-align:right;background:var(--b0);color:var(--text);"/>'
+      +'<span style="font-size:11px;color:var(--text-faint);">/hr</span>'
+      +'</div></div>';
+  }).join('');
+}
+
+function saveStaffRate(inp){
+  const uid = inp.dataset.uid;
+  const name = inp.dataset.name;
+  const rate = parseFloat(inp.value)||0;
+  if(!SETTINGS.staffRates)SETTINGS.staffRates=[];
+  const idx = SETTINGS.staffRates.findIndex(function(r){return r.userId===uid;});
+  if(idx>=0){SETTINGS.staffRates[idx].hourlyRate=rate;}
+  else{SETTINGS.staffRates.push({userId:uid,name,hourlyRate:rate});}
+}
+
+function getStaffRate(name){
+  if(!SETTINGS.staffRates)return 0;
+  const r = SETTINGS.staffRates.find(function(r){
+    return r.name.toLowerCase()===name.toLowerCase();
+  });
+  return r?r.hourlyRate:0;
+}
+
+// ── STAFF PAYROLL UI ──
+
+function toggleStaffPayroll(){
+  const body=document.getElementById('staff-payroll-body');
+  const chev=document.getElementById('staff-payroll-chevron');
+  if(!body)return;
+  const open=body.style.display!=='none';
+  body.style.display=open?'none':'block';
+  if(chev)chev.innerHTML=open?'&#9654;':'&#9660;';
+}
+
+var _spCalPickerCallback=null;
+function openSpCalPicker(){
+  // Reuse the existing calendar picker infrastructure
+  _spCalPickerCallback=function(from,to){
+    document.getElementById('sp-from').value=from;
+    document.getElementById('sp-to').value=to;
+    const fmt=function(d){return new Date(d+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});};
+    document.getElementById('sp-from-lbl').textContent=fmt(from);
+    document.getElementById('sp-to-lbl').textContent=fmt(to);
+  };
+  openCalPickerForSP();
+}
+
+function openCalPickerForSP(){
+  // Piggyback on the existing payout calendar picker
+  // Temporarily redirect the payout picker callback
+  var _origFrom=document.getElementById('payout-from').value;
+  var _origTo=document.getElementById('payout-to').value;
+  var _origFromLbl=document.getElementById('payout-range-from-lbl').textContent;
+  var _origToLbl=document.getElementById('payout-range-to-lbl').textContent;
+  openCalPicker();
+  // After picker closes, check if values changed and redirect
+  var poll=setInterval(function(){
+    var newFrom=document.getElementById('payout-from').value;
+    var newTo=document.getElementById('payout-to').value;
+    if(newFrom&&newTo&&(newFrom!==_origFrom||newTo!==_origTo)){
+      clearInterval(poll);
+      if(_spCalPickerCallback){_spCalPickerCallback(newFrom,newTo);}
+      // Restore payout picker to original
+      document.getElementById('payout-from').value=_origFrom;
+      document.getElementById('payout-to').value=_origTo;
+      document.getElementById('payout-range-from-lbl').textContent=_origFromLbl;
+      document.getElementById('payout-range-to-lbl').textContent=_origToLbl;
+      _spCalPickerCallback=null;
+    }
+  },400);
+  setTimeout(function(){clearInterval(poll);_spCalPickerCallback=null;},60000);
+}
+
+function spGcalConnect(){
+  const inp=document.getElementById('sp-gcal-client-id');
+  if(inp&&inp.style.display==='none'){
+    inp.style.display='block';inp.focus();return;
+  }
+  const clientId=(inp?inp.value:'')||'';
+  if(clientId){
+    if(!SETTINGS.gcal)SETTINGS.gcal={};
+    SETTINGS.gcal.clientId=clientId;
+  }
+  gcalConnect();
+}
+
+function spUpdateUI(){
+  const connected=!!(SETTINGS.gcal&&SETTINGS.gcal.calendarId);
+  const badge=document.getElementById('sp-gcal-badge');
+  const connectBtn=document.getElementById('sp-gcal-connect-btn');
+  const pickBtn=document.getElementById('sp-gcal-pick-btn');
+  const disconnectBtn=document.getElementById('sp-gcal-disconnect-btn');
+  const rangeBar=document.getElementById('sp-range-bar');
+  if(badge){badge.textContent=connected?'Connected':'Not connected';badge.style.background=connected?'var(--g0)':'var(--border-light)';badge.style.color=connected?'var(--g5)':'var(--text-faint)';}
+  if(connectBtn)connectBtn.style.display=connected?'none':'inline-flex';
+  if(pickBtn)pickBtn.style.display=connected?'inline-flex':'none';
+  if(disconnectBtn)disconnectBtn.style.display=connected?'inline-flex':'none';
+  if(rangeBar)rangeBar.style.display=connected?'flex':'none';
+}
+
+function spLoadShifts(){
+  const from=document.getElementById('sp-from').value;
+  const to=document.getElementById('sp-to').value;
+  if(!from||!to){showToast('Select a date range first','error');return;}
+  if(!(SETTINGS.gcal&&SETTINGS.gcal.calendarId)){showToast('Connect Google Calendar first','error');return;}
+  const results=document.getElementById('sp-results');
+  if(results)results.innerHTML='<div style="font-size:12px;color:var(--text-faint);padding:12px 0;">Loading shifts...</div>';
+  gcalFetchEvents(from,to,function(events,err){
+    if(err){showToast('Calendar error: '+err,'error');if(results)results.innerHTML='';return;}
+    if(!events||!events.length){if(results)results.innerHTML='<div style="font-size:12px;color:var(--text-faint);padding:12px 0;">No events found in this range.</div>';return;}
+    // Get employee names from staffRates (exclude 4-slot operators)
+    const opNames=(SETTINGS.operators||[]).filter(function(o){return o.name&&o.visible!==false;}).map(function(o){return o.name.toLowerCase();});
+    // Group by employee, sum hours
+    var byPerson={};
+    var unmatched=[];
+    events.forEach(function(ev){
+      var matched=gcalMatchOp(ev);
+      // Only include if NOT a 4-slot operator
+      if(matched&&opNames.includes(matched.toLowerCase()))matched=null;
+      var hrs=gcalEventHours(ev);
+      var date=(ev.start.dateTime||ev.start.date||'').slice(0,10);
+      var timeStr='';
+      if(ev.start&&ev.start.dateTime){
+        var s=new Date(ev.start.dateTime),en=new Date(ev.end.dateTime);
+        timeStr=s.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})+' - '+en.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+      }
+      if(matched){
+        if(!byPerson[matched])byPerson[matched]={totalHrs:0,shifts:[]};
+        byPerson[matched].totalHrs+=hrs;
+        byPerson[matched].shifts.push({date,timeStr,hrs});
+      } else {
+        unmatched.push({title:ev.summary||'(no title)',date,timeStr,hrs,ev});
+      }
+    });
+    spRenderResults(byPerson,unmatched,from,to);
+  });
+}
+
+function spRenderResults(byPerson,unmatched,from,to){
+  const results=document.getElementById('sp-results');
+  if(!results)return;
+  var html='';
+  const entries=Object.entries(byPerson);
+  if(entries.length){
+    const fromFmt=new Date(from+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    const toFmt=new Date(to+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    html+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);padding:10px 0 6px;">'+fromFmt+' – '+toFmt+'</div>';
+    var grandTotal=0;
+    entries.forEach(function(entry){
+      var name=entry[0],data=entry[1];
+      var rate=getStaffRate(name);
+      var pay=rate?data.totalHrs*rate:null;
+      if(pay)grandTotal+=pay;
+      var rateStr=SETTINGS.staffRates&&SETTINGS.staffRates.find(function(r){return r.name.toLowerCase()===name.toLowerCase();})
+        ?'$'+rate.toFixed(2)+'/hr':'<span style="color:var(--a6);font-size:11px;">No rate set</span>';
+      var initials=name.trim().split(/\s+/).map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
+      var sr=SETTINGS.staffRates&&SETTINGS.staffRates.find(function(r){return r.name.toLowerCase()===name.toLowerCase();});
+      var color=sr&&sr.color||'var(--b5)';
+      html+='<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-light);">'
+        +'<div style="width:32px;height:32px;border-radius:50%;background:'+color+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;">'+initials+'</div>'
+        +'<div style="flex:1;min-width:0;">'
+        +'<div style="font-size:13px;font-weight:600;color:var(--text);">'+escHtml(name)+'</div>'
+        +'<div style="font-size:11px;color:var(--text-faint);">'+data.totalHrs+' hrs · '+rateStr+'</div>'
+        +'</div>'
+        +'<div style="text-align:right;flex-shrink:0;">'
+        +(pay!==null?'<div style="font-family:'Outfit',sans-serif;font-size:15px;font-weight:800;color:var(--g5);">$'+pay.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>':'<div style="font-size:12px;color:var(--text-faint);">--</div>')
+        +'</div>'
+        +'</div>';
+    });
+    if(grandTotal>0){
+      html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0 4px;border-top:1.5px solid var(--border);">'
+        +'<span style="font-size:13px;font-weight:700;">Total Staff Pay</span>'
+        +'<span style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:var(--g5);">$'+grandTotal.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+'</span>'
+        +'</div>';
+    }
+  } else {
+    html+='<div style="font-size:12px;color:var(--text-faint);padding:12px 0;">No staff shifts found. Check that names in calendar events match your team members.</div>';
+  }
+  // Unmatched
+  if(unmatched.length){
+    html+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--a6);padding:10px 0 6px;display:flex;align-items:center;gap:5px;">'
+      +'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+      +'Unmatched events</div>';
+    var staffNames=(SETTINGS.staffRates||[]).map(function(r){return r.name;});
+    var allOps=(SETTINGS.operators||[]).filter(function(o){return o.name;}).map(function(o){return o.name;});
+    var allNames=staffNames.concat(allOps.filter(function(n){return !staffNames.includes(n);}));
+    unmatched.forEach(function(u,i){
+      var dateStr=u.date?new Date(u.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})+' · ':'';
+      var opts='<option value="">-- skip --</option>'+allNames.map(function(n){return '<option value="'+escHtml(n)+'">'+escHtml(n)+'</option>';}).join('');
+      html+='<div style="padding:8px 10px;border-radius:var(--radius-sm);background:#fef7e8;border:1px solid var(--a2);margin-bottom:6px;">'
+        +'<div style="font-size:12px;font-weight:600;color:var(--a7);margin-bottom:3px;">'+escHtml(u.title)+'</div>'
+        +'<div style="font-size:11px;color:var(--a6);margin-bottom:6px;">'+dateStr+(u.timeStr||'')+(u.hrs?' · '+u.hrs+' hrs':'')+'</div>'
+        +'<select data-sp-idx="'+i+'" data-hrs="'+u.hrs+'" data-date="'+(u.date||'')+'" data-title="'+escHtml(u.title)+'" '
+        +'onchange="spAssignUnmatched(this)" '
+        +'style="width:100%;font-family:'DM Sans',sans-serif;font-size:12px;border:1px solid var(--a3);border-radius:var(--radius-sm);padding:5px 8px;outline:none;background:var(--surface);">'
+        +opts+'</select>'
+        +'</div>';
+    });
+  }
+  results.innerHTML=html;
+}
+
+function spAssignUnmatched(sel){
+  var name=sel.value;
+  if(!name)return;
+  var hrs=parseFloat(sel.dataset.hrs)||0;
+  var date=sel.dataset.date||'';
+  var title=sel.dataset.title||'';
+  // Re-render with this assignment added
+  var results=document.getElementById('sp-results');
+  var from=document.getElementById('sp-from').value;
+  var to=document.getElementById('sp-to').value;
+  // Add to byPerson and re-fetch — simpler: just append a row
+  sel.disabled=true;
+  var row=sel.closest('div[style*="fef7e8"]');
+  if(row){
+    row.style.background='var(--g0)';row.style.borderColor='var(--g1)';
+    var rate=getStaffRate(name);
+    var pay=rate?hrs*rate:null;
+    row.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;">'
+      +'<div><div style="font-size:12px;font-weight:600;color:var(--g5);">'+escHtml(name)+' — assigned</div>'
+      +'<div style="font-size:11px;color:var(--g5);">'+hrs+' hrs'+(pay?' · $'+pay.toFixed(2):'')+'</div></div>'
+      +'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--g5)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'
+      +'</div>';
+  }
+}
+
+// Hook into gcalUpdateUI to also update sp panel
+var _origGcalUpdateUI=null;
+(function(){
+  setTimeout(function(){
+    _origGcalUpdateUI=window.gcalUpdateUI;
+    window.gcalUpdateUI=function(){
+      if(_origGcalUpdateUI)_origGcalUpdateUI();
+      spUpdateUI();
+    };
+    spUpdateUI();
+  },200);
+})();
+
+// ── GOOGLE CALENDAR INTEGRATION ──
+var _gcalPendingShifts=[];
+var _gcalPendingMode=''; // 'enter' or 'payout'
+
+function gcalUpdateUI(){
+  const connected=!!(SETTINGS.gcal&&SETTINGS.gcal.calendarId&&SETTINGS.gcal.clientId);
+  const badge=document.getElementById('gcal-status-badge');
+  const connectBtn=document.getElementById('gcal-connect-btn');
+  const disconnectBtn=document.getElementById('gcal-disconnect-btn');
+  const pickBtn=document.getElementById('gcal-pick-cal-btn');
+  const calDisp=document.getElementById('gcal-cal-id-display');
+  const enterBar=document.getElementById('gcal-enter-bar');
+  const payoutBtn=document.getElementById('gcal-payout-btn');
+  const section=document.getElementById('prof-gcal-section');
+  if(section)section.style.display='block';
+  if(badge){badge.textContent=connected?'Connected':'Not connected';badge.style.background=connected?'var(--g0)':'var(--border-light)';badge.style.color=connected?'var(--g5)':'var(--text-faint)';}
+  if(connectBtn)connectBtn.style.display=connected?'none':'inline-flex';
+  if(disconnectBtn)disconnectBtn.style.display=connected?'inline-flex':'none';
+  if(pickBtn)pickBtn.style.display=connected?'inline-flex':'none';
+  if(calDisp)calDisp.textContent=(SETTINGS.gcal&&SETTINGS.gcal.calendarId)?SETTINGS.gcal.calendarId:'Not set';
+  if(enterBar)enterBar.style.display=connected?'flex':'none';
+  if(payoutBtn)payoutBtn.style.display=connected?'inline-flex':'none';
+  const clientInp=document.getElementById('s-gcal-client-id');
+  if(clientInp&&SETTINGS.gcal&&SETTINGS.gcal.clientId)clientInp.value=SETTINGS.gcal.clientId;
+}
+
+function gcalConnect(){
+  const clientId=(document.getElementById('s-gcal-client-id')?.value||'').trim();
+  if(!clientId){showToast('Enter your OAuth Client ID first','error');return;}
+  if(!SETTINGS.gcal)SETTINGS.gcal={};
+  SETTINGS.gcal.clientId=clientId;
+  gcalRequestToken(function(token){
+    if(!token){showToast('Google auth failed or cancelled','error');return;}
+    SETTINGS.gcal.token=token;
+    SETTINGS.gcal.tokenExpiry=Date.now()+3500*1000;
+    gcalFetchCalendars(token,function(cals){
+      if(!cals||!cals.length){showToast('No calendars found','error');return;}
+      gcalShowCalendarPicker(cals);
+    });
+  });
+}
+
+function gcalRequestToken(cb){
+  const clientId=SETTINGS.gcal&&SETTINGS.gcal.clientId;
+  if(!clientId){cb(null);return;}
+  // Check existing valid token
+  if(SETTINGS.gcal.token&&SETTINGS.gcal.tokenExpiry&&Date.now()<SETTINGS.gcal.tokenExpiry-60000){cb(SETTINGS.gcal.token);return;}
+  const scope=encodeURIComponent('https://www.googleapis.com/auth/calendar.readonly');
+  const redirectUri=encodeURIComponent(window.location.origin+'/app.html');
+  const state=Math.random().toString(36).slice(2);
+  const url='https://accounts.google.com/o/oauth2/v2/auth?client_id='+clientId+'&redirect_uri='+redirectUri+'&response_type=token&scope='+scope+'&state='+state;
+  const w=window.open(url,'gcal_auth','width=500,height=600,left=200,top=100');
+  var timer=setInterval(function(){
+    try{
+      if(!w||w.closed){clearInterval(timer);cb(null);return;}
+      var hash=w.location.hash;
+      if(hash&&hash.includes('access_token')){
+        clearInterval(timer);w.close();
+        var params=new URLSearchParams(hash.slice(1));
+        var token=params.get('access_token');
+        var expiresIn=parseInt(params.get('expires_in')||'3600');
+        SETTINGS.gcal.token=token;
+        SETTINGS.gcal.tokenExpiry=Date.now()+expiresIn*1000;
+        cb(token);
+      }
+    }catch(e){}
+  },500);
+}
+
+function gcalFetchCalendars(token,cb){
+  fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList?maxResults=50',{headers:{Authorization:'Bearer '+token}})
+    .then(function(r){return r.json();})
+    .then(function(d){cb(d.items||[]);})
+    .catch(function(){cb([]);});
+}
+
+function gcalShowCalendarPicker(cals){
+  var opts=cals.map(function(c){return '<option value="'+c.id+'">'+c.summary+'</option>';}).join('');
+  var html='<div style="font-size:13px;color:var(--text-muted);margin-bottom:10px;">Choose the shared club calendar:</div>'
+    +'<select id="gcal-cal-picker-sel" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;outline:none;margin-bottom:14px;">'+opts+'</select>'
+    +'<div style="display:flex;gap:8px;">'
+    +'<button class="btn btn-primary" style="flex:1;" onclick="gcalSaveCalendar()">Use this calendar</button>'
+    +'<button class="btn btn-ghost" onclick="gcalCloseShiftsModal()">Cancel</button>'
+    +'</div>';
+  var modal=document.getElementById('gcal-shifts-modal');
+  var title=document.getElementById('gcal-shifts-title');
+  var body=document.getElementById('gcal-shifts-body');
+  var applyBtn=document.getElementById('gcal-shifts-apply-btn');
+  if(title)title.textContent='Choose Calendar';
+  if(body)body.innerHTML=html;
+  if(applyBtn)applyBtn.style.display='none';
+  if(modal)modal.style.display='flex';
+}
+
+function gcalSaveCalendar(){
+  var sel=document.getElementById('gcal-cal-picker-sel');
+  if(!sel||!sel.value)return;
+  SETTINGS.gcal.calendarId=sel.value;
+  gcalCloseShiftsModal();
+  gcalPersist();
+  gcalUpdateUI();
+  showToast('Calendar connected ok','success');
+}
+
+function gcalDisconnect(){
+  if(!confirm('Disconnect Google Calendar?'))return;
+  SETTINGS.gcal={};gcalPersist();gcalUpdateUI();showToast('Disconnected','success');
+}
+
+function gcalPickCalendar(){
+  gcalRequestToken(function(token){
+    if(!token)return;
+    gcalFetchCalendars(token,function(cals){gcalShowCalendarPicker(cals);});
+  });
+}
+
+function gcalPersist(){
+  // Save gcal settings to Supabase (merge into location settings)
+  if(!LOCATION_ID)return;
+  sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID).then(function(){});
+}
+
+// ── FETCH EVENTS ──
+function gcalFetchEvents(from,to,cb){
+  // from/to are YYYY-MM-DD strings
+  gcalRequestToken(function(token){
+    if(!token){cb(null,'Auth failed');return;}
+    var calId=encodeURIComponent(SETTINGS.gcal.calendarId);
+    var tMin=encodeURIComponent(from+'T00:00:00Z');
+    var tMax=encodeURIComponent(to+'T23:59:59Z');
+    var url='https://www.googleapis.com/calendar/v3/calendars/'+calId+'/events?timeMin='+tMin+'&timeMax='+tMax+'&singleEvents=true&orderBy=startTime&maxResults=250';
+    fetch(url,{headers:{Authorization:'Bearer '+token}})
+      .then(function(r){return r.json();})
+      .then(function(d){
+        if(d.error){cb(null,d.error.message);return;}
+        cb(d.items||[],null);
+      })
+      .catch(function(e){cb(null,e.message);});
+  });
+}
+
+// ── MATCH EVENT TO OPERATOR ──
+function gcalMatchOp(event){
+  var text=((event.summary||'')+' '+(event.description||'')).toLowerCase();
+  var ops=SETTINGS.operators.filter(function(o){return o.name&&o.visible!==false;});
+  for(var i=0;i<ops.length;i++){
+    var op=ops[i];
+    if(text.includes(op.name.toLowerCase()))return op.name;
+    var aliases=(op.aliases||'').split(',').map(function(a){return a.trim().toLowerCase();}).filter(Boolean);
+    for(var j=0;j<aliases.length;j++){if(text.includes(aliases[j]))return op.name;}
+  }
+  return null;
+}
+
+// ── EVENT DURATION IN HOURS ──
+function gcalEventHours(event){
+  if(!event.start||!event.end)return 0;
+  var s=new Date(event.start.dateTime||event.start.date);
+  var e=new Date(event.end.dateTime||event.end.date);
+  var hrs=(e-s)/3600000;
+  return Math.round(hrs*2)/2; // round to nearest 0.5
+}
+
+// ── ENTER TAB: fill today ──
+function gcalFillToday(){
+  if(!(SETTINGS.gcal&&SETTINGS.gcal.calendarId)){showToast('Connect Google Calendar in Settings first','error');return;}
+  var today=document.getElementById('f-date')?.value;
+  if(!today){today=new Date().toISOString().slice(0,10);}
+  showToast('Loading calendar...','');
+  gcalFetchEvents(today,today,function(events,err){
+    if(err){showToast('Calendar error: '+err,'error');return;}
+    if(!events||!events.length){showToast('No events found for today','');return;}
+    // Match events to operators
+    var matched=[],unmatched=[];
+    events.forEach(function(ev){
+      var op=gcalMatchOp(ev);
+      var hrs=gcalEventHours(ev);
+      var timeStr='';
+      if(ev.start&&ev.start.dateTime){
+        var s=new Date(ev.start.dateTime);var e=new Date(ev.end.dateTime);
+        timeStr=s.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})+' - '+e.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+      }
+      if(op){matched.push({op,hrs,title:ev.summary||'(no title)',timeStr});}
+      else{unmatched.push({title:ev.summary||'(no title)',timeStr,ev});}
+    });
+    _gcalPendingShifts=matched;
+    _gcalPendingMode='enter';
+    gcalShowShiftsModal(matched,unmatched,'today');
+  });
+}
+
+// ── PAYOUTS TAB: load shifts for range ──
+function gcalLoadPayoutShifts(){
+  if(!(SETTINGS.gcal&&SETTINGS.gcal.calendarId)){showToast('Connect Google Calendar in Settings first','error');return;}
+  var from=document.getElementById('payout-from')?.value;
+  var to=document.getElementById('payout-to')?.value;
+  if(!from||!to){showToast('Set a date range first','error');return;}
+  showToast('Loading calendar shifts...','');
+  gcalFetchEvents(from,to,function(events,err){
+    if(err){showToast('Calendar error: '+err,'error');return;}
+    if(!events||!events.length){showToast('No events found in this range','');return;}
+    // Group by date then by operator, sum hours
+    var byDate={};
+    var unmatched=[];
+    events.forEach(function(ev){
+      var op=gcalMatchOp(ev);
+      var hrs=gcalEventHours(ev);
+      var date=(ev.start.dateTime||ev.start.date||'').slice(0,10);
+      var timeStr='';
+      if(ev.start&&ev.start.dateTime){
+        var s=new Date(ev.start.dateTime);var en=new Date(ev.end.dateTime);
+        timeStr=s.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})+' - '+en.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+      }
+      if(op&&date){
+        if(!byDate[date])byDate[date]={};
+        if(!byDate[date][op])byDate[date][op]=0;
+        byDate[date][op]+=hrs;
+      } else {
+        unmatched.push({title:ev.summary||'(no title)',timeStr,date,ev});
+      }
+    });
+    // Flatten to array
+    var shifts=[];
+    Object.keys(byDate).sort().forEach(function(date){
+      Object.keys(byDate[date]).forEach(function(op){
+        shifts.push({date,op,hrs:byDate[date][op]});
+      });
+    });
+    _gcalPendingShifts=shifts;
+    _gcalPendingMode='payout';
+    gcalShowShiftsModal(shifts,unmatched,'range');
+  });
+}
+
+// ── SHOW SHIFTS MODAL ──
+function gcalShowShiftsModal(matched,unmatched,mode){
+  var modal=document.getElementById('gcal-shifts-modal');
+  var title=document.getElementById('gcal-shifts-title');
+  var body=document.getElementById('gcal-shifts-body');
+  var applyBtn=document.getElementById('gcal-shifts-apply-btn');
+  if(title)title.textContent=mode==='today'?'Shifts for Today':'Shifts for Date Range';
+  var html='';
+  if(matched.length){
+    html+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:8px;">Matched shifts</div>';
+    matched.forEach(function(s,i){
+      var op=SETTINGS.operators.find(function(o){return o.name===s.op;})||{};
+      var color=op.color||'var(--b5)';
+      var initials=s.op.trim().split(/\s+/).map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
+      var dateStr=s.date?new Date(s.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})+' · ':'';
+      html+='<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--radius-sm);background:var(--bg);margin-bottom:5px;">'
+        +'<div style="width:30px;height:30px;border-radius:50%;background:'+color+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;">'+initials+'</div>'
+        +'<div style="flex:1;min-width:0;">'
+        +'<div style="font-size:13px;font-weight:600;color:var(--text);">'+s.op+'</div>'
+        +'<div style="font-size:11px;color:var(--text-faint);">'+dateStr+(s.timeStr||s.hrs+' hrs')+'</div>'
+        +'</div>'
+        +'<div style="font-size:13px;font-weight:700;color:var(--b7);white-space:nowrap;">'+s.hrs+' hrs</div>'
+        +'</div>';
+    });
+  } else {
+    html+='<div style="font-size:13px;color:var(--text-faint);padding:8px 0;">No matched operator shifts found.</div>';
+  }
+  if(unmatched.length){
+    html+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--a6);margin:14px 0 8px;display:flex;align-items:center;gap:6px;">'
+      +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+      +'Unmatched events · assign an operator</div>';
+    unmatched.forEach(function(u,i){
+      var ops=SETTINGS.operators.filter(function(o){return o.name&&o.visible!==false;});
+      var opOpts='<option value="">-- skip --</option>'+ops.map(function(o){return '<option value="'+o.name+'">'+o.name+'</option>';}).join('');
+      var dateStr=u.date?new Date(u.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})+' · ':'';
+      var hrs=gcalEventHours(u.ev);
+      html+='<div style="padding:8px 10px;border-radius:var(--radius-sm);background:#fef7e8;border:1px solid var(--a2);margin-bottom:6px;">'
+        +'<div style="font-size:12px;font-weight:600;color:var(--a7);margin-bottom:5px;">'+u.title+'</div>'
+        +'<div style="font-size:11px;color:var(--a6);margin-bottom:8px;">'+dateStr+(u.timeStr||'')+(hrs?' · '+hrs+' hrs':'')+'</div>'
+        +'<div style="display:flex;align-items:center;gap:8px;">'
+        +'<select data-unmatched-idx="'+i+'" data-hrs="'+hrs+'" data-date="'+(u.date||'')+'" '
+        +'onchange="gcalAssignUnmatched(this)" '
+        +'style="flex:1;font-family:'DM Sans',sans-serif;font-size:12px;border:1px solid var(--a3);border-radius:var(--radius-sm);padding:5px 8px;outline:none;background:var(--surface);">'
+        +opOpts+'</select>'
+        +'</div></div>';
+    });
+  }
+  if(body)body.innerHTML=html;
+  if(applyBtn){applyBtn.style.display=matched.length?'inline-flex':'none';applyBtn.textContent=mode==='today'?'Apply to Today':'Apply to Payouts';}
+  if(modal)modal.style.display='flex';
+}
+
+function gcalAssignUnmatched(sel){
+  var op=sel.value;
+  var hrs=parseFloat(sel.dataset.hrs)||0;
+  var date=sel.dataset.date||'';
+  if(!op)return;
+  if(_gcalPendingMode==='enter'){
+    _gcalPendingShifts.push({op,hrs,title:'(assigned)',timeStr:''});
+  } else {
+    _gcalPendingShifts.push({op,hrs,date,title:'(assigned)',timeStr:''});
+  }
+  sel.closest('div[style*="fef7e8"]').style.background='var(--g0)';
+  sel.closest('div[style*="fef7e8"]').style.borderColor='var(--g1)';
+  sel.disabled=true;
+}
+
+function gcalApplyShifts(){
+  if(_gcalPendingMode==='enter'){
+    // Fill op1/op2 dropdowns + hours for today
+    var ops=_gcalPendingShifts.slice(0,2);
+    var sel1=document.getElementById('f-op1'),sel2=document.getElementById('f-op2');
+    var hrs1=document.getElementById('f-op1-hrs'),hrs2=document.getElementById('f-op2-hrs');
+    if(ops[0]&&sel1){sel1.value=ops[0].op;if(hrs1&&ops[0].hrs)hrs1.value=ops[0].hrs;}
+    if(ops[1]&&sel2){sel2.value=ops[1].op;if(hrs2&&ops[1].hrs)hrs2.value=ops[1].hrs;}
+    recalc(true);
+    showToast('Operators loaded from calendar','success');
+  } else {
+    // Build hours summary and inject into payouts body
+    gcalRenderPayoutShifts(_gcalPendingShifts);
+    showToast('Shifts loaded into payouts','success');
+  }
+  gcalCloseShiftsModal();
+}
+
+function gcalRenderPayoutShifts(shifts){
+  // Aggregate hours by operator
+  var byOp={};
+  shifts.forEach(function(s){
+    if(!byOp[s.op])byOp[s.op]={totalHrs:0,days:[]};
+    byOp[s.op].totalHrs+=s.hrs;
+    if(s.date)byOp[s.op].days.push({date:s.date,hrs:s.hrs});
+  });
+  // Build a summary card and prepend to payouts-body
+  var payBody=document.getElementById('payouts-body');
+  if(!payBody)return;
+  var rows=Object.entries(byOp).map(function(entry){
+    var op=entry[0],data=entry[1];
+    var opObj=SETTINGS.operators.find(function(o){return o.name===op;})||{};
+    var color=opObj.color||'var(--b5)';
+    var initials=op.trim().split(/\s+/).map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
+    return '<div class="payout-op-row" style="margin-bottom:4px;background:var(--b0);">'
+      +'<div style="display:flex;align-items:center;gap:8px;">'
+      +'<div style="width:26px;height:26px;border-radius:50%;background:'+color+';display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;">'+initials+'</div>'
+      +'<div class="payout-op-name">'+op+'</div></div>'
+      +'<div style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:var(--b7);">'+data.totalHrs+' hrs</div>'
+      +'</div>';
+  }).join('');
+  var card='<div class="section-label" style="display:flex;align-items:center;gap:6px;margin-top:0;">'
+    +'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'
+    +'Calendar Shifts</div>'
+    +'<div class="card" style="padding:12px;margin-bottom:12px;">'
+    +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);margin-bottom:8px;">Hours by Operator</div>'
+    +rows
+    +'</div>';
+  payBody.insertAdjacentHTML('afterbegin',card);
+}
+
+function gcalCloseShiftsModal(){
+  var m=document.getElementById('gcal-shifts-modal');if(m)m.style.display='none';
+  var applyBtn=document.getElementById('gcal-shifts-apply-btn');if(applyBtn)applyBtn.style.display='inline-flex';
+  var title=document.getElementById('gcal-shifts-title');if(title)title.textContent='Calendar Shifts';
+}
+function gcalShiftsModalBg(e){if(e.target===document.getElementById('gcal-shifts-modal'))gcalCloseShiftsModal();}
+
+// Call gcalUpdateUI whenever settings open
+(function(){
+  var _orig=window.openProfileModal;
+  if(typeof _orig==='function'){
+    window.openProfileModal=function(){_orig.apply(this,arguments);setTimeout(gcalUpdateUI,100);};
+  }
+})();
+
+// ── PRODUCT UPDATE REVIEW ──
+var _pendingProdUpdate = null;
+
+async function checkPendingProductUpdates(){
+  if(!LOCATION_ID) return;
+  const{data,error} = await sb.from('product_updates')
+    .select('id,changes,pushed_at')
+    .eq('location_id', LOCATION_ID)
+    .eq('status','pending')
+    .order('pushed_at', {ascending:false})
+    .limit(1)
+    .single();
+  if(error||!data) return;
+  _pendingProdUpdate = data;
+  openProdUpdateModal(data);
+}
+
+function openProdUpdateModal(update){
+  const changes = update.changes || [];
+  if(!changes.length) return;
+  const modal  = document.getElementById('prod-update-modal');
+  const meta   = document.getElementById('prod-update-meta');
+  const rows   = document.getElementById('prod-update-rows');
+  if(!modal||!meta||!rows) return;
+
+  const dt = new Date(update.pushed_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  const adds    = changes.filter(function(c){return c.type==='add';}).length;
+  const removes = changes.filter(function(c){return c.type==='remove';}).length;
+  const edits   = changes.filter(function(c){return c.type==='change';}).length;
+  const parts   = [];
+  if(adds)    parts.push(adds+' new product'+(adds>1?'s':''));
+  if(removes) parts.push(removes+' removed');
+  if(edits)   parts.push(edits+' updated');
+  meta.textContent = 'Pushed '+dt+' · '+parts.join(', ');
+
+  // Type colors
+  var typeColors = {add:'#eaf6eb',remove:'#FCEBEB',change:'#fef7e8'};
+  var typeBorder = {add:'#b8e0bc',remove:'#F7C1C1',change:'var(--a1)'};
+  var typeText   = {add:'var(--g5)',remove:'#A32D2D',change:'var(--a7)'};
+  var typeLabel  = {add:'New','remove':'Removed',change:'Changed'};
+
+  var html = '';
+  changes.forEach(function(ch, i){
+    var bgc  = typeColors[ch.type]  || 'var(--bg)';
+    var bdc  = typeBorder[ch.type] || 'var(--border-light)';
+    var tc   = typeText[ch.type]   || 'var(--text-muted)';
+    var lbl  = ch.type==='add'?'New':ch.type==='remove'?'Removed':'Changed';
+    var detail = '';
+    if(ch.type==='change' && ch.diffs){
+      detail = ch.diffs.map(function(d){
+        return '<span style="color:var(--text-faint);">'+d.field.toUpperCase()+':</span> '
+          +'<s style="color:#A32D2D;">'+escHtml(String(d.from||''))+'</s>'
+          +' → <strong style="color:var(--g5);">'+escHtml(String(d.to||''))+'</strong>';
+      }).join(' &nbsp;&middot;&nbsp; ');
+    } else if(ch.type==='add'){
+      detail = escHtml(ch.cat)+' &middot; VP '+escHtml(String(ch.vp||''))+' &middot; PAR '+escHtml(String(ch.par||''));
+    } else {
+      detail = escHtml(ch.cat);
+    }
+    html += '<div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border-light);">'
+      +'<label style="display:flex;align-items:center;gap:10px;flex:1;cursor:pointer;min-width:0;">'
+      +'<input type="checkbox" data-change-idx="'+i+'" checked '
+      +'style="width:17px;height:17px;flex-shrink:0;accent-color:var(--b6);cursor:pointer;"/>'
+      +'<div style="min-width:0;flex:1;">'
+      +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">'
+      +'<span style="font-size:13px;font-weight:700;color:var(--text);">'+escHtml(ch.name)+'</span>'
+      +'<span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;background:'+bgc+';color:'+tc+';border:1px solid '+bdc+';">'+lbl+'</span>'
+      +'</div>'
+      +(detail?'<div style="font-size:11px;color:var(--text-faint);margin-top:2px;">'+detail+'</div>':'')
+      +'</div>'
+      +'</label>'
+      +'</div>';
+  });
+  rows.innerHTML = html;
+  modal.style.display = 'flex';
+}
+
+async function applyProdUpdate(){
+  if(!_pendingProdUpdate) return;
+  const changes = _pendingProdUpdate.changes || [];
+  // Collect accepted change indices
+  const accepted = Array.from(document.querySelectorAll('#prod-update-rows input[type=checkbox]:checked'))
+    .map(function(cb){return parseInt(cb.dataset.changeIdx);});
+  if(!accepted.length){dismissProdUpdate();return;}
+
+  // Start from current product list
+  let prods = (SETTINGS.customProducts && SETTINGS.customProducts.length)
+    ? SETTINGS.customProducts.map(function(p){return p.slice();})
+    : (window.PRODUCTS||[]).map(function(p){return p.slice();});
+
+  accepted.forEach(function(idx){
+    const ch = changes[idx];
+    if(!ch) return;
+    if(ch.type==='add'){
+      // Add if not already present by SKU
+      if(!prods.find(function(p){return p[2]===ch.sku;})){
+        prods.push([ch.cat, ch.name, ch.sku, ch.vp, ch.par]);
+      }
+    } else if(ch.type==='remove'){
+      prods = prods.filter(function(p){return p[2]!==ch.sku;});
+    } else if(ch.type==='change'){
+      const p = prods.find(function(p){return p[2]===ch.sku;});
+      if(p && ch.diffs){
+        ch.diffs.forEach(function(d){
+          if(d.field==='name') p[1]=d.to;
+          if(d.field==='vp')   p[3]=d.to;
+          if(d.field==='par')  p[4]=d.to;
+          if(d.field==='cat')  p[0]=d.to;
+        });
+      }
+    }
+  });
+
+  // Save updated products
+  SETTINGS.customProducts = prods;
+  PRODUCTS = prods;
+  const{error} = await sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID);
+  if(error){showToast('Apply failed: '+error.message,'error');return;}
+
+  // Mark update as reviewed
+  await sb.from('product_updates').update({status:'reviewed',reviewed_at:new Date().toISOString()}).eq('id',_pendingProdUpdate.id);
+
+  document.getElementById('prod-update-modal').style.display='none';
+  _pendingProdUpdate = null;
+  showToast(accepted.length+' product change'+(accepted.length>1?'s':'')+' applied','success');
+}
+
+async function dismissProdUpdate(){
+  if(_pendingProdUpdate){
+    await sb.from('product_updates').update({status:'dismissed',reviewed_at:new Date().toISOString()}).eq('id',_pendingProdUpdate.id);
+    _pendingProdUpdate = null;
+  }
+  const modal = document.getElementById('prod-update-modal');
+  if(modal) modal.style.display='none';
+}
+
 // ── CVA: EXPORT PDF ──
 function cvaExportPDF(){
   var btn=document.getElementById('cva-pdf-btn');
@@ -4977,8 +5947,6 @@ function cvaExportPDF(){
   function doExport(){
     var jsPDF=window.jspdf&&window.jspdf.jsPDF;
     if(!jsPDF){if(btn){btn.textContent='Export PDF';btn.disabled=false;}return;}
-
-    // ── SETUP ──
     var doc=new jsPDF({orientation:'portrait',unit:'pt',format:'letter'});
     var PW=612,PH=792,ML=44,MR=44,MT=36,CW=PW-ML-MR;
     var y=MT;
@@ -4987,329 +5955,185 @@ function cvaExportPDF(){
     var today=new Date();
     var dateStr=today.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
     var modeLabel=mode==='profit'?'Profit Goal Mode':'Sales Goal Mode';
-
     var C={green:'#2e7a35',greenLight:'#eaf6eb',greenBorder:'#b8e0bc',
            blue:'#607e96',blueDark:'#354e62',text:'#354e62',muted:'#5b7087',
            faint:'#8fa3b3',border:'#cdd6e0',borderLight:'#e2e9f0',
            surface:'#ffffff',bg:'#f5f8fb',rowAlt:'#f7f9fb'};
-
     function fD(v){return '$'+Math.round(v).toLocaleString();}
     function fF(v){return '$'+parseFloat(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
-
-    // ── COMPUTED VALUES ──
     var fixed=cvaGetFixed();
     var avgP=cvaOverallAvgPrice()||11.5;
     var avgW=cvaOverallWtd()||7.2;
     var hrs=cvaGetHrs()||8;
     var wage=cvaGetWage();
     var breakEven=cvaCalcBreakEven();
-
-    // Benchmarks: cvaCalcTarget returns daily rev — multiply by 26
     var bench=[
-      {goal:'Break even', rev:breakEven,       note:'$0 profit'},
-      {goal:'$3,000 / mo',rev:cvaCalcTarget(3000)*26, note:''},
-      {goal:'$5,000 / mo',rev:cvaCalcTarget(5000)*26, note:''},
+      {goal:'Break even',rev:breakEven,note:'$0 profit'},
+      {goal:'$3,000 / mo',rev:cvaCalcTarget(3000)*26,note:''},
+      {goal:'$5,000 / mo',rev:cvaCalcTarget(5000)*26,note:''},
       {goal:'$10,000 / mo',rev:cvaCalcTarget(10000)*26,note:''}
     ];
-
     var goalRev,goalProfit;
-    if(mode==='profit'){
-      goalRev=cvaCalcRevFromProfit(_cvaProfVal);
-      goalProfit=_cvaProfVal;
-    } else {
-      var sl=document.getElementById('cva-rev-slider');
-      goalRev=sl?Math.round((parseInt(sl.value,10)||0)/100)*100:0;
-      goalProfit=cvaRevCalcProfit(goalRev).profit||0;
-    }
+    if(mode==='profit'){goalRev=cvaCalcRevFromProfit(_cvaProfVal);goalProfit=_cvaProfVal;}
+    else{var sl=document.getElementById('cva-rev-slider');goalRev=sl?Math.round((parseInt(sl.value,10)||0)/100)*100:0;goalProfit=cvaRevCalcProfit(goalRev).profit||0;}
     var goalDaily=Math.round(goalRev/26);
     var goalDrinks=Math.ceil(goalRev/(avgP*26));
     var goalDPH=(goalDrinks/hrs).toFixed(1);
     var r2=cvaRevCalcProfit(goalRev);
-
-    // Mix: index order is Shakes[0], Mega Teas[1], Chillers[2], Protein Coffee[3], Other[4]
     var mixGenLabels=['Shake drinks','Tea drinks','Chiller drinks','Coffee drinks','Other'];
     var mixColors=['#607e96','#2e7a35','#c47c0a','#534AB7','#8fa3b3'];
     var teaGenLabels=['Tea type A','Tea type B','Tea type C','Tea type D'];
-
-    // ── SECTION TITLE HELPER ──
     function secTitle(label,sx,sw,sy){
-      doc.setFont('helvetica','bold');
-      doc.setFontSize(7);
-      doc.setTextColor(C.faint);
-      doc.text(label,sx,sy);
-      doc.setDrawColor(C.borderLight);
-      doc.setLineWidth(0.4);
-      doc.line(sx,sy+3,sx+sw,sy+3);
-      return sy+11;
+      doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(C.faint);
+      doc.text(label,sx,sy);doc.setDrawColor(C.borderLight);doc.setLineWidth(0.4);
+      doc.line(sx,sy+3,sx+sw,sy+3);return sy+11;
     }
-
-    // ── HEADER ──
-    doc.setFillColor(C.green);
-    doc.rect(ML,y,CW,2,'F');
-    y+=8;
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(15);
-    doc.setTextColor(C.blueDark);
+    doc.setFillColor(C.green);doc.rect(ML,y,CW,2,'F');y+=8;
+    doc.setFont('helvetica','bold');doc.setFontSize(15);doc.setTextColor(C.blueDark);
     doc.text(clubName,ML,y+12);
-    doc.setFont('helvetica','normal');
-    doc.setFontSize(8.5);
-    doc.setTextColor(C.muted);
+    doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(C.muted);
     doc.text('Cost vs. Actuals Report',PW-MR,y+5,{align:'right'});
     doc.text(dateStr,PW-MR,y+15,{align:'right'});
-    doc.setFillColor(C.greenLight);
-    doc.setDrawColor(C.greenBorder);
+    doc.setFillColor(C.greenLight);doc.setDrawColor(C.greenBorder);
     doc.roundedRect(PW-MR-70,y+20,70,13,3,3,'FD');
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(7.5);
-    doc.setTextColor(C.green);
+    doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(C.green);
     doc.text(modeLabel,PW-MR-35,y+28,{align:'center'});
-    y+=42;
-    doc.setDrawColor(C.border);
-    doc.setLineWidth(0.5);
-    doc.line(ML,y,PW-MR,y);
-    y+=10;
-
-    // ── GOAL SUMMARY (3 stat cards) ──
+    y+=42;doc.setDrawColor(C.border);doc.setLineWidth(0.5);doc.line(ML,y,PW-MR,y);y+=10;
     y=secTitle('GOAL SUMMARY',ML,CW,y);
     var sW=(CW-12)/3;
     var statDefs=[
-      {label:mode==='profit'?'Profit goal':'Daily sales target',
-       val:mode==='profit'?fD(goalProfit):fD(goalDaily),
-       sub:mode==='profit'?'per month take-home':fD(goalRev)+' / mo',color:C.green},
+      {label:mode==='profit'?'Profit goal':'Daily sales target',val:mode==='profit'?fD(goalProfit):fD(goalDaily),sub:mode==='profit'?'per month take-home':fD(goalRev)+' / mo',color:C.green},
       {label:'Drinks / day',val:String(goalDrinks),sub:'at avg '+fF(avgP),color:C.blueDark},
       {label:'Drinks / hour',val:String(goalDPH),sub:hrs+' hr shift',color:C.blueDark}
     ];
     statDefs.forEach(function(s,i){
-      var sx=ML+i*(sW+6);
-      doc.setFillColor(C.bg);
-      doc.roundedRect(sx,y,sW,38,3,3,'F');
-      doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(C.faint);
-      doc.text(s.label,sx+7,y+10);
-      doc.setFont('helvetica','bold');doc.setFontSize(14);doc.setTextColor(s.color);
-      doc.text(s.val,sx+7,y+25);
-      doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(C.faint);
-      doc.text(s.sub,sx+7,y+34);
-    });
-    y+=46;
-
-    // ── BENCHMARKS ──
+      var sx=ML+i*(sW+6);doc.setFillColor(C.bg);doc.roundedRect(sx,y,sW,38,3,3,'F');
+      doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(C.faint);doc.text(s.label,sx+7,y+10);
+      doc.setFont('helvetica','bold');doc.setFontSize(14);doc.setTextColor(s.color);doc.text(s.val,sx+7,y+25);
+      doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(C.faint);doc.text(s.sub,sx+7,y+34);
+    });y+=46;
     y=secTitle('PROFIT BENCHMARKS \xb7 MONTHLY REVENUE NEEDED',ML,CW,y);
     var bW=(CW-12)/4;
     bench.forEach(function(b,i){
-      var bx=ML+i*(bW+4);
-      doc.setFillColor(C.surface);doc.setDrawColor(C.borderLight);doc.setLineWidth(0.4);
+      var bx=ML+i*(bW+4);doc.setFillColor(C.surface);doc.setDrawColor(C.borderLight);doc.setLineWidth(0.4);
       doc.roundedRect(bx,y,bW,34,3,3,'FD');
-      doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(C.faint);
-      doc.text(b.goal,bx+bW/2,y+9,{align:'center'});
-      doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(C.blue);
-      doc.text(fD(b.rev),bx+bW/2,y+22,{align:'center'});
+      doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(C.faint);doc.text(b.goal,bx+bW/2,y+9,{align:'center'});
+      doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(C.blue);doc.text(fD(b.rev),bx+bW/2,y+22,{align:'center'});
       if(b.note){doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(C.faint);doc.text(b.note,bx+bW/2,y+30,{align:'center'});}
-    });
-    y+=42;
-
-    // ── TWO COLUMNS: EXPENSES (left) + LABOR (right) ──
-    var colW=(CW-14)/2, colR=ML+colW+14;
-    var lyL=y, lyR=y;
-
-    // Left: Fixed expenses
+    });y+=42;
+    var colW=(CW-14)/2,colR=ML+colW+14;
+    var lyL=y,lyR=y;
     lyL=secTitle('FIXED MONTHLY EXPENSES',ML,colW,lyL);
     _cvaExpenses.forEach(function(e,i){
       if(i%2===0)doc.setFillColor(C.rowAlt);else doc.setFillColor(C.surface);
       doc.rect(ML,lyL,colW,12,'F');
-      doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(C.muted);
-      doc.text(e.l,ML+5,lyL+8.5);
-      doc.setFont('helvetica','bold');doc.setTextColor(C.text);
-      doc.text(fF(e.v),ML+colW-4,lyL+8.5,{align:'right'});
+      doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(C.muted);doc.text(e.l,ML+5,lyL+8.5);
+      doc.setFont('helvetica','bold');doc.setTextColor(C.text);doc.text(fF(e.v),ML+colW-4,lyL+8.5,{align:'right'});
       lyL+=12;
     });
-    doc.setDrawColor(C.border);doc.setLineWidth(0.6);doc.line(ML,lyL,ML+colW,lyL);
-    lyL+=8;
+    doc.setDrawColor(C.border);doc.setLineWidth(0.6);doc.line(ML,lyL,ML+colW,lyL);lyL+=8;
     doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(C.green);
-    doc.text('Total',ML+5,lyL);doc.text(fF(fixed),ML+colW-4,lyL,{align:'right'});
-    lyL+=9;
+    doc.text('Total',ML+5,lyL);doc.text(fF(fixed),ML+colW-4,lyL,{align:'right'});lyL+=9;
     doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(C.faint);
-    doc.text(fF(fixed/26)+' / operating day',ML+5,lyL);
-    lyL+=12;
-
-    // Right: Labor
+    doc.text(fF(fixed/26)+' / operating day',ML+5,lyL);lyL+=12;
     lyR=secTitle('LABOR ASSUMPTIONS',colR,colW,lyR);
-    var labRows=[
-      {l:'Hourly wage',v:fF(wage)},
-      {l:'Shift length',v:hrs+' hrs'},
-      {l:'Cost / operator / day',v:fD(wage*hrs)}
-    ];
+    var labRows=[{l:'Hourly wage',v:fF(wage)},{l:'Shift length',v:hrs+' hrs'},{l:'Cost / operator / day',v:fD(wage*hrs)}];
     labRows.forEach(function(r,i){
       if(i%2===0)doc.setFillColor(C.rowAlt);else doc.setFillColor(C.surface);
       doc.rect(colR,lyR,colW,12,'F');
-      doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(C.muted);
-      doc.text(r.l,colR+5,lyR+8.5);
-      doc.setFont('helvetica','bold');doc.setTextColor(C.text);
-      doc.text(r.v,colR+colW-4,lyR+8.5,{align:'right'});
-      lyR+=12;
+      doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(C.muted);doc.text(r.l,colR+5,lyR+8.5);
+      doc.setFont('helvetica','bold');doc.setTextColor(C.text);doc.text(r.v,colR+colW-4,lyR+8.5,{align:'right'});lyR+=12;
     });
-    lyR+=6;
-    doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(C.faint);
-    doc.text('STAFFING TIERS',colR+5,lyR);lyR+=9;
-    var activeDrinks=goalDrinks;
-    var foundActive=false;
+    lyR+=6;doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(C.faint);doc.text('STAFFING TIERS',colR+5,lyR);lyR+=9;
+    var activeDrinks=goalDrinks,foundActive=false;
     _cvaTiers.forEach(function(t){
       if(t.ops===null)return;
-      var isActive=!foundActive&&(t.max===null||activeDrinks<=t.max);
-      if(isActive)foundActive=true;
-      if(isActive){
-        doc.setFillColor(C.greenLight);doc.setDrawColor(C.greenBorder);doc.setLineWidth(0.3);
-        doc.roundedRect(colR,lyR,colW,12,2,2,'FD');
-        doc.setTextColor(C.green);
-      } else {
-        doc.setFillColor(C.surface);doc.setTextColor(C.muted);
-      }
+      var isActive=!foundActive&&(t.max===null||activeDrinks<=t.max);if(isActive)foundActive=true;
+      if(isActive){doc.setFillColor(C.greenLight);doc.setDrawColor(C.greenBorder);doc.setLineWidth(0.3);doc.roundedRect(colR,lyR,colW,12,2,2,'FD');doc.setTextColor(C.green);}
+      else{doc.setFillColor(C.surface);doc.setTextColor(C.muted);}
       doc.setFont('helvetica',isActive?'bold':'normal');doc.setFontSize(7.5);
-      var rangeLabel=t.max?'Up to '+t.max+' drinks':'160+ drinks';
-      doc.text(rangeLabel,colR+5,lyR+8.5);
-      doc.setFont('helvetica','bold');
-      doc.text((t.ops+1)+' staff',colR+colW-4,lyR+8.5,{align:'right'});
-      lyR+=12;
-    });
-    lyR+=8;
-
+      doc.text(t.max?'Up to '+t.max+' drinks':'160+ drinks',colR+5,lyR+8.5);
+      doc.setFont('helvetica','bold');doc.text((t.ops+1)+' staff',colR+colW-4,lyR+8.5,{align:'right'});lyR+=12;
+    });lyR+=8;
     y=Math.max(lyL,lyR);
-
-    // ── TWO COLUMNS: PRODUCT MARGINS (left) + SALES MIX (right) ──
-    var c2L=y, c2R=y;
-
-    // Left: Product margins
+    var c2L=y,c2R=y;
     c2L=secTitle('PRODUCT MARGINS',ML,colW,c2L);
     var cws=[colW*0.40,colW*0.17,colW*0.17,colW*0.14,colW*0.12];
     var hdrs=['Category','Cost','Sell','Profit','Margin'];
     var cx=ML;
-    hdrs.forEach(function(h,i){
-      doc.setFont('helvetica','bold');doc.setFontSize(6.5);doc.setTextColor(C.faint);
-      doc.text(h,i===0?cx+4:cx+cws[i]-2,c2L,{align:i===0?'left':'right'});
-      cx+=cws[i];
-    });
+    hdrs.forEach(function(h,i){doc.setFont('helvetica','bold');doc.setFontSize(6.5);doc.setTextColor(C.faint);doc.text(h,i===0?cx+4:cx+cws[i]-2,c2L,{align:i===0?'left':'right'});cx+=cws[i];});
     c2L+=3;doc.setDrawColor(C.borderLight);doc.setLineWidth(0.3);doc.line(ML,c2L,ML+colW,c2L);c2L+=6;
     _cvaMix.forEach(function(cat,idx){
-      var pct=_cvaMixVals[idx];
-      var cost=cat.avgPrice-cat.profit;
-      var margin=cat.avgPrice>0?Math.round((cat.profit/cat.avgPrice)*100):0;
-      if(idx%2===0)doc.setFillColor(C.rowAlt);else doc.setFillColor(C.surface);
-      doc.rect(ML,c2L,colW,12,'F');
+      var cost=cat.avgPrice-cat.profit;var margin=cat.avgPrice>0?Math.round((cat.profit/cat.avgPrice)*100):0;
+      if(idx%2===0)doc.setFillColor(C.rowAlt);else doc.setFillColor(C.surface);doc.rect(ML,c2L,colW,12,'F');
       var row=[mixGenLabels[idx],fF(cost),fF(cat.avgPrice),fF(cat.profit),margin+'%'];
       cx=ML;
-      row.forEach(function(v,i){
-        doc.setFont('helvetica',i===3?'bold':'normal');doc.setFontSize(7.5);
-        doc.setTextColor(i===3?C.green:C.muted);
-        doc.text(v,i===0?cx+4:cx+cws[i]-2,c2L+8.5,{align:i===0?'left':'right'});
-        cx+=cws[i];
-      });
+      row.forEach(function(v,i){doc.setFont('helvetica',i===3?'bold':'normal');doc.setFontSize(7.5);doc.setTextColor(i===3?C.green:C.muted);doc.text(v,i===0?cx+4:cx+cws[i]-2,c2L+8.5,{align:i===0?'left':'right'});cx+=cws[i];});
       c2L+=12;
     });
     doc.setDrawColor(C.border);doc.setLineWidth(0.6);doc.line(ML,c2L,ML+colW,c2L);c2L+=8;
-    doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(C.muted);
-    doc.text('Wtd avg profit / drink',ML+4,c2L);
-    doc.setTextColor(C.green);doc.text(fF(avgW),ML+colW-4,c2L,{align:'right'});
-    c2L+=12;
-
-    // Right: Sales mix bars
+    doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(C.muted);doc.text('Wtd avg profit / drink',ML+4,c2L);
+    doc.setTextColor(C.green);doc.text(fF(avgW),ML+colW-4,c2L,{align:'right'});c2L+=12;
     c2R=secTitle('SALES MIX',colR,colW,c2R);
     var barMax=colW-56;
     _cvaMixVals.forEach(function(pct,i){
-      doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(C.muted);
-      doc.text(mixGenLabels[i],colR+4,c2R+8);
+      doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(C.muted);doc.text(mixGenLabels[i],colR+4,c2R+8);
       doc.setFillColor(C.borderLight);doc.roundedRect(colR+54,c2R+2,barMax,7,2,2,'F');
-      doc.setFillColor(mixColors[i]||C.green);
-      doc.roundedRect(colR+54,c2R+2,Math.max(3,(pct/100)*barMax),7,2,2,'F');
-      doc.setFont('helvetica','bold');doc.setTextColor(C.text);
-      doc.text(pct+'%',colR+colW-2,c2R+8,{align:'right'});
-      c2R+=13;
+      doc.setFillColor(mixColors[i]||C.green);doc.roundedRect(colR+54,c2R+2,Math.max(3,(pct/100)*barMax),7,2,2,'F');
+      doc.setFont('helvetica','bold');doc.setTextColor(C.text);doc.text(pct+'%',colR+colW-2,c2R+8,{align:'right'});c2R+=13;
     });
-    c2R+=4;
-    doc.setFont('helvetica','bold');doc.setFontSize(6.5);doc.setTextColor(C.faint);
-    doc.text('TEA SUB-MIX',colR+4,c2R);c2R+=8;
+    c2R+=4;doc.setFont('helvetica','bold');doc.setFontSize(6.5);doc.setTextColor(C.faint);doc.text('TEA SUB-MIX',colR+4,c2R);c2R+=8;
     _cvaTeaVals.forEach(function(pct,i){
-      doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(C.muted);
-      doc.text(teaGenLabels[i]||('Tea type '+(i+1)),colR+4,c2R+7);
+      doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(C.muted);doc.text(teaGenLabels[i]||('Tea type '+(i+1)),colR+4,c2R+7);
       doc.setFillColor(C.borderLight);doc.roundedRect(colR+54,c2R+1,barMax,6,2,2,'F');
-      doc.setFillColor(C.green);
-      doc.roundedRect(colR+54,c2R+1,Math.max(2,(pct/100)*barMax),6,2,2,'F');
-      doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(C.text);
-      doc.text(pct+'%',colR+colW-2,c2R+7,{align:'right'});
-      c2R+=12;
+      doc.setFillColor(C.green);doc.roundedRect(colR+54,c2R+1,Math.max(2,(pct/100)*barMax),6,2,2,'F');
+      doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(C.text);doc.text(pct+'%',colR+colW-2,c2R+7,{align:'right'});c2R+=12;
     });
-
     y=Math.max(c2L,c2R)+8;
-
-    // ── PROFIT RESULT BOX ──
     var boxH=50;
     doc.setFillColor(goalProfit>=0?C.greenLight:'#FCEBEB');
-    doc.setDrawColor(goalProfit>=0?C.greenBorder:'#F7C1C1');
-    doc.setLineWidth(0.5);
+    doc.setDrawColor(goalProfit>=0?C.greenBorder:'#F7C1C1');doc.setLineWidth(0.5);
     doc.roundedRect(ML,y,CW,boxH,5,5,'FD');
     var profitColor=goalProfit>=0?'#27500A':'#A32D2D';
-    doc.setFont('helvetica','normal');doc.setFontSize(8);
-    doc.setTextColor(goalProfit>=0?C.green:'#A32D2D');
+    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(goalProfit>=0?C.green:'#A32D2D');
     doc.text('Estimated monthly result at '+fD(goalRev)+' revenue',ML+10,y+12);
     doc.setFont('helvetica','bold');doc.setFontSize(20);doc.setTextColor(profitColor);
     doc.text((goalProfit<0?'-':'')+fD(Math.abs(goalProfit)),ML+10,y+32);
-    doc.setFont('helvetica','normal');doc.setFontSize(7);
-    doc.setTextColor(goalProfit>=0?C.green:'#A32D2D');
+    doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(goalProfit>=0?C.green:'#A32D2D');
     doc.text('Fixed: -'+fD(r2.fixed)+'    Ingredients: -'+fD(r2.ing||0)+'    Labor: -'+fD(r2.lab||0),ML+10,y+43);
     doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(goalProfit>=0?C.green:'#A32D2D');
     doc.text('Break even',PW-MR-10,y+12,{align:'right'});
     doc.setFont('helvetica','bold');doc.setFontSize(13);doc.setTextColor(profitColor);
     doc.text(fD(breakEven)+' / mo',PW-MR-10,y+27,{align:'right'});
     doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(C.faint);
-    doc.text(fD(breakEven/26)+' / day',PW-MR-10,y+38,{align:'right'});
-    y+=boxH+8;
-
-    // ── FOOTER ──
-    doc.setDrawColor(C.borderLight);doc.setLineWidth(0.4);
-    doc.line(ML,PH-24,PW-MR,PH-24);
+    doc.text(fD(breakEven/26)+' / day',PW-MR-10,y+38,{align:'right'});y+=boxH+8;
+    doc.setDrawColor(C.borderLight);doc.setLineWidth(0.4);doc.line(ML,PH-24,PW-MR,PH-24);
     doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(C.faint);
     doc.text('MyClubTracker \xb7 myclubtracker.com',ML,PH-13);
     doc.text('For planning purposes only \xb7 not financial advice',PW-MR,PH-13,{align:'right'});
-
-    // ── SAVE ──
     var defaultName=(clubName.replace(/[^a-z0-9]/gi,'_').toLowerCase()||'club')+'_cva_'
       +today.getFullYear()+('0'+(today.getMonth()+1)).slice(-2)+('0'+today.getDate()).slice(-2)+'.pdf';
     var pdfBlob=doc.output('blob');
     function resetBtn(){if(btn){btn.innerHTML='<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8M5 7l3 3 3-3M3 12.5h10"/></svg> Export PDF';btn.disabled=false;}}
     if(window.showSaveFilePicker){
-      window.showSaveFilePicker({
-        suggestedName:defaultName,
-        types:[{description:'PDF Document',accept:{'application/pdf':['.pdf']}}]
-      }).then(function(fileHandle){
-        return fileHandle.createWritable().then(function(writable){
-          return writable.write(pdfBlob).then(function(){return writable.close();});
-        });
-      }).then(function(){resetBtn();})
-      .catch(function(err){
-        if(err.name!=='AbortError'){
-          var url=URL.createObjectURL(pdfBlob);
-          var a=document.createElement('a');a.href=url;a.download=defaultName;a.click();
-          setTimeout(function(){URL.revokeObjectURL(url);},2000);
-        }
-        resetBtn();
-      });
+      window.showSaveFilePicker({suggestedName:defaultName,types:[{description:'PDF Document',accept:{'application/pdf':['.pdf']}}]})
+        .then(function(fh){return fh.createWritable().then(function(w){return w.write(pdfBlob).then(function(){return w.close();});});})
+        .then(function(){resetBtn();})
+        .catch(function(err){if(err.name!=='AbortError'){var u=URL.createObjectURL(pdfBlob);var a=document.createElement('a');a.href=u;a.download=defaultName;a.click();setTimeout(function(){URL.revokeObjectURL(u);},2000);}resetBtn();});
     } else {
-      var url=URL.createObjectURL(pdfBlob);
-      var a=document.createElement('a');a.href=url;a.download=defaultName;a.click();
-      setTimeout(function(){URL.revokeObjectURL(url);},2000);
-      resetBtn();
+      var u=URL.createObjectURL(pdfBlob);var a=document.createElement('a');a.href=u;a.download=defaultName;a.click();
+      setTimeout(function(){URL.revokeObjectURL(u);},2000);resetBtn();
     }
-    if(btn){btn.innerHTML='<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8M5 7l3 3 3-3M3 12.5h10"/></svg> Export PDF';btn.disabled=false;}
   }
-
-  if(window.jspdf&&window.jspdf.jsPDF){
-    doExport();
-  } else {
+  if(window.jspdf&&window.jspdf.jsPDF){doExport();}
+  else{
     var s=document.createElement('script');
     s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-    s.onload=doExport;
-    s.onerror=function(){if(btn){btn.textContent='Export PDF';btn.disabled=false;}};
+    s.onload=doExport;s.onerror=function(){if(btn){btn.textContent='Export PDF';btn.disabled=false;}};
     document.head.appendChild(s);
   }
 }
+
 // ── CVA: INIT ──
 (function(){
   var sl=document.getElementById('cva-rev-slider');
@@ -7283,17 +8107,99 @@ function loadInvSnapshot(id){
   renderInventory();
   showToast('Snapshot loaded -- save to overwrite','');
 }
-async function saveInvSnapshot(){
+var _snapSaveInitials='';
+var _snapSaveColor='';
+
+function saveInvSnapshot(){
   if(IS_ADMIN_VIEW){showToast('Admin view -- cannot save','error');return;}
-  // Mark rows that were explicitly filled (including 0) with filled:true
-  // Rows absent from invHave are saved as have:null, filled:false
-  const entries=PRODUCTS.map(p=>{
+  _snapSaveInitials='';
+  _snapSaveColor='';
+  // Build operator chips from SETTINGS.operators
+  const chips=document.getElementById('snap-save-op-chips');
+  if(chips){
+    chips.innerHTML='';
+    (SETTINGS.operators||[]).forEach(function(op,i){
+      if(!op.name||op.visible===false)return;
+      const initials=op.name.trim().split(/\s+/).map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
+      const color=op.color||_OP_PALETTE[i%_OP_PALETTE.length];
+      const chip=document.createElement('div');
+      chip.style.cssText='display:flex;align-items:center;gap:7px;padding:6px 12px;border-radius:20px;border:1.5px solid var(--border-light);background:var(--bg);cursor:pointer;transition:all 0.12s;';
+      chip.innerHTML='<div style="width:26px;height:26px;border-radius:50%;background:'+color+';display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;">'+initials+'</div>'
+        +'<span style="font-size:12px;font-weight:600;color:var(--text);">'+op.name+'</span>';
+      chip.dataset.initials=initials;
+      chip.dataset.color=color;
+      chip.onclick=function(){
+        document.querySelectorAll('#snap-save-op-chips > div').forEach(function(c){c.style.borderColor='var(--border-light)';c.style.background='var(--bg)';});
+        chip.style.borderColor=color;chip.style.background=color+'22';
+        document.getElementById('snap-save-initials-input').value='';
+        document.getElementById('snap-save-avatar-preview').textContent=initials;
+        document.getElementById('snap-save-avatar-preview').style.background=color;
+        _snapSaveInitials=initials;_snapSaveColor=color;
+        snapSaveUpdatePreview();
+      };
+      chips.appendChild(chip);
+    });
+  }
+  const inp=document.getElementById('snap-save-initials-input');
+  if(inp)inp.value='';
+  const nameInp=document.getElementById('snap-save-name');
+  if(nameInp)nameInp.value='';
+  const prev=document.getElementById('snap-save-avatar-preview');
+  if(prev){prev.textContent='?';prev.style.background='var(--b5)';}
+  snapSaveUpdatePreview();
+  const modal=document.getElementById('snap-save-modal');
+  if(modal){modal.style.display='flex';setTimeout(function(){var n=document.getElementById('snap-save-name');if(n)n.focus();},80);}
+}
+
+function snapSaveInitialsInput(val){
+  const v=(val||'').toUpperCase().slice(0,3);
+  const prev=document.getElementById('snap-save-avatar-preview');
+  if(prev){prev.textContent=v||'?';prev.style.background=v?'var(--b7)':'var(--b5)';}
+  if(v){
+    document.querySelectorAll('#snap-save-op-chips > div').forEach(function(ch){ch.style.borderColor='var(--border-light)';ch.style.background='var(--bg)';});
+    _snapSaveInitials=v;_snapSaveColor='var(--b7)';
+  } else {
+    _snapSaveInitials='';_snapSaveColor='';
+  }
+  snapSaveUpdatePreview();
+}
+
+function snapSaveUpdatePreview(){
+  const name=document.getElementById('snap-save-name')?.value.trim()||'';
+  const initials=_snapSaveInitials;
+  const color=_snapSaveColor||'var(--b5)';
+  const av=document.getElementById('snap-save-preview-avatar');
+  const lbl=document.getElementById('snap-save-preview-label');
+  const dt=document.getElementById('snap-save-preview-dt');
+  const now=new Date().toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
+  if(av){av.textContent=initials||'';av.style.background=color;}
+  var labelParts=[];
+  if(name)labelParts.push(name);
+  if(initials)labelParts.push(initials);
+  if(lbl)lbl.textContent=labelParts.join(' · ')||'(no name or initials)';
+  if(dt)dt.textContent=now;
+}
+
+async function confirmSaveSnapshot(){
+  const name=document.getElementById('snap-save-name')?.value.trim()||'';
+  const initials=_snapSaveInitials||'';
+  const color=_snapSaveColor||'';
+  closeSnapSaveModal();
+  const entries=PRODUCTS.map(function(p){
     const filled=invHave[p[2]]!==undefined&&invHave[p[2]]!==null;
     return{sku:p[2],name:p[1],have:filled?invHave[p[2]]:null,filled};
   });
-  const{data:ns,error}=await sb.from('inventory').insert({location_id:LOCATION_ID,data:{entries}}).select().single();
-  if(error){showToast('Snapshot failed','error');return;}INV_SNAPSHOTS.unshift(ns);showToast('Snapshot saved ok','success');renderInvSnapPicker();renderDashboardWidgets();
+  var labelParts=[];
+  if(name)labelParts.push(name);
+  if(initials)labelParts.push(initials);
+  const label=labelParts.join(' · ')||null;
+  const{data:ns,error}=await sb.from('inventory').insert({location_id:LOCATION_ID,data:{entries,label,takenBy:{initials,color}}}).select().single();
+  if(error){showToast('Snapshot failed','error');return;}
+  INV_SNAPSHOTS.unshift(ns);showToast('Snapshot saved ok','success');renderInvSnapPicker();renderDashboardWidgets();
 }
+
+function closeSnapSaveModal(){document.getElementById('snap-save-modal').style.display='none';}
+function closeSnapSaveOnBg(e){if(e.target===document.getElementById('snap-save-modal'))closeSnapSaveModal();}
 function renderInvSnapPicker(){
   const picker=document.getElementById('inv-snapshot-picker');
   if(!picker)return;
@@ -7301,8 +8207,8 @@ function renderInvSnapPicker(){
   picker.innerHTML='<option value="">-- Current --</option>';
   INV_SNAPSHOTS.forEach(s=>{
     const dt=new Date(s.saved_at).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
-    const label=s.data?.label?`${s.data.label} -- ${dt}`:dt;
-    picker.innerHTML+=`<option value="${s.id}">${label}</option>`;
+    var snapLabel=s.data?.label?`${s.data.label} -- ${dt}`:dt;
+    picker.innerHTML+=`<option value="${s.id}">${snapLabel}</option>`;
   });
   picker.value=cur||'';
   const renameBtn=document.getElementById('inv-snap-rename-btn');
@@ -7542,7 +8448,7 @@ function renderOrderBody(){
       const dvSubStr=dvSub!=null?fmtVP(dvSub):'--';
       const oosInfo=isOos&&invOos[p.sku].expectedDate?`<span class="oos-badge">OOS - ${new Date(invOos[p.sku].expectedDate+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>`:(isOos?`<span class="oos-badge">OOS</span>`:'');
       html+=`<tr class="${rowClass}" id="order-row-${p.sku}">
-        <td><div class="inv-name-cell" style="display:flex;align-items:center;gap:7px;"><input type="checkbox" class="oos-check" tabindex="-1" title="Mark out of stock" ${isOos?'checked':''} onchange="toggleOos('${p.sku}','${escHtml(p.name)}',this)"/><div style="display:flex;flex-direction:column;overflow:hidden;min-width:0;">${(()=>{const parts=p.name.split(' - ');const main=parts[0];const sub=parts.slice(1).join(' - ');return `<div style="display:flex;align-items:baseline;gap:8px;overflow:hidden;"><span class="inv-name">${main}</span><span class="inv-sku inv-sku-desktop">${p.sku||''}</span></div>${sub?`<span class="inv-name-sub">${sub}</span>`:''}`;})()} ${oosInfo}</div></td>
+        <td><div class="inv-name-cell" style="display:flex;align-items:center;gap:7px;"><input type="checkbox" class="oos-check" tabindex="-1" title="Mark out of stock" ${isOos?'checked':''} onchange="toggleOos('${p.sku}','${escHtml(p.name)}',this)"/><div style="display:flex;align-items:baseline;gap:12px;overflow:hidden;"><span class="inv-name">${p.name}</span>${p.sku?`<span class="inv-sku">${p.sku}</span>`:''}</div>${oosInfo}</div></td>
         <td style="color:var(--b6);font-weight:700;">${p.need}</td>
         <td class="dv-product">${p.vp||'--'}</td>
         <td style="text-align:left;padding-left:8px;">${makeAssignBtn(p,isOos,assigned,ops)}</td>
@@ -7802,12 +8708,142 @@ function renderPayouts(){
         <span style="font-weight:700;font-size:13px;">Total Payouts</span>
         <span style="font-family:'Outfit',sans-serif;font-size:15px;font-weight:800;color:var(--g5)">${fmt$(grand)}</span>
       </div>
+      <div style="padding:8px 8px 0;margin-top:6px;">
+        <button onclick="openPayrollApproveModal()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:7px;padding:9px 14px;border-radius:var(--radius-sm);border:1.5px solid var(--g4);background:var(--g0);color:var(--g5);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Approve &amp; Post to Register
+        </button>
+      </div>
     </div>
     <div class="section-label">Daily Breakdown</div>
     ${dayRows}`;
 
   if(snapWrap)snapWrap.style.display='block';
   renderPayoutSnapshots();
+}
+
+// ── PAYROLL APPROVE & POST ──
+var _payrollPending = []; // [{payee, amount, hrs}]
+var _payrollFrom = '';
+var _payrollTo = '';
+
+function openPayrollApproveModal(){
+  const from = document.getElementById('payout-from')?.value;
+  const to   = document.getElementById('payout-to')?.value;
+  if(!from||!to){showToast('Load a date range first','error');return;}
+  _payrollFrom = from;
+  _payrollTo   = to;
+
+  // Collect operator totals from current rendered range
+  const fl = ALL_DAYS.filter(d=>d.date>=from&&d.date<=to);
+  const ot = {};
+  const ownerName = getOwnerOpName();
+  fl.forEach(function(d){
+    const data = d.data||{};
+    const ops  = [data.op1,data.op2].filter(Boolean);
+    const sh   = ops.length>0?(data.payouts||0)/ops.length:0;
+    ops.forEach(function(o){
+      const k = resolveAlias(o);
+      const isOwnerOp = ownerName&&o===ownerName&&data.ownerReinvest;
+      if(!isOwnerOp) ot[k]=(ot[k]||0)+sh;
+    });
+  });
+
+  _payrollPending = Object.entries(ot).map(function(e){return{payee:e[0],amount:e[1],hrs:null};});
+  if(!_payrollPending.length){showToast('No operator payouts in this range','error');return;}
+
+  // Build summary rows
+  const rowsEl = document.getElementById('payroll-approve-rows');
+  const rangeEl = document.getElementById('payroll-approve-range');
+  const totalEl = document.getElementById('payroll-approve-total');
+
+  const fromFmt = new Date(from+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const toFmt   = new Date(to+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  if(rangeEl) rangeEl.textContent = fromFmt+' – '+toFmt;
+
+  var total = 0;
+  var html  = '';
+  _payrollPending.forEach(function(p,i){
+    total += p.amount;
+    const op = (SETTINGS.operators||[]).find(function(o){return o.name===p.payee;})||{};
+    const color = op.color||'var(--b5)';
+    const initials = p.payee.trim().split(/\s+/).map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
+    html += '<div style="display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--border-light);">'
+      +'<div style="width:34px;height:34px;border-radius:50%;background:'+color+';display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;">'+initials+'</div>'
+      +'<div style="flex:1;">'
+      +'<div style="font-size:14px;font-weight:700;color:var(--text);">'+escHtml(p.payee)+'</div>'
+      +'<div style="font-size:11px;color:var(--text-faint);">Operator payout</div>'
+      +'</div>'
+      +'<div style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:var(--text);">$'+p.amount.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>'
+      +'</div>';
+  });
+  if(rowsEl) rowsEl.innerHTML = html;
+  if(totalEl) totalEl.textContent = '$'+total.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  // Pre-fill fields
+  const dateEl = document.getElementById('payroll-f-date');
+  if(dateEl) dateEl.value = new Date().toISOString().slice(0,10);
+  const acctSel = document.getElementById('payroll-f-account');
+  if(acctSel) acctSel.innerHTML = getPregAccounts().map(function(a){return '<option value="'+escHtml(a)+'">'+escHtml(a)+'</option>';}).join('');
+  const notesEl = document.getElementById('payroll-f-notes');
+  if(notesEl) notesEl.value = 'Payroll '+fromFmt+' – '+toFmt;
+  payrollMethodChange();
+
+  document.getElementById('payroll-approve-modal').style.display='flex';
+}
+
+function payrollMethodChange(){
+  const method = document.getElementById('payroll-f-method')?.value;
+  const row = document.getElementById('payroll-checknum-row');
+  if(row) row.style.display = (method==='check')?'flex':'none';
+}
+
+function closePayrollApproveModal(){
+  document.getElementById('payroll-approve-modal').style.display='none';
+}
+function payrollApproveBg(e){
+  if(e.target===document.getElementById('payroll-approve-modal')) closePayrollApproveModal();
+}
+
+async function postPayrollToRegister(){
+  const date     = document.getElementById('payroll-f-date')?.value;
+  const method   = document.getElementById('payroll-f-method')?.value||'check';
+  const checkNum = document.getElementById('payroll-f-checknum')?.value.trim()||'';
+  const account  = document.getElementById('payroll-f-account')?.value||'';
+  const notes    = document.getElementById('payroll-f-notes')?.value.trim()||'';
+
+  if(!date){showToast('Enter a payment date','error');return;}
+  if(!_payrollPending.length){showToast('No payroll entries to post','error');return;}
+
+  if(!SETTINGS.paymentLog) SETTINGS.paymentLog=[];
+
+  // Post one entry per payee; if check, auto-increment check numbers
+  let checkBase = checkNum ? parseInt(checkNum)||null : null;
+  _payrollPending.forEach(function(p,i){
+    const chk = (method==='check'&&checkBase) ? String(checkBase+i) : (method==='check'?checkNum:'');
+    SETTINGS.paymentLog.unshift({
+      id: Date.now().toString()+'_'+i,
+      payee: p.payee,
+      amount: parseFloat(p.amount.toFixed(2)),
+      date,
+      periodFrom: _payrollFrom,
+      periodTo:   _payrollTo,
+      method,
+      checkNum: chk,
+      account,
+      notes
+    });
+  });
+
+  const{error}=await sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID);
+  if(error){showToast('Post failed: '+error.message,'error');return;}
+
+  closePayrollApproveModal();
+  renderPaymentRegister();
+  showToast(_payrollPending.length+' payment'+(_payrollPending.length>1?'s':'')+' posted to register','success');
+  // Switch to register view
+  const regTab = document.getElementById('preg-tab-register');
+  if(regTab) regTab.click();
 }
 
 async function savePayoutSnapshot(){
