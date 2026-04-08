@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Privacy Policy — MyClubTracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet"/>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --ink:#1a2332;
+    --ink-2:#3d5166;
+    --ink-3:#6b7f91;
+    --rule:#dde4ec;
+    --bg:#f6f8fb;
+    --surface:#ffffff;
+    --green:#2e7a35;
+    --green-light:#eaf6eb;
+  }
+  html{background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;font-size:16px;line-height:1.7;}
+  body{min-height:100vh;}
+
+  /* NAV */
+  nav{
+    background:var(--surface);
+    border-bottom:1px solid var(--rule);
+    padding:0 24px;
+    display:flex;align-items:center;justify-content:space-between;
+    height:56px;
+    position:sticky;top:0;z-index:50;
+  }
+  .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+  .nav-logo-mark{
+    width:32px;height:32px;border-radius:8px;
+    background:var(--green);
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .nav-logo-mark svg{width:18px;height:18px;}
+  .nav-brand{font-family:'DM Serif Display',serif;font-size:16px;color:var(--ink);letter-spacing:-0.2px;}
+  .nav-back{font-size:13px;font-weight:500;color:var(--ink-3);text-decoration:none;display:flex;align-items:center;gap:5px;transition:color 0.15s;}
+  .nav-back:hover{color:var(--green);}
+
+  /* HERO */
+  .hero{
+    max-width:720px;margin:0 auto;
+    padding:64px 24px 48px;
+    border-bottom:1px solid var(--rule);
+  }
+  .hero-label{
+    display:inline-block;
+    font-size:11px;font-weight:500;letter-spacing:1.2px;text-transform:uppercase;
+    color:var(--green);background:var(--green-light);
+    padding:4px 12px;border-radius:20px;margin-bottom:20px;
+  }
+  .hero h1{
+    font-family:'DM Serif Display',serif;
+    font-size:clamp(32px,5vw,48px);
+    font-weight:400;
+    color:var(--ink);
+    line-height:1.15;
+    letter-spacing:-0.5px;
+    margin-bottom:16px;
+  }
+  .hero-meta{font-size:13px;color:var(--ink-3);}
+  .hero-meta span{margin-right:20px;}
+
+  /* CONTENT */
+  .content{max-width:720px;margin:0 auto;padding:48px 24px 80px;}
+
+  .toc{
+    background:var(--surface);border:1px solid var(--rule);border-radius:12px;
+    padding:24px 28px;margin-bottom:48px;
+  }
+  .toc-title{font-size:11px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--ink-3);margin-bottom:12px;}
+  .toc ol{padding-left:18px;display:flex;flex-direction:column;gap:6px;}
+  .toc a{font-size:14px;color:var(--ink-2);text-decoration:none;transition:color 0.15s;}
+  .toc a:hover{color:var(--green);}
+
+  section{margin-bottom:48px;}
+  section:last-child{margin-bottom:0;}
+
+  h2{
+    font-family:'DM Serif Display',serif;
+    font-size:22px;font-weight:400;
+    color:var(--ink);
+    margin-bottom:16px;
+    padding-bottom:10px;
+    border-bottom:1px solid var(--rule);
+    scroll-margin-top:72px;
+  }
+  p{font-size:15px;color:var(--ink-2);margin-bottom:14px;line-height:1.75;}
+  p:last-child{margin-bottom:0;}
+  ul,ol{padding-left:22px;margin-bottom:14px;}
+  li{font-size:15px;color:var(--ink-2);margin-bottom:6px;line-height:1.65;}
+  strong{color:var(--ink);font-weight:500;}
+
+  .callout{
+    background:var(--green-light);border-left:3px solid var(--green);
+    border-radius:0 8px 8px 0;
+    padding:14px 18px;margin:20px 0;
+  }
+  .callout p{font-size:14px;color:#1a4a1e;margin:0;}
+
+  /* CONTACT CARD */
+  .contact-card{
+    background:var(--surface);border:1px solid var(--rule);border-radius:12px;
+    padding:24px 28px;margin-top:20px;
+    display:flex;flex-direction:column;gap:6px;
+  }
+  .contact-card .name{font-size:15px;font-weight:500;color:var(--ink);}
+  .contact-card a{font-size:14px;color:var(--green);text-decoration:none;}
+  .contact-card a:hover{text-decoration:underline;}
+
+  /* FOOTER */
+  footer{
+    border-top:1px solid var(--rule);padding:24px;
+    text-align:center;font-size:12px;color:var(--ink-3);
+  }
+  footer a{color:var(--ink-3);text-decoration:none;}
+  footer a:hover{color:var(--green);}
+
+  @media(max-width:600px){
+    .hero{padding:40px 16px 32px;}
+    .content{padding:32px 16px 60px;}
+    .toc{padding:18px 20px;}
+    .contact-card{padding:18px 20px;}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="https://myclubtracker.com">
+    <div class="nav-logo-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+        <path d="M2 17l10 5 10-5"/>
+        <path d="M2 12l10 5 10-5"/>
+      </svg>
+    </div>
+    <span class="nav-brand">MyClubTracker</span>
+  </a>
+  <a class="nav-back" href="https://myclubtracker.com/app.html">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    Back to app
+  </a>
+</nav>
+
+<div class="hero">
+  <div class="hero-label">Legal</div>
+  <h1>Privacy Policy</h1>
+  <div class="hero-meta">
+    <span>Effective: April 8, 2026</span>
+    <span>Last updated: April 8, 2026</span>
+  </div>
+</div>
+
+<div class="content">
+
+  <div class="toc">
+    <div class="toc-title">Contents</div>
+    <ol>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#information-we-collect">Information we collect</a></li>
+      <li><a href="#google-calendar">Google Calendar integration</a></li>
+      <li><a href="#how-we-use">How we use your information</a></li>
+      <li><a href="#data-storage">Data storage &amp; security</a></li>
+      <li><a href="#sharing">Data sharing</a></li>
+      <li><a href="#your-rights">Your rights</a></li>
+      <li><a href="#cookies">Cookies &amp; local storage</a></li>
+      <li><a href="#changes">Changes to this policy</a></li>
+      <li><a href="#contact">Contact us</a></li>
+    </ol>
+  </div>
+
+  <section id="overview">
+    <h2>1. Overview</h2>
+    <p>MyClubTracker ("we," "us," or "our") is a club management platform built for nutrition club operators and owners. This Privacy Policy explains how we collect, use, and protect your information when you use our service at <strong>myclubtracker.com</strong>.</p>
+    <p>We take your privacy seriously. We collect only what we need to operate the platform and never sell your personal information to third parties.</p>
+  </section>
+
+  <section id="information-we-collect">
+    <h2>2. Information we collect</h2>
+    <p>We collect the following categories of information:</p>
+    <ul>
+      <li><strong>Account information:</strong> Your name, email address, phone number, and display name when you create an account.</li>
+      <li><strong>Club &amp; location data:</strong> Club name, address, and business settings you configure within the platform.</li>
+      <li><strong>Operational data:</strong> Daily sales figures, inventory counts, operator records, and payout information you enter into the app.</li>
+      <li><strong>Payment records:</strong> Check numbers, payment amounts, and payee names for records you log in the payment register. We do not collect or store credit card numbers or bank account details.</li>
+      <li><strong>Profile photos:</strong> If you choose to upload a profile photo, it is stored securely in our cloud storage.</li>
+      <li><strong>Usage data:</strong> Basic information about how you use the platform to help us improve the product.</li>
+    </ul>
+  </section>
+
+  <section id="google-calendar">
+    <h2>3. Google Calendar integration</h2>
+    <div class="callout">
+      <p>MyClubTracker's use of information received from Google APIs adheres to the <strong>Google API Services User Data Policy</strong>, including the Limited Use requirements.</p>
+    </div>
+    <p>When you choose to connect Google Calendar to MyClubTracker, we request read-only access to your Google Calendar data (<code>calendar.readonly</code> scope) using OAuth 2.0. This integration is entirely optional.</p>
+    <p>Here is exactly what we do and do not do with your Google Calendar data:</p>
+    <ul>
+      <li><strong>What we access:</strong> Event titles, descriptions, start times, and end times from the calendar you select.</li>
+      <li><strong>What we use it for:</strong> Matching calendar events to operator names to auto-fill shift hours in the staff payroll section.</li>
+      <li><strong>What we do not do:</strong> We do not store your Google Calendar events in our database. We do not read, modify, create, or delete calendar events. We do not share calendar data with any third party. We do not use calendar data for advertising.</li>
+      <li><strong>Token storage:</strong> Your OAuth access token is stored locally in your browser session and in your location settings to enable silent re-authentication. It is never shared or transmitted to third parties.</li>
+      <li><strong>Revoking access:</strong> You can disconnect Google Calendar at any time from the Staff Payroll section in the app. You can also revoke access directly from your <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener">Google Account permissions page</a>.</li>
+    </ul>
+  </section>
+
+  <section id="how-we-use">
+    <h2>4. How we use your information</h2>
+    <p>We use the information we collect to:</p>
+    <ul>
+      <li>Provide and operate the MyClubTracker platform</li>
+      <li>Display your club's data, history, and reports within the app</li>
+      <li>Enable features such as inventory tracking, payout calculations, and staff scheduling</li>
+      <li>Send transactional emails such as operator invite links (via Resend)</li>
+      <li>Improve the reliability and performance of the platform</li>
+      <li>Respond to your support requests</li>
+    </ul>
+    <p>We do not use your data for advertising, and we do not build advertising profiles.</p>
+  </section>
+
+  <section id="data-storage">
+    <h2>5. Data storage &amp; security</h2>
+    <p>Your data is stored in <strong>Supabase</strong>, a secure cloud database platform. Data is encrypted at rest and in transit using industry-standard TLS encryption. Access to your data is restricted by row-level security policies — you can only access data belonging to your location.</p>
+    <p>Profile photos are stored in Supabase Storage with access controls that prevent unauthorized viewing.</p>
+    <p>While we implement strong security measures, no system is 100% secure. We encourage you to use a strong, unique password for your account.</p>
+  </section>
+
+  <section id="sharing">
+    <h2>6. Data sharing</h2>
+    <p>We do not sell your personal information. We share data only in the following limited circumstances:</p>
+    <ul>
+      <li><strong>Service providers:</strong> We use Supabase (database &amp; authentication), Resend (transactional email), and Square (payment processing). These providers process data only as necessary to provide their services.</li>
+      <li><strong>Within your organization:</strong> Club owners can see data entered by operators at their location. Organization leaders can see summary data for locations in their organization.</li>
+      <li><strong>Legal requirements:</strong> We may disclose information if required by law or to protect the rights and safety of our users.</li>
+    </ul>
+  </section>
+
+  <section id="your-rights">
+    <h2>7. Your rights</h2>
+    <p>You have the right to:</p>
+    <ul>
+      <li><strong>Access:</strong> Request a copy of the personal data we hold about you.</li>
+      <li><strong>Correction:</strong> Update or correct your personal information at any time from the Profile &amp; Settings section of the app.</li>
+      <li><strong>Deletion:</strong> Request deletion of your account and associated personal data by contacting us at the address below.</li>
+      <li><strong>Portability:</strong> Request an export of your data in a structured format.</li>
+      <li><strong>Withdraw consent:</strong> Disconnect any third-party integrations (such as Google Calendar) at any time.</li>
+    </ul>
+    <p>To exercise any of these rights, please contact us at <a href="mailto:support@myclubtracker.com">support@myclubtracker.com</a>.</p>
+  </section>
+
+  <section id="cookies">
+    <h2>8. Cookies &amp; local storage</h2>
+    <p>MyClubTracker uses browser <strong>localStorage</strong> and <strong>sessionStorage</strong> to maintain your login session and remember your preferences (such as your last selected location and display settings). We do not use third-party tracking cookies or advertising cookies.</p>
+  </section>
+
+  <section id="changes">
+    <h2>9. Changes to this policy</h2>
+    <p>We may update this Privacy Policy from time to time. When we make significant changes, we will update the "Last updated" date at the top of this page. We encourage you to review this policy periodically. Continued use of the platform after changes constitutes acceptance of the updated policy.</p>
+  </section>
+
+  <section id="contact">
+    <h2>10. Contact us</h2>
+    <p>If you have questions about this Privacy Policy or how we handle your data, please contact us:</p>
+    <div class="contact-card">
+      <div class="name">MyClubTracker Support</div>
+      <a href="mailto:support@myclubtracker.com">support@myclubtracker.com</a>
+      <div style="font-size:13px;color:var(--ink-3);margin-top:4px;">7659 Mentor Ave, Mentor OH 44060</div>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <p>&copy; 2026 MyClubTracker &nbsp;&middot;&nbsp; <a href="https://myclubtracker.com">myclubtracker.com</a></p>
+</footer>
+
+</body>
+</html>
