@@ -454,10 +454,10 @@ function slugCat(c){return c.replace(/[^a-z0-9]/gi,'-').toLowerCase();}
 function rowHTML(p,i){
   return `<tr draggable="true" data-idx="${i}" data-cat="${escHtml(p[0])}">
     <td><span class="drag-handle" title="Drag to reorder">⠿</span></td>
-    <td><input class="cell-input name-input" type="text" value="${escHtml(p[1])}" placeholder="Product name" onchange="updateField(${i},1,this.value)" oninput="markUnsaved()"/></td>
-    <td><input class="cell-input sku-input" type="text" value="${escHtml(p[2])}" placeholder="SKU" onchange="updateField(${i},2,this.value)" oninput="markUnsaved()"/></td>
-    <td><input class="cell-input vp-input r" type="text" inputmode="decimal" value="${p[3]||''}" placeholder="0.00" onchange="updateField(${i},3,parseFloat(this.value)||0)" oninput="markUnsaved()"/></td>
-    <td><input class="cell-input par-input c" type="text" inputmode="numeric" value="${p[4]||0}" onchange="updateField(${i},4,parseInt(this.value)||0)" oninput="markUnsaved()"/></td>
+    <td><input class="cell-input name-input" type="text" value="${escHtml(p[1])}" placeholder="Product name" onchange="updateField(${i},1,this.value)" oninput="markUnsaved()" onkeydown="tabToNext(this,event)"/></td>
+    <td><input class="cell-input sku-input" type="text" value="${escHtml(p[2])}" placeholder="SKU" onchange="updateField(${i},2,this.value)" oninput="markUnsaved()" onkeydown="tabToNext(this,event)"/></td>
+    <td><input class="cell-input vp-input r" type="text" inputmode="decimal" value="${p[3]||''}" placeholder="0.00" onchange="updateField(${i},3,parseFloat(this.value)||0)" oninput="markUnsaved()" onkeydown="tabToNext(this,event)"/></td>
+    <td><input class="cell-input par-input c" type="text" inputmode="numeric" value="${p[4]||0}" onchange="updateField(${i},4,parseInt(this.value)||0)" oninput="markUnsaved()" onkeydown="tabToNext(this,event)"/></td>
     <td><button class="del-btn" onclick="deleteProduct(${i})" title="Remove">✕</button></td>
   </tr>`;
 }
@@ -834,6 +834,30 @@ async function executePush(){
   closePushModal();
   showToast('Pushed to '+selected.length+' location'+(selected.length>1?'s':''),'success');
   if(btn){btn.disabled=false;btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Send to Selected';}
+}
+
+// ── TAB NAVIGATION ──
+function tabToNext(el,e){
+  if(e.key!=='Tab'||e.shiftKey) return;
+  // Find which field class this input has
+  var cls=null;
+  if(el.classList.contains('name-input')) cls='name-input';
+  else if(el.classList.contains('sku-input'))  cls='sku-input';
+  else if(el.classList.contains('vp-input'))   cls='vp-input';
+  else if(el.classList.contains('par-input'))  cls='par-input';
+  if(!cls) return;
+  // Find the current row and the next row
+  var row=el.closest('tr');
+  if(!row) return;
+  var nextRow=row.nextElementSibling;
+  // Skip add-row (has no data inputs)
+  while(nextRow&&nextRow.classList.contains('add-row')) nextRow=nextRow.nextElementSibling;
+  if(!nextRow) return;
+  var nextInput=nextRow.querySelector('.'+cls);
+  if(!nextInput) return;
+  e.preventDefault();
+  nextInput.focus();
+  nextInput.select();
 }
 
 // ── NAV ──
