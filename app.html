@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-08 20:00:00 -->
+<!-- CACHE BUST: 2026-04-08 20:15:00 -->
 <html lang="en">
 <head>
 <script>
@@ -11021,205 +11021,157 @@ function renderMonthTable(el) {
 
 function printSummaryPDF() {
   var btn = document.querySelector('#history-sum-view button[onclick*="printSummaryPDF"]');
-  if(btn){btn.textContent='Generating...';btn.disabled=true;}
+  if(btn){btn.textContent='Capturing...';btn.disabled=true;}
   function resetBtn(){if(btn){btn.innerHTML='&#11015; Export PDF';btn.disabled=false;}}
 
-  function doExport(){
-    var jsPDF=window.jspdf&&window.jspdf.jsPDF;
-    if(!jsPDF){resetBtn();return;}
+  var toolbar   = document.getElementById('sum-toolbar');
+  var tableWrap = document.getElementById('sum-table-wrap');
+  if(!tableWrap){resetBtn();return;}
 
-    var toolbar=document.getElementById('sum-toolbar');
-    var tableWrap=document.getElementById('sum-table-wrap');
-    if(!tableWrap){resetBtn();return;}
+  var monthLabel = toolbar ? (toolbar.querySelector('span')?.textContent||'') : '';
+  var locName    = document.querySelector('.nav-loc-name')?.textContent || SETTINGS.clubName || 'Club';
+  var today      = new Date();
+  var dateStr    = today.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
 
-    var monthLabel=toolbar?toolbar.querySelector('span')?.textContent||'':'';
-    var locName=document.querySelector('.nav-loc-name')?.textContent||SETTINGS.clubName||'Club';
-    var today=new Date();
-    var dateStr=today.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  // Target: the whole sum-view div so we capture exactly what the user sees
+  var captureEl = document.getElementById('history-sum-view');
+  if(!captureEl){resetBtn();return;}
 
-    var table=tableWrap.querySelector('table');
-    if(!table){resetBtn();return;}
+  function doCapture(){
+    // Temporarily expand overflow so full table is captured
+    var origOverflow = tableWrap.style.overflow;
+    tableWrap.style.overflow = 'visible';
+    var origWidth    = tableWrap.style.width;
+    var tbl          = tableWrap.querySelector('table');
+    var fullW        = tbl ? tbl.scrollWidth : tableWrap.scrollWidth;
+    tableWrap.style.width = fullW + 'px';
 
-    // Extract headers
-    var headers=[];
-    var headerRow=table.querySelector('thead tr');
-    if(headerRow){
-      Array.from(headerRow.cells).forEach(function(th){
-        headers.push(th.textContent.trim());
-      });
-    }
+    window.html2canvas(captureEl, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      width: captureEl.scrollWidth,
+      windowWidth: captureEl.scrollWidth
+    }).then(function(canvas){
+      // Restore styles
+      tableWrap.style.overflow = origOverflow;
+      tableWrap.style.width    = origWidth;
 
-    // Extract rows, preserving section label rows (single non-empty cell)
-    var rows=[];
-    var tbodies=table.querySelectorAll('tbody');
-    tbodies.forEach(function(tbody){
-      Array.from(tbody.rows).forEach(function(tr){
-        var cells=[];
-        Array.from(tr.cells).forEach(function(td){
-          cells.push(td.textContent.trim());
-        });
-        rows.push({cells:cells, isSectionLabel: tr.classList.contains('smtbl-section') || (cells.filter(function(c){return c&&c!=='';}).length===1 && cells[0])});
-      });
-    });
+      var jsPDF = window.jspdf && window.jspdf.jsPDF;
+      if(!jsPDF){resetBtn();return;}
 
-    // Determine column count
-    var colCount=headers.length;
+      // Determine orientation based on aspect ratio
+      var imgW    = canvas.width;
+      var imgH    = canvas.height;
+      var ratio   = imgH / imgW;
+      // Use landscape if wide, portrait if tall
+      var orient  = ratio < 1.2 ? 'landscape' : 'portrait';
+      var doc     = new jsPDF({orientation:orient, unit:'pt', format:'letter'});
 
-    // Build jsPDF in landscape
-    var doc=new jsPDF({orientation:'landscape',unit:'pt',format:'letter'});
-    var PW=792,PH=612,ML=28,MR=28,MT=36;
-    var C={blue:[53,78,98],muted:[96,126,150],faint:[143,163,179],border:[205,214,224],
-           green:[234,243,222],amber:[255,248,238],white:[255,255,255],offwhite:[247,249,251]};
+      var PW = orient==='landscape' ? 792 : 612;
+      var PH = orient==='landscape' ? 612 : 792;
+      var ML = 28, MR = 28, MT = 50;
 
-    // ── Page header ──
-    doc.setFont('helvetica','bold');doc.setFontSize(14);doc.setTextColor(C.blue[0],C.blue[1],C.blue[2]);
-    doc.text(locName,ML,MT);
-    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(C.muted[0],C.muted[1],C.muted[2]);
-    doc.text('Monthly Summary \u2014 '+monthLabel,ML,MT+14);
-    doc.setFontSize(7.5);doc.setTextColor(C.faint[0],C.faint[1],C.faint[2]);
-    doc.text('Generated '+dateStr+' \u00b7 myclubtracker.com',PW-MR,MT+14,{align:'right'});
-    doc.setDrawColor(C.border[0],C.border[1],C.border[2]);doc.setLineWidth(0.5);
-    doc.line(ML,MT+22,PW-MR,MT+22);
+      // ── Header ──
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(14);
+      doc.setTextColor(53,78,98);
+      doc.text(locName, ML, 28);
 
-    // ── Column widths ──
-    // Label col fixed, WK cols slightly wider, MONTH widest, day cols equal
-    var tableW=PW-ML-MR;
-    var labelW=90;
-    var monthW=52;
-    var wkCols=0; headers.forEach(function(h){if(String(h).startsWith('WK')) wkCols++;});
-    var wkW=38;
-    var remaining=tableW-labelW-monthW-(wkCols*wkW);
-    var dayCols=colCount-1-wkCols-1; // subtract label, wk cols, month col
-    if(dayCols<1) dayCols=1;
-    var dayW=remaining/dayCols;
-    // Build widths array
-    var colWidths=[];
-    headers.forEach(function(h,i){
-      if(i===0) colWidths.push(labelW);
-      else if(h==='MONTH') colWidths.push(monthW);
-      else if(String(h).startsWith('WK')) colWidths.push(wkW);
-      else colWidths.push(dayW);
-    });
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(9);
+      doc.setTextColor(96,126,150);
+      doc.text('Monthly Summary \u2014 ' + monthLabel, ML, 42);
 
-    var startY=MT+30;
-    var rowH=13;
-    var fontSize=6.2;
+      doc.setFontSize(7.5);
+      doc.setTextColor(143,163,179);
+      doc.text('Generated ' + dateStr + ' \u00b7 myclubtracker.com', PW-MR, 42, {align:'right'});
 
-    // ── Draw header row ──
-    doc.setFillColor(C.blue[0],C.blue[1],C.blue[2]);
-    doc.rect(ML,startY,tableW,rowH+1,'F');
-    doc.setFont('helvetica','bold');doc.setFontSize(fontSize);doc.setTextColor(255,255,255);
-    var x=ML;
-    headers.forEach(function(h,hi){
-      var cx = hi===0 ? x+4 : x+colWidths[hi]/2;
-      var align = hi===0?'left':'center';
-      // Split multi-line headers (e.g. "WK\n3" style)
-      doc.text(String(h),cx,startY+rowH-3,{align:align,maxWidth:colWidths[hi]-2});
-      x+=colWidths[hi];
-    });
+      doc.setDrawColor(205,214,224);
+      doc.setLineWidth(0.5);
+      doc.line(ML, 48, PW-MR, 48);
 
-    // ── Draw data rows ──
-    var y=startY+rowH+1;
-    var sectionBg={
-      'Net Sales':C.green,'Taxes':C.amber,'Overhead':C.amber,'Herbalife $':C.amber,'Payouts':C.amber
-    };
-    var boldRows={'Net Sales':true,'Taxes':true,'Overhead':true,'Herbalife $':true,'Payouts':true,'DV':true};
+      // ── Image ──
+      var availW  = PW - ML - MR;
+      var imgData = canvas.toDataURL('image/png');
+      var dispH   = availW * (imgH / imgW);
 
-    rows.forEach(function(rowObj,ri){
-      var row=rowObj.cells;
-      if(y+rowH>PH-22){ doc.addPage(); y=MT; }
-
-      var fieldName=(row[0]||'').trim();
-
-      // Section label row (e.g. "Sales", "Gift Cards")
-      if(rowObj.isSectionLabel && colCount>2){
-        doc.setFillColor(C.offwhite[0],C.offwhite[1],C.offwhite[2]);
-        doc.rect(ML,y,tableW,rowH,'F');
-        doc.setFont('helvetica','bold');doc.setFontSize(fontSize-0.3);
-        doc.setTextColor(C.muted[0],C.muted[1],C.muted[2]);
-        doc.text(fieldName,ML+4,y+rowH-3.5);
-        y+=rowH;
-        return;
+      // If image is taller than one page, scale to fit height
+      var maxH = PH - MT - 24;
+      if(dispH > maxH){
+        var scale2 = maxH / dispH;
+        dispH  = maxH;
+        availW = availW * scale2;
       }
 
-      // Normal data row
-      var bg=sectionBg[fieldName]||(ri%2===0?C.white:C.offwhite);
-      doc.setFillColor(bg[0],bg[1],bg[2]);
-      doc.rect(ML,y,tableW,rowH,'F');
+      doc.addImage(imgData, 'PNG', ML, MT, availW, dispH);
 
-      var isBoldRow=boldRows[fieldName];
-      doc.setFontSize(fontSize);
-      doc.setTextColor(C.blue[0],C.blue[1],C.blue[2]);
-      x=ML;
-      row.forEach(function(cell,ci){
-        var isLabel=ci===0;
-        var isWk=String(headers[ci]||'').startsWith('WK');
-        var isMonth=headers[ci]==='MONTH';
-        var bold=isBoldRow||isWk||isMonth;
-        doc.setFont('helvetica',bold?'bold':'normal');
-        // Mute empty cells and dashes
-        var txt=String(cell||'');
-        if(txt==='\u2014'||txt==='-'||txt===''){
-          doc.setTextColor(C.faint[0],C.faint[1],C.faint[2]);
-        } else if(isWk||isMonth){
-          doc.setTextColor(C.blue[0],C.blue[1],C.blue[2]);
-        } else {
-          doc.setTextColor(C.blue[0],C.blue[1],C.blue[2]);
-        }
-        var cx=isLabel ? x+4 : x+colWidths[ci]/2;
-        var align=isLabel?'left':'center';
-        doc.text(txt,cx,y+rowH-3.5,{align:align,maxWidth:colWidths[ci]-2});
-        x+=colWidths[ci];
-      });
-      y+=rowH;
-    });
+      // ── Footer ──
+      doc.setDrawColor(205,214,224);
+      doc.setLineWidth(0.4);
+      doc.line(ML, PH-16, PW-MR, PH-16);
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(6.5);
+      doc.setTextColor(143,163,179);
+      doc.text('MyClubTracker \u00b7 myclubtracker.com', ML, PH-7);
+      doc.text(locName + ' \u00b7 ' + monthLabel, PW-MR, PH-7, {align:'right'});
 
-    // ── Footer ──
-    doc.setDrawColor(C.border[0],C.border[1],C.border[2]);doc.setLineWidth(0.4);
-    doc.line(ML,PH-16,PW-MR,PH-16);
-    doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.setTextColor(C.faint[0],C.faint[1],C.faint[2]);
-    doc.text('MyClubTracker \u00b7 myclubtracker.com',ML,PH-7);
-    doc.text(locName+' \u00b7 '+monthLabel,PW-MR,PH-7,{align:'right'});
+      // ── Save ──
+      var safeName  = (locName.replace(/[^a-z0-9]/gi,'_').toLowerCase()||'club');
+      var safeMonth = (monthLabel.replace(/[^a-z0-9]/gi,'_').toLowerCase()||'summary');
+      var fileName  = safeName + '_' + safeMonth + '_summary.pdf';
+      var pdfBlob   = doc.output('blob');
 
-    // ── Save ──
-    var safeName=(locName.replace(/[^a-z0-9]/gi,'_').toLowerCase()||'club');
-    var safeMonth=(monthLabel.replace(/[^a-z0-9]/gi,'_').toLowerCase()||'summary');
-    var defaultName=safeName+'_'+safeMonth+'_summary.pdf';
-    var pdfBlob=doc.output('blob');
-
-    if(window.showSaveFilePicker){
-      window.showSaveFilePicker({
-        suggestedName:defaultName,
-        types:[{description:'PDF Document',accept:{'application/pdf':['.pdf']}}]
-      })
-      .then(function(fh){return fh.createWritable().then(function(w){return w.write(pdfBlob).then(function(){return w.close();});});})
-      .then(function(){resetBtn();})
-      .catch(function(err){
-        if(err.name!=='AbortError'){
-          var u=URL.createObjectURL(pdfBlob);
-          var a=document.createElement('a');a.href=u;a.download=defaultName;a.click();
-          setTimeout(function(){URL.revokeObjectURL(u);},2000);
-        }
+      if(window.showSaveFilePicker){
+        window.showSaveFilePicker({
+          suggestedName: fileName,
+          types:[{description:'PDF Document',accept:{'application/pdf':['.pdf']}}]
+        })
+        .then(function(fh){return fh.createWritable().then(function(w){return w.write(pdfBlob).then(function(){return w.close();});});})
+        .then(function(){resetBtn();})
+        .catch(function(err){
+          if(err.name!=='AbortError'){
+            var u=URL.createObjectURL(pdfBlob);
+            var a=document.createElement('a');a.href=u;a.download=fileName;a.click();
+            setTimeout(function(){URL.revokeObjectURL(u);},2000);
+          }
+          resetBtn();
+        });
+      } else {
+        var u=URL.createObjectURL(pdfBlob);
+        var a=document.createElement('a');a.href=u;a.download=fileName;a.click();
+        setTimeout(function(){URL.revokeObjectURL(u);},2000);
         resetBtn();
-      });
-    } else {
-      var u=URL.createObjectURL(pdfBlob);
-      var a=document.createElement('a');a.href=u;a.download=defaultName;a.click();
-      setTimeout(function(){URL.revokeObjectURL(u);},2000);
+      }
+    }).catch(function(err){
+      console.error('html2canvas error:',err);
+      tableWrap.style.overflow = origOverflow;
+      tableWrap.style.width    = origWidth;
       resetBtn();
-    }
+    });
   }
 
-  // Load jsPDF then run
-  function loadAndRun(){
-    if(window.jspdf&&window.jspdf.jsPDF){ doExport(); return; }
+  // Load html2canvas, then jsPDF, then capture
+  function loadjsPDF(cb){
+    if(window.jspdf && window.jspdf.jsPDF){cb();return;}
     var s=document.createElement('script');
     s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-    s.onload=doExport;
-    s.onerror=function(){resetBtn();};
+    s.onload=cb; s.onerror=resetBtn;
     document.head.appendChild(s);
   }
-  loadAndRun();
+  function loadHtml2Canvas(cb){
+    if(window.html2canvas){cb();return;}
+    var s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+    s.onload=cb; s.onerror=resetBtn;
+    document.head.appendChild(s);
+  }
+
+  loadHtml2Canvas(function(){
+    loadjsPDF(function(){
+      doCapture();
+    });
+  });
 }
 
 let _reconOpen = false;
