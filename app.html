@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-08 19:00:00 -->
+<!-- CACHE BUST: 2026-04-08 20:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -6563,7 +6563,7 @@ function renderInventory(){
   PRODUCTS.forEach(p=>{const q=invHave[p[2]]||0;vp+=(p[3]||0)*q;u+=q;const haveEntered=invHave[p[2]]!=null;const need=Math.max(0,(p[4]||0)-q);if(haveEntered&&need>0){totalDvNeed+=(p[3]||0)*need;itemCount++;}else if(haveEntered)totalDvNeed+=(p[3]||0)*Math.max(0,need);});
   // Recompute properly
   totalDvNeed=0;itemCount=0;
-  PRODUCTS.forEach(p=>{const q=invHave[p[2]]||0;const haveEntered=invHave[p[2]]!=null;const need=Math.max(0,(p[4]||0)-q);if(haveEntered){totalDvNeed+=(p[3]||0)*need;if(need>0)itemCount++;}});
+  PRODUCTS.forEach(p=>{const q=invHave[p[2]]||0;const haveEntered=invHave[p[2]]!=null;const need=Math.max(0,(p[4]||0)-q);if(haveEntered){totalDvNeed+=(p[3]||0)*need;itemCount+=need;}});
   setText('inv-total-dvneed',fmtVP(totalDvNeed));
   setText('inv-total-itemcount',itemCount.toString());
   setText('inv-total-balance',fmtVP(vp+totalDvNeed));
@@ -6615,7 +6615,7 @@ function setHave(s,v){
   invHave[s]=(v===''||v===null||v===undefined||isNaN(parsed))?null:parsed;
   const have=invHave[s]||0;
   let vp=0,totalDvNeed=0,itemCount=0;
-  PRODUCTS.forEach(p=>{const q=invHave[p[2]]||0;vp+=(p[3]||0)*q;const he=invHave[p[2]]!=null;const need=Math.max(0,(p[4]||0)-q);if(he){totalDvNeed+=(p[3]||0)*need;if(need>0)itemCount++;}});
+  PRODUCTS.forEach(p=>{const q=invHave[p[2]]||0;vp+=(p[3]||0)*q;const he=invHave[p[2]]!=null;const need=Math.max(0,(p[4]||0)-q);if(he){totalDvNeed+=(p[3]||0)*need;itemCount+=need;}});
   setText('inv-total-dvneed',fmtVP(totalDvNeed));
   setText('inv-total-itemcount',itemCount.toString());
   setText('inv-total-balance',fmtVP(vp+totalDvNeed));
