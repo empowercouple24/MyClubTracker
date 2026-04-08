@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-09 08:00:00 -->
+<!-- CACHE BUST: 2026-04-09 10:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -2560,6 +2560,23 @@ if('serviceWorker' in navigator){
 </div>
 
 <!-- PAYMENT REGISTER SHEET -->
+<!-- BULK RENAME MODAL -->
+<div class="modal-overlay" id="bulk-rename-overlay" style="display:none;align-items:center;justify-content:center;z-index:300;">
+  <div class="modal-sheet" style="max-width:400px;border-radius:var(--radius);padding:24px 20px;">
+    <div class="modal-title" style="margin-bottom:8px;">Rename All Records?</div>
+    <div style="font-size:14px;color:var(--text-muted);margin-bottom:16px;line-height:1.5;">
+      Rename all <strong><span id="bulk-rename-count"></span> other records</strong> named
+      <strong style="color:var(--r5);">"<span id="bulk-rename-old"></span>"</strong>
+      to
+      <strong style="color:var(--g6);">"<span id="bulk-rename-new"></span>"</strong>?
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-primary" onclick="confirmBulkRename()" style="flex:2;">Rename All</button>
+      <button class="btn btn-ghost" onclick="closeBulkRenameModal()" style="flex:1;">Skip</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="preg-sheet-overlay" onclick="closePregSheetOnBg(event)" style="display:none;align-items:flex-end;justify-content:center;z-index:250;">
   <div style="background:var(--surface);border-radius:18px 18px 0 0;width:100%;max-width:560px;max-height:92vh;display:flex;flex-direction:column;animation:sheetUp 0.3s cubic-bezier(0.16,1,0.3,1);">
     <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0;flex-shrink:0;"></div>
@@ -8021,7 +8038,38 @@ function openPregSheet(id) {
   document.getElementById('preg-sheet-overlay').style.display = 'flex';
 }
 
-function closePregSheet() {
+function openBulkRenameModal(oldName, newName, count) {
+  document.getElementById('bulk-rename-old').textContent = oldName;
+  document.getElementById('bulk-rename-new').textContent = newName;
+  document.getElementById('bulk-rename-count').textContent = count;
+  document.getElementById('bulk-rename-overlay').style.display = 'flex';
+  // Store for confirm
+  document.getElementById('bulk-rename-overlay').dataset.oldName = oldName;
+  document.getElementById('bulk-rename-overlay').dataset.newName = newName;
+}
+
+function closeBulkRenameModal() {
+  document.getElementById('bulk-rename-overlay').style.display = 'none';
+}
+
+async function confirmBulkRename() {
+  const overlay = document.getElementById('bulk-rename-overlay');
+  const oldName = overlay.dataset.oldName;
+  const newName = overlay.dataset.newName;
+  if (!oldName || !newName) return;
+  let count = 0;
+  (SETTINGS.paymentLog || []).forEach(e => {
+    if ((e.payee||'').toLowerCase() === oldName.toLowerCase()) {
+      e.payee = newName;
+      count++;
+    }
+  });
+  const { error } = await sb.from('locations').update({ settings: SETTINGS }).eq('id', LOCATION_ID);
+  if (error) { showToast('Bulk rename failed: ' + error.message, 'error'); return; }
+  closeBulkRenameModal();
+  renderPaymentRegister();
+  showToast(`Renamed ${count} record${count!==1?'s':''} to "${newName}"`, 'success');
+}
   document.getElementById('preg-sheet-overlay').style.display = 'none';
   _pregEditId = null;
 }
@@ -8068,7 +8116,27 @@ async function savePregEntry() {
 
   if (_pregEditId) {
     const idx = SETTINGS.paymentLog.findIndex(e => e.id === _pregEditId);
-    if (idx >= 0) SETTINGS.paymentLog[idx] = { id: _pregEditId, payee, amount, date, periodFrom, periodTo, method, checkNum, account, notes };
+    if (idx >= 0) {
+      const oldPayee = SETTINGS.paymentLog[idx].payee;
+      const payeeChanged = oldPayee && payee && oldPayee.toLowerCase() !== payee.toLowerCase();
+      // Check how many other records share the old name
+      const siblings = payeeChanged
+        ? SETTINGS.paymentLog.filter(e => e.id !== _pregEditId && (e.payee||'').toLowerCase() === oldPayee.toLowerCase())
+        : [];
+      // Save this record first
+      SETTINGS.paymentLog[idx] = { id: _pregEditId, payee, amount, date, periodFrom, periodTo, method, checkNum, account, notes };
+      // If there are siblings, offer bulk rename before saving
+      if (siblings.length > 0) {
+        const { error } = await sb.from('locations').update({ settings: SETTINGS }).eq('id', LOCATION_ID);
+        if (error) { showToast('Save failed: ' + error.message, 'error'); return; }
+        closePregSheet();
+        renderPaymentRegister();
+        showToast('Saved ok', 'success');
+        // Offer bulk rename after a short delay
+        setTimeout(() => openBulkRenameModal(oldPayee, payee, siblings.length), 300);
+        return;
+      }
+    }
   } else {
     SETTINGS.paymentLog.unshift({ id: Date.now().toString(), payee, amount, date, periodFrom, periodTo, method, checkNum, account, notes });
   }
@@ -8090,6 +8158,65 @@ async function deletePregEntry() {
   closePregSheet();
   renderPaymentRegister();
   showToast('Entry deleted', 'success');
+}
+
+function openBulkEditModal() {
+  renderBulkEditBody();
+  document.getElementById('bulk-edit-overlay').style.display = 'flex';
+}
+
+function closeBulkEditModal() {
+  document.getElementById('bulk-edit-overlay').style.display = 'none';
+}
+
+function closeBulkEditOnBg(e) {
+  if (e.target === document.getElementById('bulk-edit-overlay')) closeBulkEditModal();
+}
+
+function renderBulkEditBody() {
+  const log = SETTINGS.paymentLog || [];
+  // Get unique payees with counts
+  const counts = {};
+  log.forEach(e => { if (e.payee) counts[e.payee] = (counts[e.payee]||0) + 1; });
+  const payees = Object.keys(counts).sort((a,b) => a.localeCompare(b));
+  if (!payees.length) {
+    document.getElementById('bulk-edit-body').innerHTML = '<div class="empty-state">No payees yet.</div>';
+    return;
+  }
+  const allPayees = payees.map(p => `<option value="${escHtml(p)}">${escHtml(p)}</option>`).join('');
+  let html = payees.map(p => `
+    <div style="display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--border-light);">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(p)}</div>
+        <div style="font-size:11px;color:var(--text-faint);">${counts[p]} record${counts[p]>1?'s':''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+        <span style="font-size:11px;color:var(--text-faint);">→</span>
+        <select class="bulk-edit-target" data-from="${escHtml(p)}" style="font-family:'DM Sans',sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 8px;background:var(--surface);color:var(--text);outline:none;max-width:140px;">
+          <option value="">-- Keep as is --</option>
+          ${allPayees}
+        </select>
+        <button onclick="bulkRenamePayee('${escHtml(p)}')" style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:var(--radius-sm);border:1px solid var(--b4);background:var(--b0);color:var(--b7);cursor:pointer;white-space:nowrap;">Rename</button>
+      </div>
+    </div>`).join('');
+  document.getElementById('bulk-edit-body').innerHTML = html;
+}
+
+async function bulkRenamePayee(fromName) {
+  const row = [...document.querySelectorAll('.bulk-edit-target')].find(s => s.dataset.from === fromName);
+  if (!row) return;
+  const toName = row.value;
+  if (!toName || toName === fromName) { showToast('Choose a different name to merge into', 'error'); return; }
+  const matches = (SETTINGS.paymentLog||[]).filter(e => e.payee === fromName);
+  if (!matches.length) return;
+  const confirmed = confirm(`Rename all ${matches.length} "${fromName}" record${matches.length>1?'s':''} to "${toName}"? This cannot be undone.`);
+  if (!confirmed) return;
+  SETTINGS.paymentLog = (SETTINGS.paymentLog||[]).map(e => e.payee === fromName ? {...e, payee: toName} : e);
+  const { error } = await sb.from('locations').update({ settings: SETTINGS }).eq('id', LOCATION_ID);
+  if (error) { showToast('Save failed: ' + error.message, 'error'); return; }
+  showToast(`Renamed ${matches.length} records to "${toName}"`, 'success');
+  renderBulkEditBody();
+  renderPaymentRegister();
 }
 
 function runPayeeLookup() {
