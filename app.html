@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-08 01:00:00 -->
+<!-- CACHE BUST: 2026-04-08 02:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -3461,7 +3461,7 @@ async function init(){
   INV_SNAPSHOTS=snaps||[];
   if(SETTINGS.customProducts)PRODUCTS=SETTINGS.customProducts;
   if(SETTINGS.invOos)invOos=SETTINGS.invOos;
-  const today=new Date().toISOString().slice(0,10);
+  const today=localToday();
   const _savedDate=localStorage.getItem('mct_entry_date_'+CURRENT_SESSION.user.id);
   const _startDate=(_savedDate&&_savedDate<=today)?_savedDate:today;
   const _ed=document.getElementById('entry-date');if(_ed){_ed.value=_startDate;_ed.max=localToday();}
@@ -4221,7 +4221,10 @@ function unsavedNavCancel(){
 
 function localToday() {
   // Returns YYYY-MM-DD in the user's local timezone (not UTC)
-  const d = new Date();
+  return fmtDate(new Date());
+}
+function fmtDate(d) {
+  // Returns YYYY-MM-DD using local timezone — never use toISOString() for dates
   return d.getFullYear() + '-' +
     String(d.getMonth()+1).padStart(2,'0') + '-' +
     String(d.getDate()).padStart(2,'0');
@@ -4541,7 +4544,7 @@ async function saveDay(){
 function renderDashboardWidgets(){
   if(!ALL_DAYS.length) return;
   const today = new Date();
-  const todayStr = today.toISOString().slice(0,10);
+  const todayStr = fmtDate(today);
 
   // Sort ascending for streak calculation
   const sorted = [...ALL_DAYS].sort((a,b)=>a.date.localeCompare(b.date));
@@ -4552,12 +4555,12 @@ function renderDashboardWidgets(){
   let cursor = new Date(today);
   const opDays = SETTINGS.opDays || [false,true,true,true,true,true,true];
   // If today is a closed day or not yet entered, start checking from yesterday
-  let checkStr = cursor.toISOString().slice(0,10);
+  let checkStr = fmtDate(cursor);
   if(!dateSet.has(checkStr)){
     cursor.setDate(cursor.getDate()-1);
   }
   while(true){
-    const s = cursor.toISOString().slice(0,10);
+    const s = fmtDate(cursor);
     const dow = cursor.getDay();
     if(!opDays[dow]){
       // Closed day -- skip without breaking streak
@@ -4595,7 +4598,7 @@ function renderDashboardWidgets(){
   const dayOfWeek = today.getDay(); // 0=Sun
   const weekStart = new Date(today);
   weekStart.setDate(today.getDate() - dayOfWeek);
-  const weekStartStr = weekStart.toISOString().slice(0,10);
+  const weekStartStr = fmtDate(weekStart);
   const weekDays = ALL_DAYS.filter(d => d.date >= weekStartStr && d.date <= todayStr);
   const weekSales = weekDays.reduce((s,d)=>s+calSales(d.data||{}),0);
   const weekEl = document.getElementById('dw-week-val');
@@ -4604,8 +4607,8 @@ function renderDashboardWidgets(){
   if(weekSubEl) weekSubEl.textContent = weekDays.length + ' day' + (weekDays.length!==1?'s':'') + ' entered';
 
   // -- MONTHLY --
-  const monthStartStr = new Date(today.getFullYear(),today.getMonth(),1).toISOString().slice(0,10);
-  const monthEndStr = new Date(today.getFullYear(),today.getMonth()+1,0).toISOString().slice(0,10);
+  const monthStartStr = fmtDate(new Date(today.getFullYear(),today.getMonth(),1));
+  const monthEndStr = fmtDate(new Date(today.getFullYear(),today.getMonth()+1,0));
   const monthDays = ALL_DAYS.filter(d => d.date >= monthStartStr && d.date <= monthEndStr);
   const monthSales = monthDays.reduce((s,d)=>s+calSales(d.data||{}),0);
   const monthDvTotal = monthDays.reduce((s,d)=>s+(parseFloat(d.data?.dv)||0),0);
@@ -4940,7 +4943,7 @@ function renderHistCal(){
   // Month boundaries
   const firstDay=new Date(yr,mo,1).getDay(); // 0=Sun
   const daysInMonth=new Date(yr,mo+1,0).getDate();
-  const todayStr=new Date().toISOString().slice(0,10);
+  const todayStr=localToday();
 
   // Month total
   const monthTotal=Object.values(dayMap).reduce((s,d)=>s+calSales(d),0);
