@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-09 04:00:00 -->
+<!-- CACHE BUST: 2026-04-09 07:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -589,9 +589,10 @@ if('serviceWorker' in navigator){
 
       /* ── INVENTORY HEADER ── */
       .inv-header { padding: 10px 10px !important; }
-      .inv-dv-row { flex-direction: column; gap: 8px !important; }
-      .inv-dv-item-val { font-size: 26px !important; }
-      #inv-total-dvneed { font-size: 28px !important; }
+      #inv-total-dvneed { font-size: 26px !important; }
+      #inv-total-itemcount { font-size: 18px !important; }
+      #inv-total-balance { font-size: 18px !important; }
+      .inv-dv-item-label { font-size: 9px !important; }
 
       /* ── INVENTORY TOOLBAR — 2 rows ── */
       .filter-row { flex-wrap: wrap; gap: 6px; padding: 6px 0; }
@@ -751,7 +752,7 @@ if('serviceWorker' in navigator){
     .preg-fchip{font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:var(--b0);color:var(--text-muted);cursor:pointer;white-space:nowrap;}
     .preg-fchip:hover{background:var(--b1);}
     .preg-fchip.active{background:var(--b7);color:white;border-color:var(--b7);}
-    .preg-scroll-box{overflow-x:auto;max-height:420px;overflow-y:auto;width:100%;}
+    .preg-scroll-box{overflow-x:auto;width:100%;}
     .preg-footer-bar{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;border-top:1px solid var(--border-light);background:var(--b0);}
     /* Table styles */
     .preg-tbl{width:max-content;min-width:100%;border-collapse:collapse;font-size:12px;}
@@ -1656,7 +1657,7 @@ if('serviceWorker' in navigator){
           <button class="btn btn-ghost" id="inv-snap-rename-btn" onclick="openInvSnapRename()" style="padding:4px 8px;font-size:12px;display:none;">✎ Rename</button>
           <button class="btn btn-ghost" id="inv-snap-delete-btn" onclick="invSnapDeleteConfirm()" style="padding:4px 8px;font-size:12px;display:none;color:var(--danger,#dc2626);">🗑</button>
         </div>
-        <button class="btn btn-ghost" onclick="clearAllInv()" id="inv-clear-btn" style="margin-left:auto;border-color:var(--r3,#fca5a5);color:var(--r6,#dc2626);background:var(--r0,#fee2e2);font-size:12px;">✕ Clear All</button>
+        <button class="btn btn-ghost" onclick="clearAllInv()" id="inv-clear-btn" style="margin-left:auto;border-color:var(--r3,#fca5a5);color:var(--r6,#dc2626);background:var(--r0,#fee2e2);font-size:12px;">✕ Clear</button>
         <button class="btn btn-primary" onclick="saveInvSnapshot()">📸 Snapshot</button>
         <button class="btn btn-ghost" onclick="goToOrderTab()" style="border-color:var(--g4);color:var(--g6);">🛒 Go to Order</button>
       </div>
@@ -1803,11 +1804,20 @@ if('serviceWorker' in navigator){
       <span id="payee-lookup-chevron" style="font-size:12px;color:var(--text-faint);">▼</span>
     </div>
     <div id="payee-lookup-body" class="card" style="margin-bottom:12px;">
-      <div class="preg-lookup-row">
-        <select id="preg-lookup-payee" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 8px;background:var(--surface);color:var(--text);outline:none;flex:1;min-width:120px;"></select>
-        <input type="date" id="preg-lookup-from" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 8px;background:var(--surface);color:var(--text);outline:none;flex:1;min-width:120px;"/>
-        <span style="font-size:12px;color:var(--text-faint);flex-shrink:0;">to</span>
-        <input type="date" id="preg-lookup-to" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 8px;background:var(--surface);color:var(--text);outline:none;flex:1;min-width:120px;"/>
+      <div class="preg-lookup-row" style="gap:8px;flex-wrap:wrap;">
+        <select id="preg-lookup-payee" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 8px;background:var(--surface);color:var(--text);outline:none;flex:1;min-width:140px;"></select>
+        <div class="payout-range-bar" onclick="openCalPickerForLookup()" style="flex:2;min-width:200px;border-radius:var(--radius-sm);border:1px solid var(--border);">
+          <div style="flex:1;display:flex;align-items:center;gap:6px;">
+            <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">From</span>
+            <span class="payout-range-val" id="preg-lookup-from-lbl">Jan 1</span>
+            <span style="font-size:12px;color:var(--text-faint);">&#8594;</span>
+            <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">To</span>
+            <span class="payout-range-val" id="preg-lookup-to-lbl">Dec 31</span>
+          </div>
+          <span style="font-size:11px;color:var(--b5);">&#9998; Edit</span>
+        </div>
+        <input type="hidden" id="preg-lookup-from"/>
+        <input type="hidden" id="preg-lookup-to"/>
         <button class="btn btn-primary" onclick="runPayeeLookup()" style="flex-shrink:0;">Look up</button>
       </div>
       <div id="preg-lookup-result" style="display:none;" class="preg-lookup-result">
@@ -1828,13 +1838,26 @@ if('serviceWorker' in navigator){
       <button class="btn btn-primary" onclick="openPregSheet()" style="font-size:12px;padding:4px 12px;">+ Add Payment</button>
     </div>
     <div class="card" style="margin-bottom:40px;">
-      <!-- Filter chips -->
+      <!-- Filter row -->
       <div class="preg-filter-row">
         <div class="preg-fchip active" onclick="setPregFilter('all',this)">All</div>
         <div class="preg-fchip" onclick="setPregFilter('thismonth',this)">This Month</div>
         <div class="preg-fchip" onclick="setPregFilter('lastmonth',this)">Last Month</div>
         <div class="preg-fchip" onclick="setPregFilter('thisyear',this)">This Year</div>
         <div class="preg-fchip" onclick="setPregFilter('lastyear',this)">Last Year</div>
+      </div>
+      <div style="display:flex;gap:8px;padding:6px 12px 8px;flex-wrap:wrap;border-bottom:1px solid var(--border-light);">
+        <select id="preg-filter-payee" onchange="setPregPayeeFilter(this.value)" style="font-family:'DM Sans',sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 8px;background:var(--surface);color:var(--text);outline:none;flex:1;min-width:120px;">
+          <option value="">All Payees</option>
+        </select>
+        <select id="preg-filter-account" onchange="setPregAccountFilter(this.value)" style="font-family:'DM Sans',sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 8px;background:var(--surface);color:var(--text);outline:none;flex:1;min-width:120px;">
+          <option value="">All Accounts</option>
+          <option value="check">Check</option>
+          <option value="venmo">Venmo</option>
+          <option value="cash">Cash</option>
+          <option value="direct_deposit">Direct Deposit</option>
+          <option value="other">Other</option>
+        </select>
       </div>
       <!-- Spreadsheet table -->
       <div class="preg-scroll-box" id="preg-scroll-box">
@@ -6689,7 +6712,7 @@ function clearAllInv(){
     invHave={};
     renderInventory();
     btn.dataset.confirming='';
-    btn.textContent='✕ Clear All';
+    btn.textContent='✕ Clear';
     btn.style.background='';btn.style.color='var(--r6,#dc2626)';btn.style.borderColor='var(--r3,#fca5a5)';
     showToast('Inventory cleared','success');
   } else if(btn){
@@ -6699,7 +6722,7 @@ function clearAllInv(){
     setTimeout(()=>{
       if(btn.dataset.confirming==='1'){
         btn.dataset.confirming='';
-        btn.textContent='✕ Clear All';
+        btn.textContent='✕ Clear';
         btn.style.background='var(--r0,#fee2e2)';btn.style.color='var(--r6,#dc2626)';btn.style.borderColor='var(--r3,#fca5a5)';
       }
     },3000);
@@ -7821,11 +7844,26 @@ function renderPaymentRegister() {
     const payees = getPayeeList();
     lookupSel.innerHTML = payees.map(p => `<option value="${p}">${p}</option>`).join('');
   }
+  // Populate payee filter dropdown
+  const filterPayeeSel = document.getElementById('preg-filter-payee');
+  if (filterPayeeSel) {
+    const payees = getPayeeList();
+    const cur = filterPayeeSel.value;
+    filterPayeeSel.innerHTML = '<option value="">All Payees</option>' + payees.map(p => `<option value="${p}"${p===cur?' selected':''}>${p}</option>`).join('');
+  }
+  // Restore account filter selection
+  const filterAcctSel = document.getElementById('preg-filter-account');
+  if (filterAcctSel && _pregAccountFilter) filterAcctSel.value = _pregAccountFilter;
   const now = new Date();
   const lf = document.getElementById('preg-lookup-from');
   const lt = document.getElementById('preg-lookup-to');
   if (lf && !lf.value) lf.value = now.getFullYear() + '-01-01';
   if (lt && !lt.value) lt.value = now.getFullYear() + '-12-31';
+  // Sync range bar labels
+  const fromLbl = document.getElementById('preg-lookup-from-lbl');
+  const toLbl = document.getElementById('preg-lookup-to-lbl');
+  if (fromLbl && lf?.value) fromLbl.textContent = fmtDateLbl(lf.value);
+  if (toLbl && lt?.value) toLbl.textContent = fmtDateLbl(lt.value);
 
   if (!allLog.length) {
     el.innerHTML = '<div class="preg-empty" style="padding:24px;text-align:center;color:var(--text-faint);">No payments logged yet. Tap + Add Payment to get started.</div>';
@@ -8854,6 +8892,31 @@ function resetPayouts() {
 // ── CALENDAR DATE RANGE PICKER ────────────────────────────────────────────────
 let _calPickerYear = null, _calPickerMonth = null;
 let _calPickerStart = null, _calPickerEnd = null, _calPickerSelecting = false;
+let _calPickerCallback = null;
+
+function openCalPickerForLookup() {
+  const from = document.getElementById('preg-lookup-from')?.value;
+  const to = document.getElementById('preg-lookup-to')?.value;
+  _calPickerStart = from || null;
+  _calPickerEnd = to || null;
+  _calPickerCallback = function(f, t) {
+    const lf = document.getElementById('preg-lookup-from');
+    const lt = document.getElementById('preg-lookup-to');
+    if (lf) lf.value = f;
+    if (lt) lt.value = t;
+    // Update the range bar labels
+    const fromLbl = document.getElementById('preg-lookup-from-lbl');
+    const toLbl = document.getElementById('preg-lookup-to-lbl');
+    if (fromLbl) fromLbl.textContent = fmtDateLbl(f);
+    if (toLbl) toLbl.textContent = fmtDateLbl(t);
+  };
+  const now = new Date();
+  _calPickerYear = now.getFullYear();
+  _calPickerMonth = now.getMonth() - 1;
+  if (_calPickerMonth < 0) { _calPickerMonth = 11; _calPickerYear--; }
+  renderCalPicker();
+  document.getElementById('cal-picker-overlay').style.display = 'flex';
+}
 
 function openCalPicker() {
   const now = new Date();
@@ -8943,56 +9006,89 @@ function calPickerClickDay(ds) {
 
 function applyCalPicker() {
   if (!_calPickerStart || !_calPickerEnd) return;
-  applyPayoutDates(_calPickerStart, _calPickerEnd);
-  document.querySelectorAll('.payout-preset-chip').forEach(c => c.classList.remove('active'));
+  if (_calPickerCallback) {
+    _calPickerCallback(_calPickerStart, _calPickerEnd);
+    _calPickerCallback = null;
+  } else {
+    applyPayoutDates(_calPickerStart, _calPickerEnd);
+    document.querySelectorAll('.payout-preset-chip').forEach(c => c.classList.remove('active'));
+    renderPayouts();
+  }
   closeCalPicker();
-  renderPayouts();
 }
 
 // ── PAYMENT REGISTER FILTER ───────────────────────────────────────────────────
 let _pregFilter = 'all';
+let _pregPayeeFilter = '';
+let _pregAccountFilter = '';
 
 function setPregFilter(filter, btn) {
   _pregFilter = filter;
   document.querySelectorAll('.preg-fchip').forEach(c => c.classList.remove('active'));
   if (btn) btn.classList.add('active');
-  const clearBtn = document.getElementById('preg-clear-filter-btn');
-  if (clearBtn) clearBtn.style.display = filter === 'all' ? 'none' : 'inline';
+  updatePregClearBtn();
   renderPaymentRegister();
+}
+
+function setPregPayeeFilter(val) {
+  _pregPayeeFilter = val;
+  updatePregClearBtn();
+  renderPaymentRegister();
+}
+
+function setPregAccountFilter(val) {
+  _pregAccountFilter = val;
+  updatePregClearBtn();
+  renderPaymentRegister();
+}
+
+function updatePregClearBtn() {
+  const clearBtn = document.getElementById('preg-clear-filter-btn');
+  const hasFilter = _pregFilter !== 'all' || _pregPayeeFilter || _pregAccountFilter;
+  if (clearBtn) clearBtn.style.display = hasFilter ? 'inline' : 'none';
 }
 
 function clearPregFilter() {
   _pregFilter = 'all';
+  _pregPayeeFilter = '';
+  _pregAccountFilter = '';
   document.querySelectorAll('.preg-fchip').forEach(c => c.classList.remove('active'));
   const first = document.querySelector('.preg-fchip');
   if (first) first.classList.add('active');
+  const payeeSel = document.getElementById('preg-filter-payee');
+  const acctSel = document.getElementById('preg-filter-account');
+  if (payeeSel) payeeSel.value = '';
+  if (acctSel) acctSel.value = '';
   const clearBtn = document.getElementById('preg-clear-filter-btn');
   if (clearBtn) clearBtn.style.display = 'none';
   renderPaymentRegister();
 }
 
-
 function filterPregLog(log) {
   const now = new Date();
   const yr = now.getFullYear(), mo = now.getMonth();
+  let result = log;
   if (_pregFilter === 'thismonth') {
     const from = yr+'-'+String(mo+1).padStart(2,'0')+'-01';
     const to = localToday();
-    return log.filter(e => e.date >= from && e.date <= to);
-  }
-  if (_pregFilter === 'lastmonth') {
+    result = result.filter(e => e.date >= from && e.date <= to);
+  } else if (_pregFilter === 'lastmonth') {
     const lmDate = new Date(yr, mo-1, 1);
     const from = fmtDateStr(lmDate);
     const to = fmtDateStr(new Date(yr, mo, 0));
-    return log.filter(e => e.date >= from && e.date <= to);
+    result = result.filter(e => e.date >= from && e.date <= to);
+  } else if (_pregFilter === 'thisyear') {
+    result = result.filter(e => e.date.startsWith(yr+''));
+  } else if (_pregFilter === 'lastyear') {
+    result = result.filter(e => e.date.startsWith((yr-1)+''));
   }
-  if (_pregFilter === 'thisyear') {
-    return log.filter(e => e.date.startsWith(yr+''));
+  if (_pregPayeeFilter) {
+    result = result.filter(e => (e.payee||'').toLowerCase() === _pregPayeeFilter.toLowerCase());
   }
-  if (_pregFilter === 'lastyear') {
-    return log.filter(e => e.date.startsWith((yr-1)+''));
+  if (_pregAccountFilter) {
+    result = result.filter(e => (e.account||'') === _pregAccountFilter || (e.method||'') === _pregAccountFilter);
   }
-  return log; // 'all'
+  return result;
 }
 
 
