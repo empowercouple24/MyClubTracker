@@ -11052,66 +11052,65 @@ let _reconOpen = false;
 function calcReconTotals() {
   // Unallocated balance = what should be sitting in your bank account.
   //
-  // For each day:
-  //   - Fully allocated days: all buckets done, net contribution = 0 (already moved out)
-  //   - Unallocated days: sum of PENDING bucket amounts = money still sitting in bank
+  // Formula: cardDeposits (all days, Square auto-deposits)
+  //        + cashDeposits (only days where cashdeposit is marked ✓)
+  //        - transfers marked ✓ (tax, overhead, herbalife, payouts)
   //
-  // Cash deposit bucket = cash sales physically deposited to bank (marked ✓)
-  // Card deposit bucket = Square sweeps automatically (always in bank)
-  // Tax/OH/Herb/Payouts = money moved out once marked ✓
-  //
-  // Venmo/CashApp via App go to a separate account — NOT counted.
-  // GC Load Fees are deducted by Square before deposit — already excluded
-  //   from cardDeposits via calcAllFromData (cardSales − fees + cashAppPOS − gcLoadFees).
+  // Venmo/CashApp via App go to a separate account — excluded.
+  // GC Load Fees deducted by Square before deposit — already excluded from cardDeposits.
+  // Card deposits happen automatically regardless of allocation status.
 
   let cardDepositsTotal = 0;
   let cashDepositsTotal = 0;
   let transfersTotal    = 0;
-  let unalloc           = 0;
   const unallocDays     = [];
 
   const _reconFromEl = document.getElementById('recon-from-date');
   const reconYearStart = (_reconFromEl && _reconFromEl.value) ? _reconFromEl.value : (new Date().getFullYear() + '-01-01');
 
   ALL_DAYS.forEach(d => {
-    if (d.date < reconYearStart) return; // current year only
+    if (d.date < reconYearStart) return;
     const data = d.data || {};
     if (!calSales(data)) return;
     const c   = calcAllFromData(data);
     const tr  = data.transfers || {};
     const allKeys = ['cashdeposit','tax','overhead','herbalife','payouts'];
-    const allDone = allKeys.every(k => tr[k]);
 
     const cashDep = parseFloat(data.cashSales)||0;
     const cardDep = c.cardDeposits || 0;
 
-    // Running totals for the breakdown rows
+    // Card deposits: Square auto-deposits every day — always counts
     cardDepositsTotal += cardDep;
+
+    // Cash deposits: only count when physically deposited (marked ✓)
     if (tr.cashdeposit) cashDepositsTotal += cashDep;
-    if (tr.tax)       transfersTotal += c.tax     || 0;
-    if (tr.overhead)  transfersTotal += c.overhead|| 0;
-    if (tr.herbalife) transfersTotal += c.products|| 0;
-    if (tr.payouts)   transfersTotal += c.payouts || 0;
 
-    // Fully allocated days net to zero — skip
-    if (allDone) return;
+    // Transfers out: only count when marked ✓
+    if (tr.tax)       transfersTotal += c.tax      || 0;
+    if (tr.overhead)  transfersTotal += c.overhead || 0;
+    if (tr.herbalife) transfersTotal += c.products || 0;
+    if (tr.payouts)   transfersTotal += c.payouts  || 0;
 
-    // Pending amounts still in bank for this day
-    const bvMap = {
-      cashdeposit: cashDep,
-      tax:         c.tax     || 0,
-      overhead:    c.overhead|| 0,
-      herbalife:   c.products|| 0,
-      payouts:     c.payouts || 0,
-    };
-    const pending     = allKeys.filter(k => !tr[k]).map(k => ({key:k, amt:bvMap[k]}));
-    const pendingTotal = pending.reduce((s,p) => s+p.amt, 0);
-    unalloc += pendingTotal;
-
-    const dt    = new Date(d.date+'T00:00:00');
-    const label = dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
-    unallocDays.push({date:d.date, label, pending, pendingTotal});
+    // Track unallocated days for the list view (days with any pending bucket)
+    const allDone = allKeys.every(k => tr[k]);
+    if (!allDone) {
+      const bvMap = {
+        cashdeposit: cashDep,
+        tax:         c.tax      || 0,
+        overhead:    c.overhead || 0,
+        herbalife:   c.products || 0,
+        payouts:     c.payouts  || 0,
+      };
+      const pending      = allKeys.filter(k => !tr[k]).map(k => ({key:k, amt:bvMap[k]}));
+      const pendingTotal = pending.reduce((s,p) => s+p.amt, 0);
+      const dt    = new Date(d.date+'T00:00:00');
+      const label = dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+      unallocDays.push({date:d.date, label, pending, pendingTotal});
+    }
   });
+
+  // Unallocated balance = card deposits in bank + cash deposited - transfers moved out
+  const unalloc = cardDepositsTotal + cashDepositsTotal - transfersTotal;
 
   unallocDays.sort((a,b) => b.date.localeCompare(a.date));
   return { cardDeposits:cardDepositsTotal, cashDeposits:cashDepositsTotal, transfers:transfersTotal, unalloc, unallocDays };
