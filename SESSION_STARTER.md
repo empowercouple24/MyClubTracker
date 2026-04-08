@@ -90,6 +90,19 @@ Admin (Jeffrey only) → Owner (location-level) → Operator (DB value: `employe
 
 ---
 
+## Conversation Length — IMPORTANT
+
+**I do not trust or want compressed or summarized conversations.** When the context window starts getting long, I want Claude to proactively warn me before any compression happens so I can start a fresh conversation instead.
+
+Specifically:
+- **Warn me early** — roughly after 1.5 to 2 hours of active back-and-forth, or when you sense the context window is getting full, stop and tell me before starting the next task.
+- Say something like: *"We are getting close to the limit of what I can reliably hold in this conversation. I would recommend starting a new chat and uploading your latest repo ZIP before we continue so I have full context on the current code."*
+- **Do not wait until compression has already happened.** Warn me while there is still a clean stopping point.
+- **Never silently compress or summarize** conversation history without explicitly flagging it to me first.
+- I would rather start fresh with a clean context than continue in a degraded state where important codebase details may have been lost.
+
+---
+
 ## Session Ready Confirmation
 
 After reading this file, reply with:
