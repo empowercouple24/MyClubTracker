@@ -623,7 +623,7 @@ async function openPushModal(){
     +'<label for="push-select-all" style="font-size:13px;font-weight:600;color:var(--text-muted);cursor:pointer;">Select all ('+_pushLocations.length+' locations)</label>'
     +'</div>';
   _pushLocations.forEach(function(loc){
-    html += '<div class="loc-check-row" onclick="this.querySelector('input').click()">'
+    html += '<div class="loc-check-row" onclick="this.querySelector(\"input\").click()">'
       +'<input type="checkbox" class="push-loc-cb" data-loc-id="'+loc.id+'" onclick="event.stopPropagation()"/>'
       +'<span style="font-size:13px;color:var(--text);">'+escHtml(loc.name)+'</span>'
       +'</div>';
