@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-09 11:00:00 -->
+<!-- CACHE BUST: 2026-04-09 12:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -77,6 +77,8 @@ if('serviceWorker' in navigator){
     /* CONTENT */
     .content-area{position:absolute;top:calc(var(--nav-h) + var(--tab-h) + env(safe-area-inset-top,0px));left:0;right:0;bottom:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
     .tab-panel{display:none;padding:10px 12px}
+    .tab-panel.active{display:block;}
+    #panel-payouts.active{display:flex;height:100%;}
     .tab-panel.active{display:block;animation:tabIn 0.18s ease}
     @keyframes tabIn{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
     .card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:var(--shadow-sm)}
@@ -1741,8 +1743,11 @@ if('serviceWorker' in navigator){
   </div>
 </div>
 
-<div class="tab-panel" id="panel-payouts">
-  <div style="max-width:960px;margin:0 auto;padding:12px 12px 40px;">
+<div class="tab-panel" id="panel-payouts" style="display:flex;flex-direction:column;height:100%;overflow:hidden;">
+
+  <!-- STICKY TOP — everything above the register rows -->
+  <div id="payouts-sticky-top" style="flex-shrink:0;overflow-y:auto;max-height:60vh;background:var(--bg);">
+  <div style="max-width:960px;margin:0 auto;padding:12px 12px 0;">
 
     <!-- Payout Calculator -->
     <div class="section-label" id="payout-calc-header" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="togglePayoutCalc()">
@@ -1832,45 +1837,53 @@ if('serviceWorker' in navigator){
       </div>
     </div>
 
-    <!-- Payment Register -->
-    <div class="section-label" style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
-      <span>Payment Register</span>
+  </div><!-- /max-width inner -->
+  </div><!-- /payouts-sticky-top -->
+
+  <!-- PAYMENT REGISTER — fills remaining height, rows scroll -->
+  <div style="flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0;">
+  <div style="max-width:960px;margin:0 auto;width:100%;flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0;padding:0 12px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0 6px;flex-shrink:0;">
+      <span class="section-label" style="margin:0;">Payment Register</span>
       <button class="btn btn-primary" onclick="openPregSheet()" style="font-size:12px;padding:4px 12px;">+ Add Payment</button>
     </div>
-    <div class="card" style="margin-bottom:40px;">
-      <!-- Filter row -->
-      <div class="preg-filter-row">
-        <div class="preg-fchip active" onclick="setPregFilter('all',this)">All</div>
-        <div class="preg-fchip" onclick="setPregFilter('thismonth',this)">This Month</div>
-        <div class="preg-fchip" onclick="setPregFilter('lastmonth',this)">Last Month</div>
-        <div class="preg-fchip" onclick="setPregFilter('thisyear',this)">This Year</div>
-        <div class="preg-fchip" onclick="setPregFilter('lastyear',this)">Last Year</div>
+    <div class="card" style="flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0;margin-bottom:0;">
+      <!-- Filter chips — sticky above rows -->
+      <div style="flex-shrink:0;">
+        <div class="preg-filter-row">
+          <div class="preg-fchip active" onclick="setPregFilter('all',this)">All</div>
+          <div class="preg-fchip" onclick="setPregFilter('thismonth',this)">This Month</div>
+          <div class="preg-fchip" onclick="setPregFilter('lastmonth',this)">Last Month</div>
+          <div class="preg-fchip" onclick="setPregFilter('thisyear',this)">This Year</div>
+          <div class="preg-fchip" onclick="setPregFilter('lastyear',this)">Last Year</div>
+        </div>
+        <div style="display:flex;gap:8px;padding:6px 12px 8px;flex-wrap:wrap;border-bottom:1px solid var(--border-light);">
+          <select id="preg-filter-payee" onchange="setPregPayeeFilter(this.value)" style="font-family:'DM Sans',sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 8px;background:var(--surface);color:var(--text);outline:none;flex:1;min-width:120px;">
+            <option value="">All Payees</option>
+          </select>
+          <select id="preg-filter-account" onchange="setPregAccountFilter(this.value)" style="font-family:'DM Sans',sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 8px;background:var(--surface);color:var(--text);outline:none;flex:1;min-width:120px;">
+            <option value="">All Accounts</option>
+            <option value="check">Check</option>
+            <option value="venmo">Venmo</option>
+            <option value="cash">Cash</option>
+            <option value="direct_deposit">Direct Deposit</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
       </div>
-      <div style="display:flex;gap:8px;padding:6px 12px 8px;flex-wrap:wrap;border-bottom:1px solid var(--border-light);">
-        <select id="preg-filter-payee" onchange="setPregPayeeFilter(this.value)" style="font-family:'DM Sans',sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 8px;background:var(--surface);color:var(--text);outline:none;flex:1;min-width:120px;">
-          <option value="">All Payees</option>
-        </select>
-        <select id="preg-filter-account" onchange="setPregAccountFilter(this.value)" style="font-family:'DM Sans',sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 8px;background:var(--surface);color:var(--text);outline:none;flex:1;min-width:120px;">
-          <option value="">All Accounts</option>
-          <option value="check">Check</option>
-          <option value="venmo">Venmo</option>
-          <option value="cash">Cash</option>
-          <option value="direct_deposit">Direct Deposit</option>
-          <option value="other">Other</option>
-        </select>
-      </div>
-      <!-- Spreadsheet table -->
-      <div class="preg-scroll-box" id="preg-scroll-box">
+      <!-- Scrolling rows only -->
+      <div class="preg-scroll-box" id="preg-scroll-box" style="flex:1;overflow-y:auto;overflow-x:auto;">
         <div id="preg-list"></div>
       </div>
       <!-- Footer -->
-      <div class="preg-footer-bar">
+      <div class="preg-footer-bar" style="flex-shrink:0;">
         <span class="preg-footer-total" id="preg-footer-total"></span>
         <button onclick="clearPregFilter()" id="preg-clear-filter-btn" style="display:none;font-size:11px;font-weight:600;color:var(--r5);background:none;border:none;cursor:pointer;">Clear filter</button>
       </div>
     </div>
-
   </div>
+  </div><!-- /register flex -->
+
 </div>
 
 <!-- ═══════ EXPANSION TAB ═══════ -->
