@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-08 02:00:00 -->
+<!-- CACHE BUST: 2026-04-08 03:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -1929,7 +1929,7 @@ if('serviceWorker' in navigator){
           <div style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;color:var(--text);" id="cva-rev-daily">—</div>
         </div>
       </div>
-      <input type="range" id="cva-rev-slider" min="10000" max="50000" step="500" value="20000" oninput="cvaRevSliderInput()" onchange="cvaRevSliderInput()" style="width:100%;height:5px;-webkit-appearance:none;appearance:none;border-radius:3px;outline:none;cursor:pointer;background:var(--b1);"/>
+      <input type="range" id="cva-rev-slider" min="10000" max="100000" step="500" value="20000" oninput="cvaRevSliderInput()" onchange="cvaRevSliderInput()" style="width:100%;height:5px;-webkit-appearance:none;appearance:none;border-radius:3px;outline:none;cursor:pointer;background:var(--b1);"/>
       <div style="position:relative;height:28px;margin-top:5px;" id="cva-hash-track"></div>
       <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;align-items:center;" id="cva-rev-chips"></div>
       <div id="cva-custom-box" style="display:none;align-items:center;gap:6px;margin-top:8px;padding:8px 10px;background:var(--b0);border-radius:6px;border:1px solid var(--b4);">
@@ -2033,7 +2033,7 @@ if('serviceWorker' in navigator){
             <span class="field-label">Hourly wage</span>
             <div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" id="cva-wage" type="number" value="12.00" min="7.25" max="50" step="0.25" style="width:90px;" oninput="this.value=parseFloat(this.value||0).toFixed(2);cvaRecalc()"/></div>
           </div>
-          <div class="field-row">
+          <div class="field-row" style="border-bottom:none;">
             <span class="field-label">Hours per shift</span>
             <select class="field-input" id="cva-shift-hrs" style="width:90px;padding:5px 8px;" onchange="cvaRecalc()">
               <option value="2">2 hrs</option>
@@ -2044,13 +2044,23 @@ if('serviceWorker' in navigator){
               <option value="12">12 hrs</option>
             </select>
           </div>
-          <div class="field-row" style="border-bottom:none;">
-            <span class="field-label">Solo ceiling (daily sales)</span>
-            <div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" id="cva-solo-ceil" type="number" value="960.00" min="0" step="10" style="width:90px;" oninput="this.value=parseFloat(this.value||0).toFixed(2);cvaRecalc()"/></div>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0 0;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-faint);">
-            <span>Employee cost per day</span>
-            <span style="font-weight:700;color:var(--text);" id="cva-emp-cost">$96.00</span>
+          <!-- Staffing tier table -->
+          <div style="margin-top:4px;">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);margin-bottom:6px;">Staffing tiers · drinks/day thresholds</div>
+            <div style="font-size:11px;color:var(--text-faint);margin-bottom:8px;">Edit the upper limit of each tier. Active tier highlights based on estimated drinks/day from the revenue slider.</div>
+            <table style="width:100%;border-collapse:collapse;font-size:12px;" id="cva-tier-table">
+              <thead>
+                <tr style="border-bottom:1.5px solid var(--border);">
+                  <th style="text-align:left;padding:4px 6px;font-weight:700;color:var(--text-faint);font-size:10px;text-transform:uppercase;letter-spacing:0.4px;">Drinks/day</th>
+                  <th style="text-align:center;padding:4px 6px;font-weight:700;color:var(--text-faint);font-size:10px;text-transform:uppercase;letter-spacing:0.4px;">Staff</th>
+                  <th style="text-align:right;padding:4px 6px;font-weight:700;color:var(--text-faint);font-size:10px;text-transform:uppercase;letter-spacing:0.4px;">Cost/day</th>
+                </tr>
+              </thead>
+              <tbody id="cva-tier-rows"></tbody>
+            </table>
+            <div style="font-size:11px;color:var(--text-faint);margin-top:6px;padding-top:6px;border-top:1px solid var(--border-light);">
+              <span>Cost per operator/day: </span><span style="font-weight:700;color:var(--text);" id="cva-emp-cost">$96.00</span>
+            </div>
           </div>
         </div>
       </div>
@@ -3631,7 +3641,18 @@ var _cvaTeaLock=new Array(_cvaTeaCats.length).fill(false);
 function cvaGetFixed(){return _cvaExpenses.reduce(function(s,e){return s+e.v;},0);}
 function cvaGetWage(){return parseFloat(document.getElementById('cva-wage').value)||12;}
 function cvaGetHrs(){return parseInt(document.getElementById('cva-shift-hrs').value)||8;}
-function cvaGetCeil(){return parseFloat(document.getElementById('cva-solo-ceil').value)||960;}
+// Returns the tier index for a given drinks/day value
+function cvaTierForDrinks(drinks){
+  for(var i=0;i<_cvaTiers.length-1;i++){if(drinks<=_cvaTiers[i].max)return i;}
+  return _cvaTiers.length-1; // last tier = custom
+}
+// Returns daily labor cost for a given drinks/day (null = unknown/custom tier)
+function cvaTierLaborDay(drinks){
+  var idx=cvaTierForDrinks(drinks);
+  var t=_cvaTiers[idx];
+  if(t.ops===null)return null;
+  return t.ops*cvaGetWage()*cvaGetHrs();
+}
 function cvaTeaWtdProfit(){
   var s=_cvaTeaVals.reduce(function(a,x){return a+x;},0);if(!s)return 7;
   return _cvaTeaCats.reduce(function(a,c,i){return a+(_cvaTeaVals[i]/s)*c.profit;},0);
@@ -3653,14 +3674,14 @@ function cvaOverallAvgPrice(){
   },0);
 }
 function cvaCalcTarget(monthlyProfit){
-  var fixed=cvaGetFixed(),daily=fixed/30;
+  var fixed=cvaGetFixed(),daily=fixed/26;
   var w=cvaOverallWtd(),avgP=cvaOverallAvgPrice();
-  var wage=cvaGetWage(),hrs=cvaGetHrs(),ceil=cvaGetCeil();
-  var empDay=wage*hrs,dg=monthlyProfit/30;
+  var dg=monthlyProfit/26;
   if(w<=0)return 0;
+  // Iterative: estimate drinks, get labor tier, recompute
   var drinks=Math.ceil((daily+dg)/w);
-  var rev=Math.round(drinks*(avgP||1));
-  if(rev>ceil)rev+=Math.ceil((rev-ceil)/ceil)*empDay;
+  var labDay=cvaTierLaborDay(drinks)||0;
+  var rev=Math.round(drinks*(avgP||1))+labDay;
   return rev;
 }
 function cvaFmt$(v){return '$'+v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
@@ -3703,6 +3724,56 @@ function cvaScaleTeas(newTotal){
     if(i<_cvaTeaVals.length-1){_cvaTeaVals[i]=Math.round((v/old)*newTotal);asgn+=_cvaTeaVals[i];}
     else _cvaTeaVals[i]=Math.max(0,newTotal-asgn);
   });
+}
+
+// ── CVA: RENDER STAFFING TIERS ──
+function cvaRenderTiers(activeDrinksPerDay){
+  var tbody=document.getElementById('cva-tier-rows');if(!tbody)return;
+  var empDay=cvaGetWage()*cvaGetHrs();
+  var activeIdx=cvaTierForDrinks(activeDrinksPerDay);
+  tbody.innerHTML='';
+  _cvaTiers.forEach(function(t,i){
+    var isActive=i===activeIdx;
+    var isLast=i===_cvaTiers.length-1;
+    var prevMax=i===0?0:_cvaTiers[i-1].max;
+    var rangeStr=isLast?'160+':((prevMax+1)+'\u2013'+t.max);
+    var costStr=t.ops===null?'\u2014':t.ops===0?'$0':'$'+Math.round(t.ops*empDay);
+    var tr=document.createElement('tr');
+    tr.style.cssText='border-bottom:1px solid var(--border-light);transition:background 0.15s;'+(isActive?'background:var(--b1);':'');
+    // Range cell — for non-last tiers, show editable upper threshold
+    var rangeCell='';
+    if(isLast){
+      rangeCell='<td style="padding:6px 6px;color:'+(isActive?'#c0392b':'var(--text-muted)')+';font-weight:'+(isActive?'700':'400')+';">160+</td>';
+    } else {
+      var inputStyle='width:44px;text-align:center;padding:2px 4px;font-size:12px;font-weight:600;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text);outline:none;';
+      rangeCell='<td style="padding:4px 6px;white-space:nowrap;">'
+        +(i===0?'1\u2013':'<span style="color:var(--text-faint);font-size:11px;">'+(prevMax+1)+'\u2013</span>')
+        +'<input type="number" min="1" max="999" value="'+t.max+'" data-tier="'+i+'" style="'+inputStyle+'" '
+        +'oninput="cvaTierThreshEdit(this)" onblur="cvaTierThreshCommit(this)">'
+        +'</td>';
+    }
+    tr.innerHTML=rangeCell
+      +'<td style="text-align:center;padding:6px 6px;color:'+(isActive?'var(--b7)':'var(--text-muted)')+';font-weight:'+(isActive?'700':'400')+';">'+t.label+'</td>'
+      +'<td style="text-align:right;padding:6px 6px;font-weight:'+(isActive?'700':'400')+';color:'+(isActive?'var(--b7)':'var(--text-muted)')+';">'+costStr+'</td>';
+    tbody.appendChild(tr);
+  });
+}
+function cvaTierThreshEdit(inp){
+  var idx=parseInt(inp.dataset.tier);
+  var v=parseInt(inp.value)||0;
+  if(v>0)_cvaTiers[idx].max=v;
+}
+function cvaTierThreshCommit(inp){
+  var idx=parseInt(inp.dataset.tier);
+  var v=parseInt(inp.value)||1;
+  // Enforce ascending order
+  var prevMax=idx===0?0:_cvaTiers[idx-1].max;
+  if(v<=prevMax)v=prevMax+1;
+  var nextMax=_cvaTiers[idx+1]&&_cvaTiers[idx+1].max!==null?_cvaTiers[idx+1].max:null;
+  if(nextMax!==null&&v>=nextMax){v=nextMax-1;}
+  _cvaTiers[idx].max=v;
+  inp.value=v;
+  cvaRecalc();
 }
 
 // ── CVA: RENDER EXPENSES ──
@@ -3827,24 +3898,35 @@ function cvaRenderTeaSub(){
 }
 
 // ── CVA: REVENUE SLIDER STATE ──
-var _cvaRevSliderMax=50000;
+var _cvaRevSliderMax=100000;
 var _cvaRevCustomActive=false;
-var _cvaRevChips=[10000,13000,16000,20000,23000,26000,30000,33000,36000,40000,45000,50000];
-var _cvaRevMajor=[10000,16000,20000,26000,30000,36000,40000,50000];
-var _cvaSnapZone=1200;
+var _cvaRevChips=[10000,15000,20000,25000,30000,40000,50000,60000,75000,100000];
+var _cvaRevMajor=[10000,20000,30000,40000,50000,75000,100000];
+var _cvaSnapZone=2000;
+
+// ── CVA: STAFFING TIERS ──
+// max = upper drinks/day limit (null = unlimited), ops = additional operators (null = custom/unknown)
+var _cvaTiers=[
+  {max:40,  ops:0,    label:'Just you'},
+  {max:60,  ops:1,    label:'+1 operator'},
+  {max:90,  ops:2,    label:'+2 operators'},
+  {max:160, ops:3,    label:'+3 operators'},
+  {max:null,ops:null, label:'\u26a0\ufe0f Custom'}
+];
 
 function cvaRevFmtChip(v){return '$'+(v%1000===0?(v/1000)+'k':((v/1000).toFixed(1))+'k');}
 
 function cvaRevCalcProfit(rev){
   var fixed=cvaGetFixed();
-  var wage=cvaGetWage(),hrs=cvaGetHrs();
   var avgP=cvaOverallAvgPrice()||11.5;
   var avgW=cvaOverallWtd()||7.2;
   var avgCost=avgP-avgW;
   var drinksPerDay=rev/(avgP*26);
   var ingMo=avgCost*drinksPerDay*26;
-  var labMo=wage*hrs*26;
-  return{fixed:fixed,ing:ingMo,lab:labMo,profit:rev-fixed-ingMo-labMo};
+  var labDay=cvaTierLaborDay(drinksPerDay);
+  var labMo=labDay===null?null:labDay*26;
+  var profit=labMo===null?null:rev-fixed-ingMo-labMo;
+  return{fixed:fixed,ing:ingMo,lab:labMo,profit:profit,drinksPerDay:drinksPerDay,customTier:labMo===null};
 }
 
 function cvaRevUpdateSliderTrack(){
@@ -3957,7 +4039,7 @@ function cvaRevBuildHashmarks(){
 
 // ── CVA: MAIN RECALC ──
 function cvaRecalc(){
-  var fixed=cvaGetFixed(),wage=cvaGetWage(),hrs=cvaGetHrs(),ceil=cvaGetCeil();
+  var fixed=cvaGetFixed(),wage=cvaGetWage(),hrs=cvaGetHrs();
   var w=cvaOverallWtd(),avgP=cvaOverallAvgPrice();
 
   // Revenue slider values
@@ -3969,21 +4051,24 @@ function cvaRecalc(){
   cvaST('cva-rev-daily','$'+Math.round(rev/26).toLocaleString());
 
   // Profit result card
-  var isPos=r.profit>=0;
+  var isCustom=r.customTier;
+  var isPos=!isCustom&&r.profit>=0;
   var pc=document.getElementById('cva-profit-result');
   if(pc){
-    pc.style.background=isPos?'var(--g0)':'#FCEBEB';
-    pc.style.borderColor=isPos?'#b8e0bc':'#F7C1C1';
+    pc.style.background=isCustom?'#FFF8E1':isPos?'var(--g0)':'#FCEBEB';
+    pc.style.borderColor=isCustom?'#FFD54F':isPos?'#b8e0bc':'#F7C1C1';
   }
   var rl=document.getElementById('cva-profit-result-label');
-  if(rl){rl.style.color=isPos?'var(--g5)':'#A32D2D';rl.textContent=isPos?'Estimated monthly profit':'Monthly shortfall';}
+  if(rl){rl.style.color=isCustom?'#856404':isPos?'var(--g5)':'#A32D2D';rl.textContent=isCustom?'Custom staffing needed at this volume':isPos?'Estimated monthly profit':'Monthly shortfall';}
   var rn=document.getElementById('cva-profit-result-num');
-  if(rn){rn.style.color=isPos?'var(--g5)':'#A32D2D';rn.textContent=(r.profit<0?'-':'')+'$'+Math.round(Math.abs(r.profit)).toLocaleString();}
+  if(rn){rn.style.color=isCustom?'#856404':isPos?'var(--g5)':'#A32D2D';rn.textContent=isCustom?'\u26a0\ufe0f 160+ drinks/day':(r.profit<0?'-':'')+'$'+Math.round(Math.abs(r.profit)).toLocaleString();}
   var bd=document.getElementById('cva-profit-breakdown');
-  if(bd){bd.innerHTML=
-    '<span style="color:var(--text-faint);">Fixed expenses</span><span style="text-align:right;font-weight:600;color:var(--text-muted);">-$'+Math.round(r.fixed).toLocaleString()+'</span>'
-   +'<span style="color:var(--text-faint);">Ingredients (wtd avg)</span><span style="text-align:right;font-weight:600;color:var(--text-muted);">-$'+Math.round(r.ing).toLocaleString()+'</span>'
-   +'<span style="color:var(--text-faint);">Labor (26 days)</span><span style="text-align:right;font-weight:600;color:var(--text-muted);">-$'+Math.round(r.lab).toLocaleString()+'</span>';
+  if(bd){
+    var labStr=isCustom?'custom staffing required':'-$'+Math.round(r.ing+0).toLocaleString();
+    bd.innerHTML=
+      '<span style="color:var(--text-faint);">Fixed expenses</span><span style="text-align:right;font-weight:600;color:var(--text-muted);">-$'+Math.round(r.fixed).toLocaleString()+'</span>'
+     +'<span style="color:var(--text-faint);">Ingredients (wtd avg)</span><span style="text-align:right;font-weight:600;color:var(--text-muted);">-$'+Math.round(r.ing).toLocaleString()+'</span>'
+     +'<span style="color:var(--text-faint);">Labor (26 days)</span><span style="text-align:right;font-weight:600;color:'+(isCustom?'#856404':'var(--text-muted)')+';">'+(isCustom?'custom \u26a0\ufe0f':'-$'+Math.round(r.lab).toLocaleString())+'</span>';
   }
 
   if(!_cvaRevCustomActive)cvaRevSyncChips(rev);
@@ -3995,8 +4080,14 @@ function cvaRecalc(){
   cvaST('cva-exp-hdr',cvaFmt$(fixed)+' / mo');
   cvaST('cva-exp-total',cvaFmt$(fixed)+' / mo');
   cvaST('cva-exp-daily',cvaFmt$(fixed/26)+' / day');
-  cvaST('cva-emp-cost',cvaFmt$(wage*hrs));
-  cvaST('cva-lab-hdr','$'+wage.toFixed(2)+'/hr \xb7 '+hrs+'hrs \xb7 $'+Math.round(ceil)+' ceiling');
+  cvaST('cva-emp-cost','$'+Math.round(wage*hrs).toLocaleString());
+  // Labor header: show active tier
+  var tierIdx=cvaTierForDrinks(r.drinksPerDay);
+  var tierLabel=_cvaTiers[tierIdx].label;
+  cvaST('cva-lab-hdr','$'+wage.toFixed(2)+'/hr \xb7 '+hrs+'hrs \xb7 '+tierLabel);
+
+  // Render tier table with active row
+  cvaRenderTiers(r.drinksPerDay);
 
   var drinks=Math.ceil(rev/((avgP||11.5)*26));
   cvaST('cva-target-rev','$'+Math.round(rev/26).toLocaleString());
@@ -4029,6 +4120,7 @@ function cvaRecalc(){
   cvaRevBuildChips();
   cvaRevBuildHashmarks();
   cvaRenderExp();
+  cvaRenderTiers(0);
   cvaRenderTable();
   cvaRenderMix();
   cvaRenderTeaSub();
@@ -5545,11 +5637,10 @@ function wifGetCSA(){
   var fixedTotal=cvaGetFixed();
   var wage=cvaGetWage();
   var hrs=cvaGetHrs();
-  var soloCeil=cvaGetCeil();
   var wtdProfit=cvaOverallWtd();
   var wtdPrice=cvaOverallAvgPrice();
   var avgHrsPerDay=((8*5)+(6*1))/6;
-  return{fixedTotal:fixedTotal,fixedDaily:fixedTotal/30,wage:wage,hrs:hrs,soloCeil:soloCeil,
+  return{fixedTotal:fixedTotal,fixedDaily:fixedTotal/26,wage:wage,hrs:hrs,
     empCostDay:wage*hrs,wtdProfit:wtdProfit,wtdPrice:wtdPrice,avgHrsPerDay:avgHrsPerDay};
 }
 
@@ -5563,11 +5654,10 @@ function wifGetCSA(){
   var fixedTotal=cvaGetFixed();
   var wage=cvaGetWage();
   var hrs=cvaGetHrs();
-  var soloCeil=cvaGetCeil();
   var wtdProfit=cvaOverallWtd();
   var wtdPrice=cvaOverallAvgPrice();
   var avgHrsPerDay=((8*5)+(6*1))/6;
-  return{fixedTotal:fixedTotal,fixedDaily:fixedTotal/30,wage:wage,hrs:hrs,soloCeil:soloCeil,
+  return{fixedTotal:fixedTotal,fixedDaily:fixedTotal/26,wage:wage,hrs:hrs,
     empCostDay:wage*hrs,wtdProfit:wtdProfit,wtdPrice:wtdPrice,avgHrsPerDay:avgHrsPerDay};
 }
 
@@ -5655,8 +5745,11 @@ function wifRecalc(){
   var drinksDay=daily/csa.wtdPrice;
   var grossProfitDay=drinksDay*csa.wtdProfit;
   var ingrCostDay=daily-grossProfitDay;
-  var laborDay=daily>csa.soloCeil?csa.empCostDay:0;
-  var needsEmployee=daily>csa.soleCeil;
+  var tierLab=cvaTierLaborDay(drinksDay);
+  var isCustomTier=tierLab===null;
+  var laborDay=isCustomTier?0:tierLab;
+  var tierIdx=cvaTierForDrinks(drinksDay);
+  var tierLabel=_cvaTiers[tierIdx].label;
   var totalCostDay=csa.fixedDaily+ingrCostDay+laborDay;
   var profitDay=daily-totalCostDay;
   var profitMonthly=profitDay*op;
@@ -5674,10 +5767,10 @@ function wifRecalc(){
   setText('wif-rev-annual',fmt$(annual));
   setText('wif-cost-fixed',fmt$(csa.fixedTotal));
   setText('wif-cost-ingr',fmt$(ingrMonthly));
-  setText('wif-cost-labor',laborMonthly>0?fmt$(laborMonthly):'$0');
+  setText('wif-cost-labor',isCustomTier?'custom \u26a0\ufe0f':laborMonthly>0?fmt$(laborMonthly):'$0');
 
   var badge=document.getElementById('wif-labor-badge');
-  if(badge)badge.style.display=needsEmployee?'block':'none';
+  if(badge){badge.style.display=isCustomTier||tierIdx>0?'block':'none';badge.textContent=isCustomTier?'\u26a0\ufe0f Custom staffing needed':tierLabel;}
 
   function profitColor(v){return v>=0?'var(--g6,#1a7a45)':'#c0392b';}
   function profitBg(v){return v>=0?'var(--b0)':'#fff8f8';}
@@ -5698,8 +5791,8 @@ function wifRecalc(){
   setText('wif-vol-dph',dph.toFixed(1));
   var ceilEl=document.getElementById('wif-vol-ceiling');
   var ceilLabelEl=document.getElementById('wif-vol-ceiling-label');
-  if(ceilEl){ceilEl.textContent=fmt$(csa.soloCeil);ceilEl.style.color=needsEmployee?'#c0392b':'var(--g6,#1a7a45)';}
-  if(ceilLabelEl){ceilLabelEl.textContent=needsEmployee?'OVER ceiling':'Under ceiling';}
+  if(ceilEl){ceilEl.textContent=tierLabel;ceilEl.style.color=isCustomTier?'#c0392b':tierIdx>0?'#856404':'var(--g6,#1a7a45)';}
+  if(ceilLabelEl){ceilLabelEl.textContent=isCustomTier?'custom staffing':Math.round(drinksDay)+' drinks/day';}
 }
 
 function renderWhatIf(){}
