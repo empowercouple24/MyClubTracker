@@ -144,6 +144,15 @@ if(location.protocol==='http:'&&location.hostname!=='localhost'){
     .loc-check-row:hover{background:var(--b0)}
     .loc-check-row input[type=checkbox]{width:16px;height:16px;accent-color:var(--b6);cursor:pointer;flex-shrink:0}
     .push-section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);padding:10px 16px 4px;background:var(--bg)}
+    .org-section-hdr{display:flex;align-items:center;gap:10px;padding:8px 16px;background:var(--b0);border-bottom:1px solid var(--border-light);cursor:pointer;user-select:none;}
+    .org-section-hdr:hover{background:var(--b1);}
+    .org-cb{width:16px;height:16px;accent-color:var(--b6);cursor:pointer;flex-shrink:0;}
+    .org-name{font-size:13px;font-weight:700;color:var(--text);flex:1;}
+    .org-count{font-size:11px;color:var(--text-faint);}
+    .org-chev{font-size:10px;color:var(--text-faint);transition:transform 0.15s;}
+    .org-chev.open{transform:rotate(90deg);}
+    .org-locs{display:block;}
+    .org-locs.collapsed{display:none;}
     .btn-push{background:linear-gradient(135deg,var(--b7),var(--b5));color:white;border:none;border-radius:8px;padding:11px 18px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;flex:2;display:flex;align-items:center;justify-content:center;gap:7px}
     .btn-push:hover{opacity:0.9}
     .btn-push:disabled{opacity:0.5;cursor:not-allowed}
@@ -582,16 +591,19 @@ async function openPushModal(){
     return;
   }
 
-  // Load all locations
-  const{data:locs} = await sb.from('locations').select('id,name').order('name');
+  // Load locations with org_id + organizations
+  const[{data:locs},{data:orgsData}] = await Promise.all([
+    sb.from('locations').select('id,name,org_id').order('name'),
+    sb.from('organizations').select('id,name').order('name')
+  ]);
   _pushLocations = locs||[];
 
   // Build modal body
   const body = document.getElementById('push-body');
   const summary = document.getElementById('push-diff-summary');
-  const adds    = _pushChanges.filter(c=>c.type==='add').length;
-  const removes = _pushChanges.filter(c=>c.type==='remove').length;
-  const changes = _pushChanges.filter(c=>c.type==='change').length;
+  const adds    = _pushChanges.filter(function(c){return c.type==='add';}).length;
+  const removes = _pushChanges.filter(function(c){return c.type==='remove';}).length;
+  const changes = _pushChanges.filter(function(c){return c.type==='change';}).length;
   const parts   = [];
   if(adds)    parts.push(adds+' added');
   if(removes) parts.push(removes+' removed');
@@ -608,28 +620,81 @@ async function openPushModal(){
         return d.field.toUpperCase()+': <s>'+escHtml(String(d.from||''))+'</s> → <ins>'+escHtml(String(d.to||''))+'</ins>';
       }).join(' &nbsp;&middot;&nbsp; ');
     } else if(ch.type==='add'){
-      detail = escHtml(ch.cat)+' &middot; SKU '+escHtml(ch.sku)+' &middot; VP '+escHtml(String(ch.vp||''))+' &middot; PAR '+escHtml(String(ch.par||''));
+      detail = escHtml(ch.cat)+' · SKU '+escHtml(ch.sku)+' · VP '+escHtml(String(ch.vp||''))+' · PAR '+escHtml(String(ch.par||''));
     } else {
-      detail = escHtml(ch.cat)+' &middot; SKU '+escHtml(ch.sku);
+      detail = escHtml(ch.cat)+' · SKU '+escHtml(ch.sku);
     }
     html += '<div class="diff-row"><span class="diff-badge '+badge+'">'+label+'</span>'
       +'<div><div class="diff-name">'+escHtml(ch.name)+'</div>'
       +'<div class="diff-detail">'+detail+'</div></div></div>';
   });
 
+  // Group locations by org
+  const orgMap = {};
+  (orgsData||[]).forEach(function(o){orgMap[o.id]=o.name;});
+  const grouped = {};
+  const noOrg = [];
+  (_pushLocations||[]).forEach(function(loc){
+    if(loc.org_id && orgMap[loc.org_id]){
+      if(!grouped[loc.org_id]) grouped[loc.org_id]=[];
+      grouped[loc.org_id].push(loc);
+    } else {
+      noOrg.push(loc);
+    }
+  });
+  const totalLocs = _pushLocations.length;
+
   html += '<div class="push-section-label" style="margin-top:8px;">Send to locations</div>';
-  html += '<div style="display:flex;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid var(--border-light);">'
-    +'<input type="checkbox" id="push-select-all" style="width:16px;height:16px;accent-color:var(--b6);cursor:pointer;" onchange="selectAllPush(this.checked)"/>'
-    +'<label for="push-select-all" style="font-size:13px;font-weight:600;color:var(--text-muted);cursor:pointer;">Select all ('+_pushLocations.length+' locations)</label>'
+
+  // Select all / Clear all bar
+  html += '<div style="display:flex;align-items:center;gap:6px;padding:8px 16px;border-bottom:1px solid var(--border-light);background:var(--surface);">'
+    +'<input type="checkbox" id="push-select-all" class="org-cb" checked onchange="selectAllPush(this.checked)"/>'
+    +'<label for="push-select-all" style="font-size:13px;font-weight:600;color:var(--text-muted);cursor:pointer;flex:1;">All locations</label>'
+    +'<span id="push-selected-count" style="font-size:11px;color:var(--text-faint);">'+totalLocs+' selected</span>'
     +'</div>';
-  _pushLocations.forEach(function(loc){
-    html += '<div class="loc-check-row" onclick="this.querySelector(\"input\").click()">'
-      +'<input type="checkbox" class="push-loc-cb" data-loc-id="'+loc.id+'" onclick="event.stopPropagation()"/>'
-      +'<span style="font-size:13px;color:var(--text);">'+escHtml(loc.name)+'</span>'
-      +'</div>';
+
+  // Org groups (collapsible)
+  Object.keys(grouped).forEach(function(orgId,gi){
+    const orgName = orgMap[orgId];
+    const orgLocs = grouped[orgId];
+    html += '<div class="org-section-hdr" onclick="toggleOrgSection('org-locs-'+gi+'')">'
+      +'<input type="checkbox" class="org-cb org-master-cb" data-org-idx="'+gi+'" checked '
+      +'onclick="event.stopPropagation();toggleOrgAll('+gi+',this.checked)" />'
+      +'<span class="org-name">'+escHtml(orgName)+'</span>'
+      +'<span class="org-count">'+orgLocs.length+' location'+(orgLocs.length>1?'s':'')+'</span>'
+      +'<span class="org-chev open" id="org-chev-'+gi+'">▶</span>'
+      +'</div>'
+      +'<div class="org-locs" id="org-locs-'+gi+'">';
+    orgLocs.forEach(function(loc){
+      html += '<div class="loc-check-row" style="padding-left:44px;" onclick="this.querySelector(\"input\").click()">'
+        +'<input type="checkbox" class="push-loc-cb org-loc-cb" data-loc-id="'+loc.id+'" data-org-idx="'+gi+'" checked onclick="event.stopPropagation();pushLocCbChange()"/>'
+        +'<span style="font-size:13px;color:var(--text);">'+escHtml(loc.name)+'</span>'
+        +'</div>';
+    });
+    html += '</div>';
   });
 
+  // Unorganized locations
+  if(noOrg.length){
+    html += '<div class="org-section-hdr" onclick="toggleOrgSection('org-locs-noorg')">'
+      +'<input type="checkbox" class="org-cb org-master-cb" data-org-idx="noorg" checked '
+      +'onclick="event.stopPropagation();toggleOrgAll('noorg',this.checked)" />'
+      +'<span class="org-name" style="color:var(--text-faint);">No organization</span>'
+      +'<span class="org-count">'+noOrg.length+' location'+(noOrg.length>1?'s':'')+'</span>'
+      +'<span class="org-chev open" id="org-chev-noorg">▶</span>'
+      +'</div>'
+      +'<div class="org-locs" id="org-locs-noorg">';
+    noOrg.forEach(function(loc){
+      html += '<div class="loc-check-row" style="padding-left:44px;" onclick="this.querySelector(\"input\").click()">'
+        +'<input type="checkbox" class="push-loc-cb org-loc-cb" data-loc-id="'+loc.id+'" data-org-idx="noorg" checked onclick="event.stopPropagation();pushLocCbChange()"/>'
+        +'<span style="font-size:13px;color:var(--text);">'+escHtml(loc.name)+'</span>'
+        +'</div>';
+    });
+    html += '</div>';
+  }
+
   if(body) body.innerHTML = html;
+  pushUpdateSendBtn();
   document.getElementById('push-modal').classList.add('open');
 }
 
@@ -639,6 +704,56 @@ function closePushModal(){
 
 function selectAllPush(val){
   document.querySelectorAll('.push-loc-cb').forEach(function(cb){cb.checked=val;});
+  document.querySelectorAll('.org-master-cb').forEach(function(cb){cb.checked=val;});
+  pushUpdateSendBtn();
+}
+
+function toggleOrgSection(id){
+  const el=document.getElementById(id);
+  const idx=id.replace('org-locs-','');
+  const chev=document.getElementById('org-chev-'+idx);
+  if(!el)return;
+  const open=!el.classList.contains('collapsed');
+  el.classList.toggle('collapsed',open);
+  if(chev)chev.classList.toggle('open',!open);
+}
+
+function toggleOrgAll(orgIdx,val){
+  document.querySelectorAll('.org-loc-cb[data-org-idx="'+orgIdx+'"]').forEach(function(cb){cb.checked=val;});
+  pushUpdateSendBtn();
+  syncSelectAllCb();
+}
+
+function pushLocCbChange(){
+  // Sync org master checkbox
+  document.querySelectorAll('.org-master-cb').forEach(function(master){
+    const idx=master.dataset.orgIdx;
+    const locs=document.querySelectorAll('.org-loc-cb[data-org-idx="'+idx+'"]');
+    const allChecked=Array.from(locs).every(function(cb){return cb.checked;});
+    const anyChecked=Array.from(locs).some(function(cb){return cb.checked;});
+    master.checked=allChecked;
+    master.indeterminate=!allChecked&&anyChecked;
+  });
+  pushUpdateSendBtn();
+  syncSelectAllCb();
+}
+
+function syncSelectAllCb(){
+  const all=document.querySelectorAll('.push-loc-cb');
+  const checked=document.querySelectorAll('.push-loc-cb:checked');
+  const sa=document.getElementById('push-select-all');
+  if(sa){sa.checked=checked.length===all.length;sa.indeterminate=checked.length>0&&checked.length<all.length;}
+}
+
+function pushUpdateSendBtn(){
+  const n=document.querySelectorAll('.push-loc-cb:checked').length;
+  const btn=document.getElementById('push-send-btn');
+  const cnt=document.getElementById('push-selected-count');
+  if(cnt)cnt.textContent=n+' selected';
+  if(btn){
+    btn.disabled=n===0;
+    btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Send to '+n+' location'+(n===1?'':'s');
+  }
 }
 
 async function executePush(){
