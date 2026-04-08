@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-09 02:00:00 -->
+<!-- CACHE BUST: 2026-04-09 03:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -378,7 +378,9 @@ if('serviceWorker' in navigator){
     .dv-product{font-size:13px;font-weight:600;color:var(--g5);}
     .dv-subtotal{font-size:13px;font-weight:600;color:var(--b6);}
     .inv-input::-webkit-inner-spin-button,.inv-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
-    #panel-order{max-width:none;margin:0;padding:0;}
+    #payout-calc-chevron { display: none; }
+    #payee-lookup-chevron { display: none; }
+    #dw-mobile-strip { display: none; }
     #order-sticky-wrap{position:sticky;top:0;z-index:20;background:var(--bg);padding-bottom:4px;}
     #panel-order .inv-cat-header{top:var(--order-cat-top,160px);z-index:10;}
     #panel-order .inv-table th:nth-child(1){width:auto}
@@ -641,6 +643,31 @@ if('serviceWorker' in navigator){
 
       /* ── MODALS / SHEETS ── */
       .modal-sheet { border-radius: 14px 14px 0 0 !important; }
+
+      /* ── ENTER TAB — compact widget strip ── */
+      .dashboard-widgets { display: none !important; }
+      #dw-mobile-strip { display: flex !important; }
+
+      /* ── INVENTORY TOOLBAR — single row ── */
+      .filter-row { flex-wrap: nowrap !important; overflow-x: auto; gap: 5px !important; padding: 4px 0 !important; }
+      .filter-row > div { flex-shrink: 0; }
+      .filter-row > div label { display: none !important; }
+      #inv-clear-btn { order: unset; margin-left: 0 !important; }
+
+      /* ── PAYOUTS — collapsible on mobile ── */
+      #payout-calc-header { cursor: pointer; }
+      #payout-calc-body { display: none; }
+      #payout-calc-chevron { display: inline !important; }
+      #payee-lookup-header { cursor: pointer; }
+      #payee-lookup-body { display: none; }
+      #payee-lookup-chevron { display: inline !important; }
+
+      /* ── EXPANSION — tighter padding ── */
+      #panel-expansion .card { padding: 10px 12px !important; }
+      #panel-expansion .card[style*="padding:14px"] { padding: 10px 12px !important; }
+      #panel-expansion { padding-bottom: 30px !important; }
+      .cva-section { margin-bottom: 8px !important; }
+      #panel-expansion h3, #panel-expansion .section-label { margin-bottom: 6px !important; }
 
     }
 
@@ -1035,7 +1062,25 @@ if('serviceWorker' in navigator){
     </div>
   </div>
 
-  <!-- DATE PICKER -->
+  <!-- Mobile compact widget strip (hidden on desktop, shown on mobile) -->
+  <div id="dw-mobile-strip" style="gap:6px;overflow-x:auto;padding-bottom:2px;margin-bottom:8px;">
+    <div style="flex:0 0 auto;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:7px 10px;display:flex;align-items:center;gap:7px;">
+      <span style="font-size:15px;">🔥</span>
+      <div><div style="font-size:15px;font-weight:800;color:var(--b7);line-height:1;" id="dw-m-streak">—</div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);margin-top:2px;">Streak</div></div>
+    </div>
+    <div style="flex:0 0 auto;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:7px 10px;display:flex;align-items:center;gap:7px;">
+      <span style="font-size:15px;">📊</span>
+      <div><div style="font-size:15px;font-weight:800;color:var(--a6);line-height:1;" id="dw-m-month">—</div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);margin-top:2px;">This Month</div><div style="font-size:9px;color:var(--text-faint);" id="dw-m-month-sub"></div></div>
+    </div>
+    <div style="flex:0 0 auto;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:7px 10px;display:flex;align-items:center;gap:7px;">
+      <span style="font-size:15px;">📈</span>
+      <div><div style="font-size:15px;font-weight:800;color:var(--b5);line-height:1;" id="dw-m-dv">—</div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);margin-top:2px;">Month DV</div><div style="font-size:9px;color:var(--text-faint);" id="dw-m-dv-sub"></div></div>
+    </div>
+    <div style="flex:0 0 auto;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:7px 10px;display:flex;align-items:center;gap:7px;cursor:pointer;" onclick="switchTab('inv')">
+      <span style="font-size:15px;">📦</span>
+      <div><div style="font-size:15px;font-weight:800;color:var(--text);line-height:1;" id="dw-m-inv">—</div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);margin-top:2px;">Inventory</div><div style="font-size:9px;color:var(--text-faint);" id="dw-m-inv-sub"></div></div>
+    </div>
+  </div>
   <div class="date-nav">
     <button class="btn btn-ghost" onclick="shiftDay(-1)" style="padding:5px 10px;font-size:16px;flex-shrink:0;">←</button>
     <div class="date-display" onclick="document.getElementById('entry-date').showPicker&&document.getElementById('entry-date').showPicker()">
@@ -1699,8 +1744,11 @@ if('serviceWorker' in navigator){
   <div style="max-width:960px;margin:0 auto;padding:12px 12px 40px;">
 
     <!-- Payout Calculator -->
-    <div class="section-label">Payout Calculator</div>
-    <div class="card" style="margin-bottom:12px;">
+    <div class="section-label" id="payout-calc-header" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="togglePayoutCalc()">
+      <span>Payout Calculator</span>
+      <span id="payout-calc-chevron" style="font-size:12px;color:var(--text-faint);">▼</span>
+    </div>
+    <div id="payout-calc-body" class="card" style="margin-bottom:12px;">
       <!-- Preset chips -->
       <div class="payout-preset-row">
         <div class="payout-preset-chip" onclick="setPayoutPreset('lastweek',this)">Last Week</div>
@@ -1750,8 +1798,11 @@ if('serviceWorker' in navigator){
     </div>
 
     <!-- Payee Lookup -->
-    <div class="section-label" style="margin-top:18px;">Payee Lookup</div>
-    <div class="card" style="margin-bottom:12px;">
+    <div class="section-label" id="payee-lookup-header" style="margin-top:18px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="togglePayeeLookup()">
+      <span>Payee Lookup</span>
+      <span id="payee-lookup-chevron" style="font-size:12px;color:var(--text-faint);">▼</span>
+    </div>
+    <div id="payee-lookup-body" class="card" style="margin-bottom:12px;">
       <div class="preg-lookup-row">
         <select id="preg-lookup-payee" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 8px;background:var(--surface);color:var(--text);outline:none;flex:1;min-width:120px;"></select>
         <input type="date" id="preg-lookup-from" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 8px;background:var(--surface);color:var(--text);outline:none;flex:1;min-width:120px;"/>
@@ -5433,6 +5484,8 @@ function renderDashboardWidgets(){
   const streakEl = document.getElementById('dw-streak-val');
   const streakSubEl = document.getElementById('dw-streak-sub');
   if(streakEl) streakEl.textContent = streak > 0 ? streak : '0';
+  const mStreakEl=document.getElementById('dw-m-streak');
+  if(mStreakEl)mStreakEl.textContent=streak>0?streak:'0';
   if(streakSubEl){
     if(streak > 1 && streakStart){
       const d = new Date(streakStart+'T00:00:00');
@@ -5476,6 +5529,10 @@ function renderDashboardWidgets(){
     const mn = today.toLocaleDateString('en-US',{month:'long'});
     monthSubEl.textContent = mn + ' - ' + monthDays.length + ' day' + (monthDays.length!==1?'s':'') + ' entered';
   }
+  const mMonthEl=document.getElementById('dw-m-month');
+  const mMonthSubEl=document.getElementById('dw-m-month-sub');
+  if(mMonthEl)mMonthEl.textContent=fmt$(monthSales);
+  if(mMonthSubEl)mMonthSubEl.textContent=monthDays.length+' days';
 
   // -- MONTH DV --
   const dvEl = document.getElementById('dw-dv-val');
@@ -5483,6 +5540,10 @@ function renderDashboardWidgets(){
   const avgDv = monthDays.length > 0 ? monthDvTotal / monthDays.length : 0;
   if(dvEl) dvEl.textContent = fmtN(monthDvTotal);
   if(dvSubEl) dvSubEl.textContent = 'avg ' + fmtN(avgDv) + '/day';
+  const mDvEl=document.getElementById('dw-m-dv');
+  const mDvSubEl=document.getElementById('dw-m-dv-sub');
+  if(mDvEl)mDvEl.textContent=fmtN(monthDvTotal);
+  if(mDvSubEl)mDvSubEl.textContent='avg '+fmtN(avgDv)+'/day';
 
   // -- INVENTORY --
   const invValEl = document.getElementById('dw-inv-val');
@@ -5505,6 +5566,20 @@ function renderDashboardWidgets(){
     } else {
       invValEl.textContent = 'Never';
       invSubEl.textContent = 'No snapshots yet';
+    }
+  }
+  // Mirror to mobile strip
+  const mInvEl=document.getElementById('dw-m-inv');
+  const mInvSubEl=document.getElementById('dw-m-inv-sub');
+  if(mInvEl&&mInvSubEl){
+    if(INV_SNAPSHOTS.length){
+      const last=INV_SNAPSHOTS[0];
+      const savedAt=new Date(last.saved_at);
+      const diffDays=Math.floor((new Date()-savedAt)/86400000);
+      mInvEl.textContent=diffDays===0?'Today':diffDays===1?'Yesterday':diffDays+'d ago';
+      mInvSubEl.textContent=savedAt.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    } else {
+      mInvEl.textContent='Never';mInvSubEl.textContent='No snapshots';
     }
   }
 }
@@ -7259,6 +7334,22 @@ async function deleteOrderPlan(id){
 
 
 
+function togglePayeeLookup(){
+  const body=document.getElementById('payee-lookup-body');
+  const chev=document.getElementById('payee-lookup-chevron');
+  if(!body)return;
+  const hidden=body.style.display==='none';
+  body.style.display=hidden?'':'none';
+  if(chev)chev.textContent=hidden?'▼':'▶';
+}
+function togglePayoutCalc(){
+  const body=document.getElementById('payout-calc-body');
+  const chev=document.getElementById('payout-calc-chevron');
+  if(!body)return;
+  const hidden=body.style.display==='none';
+  body.style.display=hidden?'':'none';
+  if(chev)chev.textContent=hidden?'▼':'▶';
+}
 function renderPayouts(){
   const from=document.getElementById('payout-from')?.value;
   const to=document.getElementById('payout-to')?.value;
