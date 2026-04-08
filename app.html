@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-09 14:00:00 -->
+<!-- CACHE BUST: 2026-04-09 15:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -77,6 +77,8 @@ if('serviceWorker' in navigator){
     /* CONTENT */
     .content-area{position:absolute;top:calc(var(--nav-h) + var(--tab-h) + env(safe-area-inset-top,0px));left:0;right:0;bottom:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
     .content-area.payouts-active{overflow:hidden;}
+    .tab-panel{display:none;padding:10px 12px}
+    .tab-panel.active{display:block;animation:tabIn 0.18s ease}
     #panel-payouts.active{display:flex !important;height:100%;padding:0;}
     @keyframes tabIn{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
     .card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:var(--shadow-sm)}
@@ -3841,7 +3843,6 @@ function switchTab(name){
   if(name==='order'){renderOrderTab();}
   if(name==='inv')recalcInvCatTop();
   // Toggle payouts-active on content-area for flex height layout
-  var ca=document.querySelector('.content-area');
   if(ca)ca.classList.toggle('payouts-active', name==='payouts');
   if(name==='order'){
     setTimeout(()=>{
