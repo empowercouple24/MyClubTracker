@@ -657,7 +657,7 @@ async function openPushModal(){
   Object.keys(grouped).forEach(function(orgId,gi){
     const orgName = orgMap[orgId];
     const orgLocs = grouped[orgId];
-    html += '<div class="org-section-hdr" onclick="toggleOrgSection('org-locs-'+gi+'')">'
+    html += '<div class="org-section-hdr" data-sid="' + ('org-locs-'+gi) + '" onclick="toggleOrgSection(this.dataset.sid)">'
       +'<input type="checkbox" class="org-cb org-master-cb" data-org-idx="'+gi+'" checked '
       +'onclick="event.stopPropagation();toggleOrgAll('+gi+',this.checked)" />'
       +'<span class="org-name">'+escHtml(orgName)+'</span>'
@@ -676,7 +676,7 @@ async function openPushModal(){
 
   // Unorganized locations
   if(noOrg.length){
-    html += '<div class="org-section-hdr" onclick="toggleOrgSection('org-locs-noorg')">'
+    html += '<div class="org-section-hdr" data-sid="org-locs-noorg" onclick="toggleOrgSection(this.dataset.sid)">'
       +'<input type="checkbox" class="org-cb org-master-cb" data-org-idx="noorg" checked '
       +'onclick="event.stopPropagation();toggleOrgAll('noorg',this.checked)" />'
       +'<span class="org-name" style="color:var(--text-faint);">No organization</span>'
