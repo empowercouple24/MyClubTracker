@@ -376,6 +376,7 @@ if('serviceWorker' in navigator){
     .inv-name-cell{display:flex;align-items:baseline;gap:6px;overflow:hidden;}
     .inv-name{font-size:16px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .inv-sku{font-size:16px;color:var(--text-faint);flex-shrink:0;}
+    .inv-name-sub{font-size:11px;color:var(--text-faint);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2;}
     .inv-input{font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;width:54px;text-align:center;background:var(--b0);border:1px solid var(--border);border-radius:4px;padding:3px 2px;outline:none;-moz-appearance:textfield;transition:border-color 0.15s;display:block;margin:0 auto;}
     .dv-product{font-size:13px;font-weight:600;color:var(--g5);}
     .dv-subtotal{font-size:13px;font-weight:600;color:var(--b6);}
@@ -610,6 +611,8 @@ if('serviceWorker' in navigator){
       .inv-input { width: 50px !important; font-size: 14px !important; padding: 5px 2px !important; }
       .inv-name { font-size: 13px !important; }
       .inv-sku { font-size: 12px !important; }
+      .inv-sku-desktop { display: none !important; }
+      .inv-name-sub { font-size: 11px !important; }
       .inv-cat-header { font-size: 15px !important; padding: 10px 12px !important; }
       .inv-cat-dv-val { font-size: 18px !important; }
       .need-badge { font-size: 13px !important; padding: 2px 8px !important; }
@@ -7133,7 +7136,7 @@ function renderInventory(){
       const dvNeedStr=haveEntered&&dvNeed>0?fmtVP(dvNeed):'--';
       const oosInfo=isOos&&oos.expectedDate?`<span class="oos-badge">OOS - ${new Date(oos.expectedDate+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>`:(isOos?`<span class="oos-badge">OOS</span>`:'');
       html+=`<tr class="${rowClass}" id="inv-row-${p.sku}">
-        <td><div class="inv-name-cell" style="display:flex;align-items:center;gap:7px;"><input type="checkbox" class="oos-check" tabindex="-1" title="Mark out of stock" ${isOos?'checked':''} onchange="toggleOos('${p.sku}','${escHtml(p.name)}',this)"/><div style="display:flex;align-items:baseline;gap:12px;overflow:hidden;"><span class="inv-name">${p.name}</span>${p.sku?`<span class="inv-sku">${p.sku}</span>`:''}</div>${oosInfo}</div></td>
+        <td><div class="inv-name-cell" style="display:flex;align-items:center;gap:7px;"><input type="checkbox" class="oos-check" tabindex="-1" title="Mark out of stock" ${isOos?'checked':''} onchange="toggleOos('${p.sku}','${escHtml(p.name)}',this)"/><div style="display:flex;flex-direction:column;overflow:hidden;min-width:0;">${(()=>{const parts=p.name.split(' - ');const main=parts[0];const sub=parts.slice(1).join(' - ');return `<div style="display:flex;align-items:baseline;gap:8px;overflow:hidden;"><span class="inv-name">${main}</span><span class="inv-sku inv-sku-desktop">${p.sku||''}</span></div>${sub?`<span class="inv-name-sub">${sub}</span>`:''}`;})()} ${oosInfo}</div></td>
         <td style="color:var(--text-muted);font-size:13px;">${p.par}</td>
         <td><span class="need-badge ${bc}">${bt}</span></td>
         <td class="dv-product">${p.vp||'--'}</td>
@@ -7539,7 +7542,7 @@ function renderOrderBody(){
       const dvSubStr=dvSub!=null?fmtVP(dvSub):'--';
       const oosInfo=isOos&&invOos[p.sku].expectedDate?`<span class="oos-badge">OOS - ${new Date(invOos[p.sku].expectedDate+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>`:(isOos?`<span class="oos-badge">OOS</span>`:'');
       html+=`<tr class="${rowClass}" id="order-row-${p.sku}">
-        <td><div class="inv-name-cell" style="display:flex;align-items:center;gap:7px;"><input type="checkbox" class="oos-check" tabindex="-1" title="Mark out of stock" ${isOos?'checked':''} onchange="toggleOos('${p.sku}','${escHtml(p.name)}',this)"/><div style="display:flex;align-items:baseline;gap:12px;overflow:hidden;"><span class="inv-name">${p.name}</span>${p.sku?`<span class="inv-sku">${p.sku}</span>`:''}</div>${oosInfo}</div></td>
+        <td><div class="inv-name-cell" style="display:flex;align-items:center;gap:7px;"><input type="checkbox" class="oos-check" tabindex="-1" title="Mark out of stock" ${isOos?'checked':''} onchange="toggleOos('${p.sku}','${escHtml(p.name)}',this)"/><div style="display:flex;flex-direction:column;overflow:hidden;min-width:0;">${(()=>{const parts=p.name.split(' - ');const main=parts[0];const sub=parts.slice(1).join(' - ');return `<div style="display:flex;align-items:baseline;gap:8px;overflow:hidden;"><span class="inv-name">${main}</span><span class="inv-sku inv-sku-desktop">${p.sku||''}</span></div>${sub?`<span class="inv-name-sub">${sub}</span>`:''}`;})()} ${oosInfo}</div></td>
         <td style="color:var(--b6);font-weight:700;">${p.need}</td>
         <td class="dv-product">${p.vp||'--'}</td>
         <td style="text-align:left;padding-left:8px;">${makeAssignBtn(p,isOos,assigned,ops)}</td>
