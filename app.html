@@ -3133,6 +3133,7 @@ if('serviceWorker' in navigator){
 <script>
 const SUPABASE_URL='https://ndaqlamzlaucigvnhgfu.supabase.co';
 const SUPABASE_ANON_KEY='sb_publishable_wO6XM4pC2CcaISQ8OlbkfQ_liqKJbi_';
+const GCAL_CLIENT_ID='618368859945-nsqok0t0aleg609dp89pftu478fa7ba2.apps.googleusercontent.com';
 const {createClient}=supabase;
 const sb=createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{
   auth:{
@@ -3148,7 +3149,7 @@ let _entryDirty=false; // tracks unsaved edits on the Enter tab
 let _loadingDay=false; // suppresses markDirty during programmatic field loads
 let invOos={}; // {sku: {note:'', expectedDate:''}} -- out of stock map
 const DAY_NAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-let SETTINGS={clubName:'',taxRate:1.25,ohRate:32,otherRate:50,merchRate:100,dvDelta:3,gcal:{clientId:'618368859945-nsqok0t0aleg609dp89pftu478fa7ba2.apps.googleusercontent.com',calendarId:'',token:'',tokenExpiry:0},
+let SETTINGS={clubName:'',taxRate:1.25,ohRate:32,otherRate:50,merchRate:100,dvDelta:3,gcal:{clientId:'',calendarId:'',token:'',tokenExpiry:0},
   opDays:[false,true,true,true,true,true,true],
   operators:[{name:'Operator 1',visible:true,aliases:''},{name:'Operator 2',visible:true,aliases:''},{name:'Operator 3',visible:false,aliases:''},{name:'Operator 4',visible:false,aliases:''}]};
 
@@ -5450,14 +5451,13 @@ function gcalUpdateUI(){
   if(calDisp)calDisp.textContent=(SETTINGS.gcal&&SETTINGS.gcal.calendarId)?SETTINGS.gcal.calendarId:'Not set';
   if(enterBar)enterBar.style.display=connected?'flex':'none';
   if(payoutBtn)payoutBtn.style.display=connected?'inline-flex':'none';
-  const clientInp=document.getElementById('s-gcal-client-id');
-  if(clientInp&&SETTINGS.gcal&&SETTINGS.gcal.clientId)clientInp.value=SETTINGS.gcal.clientId;
+  // Client ID stored in SETTINGS.gcal.clientId — no input field needed
 }
 
 function gcalConnect(){
-  const clientId=(document.getElementById('s-gcal-client-id')?.value||'').trim();
-  if(!clientId){showToast('Enter your OAuth Client ID first','error');return;}
   if(!SETTINGS.gcal)SETTINGS.gcal={};
+  const clientId=GCAL_CLIENT_ID;
+  if(!clientId){showToast('OAuth Client ID not configured','error');return;}
   SETTINGS.gcal.clientId=clientId;
   gcalRequestToken(function(token){
     if(!token){showToast('Google auth failed or cancelled','error');return;}
@@ -5471,7 +5471,7 @@ function gcalConnect(){
 }
 
 function gcalRequestToken(cb){
-  const clientId=SETTINGS.gcal&&SETTINGS.gcal.clientId;
+  const clientId=GCAL_CLIENT_ID||SETTINGS.gcal&&SETTINGS.gcal.clientId;
   if(!clientId){cb(null);return;}
   // Check existing valid token
   if(SETTINGS.gcal.token&&SETTINGS.gcal.tokenExpiry&&Date.now()<SETTINGS.gcal.tokenExpiry-60000){cb(SETTINGS.gcal.token);return;}
