@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-08 09:00:00 -->
+<!-- CACHE BUST: 2026-04-08 10:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -1998,12 +1998,8 @@ if('serviceWorker' in navigator){
           <!-- Daily input view -->
           <div id="cva-sg-daily-view">
             <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--b6);margin-bottom:4px;">Daily sales goal</div>
-            <div style="display:flex;align-items:center;gap:4px;background:var(--surface);border:1px solid var(--b4);border-radius:6px;padding:4px 10px;max-width:170px;">
-              <span style="font-size:14px;color:var(--b6);font-weight:700;">$</span>
-              <input type="number" id="cva-sg-daily-inp" min="1" step="1" value="769" style="border:none;background:transparent;font-size:20px;font-weight:700;color:var(--text);width:90px;outline:none;" oninput="cvaSgDailyInputChange()" onblur="cvaSgDailyInputBlur()"/>
-              <span style="font-size:11px;color:var(--text-faint);">/day</span>
-            </div>
-            <div style="font-size:11px;color:var(--b6);margin-top:5px;">&times; 26 op days = <strong id="cva-sg-daily-mo-hint">$20,000 / mo</strong></div>
+            <div style="font-family:'Outfit',sans-serif;font-size:26px;font-weight:700;color:var(--text);line-height:1;" id="cva-sg-daily-disp">$769</div>
+            <div style="font-size:11px;margin-top:3px;" id="cva-rev-sublabel">per operating day</div>
           </div>
 
           <!-- Monthly display view -->
@@ -4240,31 +4236,12 @@ function cvaSgSetMode(m){
   if(btnM){btnM.style.background=!isDaily?'var(--b5)':'transparent';btnM.style.color=!isDaily?'#fff':'var(--text-muted)';btnM.style.borderColor=!isDaily?'var(--b5)':'var(--border)';}
   if(viewD)viewD.style.display=isDaily?'block':'none';
   if(viewM)viewM.style.display=!isDaily?'block':'none';
-  if(isDaily){setTimeout(function(){var el=document.getElementById('cva-sg-daily-inp');if(el)el.focus();},50);}
+  // daily view is now display-only like monthly — no input to focus
 }
 
 // ── CVA: SALES GOAL DAILY INPUT ──
-function cvaSgDailyInputChange(){
-  var el=document.getElementById('cva-sg-daily-inp');if(!el)return;
-  var daily=parseFloat(el.value)||0;if(daily<=0)return;
-  var monthly=Math.round(Math.max(0,Math.min(_cvaMAX,daily*26))/100)*100;
-  var sl=document.getElementById('cva-rev-slider');if(sl)sl.value=monthly;
-  cvaST('cva-sg-daily-mo-hint','$'+monthly.toLocaleString()+' / mo');
-  cvaRevRender(monthly,'daily-input');
-  cvaRecalc();
-}
-function cvaSgDailyInputBlur(){
-  var el=document.getElementById('cva-sg-daily-inp');if(!el)return;
-  var daily=parseFloat(el.value)||0;if(daily<=0)return;
-  var monthly=Math.round(Math.max(0,Math.min(_cvaMAX,daily*26))/100)*100;
-  var closest=_cvaRevChips.reduce(function(a,b){return Math.abs(b-monthly)<Math.abs(a-monthly)?b:a;});
-  if(Math.abs(closest-monthly)<=_cvaSnapZone)monthly=closest;
-  var sl=document.getElementById('cva-rev-slider');if(sl)sl.value=monthly;
-  el.value=Math.round(monthly/26);
-  cvaST('cva-sg-daily-mo-hint','$'+monthly.toLocaleString()+' / mo');
-  cvaRevRender(monthly,'daily-input');
-  cvaRecalc();
-}
+function cvaSgDailyInputChange(){} // input removed — daily display is slider-driven
+function cvaSgDailyInputBlur(){}
 
 // ── CVA: PROFIT GOAL SOLVER ──
 function cvaCalcRevFromProfit(targetProfit){
@@ -4613,11 +4590,8 @@ function cvaRecalc(){
   cvaST('cva-target-rev','$'+Math.round(rev/26).toLocaleString());
   cvaST('cva-target-drinks',drinks);
   cvaST('cva-target-dph',(drinks/(hrs||8)).toFixed(1));
-  // Keep daily sales input in sync
-  if(_cvaSgMode==='daily'){
-    var di=document.getElementById('cva-sg-daily-inp');
-    if(di)di.value=Math.round(rev/26);
-  }
+  // Keep daily display in sync with slider
+  cvaST('cva-sg-daily-disp','$'+Math.round(rev/26).toLocaleString());
   cvaST('cva-sg-daily-mo-hint','$'+rev.toLocaleString()+' / mo');
 
   cvaST('cva-bench-0',cvaFmtD(cvaCalcTarget(0)));
