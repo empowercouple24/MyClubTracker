@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-09 01:00:00 -->
+<!-- CACHE BUST: 2026-04-09 02:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -504,24 +504,38 @@ if('serviceWorker' in navigator){
     /* ── MOBILE RESPONSIVE (iPhone 15 Pro Max and smaller) ── */
     @media (max-width: 480px) {
 
+      /* ── GLOBAL ── */
+      body { -webkit-text-size-adjust: 100%; }
+
       /* ── NAV ── */
       .topnav { padding: 0 8px; gap: 6px; }
       .nav-club-name { font-size: 12px; }
+      .nav-club-addr { font-size: 10px; }
       .nav-admin-badge { display: none; }
 
-      /* ── TAB BAR — abbreviated labels ── */
-      .tab { padding: 0 6px; font-size: 11px; flex: 1; justify-content: center; }
-      .tab { font-size: 0; }
-      .tab::before { content: attr(data-short); font-size: 11px; font-weight: 600; }
-      .tabbar { overflow-x: hidden; }
+      /* ── TAB BAR ── */
+      .tab { padding: 6px 4px; font-size: 0; flex: 1; text-align: center; }
+      .tab::before { content: attr(data-short); font-size: 10px; font-weight: 700; }
+      .tabbar { overflow-x: hidden; gap: 1px; }
       .tab-divider { display: none; }
 
+      /* ── ENTER TAB ── */
+      #panel-enter { padding: 8px 10px 40px; }
+      .dv-input { font-size: 20px !important; padding: 6px 10px !important; width: 120px !important; }
+      .enter-sales-row { gap: 8px; }
+      .enter-ops-row { gap: 8px; }
+      .dv-box { padding: 10px 12px !important; }
+      .dv-box-label { font-size: 13px; }
+      .summary-card { padding: 10px 12px !important; }
+      .summary-card-val { font-size: 22px !important; }
+
+      /* ── DASHBOARD WIDGETS ── */
+      .dw-row4 { grid-template-columns: 1fr 1fr; }
+      .dw-value { font-size: 15px !important; }
+      .dw-card { padding: 9px 10px; gap: 7px; }
+
       /* ── HISTORY CALENDAR ── */
-      #panel-history > div {
-        width: 100% !important;
-        min-width: 0 !important;
-        padding: 0 4px !important;
-      }
+      #panel-history > div { width: 100% !important; min-width: 0 !important; padding: 6px 6px 40px !important; }
       .hcal-dow-row { gap: 2px; }
       .hcal-dow { font-size: 8px; padding: 2px 0; }
       .hcal-week { gap: 2px; }
@@ -538,18 +552,13 @@ if('serviceWorker' in navigator){
       .hcal-week-total { font-size: 11px; }
       .hcal-month-total { padding: 7px 10px; margin-bottom: 6px; }
       .hcal-month-total-val { font-size: 13px; }
-      /* Mobile calendar day values — tighter, no suffixes */
       .hcal-val-sales { font-size: 10px; }
       .hcal-val-dv { font-size: 10px; margin-top: 0; }
       .hcal-net-suffix { display: none; }
       .hcal-dv-suffix { display: none; }
-      /* hide alloc dots on mobile history — too small */
       .hcal-day .dot-row { display: none; }
-      /* Operator dots smaller on mobile */
       .hcal-day [style*="width:14px"] { width: 11px !important; height: 11px !important; font-size: 6px !important; }
-      /* Quadrant SVG smaller on mobile */
       .hcal-day svg { width: 16px !important; height: 16px !important; }
-      /* Recon banner — compact on mobile */
       .recon-banner { flex-wrap: wrap; gap: 4px; padding: 8px 10px; }
       .recon-banner-left { flex: 1; min-width: 0; }
       .recon-banner-val { font-size: 17px; }
@@ -561,64 +570,77 @@ if('serviceWorker' in navigator){
       .recon-bank-input { width: 82px; font-size: 11px; }
       .recon-match-badge { font-size: 9px; padding: 2px 6px; }
       .recon-chev { font-size: 10px; }
-      /* History panel full width on mobile */
-      #panel-history > div { width: 100% !important; min-width: 0 !important; padding: 6px 6px 40px !important; }
       .recon-widget { margin-bottom: 8px; }
 
       /* ── ALLOCATIONS CALENDAR ── */
-      #panel-alloc > div {
-        width: 100% !important;
-        min-width: 0 !important;
-        padding: 0 4px !important;
-      }
+      #panel-alloc > div { width: 100% !important; min-width: 0 !important; padding: 0 4px !important; }
       .acal-day { min-height: 56px !important; padding: 3px 3px 4px !important; }
       .acal-dow { font-size: 9px; padding: 2px 0; }
       .acal-week { gap: 2px; }
-      .acal-day { padding: 4px 3px; }
       .acal-dn { font-size: 10px; margin-bottom: 1px; }
       .acal-sales { font-size: 11px; margin-bottom: 2px; }
       .acal-dot { width: 5px; height: 5px; }
       .acal-week-summary { padding: 5px 8px; }
       .acal-week-label { font-size: 9px; }
       .acal-week-val { font-size: 12px; }
+      .acal-week-summary + div .alloc-bucket-grid { grid-template-columns: 1fr 1fr; }
+
+      /* ── INVENTORY HEADER ── */
+      .inv-header { padding: 10px 10px !important; }
+      .inv-dv-row { flex-direction: column; gap: 8px !important; }
+      .inv-dv-item-val { font-size: 26px !important; }
+      #inv-total-dvneed { font-size: 28px !important; }
+
+      /* ── INVENTORY TOOLBAR — 2 rows ── */
+      .filter-row { flex-wrap: wrap; gap: 6px; padding: 6px 0; }
+      .filter-row > div { order: 1; flex: 1; min-width: 0; }
+      #inv-clear-btn { order: 2; font-size: 11px !important; padding: 5px 8px !important; }
+      .btn.btn-primary[onclick="saveInvSnapshot()"] { order: 3; }
+      .btn.btn-ghost[onclick="goToOrderTab()"] { order: 4; width: 100%; justify-content: center; }
 
       /* ── INVENTORY TABLE ── */
       .inv-table { font-size: 13px !important; }
       .inv-table th { padding: 5px 4px !important; font-size: 8px !important; letter-spacing: 0; white-space: nowrap; }
-      .inv-table td { padding: 5px 4px !important; font-size: 13px !important; height: 28px !important; }
-      /* On mobile hide DV Product col (col 4) */
+      .inv-table td { padding: 5px 4px !important; font-size: 13px !important; height: 32px !important; }
+      .inv-input { width: 50px !important; font-size: 14px !important; padding: 5px 2px !important; }
+      .inv-name { font-size: 13px !important; }
+      .inv-sku { font-size: 12px !important; }
+      .inv-cat-header { font-size: 15px !important; padding: 10px 12px !important; }
+      .inv-cat-dv-val { font-size: 18px !important; }
+      .need-badge { font-size: 13px !important; padding: 2px 8px !important; }
+      /* Hide DV Product col on mobile */
       #panel-inv .inv-table th:nth-child(4),
       #panel-inv .inv-table td:nth-child(4) { display: none; }
       #panel-inv .inv-table th:nth-child(2) { width: 36px !important; }
-      #panel-inv .inv-table th:nth-child(3) { width: 50px !important; }
+      #panel-inv .inv-table th:nth-child(3) { width: 48px !important; }
       #panel-inv .inv-table th:nth-child(5) { width: 54px !important; }
-      #panel-inv .inv-table th:nth-child(6) { width: 60px !important; }
-      /* Order tab mobile */
+      #panel-inv .inv-table th:nth-child(6) { width: 58px !important; }
+      .th-sub { display: none; }
+
+      /* ── ORDER TAB ── */
       #panel-order .inv-table th:nth-child(3),
       #panel-order .inv-table td:nth-child(3) { display: none; }
       #panel-order .inv-table th { font-size: 8px !important; padding: 5px 4px !important; }
-      #panel-order .inv-table td { font-size: 12px !important; padding: 4px 4px !important; }
+      #panel-order .inv-table td { font-size: 12px !important; padding: 5px 4px !important; }
       #panel-order .inv-cat-header { font-size: 14px !important; padding: 8px 10px !important; }
-      .order-summary-card { gap: 6px !important; padding: 10px 12px !important; }
-      .order-op-chip { min-width: 100px !important; padding: 8px 10px !important; }
+      .order-summary-card { gap: 6px !important; padding: 10px 10px !important; flex-wrap: wrap; }
+      .order-op-chip { min-width: calc(50% - 6px) !important; padding: 8px 10px !important; flex: 1 1 calc(50% - 6px); }
       .order-op-chip-dv { font-size: 20px !important; }
-      .op-assign-btn { font-size: 11px !important; padding: 4px 8px !important; }
-      .th-sub { display: none; }
+      .order-op-chip-unassigned { min-width: 80px !important; }
+      .op-assign-btn { font-size: 11px !important; padding: 5px 8px !important; min-height: 32px; }
+      .order-toolbar { gap: 6px; }
+      .order-plan-select { font-size: 12px !important; }
 
-      /* ── INVENTORY HEADER STATS ── */
-      .inv-header { padding: 10px 10px !important; }
-      .inv-dv-card { padding: 8px 10px !important; }
-      .inv-dv-item-val { font-size: 20px !important; }
+      /* ── ORDER HEADER ── */
+      #order-sticky-wrap .inv-dv-row { flex-direction: row; gap: 8px; }
 
       /* ── PROJECTIONS ── */
-      #panel-proj > div {
-        padding: 10px 8px 40px !important;
-      }
+      #panel-proj > div { padding: 10px 8px 40px !important; }
       #proj-estimator-grid { font-size: 12px; }
       #proj-estimator-grid th, #proj-estimator-grid td { padding: 5px 6px !important; font-size: 12px !important; }
 
-      /* ── ALLOC REMAINING LIST ── */
-      .acal-week-summary + div .alloc-bucket-grid { grid-template-columns: 1fr 1fr; }
+      /* ── MODALS / SHEETS ── */
+      .modal-sheet { border-radius: 14px 14px 0 0 !important; }
 
     }
 
@@ -951,7 +973,7 @@ if('serviceWorker' in navigator){
 </div>
 
 <div id="hist-sticky-header">
-  <div style="max-width:900px;margin:0 auto;width:75%;min-width:480px;padding:0 12px;">
+  <div style="max-width:900px;margin:0 auto;width:100%;padding:0 12px;">
     <div class="recon-widget" id="recon-widget-fixed">
       <!-- populated by JS -->
     </div>
@@ -1256,7 +1278,7 @@ if('serviceWorker' in navigator){
 </div><!-- /panel-enter -->
 
 <div class="tab-panel" id="panel-history">
-  <div style="max-width:900px;margin:0 auto;width:75%;min-width:480px;padding-bottom:40px;">
+  <div style="max-width:900px;margin:0 auto;width:100%;padding-bottom:40px;">
 
     <!-- STICKY HEADER: recon banner + month nav always visible -->
     <div id="hist-sticky-top" style="position:sticky;top:0;z-index:30;background:var(--bg);padding-bottom:6px;box-shadow:0 4px 8px -2px rgba(53,78,98,0.07)">
@@ -1444,7 +1466,7 @@ if('serviceWorker' in navigator){
       </div>
     </div>
 
-  <div style="max-width:900px;margin:0 auto;width:75%;min-width:480px;">
+  <div style="max-width:900px;margin:0 auto;width:100%;">
     <div id="alloc-cal-nav" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <button class="btn btn-ghost" id="alloc-prev-btn" onclick="allocCalShift(-1)" style="padding:5px 12px;font-size:16px;">&#8592;</button>
       <span id="alloc-cal-label" style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:var(--text);"></span>
