@@ -11212,7 +11212,11 @@ function calcReconTotals() {
     const allKeys = ['cashdeposit','tax','overhead','herbalife','payouts'];
 
     const cashDep = parseFloat(data.cashSales)||0;
-    const cardDep = c.cardDeposits || 0;
+    // fundraiserCard: collected via Square but allocated out via reduced overhead — exclude from bank balance
+    // cashAppPay: goes to separate CashApp account, not main bank — exclude from bank balance
+    const _fundraiserCard = parseFloat(data.fundraiserCard) || 0;
+    const _cashAppPay     = parseFloat(data.cashAppPay)     || 0;
+    const cardDep = (c.cardDeposits || 0) - _fundraiserCard - _cashAppPay;
 
     // Card deposits: Square auto-deposits every day — always counts
     cardDepositsTotal += cardDep;
