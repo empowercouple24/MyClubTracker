@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-09 12:00:00 -->
+<!-- CACHE BUST: 2026-04-09 13:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -10491,6 +10491,28 @@ document.addEventListener('gesturestart',function(e){e.preventDefault();},{passi
 document.addEventListener('gesturechange',function(e){e.preventDefault();},{passive:false});
 document.addEventListener('gestureend',function(e){e.preventDefault();},{passive:false});
 document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
+</script>
+<script>
+// Forward wheel events on the payouts panel to the register scroll box
+// so scrolling anywhere below the sticky top scrolls the register rows
+(function(){
+  document.addEventListener('DOMContentLoaded',function(){
+    const panel=document.getElementById('panel-payouts');
+    const stickyTop=document.getElementById('payouts-sticky-top');
+    if(!panel)return;
+    panel.addEventListener('wheel',function(e){
+      const scrollBox=document.getElementById('preg-scroll-box');
+      if(!scrollBox)return;
+      // Only redirect if not already scrolling inside the sticky top section
+      if(stickyTop&&stickyTop.contains(e.target))return;
+      // Don't redirect if already inside the scroll box itself
+      if(scrollBox.contains(e.target))return;
+      // Forward the vertical scroll delta to the register scroll box
+      e.preventDefault();
+      scrollBox.scrollTop+=e.deltaY;
+    },{passive:false});
+  });
+})();
 </script>
 </body>
 </html>
