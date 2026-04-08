@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-08 23:00:00 -->
+<!-- CACHE BUST: 2026-04-09 00:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -407,6 +407,14 @@ if('serviceWorker' in navigator){
     .op-assign-btn{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;border:1.5px solid var(--border);border-radius:20px;padding:5px 12px;background:var(--surface);color:var(--text-muted);cursor:pointer;white-space:nowrap;transition:all 0.15s;width:100%;text-align:center;}
     .op-assign-btn.assigned{background:var(--b7);color:white;border-color:var(--b7);}
     .op-assign-btn.oos-btn{background:var(--r0,#fee2e2);color:var(--r5,#ef4444);border-color:var(--r3,#fca5a5);cursor:default;}
+    .op-color-trigger{width:26px;height:26px;border-radius:50%;cursor:pointer;flex-shrink:0;border:2px solid rgba(255,255,255,0.6);box-shadow:0 0 0 1.5px rgba(0,0,0,0.15);transition:transform 0.12s;}
+    .op-color-trigger:hover{transform:scale(1.12);}
+    .op-color-pop{display:none;position:absolute;right:0;top:32px;z-index:200;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:10px;box-shadow:0 4px 16px rgba(0,0,0,0.14);width:168px;}
+    .op-color-pop.open{display:block;}
+    .op-color-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;}
+    .op-color-swatch{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2.5px solid transparent;transition:transform 0.1s;}
+    .op-color-swatch:hover{transform:scale(1.2);}
+    .op-color-swatch.op-color-selected{border-color:white;box-shadow:0 0 0 2px rgba(0,0,0,0.25);}
     .inv-input:focus{border-color:var(--a4);box-shadow:0 0 0 2px rgba(224,152,32,0.15);background:#fff}
     .need-badge{display:inline-block;font-size:16px;font-weight:700;padding:3px 12px;border-radius:20px;min-width:36px;text-align:center;}
     .need-badge.need{background:#bfdbfe;color:#1d4ed8;}
@@ -3124,7 +3132,7 @@ async function saveProfileAndSettings(){
     SETTINGS.otherRate=parseFloat(document.getElementById('s-otherrate')?.value||SETTINGS.otherRate);
     SETTINGS.merchRate=parseFloat(document.getElementById('s-merchrate')?.value||SETTINGS.merchRate);
     SETTINGS.dvDelta=parseFloat(document.getElementById('s-dvdelta')?.value||SETTINGS.dvDelta);
-    SETTINGS.operators=[0,1,2,3].map(i=>({name:document.getElementById('s-op-'+i)?.value.trim()||'',visible:SETTINGS.operators[i]?.visible!==false,isOwner:SETTINGS.operators[i]?.isOwner===true,aliases:document.getElementById('s-alias-'+i)?.value.trim()||''}));
+    SETTINGS.operators=[0,1,2,3].map(i=>({name:document.getElementById('s-op-'+i)?.value.trim()||'',visible:SETTINGS.operators[i]?.visible!==false,isOwner:SETTINGS.operators[i]?.isOwner===true,aliases:document.getElementById('s-alias-'+i)?.value.trim()||'',color:SETTINGS.operators[i]?.color||null}));
     // opDays are toggled live into SETTINGS.opDays directly -- no read needed here
     const empCode=document.getElementById('s-emp-code')?.value.trim();
     if(empCode)SETTINGS.employeeInviteCode=empCode;
@@ -5479,15 +5487,58 @@ function renderDashboardWidgets(){
   }
 }
 
-const _OP_PALETTE = ['#4e6e86','#2d6a4f','#9e7e6a','#7a5c80','#b07d3a','#3a7a6e'];
+const _OP_PALETTE = ['#e53935','#1a73e8','#9c27b0','#fb8c00','#00897b','#e91e8c','#3f51b5','#43a047','#f9a825','#00acc1','#6d4c41','#546e7a'];
 
 function getOpColor(name) {
-  // Stable color by name hash
   if (!name) return _OP_PALETTE[0];
   const ops = SETTINGS.operators || [];
   const idx = ops.findIndex(o => o.name === name || (o.aliases||'').split(',').map(a=>a.trim()).includes(name));
+  if(idx>=0&&ops[idx].color)return ops[idx].color;
   return _OP_PALETTE[idx >= 0 ? idx % _OP_PALETTE.length : 0];
 }
+
+function toggleOpColorPop(i){
+  const pop=document.getElementById('s-op-color-pop-'+i);
+  if(!pop)return;
+  const wasOpen=pop.classList.contains('open');
+  // Close all pops first
+  document.querySelectorAll('.op-color-pop').forEach(p=>p.classList.remove('open'));
+  if(!wasOpen)pop.classList.add('open');
+}
+
+function pickOpColor(i,color){
+  SETTINGS.operators[i].color=color;
+  // Update trigger swatch
+  const trigger=document.getElementById('s-op-color-trigger-'+i);
+  if(trigger)trigger.style.background=color;
+  // Update selected ring
+  const pop=document.getElementById('s-op-color-pop-'+i);
+  if(pop){
+    pop.querySelectorAll('.op-color-swatch').forEach(s=>{
+      s.classList.toggle('op-color-selected',s.style.background===color||s.style.background===hexToRgbStr(color));
+    });
+    pop.classList.remove('open');
+  }
+}
+
+function hexToRgbStr(hex){
+  if(!hex||hex.length<4)return hex;
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return`rgb(${r}, ${g}, ${b})`;
+}
+
+function opTextColor(hex){
+  if(!hex||hex.length<4)return'white';
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return((0.299*r+0.587*g+0.114*b)/255)>0.5?'#1a1a1a':'white';
+}
+
+// Close color pops when clicking outside
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.op-color-trigger')&&!e.target.closest('.op-color-pop')){
+    document.querySelectorAll('.op-color-pop').forEach(p=>p.classList.remove('open'));
+  }
+});
 
 function clearOperators() {
   const sel1 = document.getElementById('f-op1');
@@ -6947,7 +6998,8 @@ function renderOrderBody(){
   let chipHtml='<div class="order-summary-card" id="order-summary-card">';
   ops.forEach((o,i)=>{
     const col=getOpColor(o);
-    chipHtml+=`<div class="order-op-chip" style="background:${col}cc;"><div class="order-op-chip-name">${o}</div><div class="order-op-chip-dv" id="order-chip-dv-${i}">${fmtVP(opTotals[o])} <span style="font-size:14px;font-weight:600;opacity:0.8;">DV</span></div><div class="order-op-chip-sub" id="order-chip-sub-${i}">${opCounts[o]} products</div></div>`;
+    const txtCol=opTextColor(col);
+    chipHtml+=`<div class="order-op-chip" style="background:${col}cc;color:${txtCol};"><div class="order-op-chip-name" style="color:${txtCol};opacity:0.85;">${o}</div><div class="order-op-chip-dv" id="order-chip-dv-${i}" style="color:${txtCol};">${fmtVP(opTotals[o])} <span style="font-size:14px;font-weight:600;opacity:0.8;">DV</span></div><div class="order-op-chip-sub" id="order-chip-sub-${i}" style="color:${txtCol};opacity:0.75;">${opCounts[o]} products</div></div>`;
   });
   if(totalOrderable>totalAssigned){
     chipHtml+=`<div class="order-op-chip-unassigned"><div class="order-op-chip-name">Unassigned</div><div class="order-op-chip-dv" id="order-chip-unassigned-dv">${totalOrderable-totalAssigned}</div><div class="order-op-chip-sub">remaining</div></div>`;
@@ -6960,7 +7012,8 @@ function renderOrderBody(){
     if(isOos)return`<button class="op-assign-btn oos-btn" disabled>OOS</button>`;
     const label=assigned||'-- Assign --';
     const col=assigned?getOpColor(assigned):null;
-    const style=col?`background:${col};border-color:${col};color:white;`:'';
+    const txtCol=col?opTextColor(col):'';
+    const style=col?`background:${col};border-color:${col};color:${txtCol};`:'';
     return`<button class="op-assign-btn${assigned?' assigned':''}" style="${style}" onclick="orderAssignCycle('${p.sku}',this)">${label}</button>`;
   };
   // Build HTML
@@ -7028,7 +7081,7 @@ function orderAssign(sku,opName,btnEl){
   if(btnEl){
     btnEl.textContent=opName||'-- Assign --';
     btnEl.className='op-assign-btn'+(opName?' assigned':'');
-    if(opName){const col=getOpColor(opName);btnEl.style.background=col;btnEl.style.borderColor=col;btnEl.style.color='white';}
+    if(opName){const col=getOpColor(opName);const txtCol=opTextColor(col);btnEl.style.background=col;btnEl.style.borderColor=col;btnEl.style.color=txtCol;}
     else{btnEl.style.background='';btnEl.style.borderColor='';btnEl.style.color='';}
   }
   const row=document.getElementById('order-row-'+sku);
@@ -7088,7 +7141,7 @@ function renderOrderSummaryCards(){
     if(subEl)subEl.textContent=opCounts[o]+' products';
     // Update chip background color
     const chip=dvEl?.closest('.order-op-chip');
-    if(chip){const col=getOpColor(o);chip.style.background=col+'cc';}
+    if(chip){const col=getOpColor(o);const txtCol=opTextColor(col);chip.style.background=col+'cc';chip.style.color=txtCol;}
   });
   const unassignedEl=document.getElementById('order-chip-unassigned-dv');
   if(unassignedEl){
@@ -9617,13 +9670,23 @@ function buildSettingsUI(){
   const _cnEl=document.getElementById('s-clubname');
   if(_cnEl) _cnEl.value=SETTINGS.clubName||'';
 
+  const _swatchColors=['#e53935','#e91e8c','#9c27b0','#3f51b5','#1a73e8','#00acc1','#00897b','#43a047','#f9a825','#fb8c00','#6d4c41','#546e7a'];
   document.getElementById('s-operators').innerHTML=SETTINGS.operators.map((op,i)=>{
     const isActive=op.visible!==false;
     const isOwner=op.isOwner===true;
+    const opColor=op.color||_OP_PALETTE[i%_OP_PALETTE.length];
+    const swatchesHtml=_swatchColors.map(c=>`<div class="op-color-swatch${c===opColor?' op-color-selected':''}" style="background:${c};" onclick="pickOpColor(${i},'${c}')"></div>`).join('');
     return`<div class="settings-row" style="gap:8px;align-items:center;">
       <label style="min-width:80px;color:${isActive?'var(--text)':'var(--text-faint)'};">Operator ${i+1}</label>
       <input type="text" id="s-op-${i}" value="${op.name||''}" placeholder="Name" style="flex:1;opacity:${isActive?1:0.45};"/>
       <input type="text" id="s-alias-${i}" value="${op.aliases||''}" placeholder="Aliases e.g. MN" style="flex:1;opacity:${isActive?1:0.45};"/>
+      <div style="position:relative;flex-shrink:0;">
+        <div id="s-op-color-trigger-${i}" class="op-color-trigger" style="background:${opColor};" onclick="toggleOpColorPop(${i})" title="Pick color"></div>
+        <div id="s-op-color-pop-${i}" class="op-color-pop">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:8px;">Pick a color</div>
+          <div class="op-color-grid">${swatchesHtml}</div>
+        </div>
+      </div>
       <button type="button" id="s-op-owner-${i}" onclick="toggleOperatorOwner(${i})" title="Mark as club owner" style="flex-shrink:0;font-size:11px;font-weight:700;padding:4px 9px;border-radius:var(--radius-sm);border:1px solid ${isOwner?'var(--b6)':'var(--border)'};background:${isOwner?'var(--b1)':'var(--b0)'};color:${isOwner?'var(--b7)':'var(--text-faint)'};cursor:pointer;white-space:nowrap;">${isOwner?'Owner':'Owner?'}</button>
       <button type="button" id="s-op-active-${i}" onclick="toggleOperatorActive(${i})" style="flex-shrink:0;font-size:11px;font-weight:700;padding:4px 9px;border-radius:var(--radius-sm);border:1px solid ${isActive?'var(--g5)':'var(--border)'};background:${isActive?'var(--g0)':'var(--b0)'};color:${isActive?'var(--g6)':'var(--text-faint)'};cursor:pointer;white-space:nowrap;">${isActive?'Active':'Inactive'}</button>
     </div>`;
