@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-09 07:00:00 -->
+<!-- CACHE BUST: 2026-04-09 08:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -10343,5 +10343,12 @@ safeInit();
     <div id="loc-switcher-list" style="padding:12px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:8px;"></div>
   </div>
 </div>
+<!-- Prevent pinch-to-zoom on iOS Safari -->
+<script>
+document.addEventListener('gesturestart',function(e){e.preventDefault();},{passive:false});
+document.addEventListener('gesturechange',function(e){e.preventDefault();},{passive:false});
+document.addEventListener('gestureend',function(e){e.preventDefault();},{passive:false});
+document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
+</script>
 </body>
 </html>
