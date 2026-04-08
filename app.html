@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-09 10:00:00 -->
+<!-- CACHE BUST: 2026-04-09 11:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -8070,6 +8070,8 @@ async function confirmBulkRename() {
   renderPaymentRegister();
   showToast(`Renamed ${count} record${count!==1?'s':''} to "${newName}"`, 'success');
 }
+
+function closePregSheet() {
   document.getElementById('preg-sheet-overlay').style.display = 'none';
   _pregEditId = null;
 }
