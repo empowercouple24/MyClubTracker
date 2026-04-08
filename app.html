@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-08 04:00:00 -->
+<!-- CACHE BUST: 2026-04-08 05:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -1991,6 +1991,19 @@ if('serviceWorker' in navigator){
         <button onclick="cvaApplyCustom()" style="padding:5px 12px;border-radius:6px;border:none;background:var(--b5);color:#fff;font-size:12px;font-weight:600;cursor:pointer;">Set</button>
       </div>
 
+      <!-- Max range selector -->
+      <div style="display:flex;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap;">
+        <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);">Range max:</span>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;" id="cva-max-btns"></div>
+        <div id="cva-max-custom-wrap" style="display:flex;align-items:center;gap:4px;">
+          <span style="font-size:11px;color:var(--text-faint);">or</span>
+          <div style="display:flex;align-items:center;gap:3px;border:1px solid var(--border);border-radius:5px;padding:2px 6px;background:var(--surface);">
+            <span style="font-size:11px;color:var(--text-faint);">$</span>
+            <input type="number" id="cva-max-input" min="15000" max="500000" step="1000" placeholder="other" style="border:none;background:transparent;font-size:11px;font-weight:600;color:var(--text);width:56px;outline:none;" onblur="cvaApplyMaxInput()" onkeydown="if(event.key==='Enter')cvaApplyMaxInput()"/>
+          </div>
+        </div>
+      </div>
+
       <!-- Break even legend -->
       <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
         <div style="width:10px;height:3px;background:#E24B4A;border-radius:2px;flex-shrink:0;"></div>
@@ -2092,7 +2105,7 @@ if('serviceWorker' in navigator){
         <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px;">
           <div class="field-row">
             <span class="field-label">Hourly wage</span>
-            <div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" id="cva-wage" type="number" value="12.00" min="7.25" max="50" step="0.25" style="width:90px;" oninput="this.value=parseFloat(this.value||0).toFixed(2);cvaRecalc()"/></div>
+            <div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" id="cva-wage" type="number" value="12.00" min="7.25" max="50" step="0.25" style="width:90px;" oninput="cvaRecalc()" onblur="this.value=parseFloat(this.value||12).toFixed(2);cvaRecalc()"/></div>
           </div>
           <div class="field-row" style="border-bottom:none;">
             <span class="field-label">Hours per shift</span>
@@ -3968,6 +3981,60 @@ var _cvaRevMode='monthly'; // 'monthly' or 'daily'
 var _cvaRevSuppressSync=false;
 var _cvaBreakEven=0; // computed live
 
+// Max preset buttons
+var _cvaMaxPresets=[20000,30000,50000,80000];
+
+// ── CVA: DYNAMIC CHIP GENERATION ──
+function cvaGenChips(max){
+  var chips;
+  if(max<=20000)      chips=[10000,15000,max];
+  else if(max<=30000) chips=[10000,15000,20000,max];
+  else if(max<=50000) chips=[10000,20000,30000,40000,max];
+  else if(max<=80000) chips=[10000,20000,40000,60000,max];
+  else {
+    var step=Math.round((max-10000)/4/5000)*5000||5000;
+    chips=[10000,10000+step,10000+step*2,10000+step*3,max];
+  }
+  return chips.filter(function(v,i,a){return a.indexOf(v)===i&&v>=10000&&v<=max;}).sort(function(a,b){return a-b;});
+}
+
+function cvaApplyMax(max){
+  _cvaMIN=10000; _cvaMAX=max;
+  _cvaBREAK=Math.min(50000,Math.round(max*0.7/1000)*1000);
+  _cvaRevChips=cvaGenChips(max);
+  _cvaRevMajor=_cvaRevChips.slice();
+  var sl=document.getElementById('cva-rev-slider');if(sl)sl.max=max;
+  var moInp=document.getElementById('cva-mo-input');if(moInp)moInp.max=max;
+  // Clamp current value
+  if(sl&&parseInt(sl.value)>max)sl.value=max;
+  cvaRevBuildChips();
+  cvaRevBuildHashmarks();
+  cvaRevBuildMaxBtns();
+  cvaRecalc();
+}
+
+function cvaApplyMaxInput(){
+  var el=document.getElementById('cva-max-input');if(!el||!el.value)return;
+  var raw=parseFloat(el.value)||0;
+  var v=raw>=1000?raw:raw*1000;
+  v=Math.round(Math.max(15000,v)/1000)*1000;
+  el.value='';
+  cvaApplyMax(v);
+}
+
+function cvaRevBuildMaxBtns(){
+  var wrap=document.getElementById('cva-max-btns');if(!wrap)return;
+  wrap.innerHTML='';
+  _cvaMaxPresets.forEach(function(v){
+    var b=document.createElement('button');
+    var isActive=v===_cvaMAX;
+    b.textContent='$'+(v/1000)+'k';
+    b.style.cssText='padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid '+(isActive?'var(--b5)':'var(--border)')+';background:'+(isActive?'var(--b5)':'transparent')+';color:'+(isActive?'#fff':'var(--text-muted)')+';transition:all 0.1s;white-space:nowrap;';
+    b.onclick=function(){cvaApplyMax(v);};
+    wrap.appendChild(b);
+  });
+}
+
 // ── CVA: STAFFING TIERS ──
 var _cvaTiers=[
   {max:40,  ops:0,    label:'Just you'},
@@ -4334,6 +4401,7 @@ function cvaRecalc(){
   }
   cvaRevBuildChips();
   cvaRevBuildHashmarks();
+  cvaRevBuildMaxBtns();
   cvaRenderExp();
   cvaRenderTiers(0);
   cvaRenderTable();
