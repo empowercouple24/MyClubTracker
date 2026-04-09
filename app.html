@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-10 09:00:00 -->
+<!-- CACHE BUST: 2026-04-10 10:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -5576,26 +5576,25 @@ function gcalRequestToken(cb){
   }
 
   // 2. Try server-side refresh (uses stored refresh token — no UI)
-  sb.functions.invoke('gcal-refresh',{body:{location_id:LOCATION_ID}})
+  fetch('https://ndaqlamzlaucigvnhgfu.supabase.co/functions/v1/gcal-refresh',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','apikey':'sb_publishable_wO6XM4pC2CcaISQ8OlbkfQ_liqKJbi_'},
+    body:JSON.stringify({location_id:LOCATION_ID})
+  }).then(function(r){return r.json().then(function(d){return{ok:r.ok,d:d};});})
     .then(function(res){
       console.log('[gcal] refresh result:', JSON.stringify(res));
-      const d=res.data;
-      const err=res.error;
-      if(err){
-        console.log('[gcal] refresh error (expected on first run):', JSON.stringify(err));
-        _gcalTokenPromptFull(clientId,cb);
-        return;
-      }
-      if(d&&d.access_token){
+      const d=res.d;
+      if(res.ok&&d&&d.access_token){
         SETTINGS.gcal.token=d.access_token;
         SETTINGS.gcal.tokenExpiry=Date.now()+(d.expires_in||3600)*1000;
         cb(d.access_token);
       } else {
-        // No refresh token stored yet — need one-time consent
+        console.log('[gcal] refresh failed, opening consent popup. error:',d&&d.error);
         _gcalTokenPromptFull(clientId,cb);
       }
     })
-    .catch(function(){
+    .catch(function(e){
+      console.log('[gcal] refresh fetch error:',e);
       _gcalTokenPromptFull(clientId,cb);
     });
 }
@@ -5629,23 +5628,16 @@ function _gcalTokenPromptFull(clientId,cb){
     var code=evt.data.code;
     console.log('[gcal] got code, invoking gcal-exchange');
     if(!code){cb(null);return;}
-    sb.functions.invoke('gcal-exchange',{body:{
-      code:code,
-      redirect_uri:redirectUri,
-      location_id:LOCATION_ID
-    }}).then(function(res){
+    // Use raw fetch so we can read the error body (sb.functions.invoke swallows non-2xx bodies)
+    fetch('https://ndaqlamzlaucigvnhgfu.supabase.co/functions/v1/gcal-exchange',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':'sb_publishable_wO6XM4pC2CcaISQ8OlbkfQ_liqKJbi_'},
+      body:JSON.stringify({code:code,redirect_uri:redirectUri,location_id:LOCATION_ID})
+    }).then(function(r){return r.json().then(function(d){return{ok:r.ok,d:d};});})
+    .then(function(res){
       console.log('[gcal] exchange result:', JSON.stringify(res));
-      var d=res.data;
-      var err=res.error;
-      // Supabase returns error object when function returns non-2xx
-      if(err){
-        console.error('[gcal] exchange supabase error:',JSON.stringify(err));
-        // Try to parse the error context for the actual Google message
-        var msg=(err.context&&err.context.error)||err.message||'unknown';
-        showToast('Google auth failed: '+msg,'error');
-        cb(null); return;
-      }
-      if(d&&d.access_token){
+      var d=res.d;
+      if(res.ok&&d&&d.access_token){
         SETTINGS.gcal.token=d.access_token;
         SETTINGS.gcal.tokenExpiry=Date.now()+(d.expires_in||3600)*1000;
         if(d.email)SETTINGS.gcal.email=d.email;
@@ -5653,7 +5645,7 @@ function _gcalTokenPromptFull(clientId,cb){
         cb(d.access_token);
       } else {
         console.error('[gcal] exchange failed:',JSON.stringify(d));
-        showToast('Google auth failed: '+(d&&d.error||'unknown'),'error');
+        showToast('Google auth failed: '+(d&&(d.error_description||d.error)||'unknown'),'error');
         cb(null);
       }
     }).catch(function(e){
