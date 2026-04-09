@@ -2,6 +2,22 @@
 <html>
 <head><title>Connecting...</title></head>
 <body style="font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#f0f4f8;">
-  <p style="color:#4a6080;font-size:15px;">✓ Connected — you can close this window.</p>
+  <p id="msg" style="color:#4a6080;font-size:15px;">Connecting to Google Calendar...</p>
+  <script>
+    var params = new URLSearchParams(window.location.search);
+    var code  = params.get('code');
+    var error = params.get('error');
+    if (code && window.opener) {
+      window.opener.postMessage({ type: 'gcal_code', code: code }, window.location.origin);
+      document.getElementById('msg').textContent = '✓ Connected — closing...';
+      setTimeout(function(){ window.close(); }, 800);
+    } else if (error) {
+      document.getElementById('msg').textContent = 'Auth error: ' + error;
+      if (window.opener) window.opener.postMessage({ type: 'gcal_error', error: error }, window.location.origin);
+      setTimeout(function(){ window.close(); }, 2000);
+    } else {
+      document.getElementById('msg').textContent = 'No code received.';
+    }
+  </script>
 </body>
 </html>

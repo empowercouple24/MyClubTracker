@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-10 06:00:00 -->
+<!-- CACHE BUST: 2026-04-10 07:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -5594,8 +5594,6 @@ function gcalRequestToken(cb){
 }
 
 function _gcalTokenPromptFull(clientId,cb){
-  // One-time authorization code flow (response_type=code, access_type=offline, prompt=consent)
-  // Redirects to oauth-callback.html (a static page) so app.html doesn't reload in the popup
   const scope=encodeURIComponent('https://www.googleapis.com/auth/calendar.readonly');
   const redirectUri=window.location.origin+'/oauth-callback.html';
   const state=Math.random().toString(36).slice(2);
@@ -5609,43 +5607,50 @@ function _gcalTokenPromptFull(clientId,cb){
     +'&prompt=consent'
     +loginHint;
   const w=window.open(url,'gcal_auth','width=500,height=600,left=200,top=100');
-  var timer=setInterval(function(){
-    try{
-      if(!w||w.closed){clearInterval(timer);cb(null);return;}
-      var href=w.location.href;
-      // Wait until popup has redirected back to our origin
-      if(href.includes(window.location.origin)&&href.includes('code=')){
-        clearInterval(timer);
-        var params=new URLSearchParams(w.location.search.slice(1));
-        var code=params.get('code');
-        w.close();
-        if(!code){cb(null);return;}
-        // Exchange code for tokens server-side (never expose client secret to browser)
-        sb.functions.invoke('gcal-exchange',{body:{
-          code:code,
-          redirect_uri:redirectUri,
-          location_id:LOCATION_ID
-        }}).then(function(res){
-          const d=res.data;
-          if(d&&d.access_token){
-            SETTINGS.gcal.token=d.access_token;
-            SETTINGS.gcal.tokenExpiry=Date.now()+(d.expires_in||3600)*1000;
-            if(d.email)SETTINGS.gcal.email=d.email;
-            sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID);
-            cb(d.access_token);
-          } else {
-            showToast('Google auth failed: '+(d&&d.error||'unknown'),'error');
-            cb(null);
-          }
-        }).catch(function(e){
-          showToast('Google auth error: '+e,'error');
-          cb(null);
-        });
-      }
-    }catch(e){
-      // Cross-origin — popup not yet redirected back, keep polling
+
+  // oauth-callback.html posts the code back via postMessage — no polling needed
+  function onMessage(evt){
+    if(evt.origin!==window.location.origin) return;
+    if(!evt.data||evt.data.type!=='gcal_code'&&evt.data.type!=='gcal_error') return;
+    window.removeEventListener('message',onMessage);
+    clearTimeout(giveUpTimer);
+    if(evt.data.type==='gcal_error'){
+      showToast('Google auth error: '+evt.data.error,'error');
+      cb(null); return;
     }
-  },500);
+    var code=evt.data.code;
+    if(!code){cb(null);return;}
+    sb.functions.invoke('gcal-exchange',{body:{
+      code:code,
+      redirect_uri:redirectUri,
+      location_id:LOCATION_ID
+    }}).then(function(res){
+      var d=res.data;
+      if(d&&d.access_token){
+        SETTINGS.gcal.token=d.access_token;
+        SETTINGS.gcal.tokenExpiry=Date.now()+(d.expires_in||3600)*1000;
+        if(d.email)SETTINGS.gcal.email=d.email;
+        sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID);
+        cb(d.access_token);
+      } else {
+        console.error('gcal-exchange response:',JSON.stringify(d));
+        showToast('Google auth failed: '+(d&&d.error||'unknown'),'error');
+        cb(null);
+      }
+    }).catch(function(e){
+      console.error('gcal-exchange error:',e);
+      showToast('Google auth error: '+e,'error');
+      cb(null);
+    });
+  }
+  window.addEventListener('message',onMessage);
+
+  // Give up after 3 minutes (user closed popup without authorizing)
+  var giveUpTimer=setTimeout(function(){
+    window.removeEventListener('message',onMessage);
+    try{w&&w.close();}catch(e){}
+    cb(null);
+  },180000);
 }
 
 function gcalFetchCalendars(token,cb){
