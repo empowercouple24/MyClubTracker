@@ -6156,6 +6156,10 @@ async function applyProdUpdate(){
   document.getElementById('prod-update-modal').style.display='none';
   _pendingProdUpdate = null;
   showToast(accepted.length+' product change'+(accepted.length>1?'s':'')+' applied','success');
+  // Re-render all product-dependent views
+  renderInventory();
+  renderOrderTab();
+  renderDashboardWidgets();
 }
 
 async function dismissProdUpdate(){

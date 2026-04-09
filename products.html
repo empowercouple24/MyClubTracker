@@ -417,7 +417,7 @@ function rowHTML(p,i){
     <td><span class="drag-handle" title="Drag to reorder">⠿</span></td>
     <td><input class="cell-input name-input" type="text" value="${escHtml(p[1])}" placeholder="Product name" onchange="updateField(${i},1,this.value)" oninput="markUnsaved()" onkeydown="tabToNext(this,event)"/></td>
     <td><input class="cell-input sku-input" type="text" value="${escHtml(p[2])}" placeholder="SKU" onchange="updateField(${i},2,this.value)" oninput="markUnsaved()" onkeydown="tabToNext(this,event)"/></td>
-    <td><input class="cell-input vp-input r" type="text" inputmode="decimal" value="${p[3]||''}" placeholder="0.00" onchange="updateField(${i},3,parseFloat(this.value)||0)" oninput="markUnsaved()" onkeydown="tabToNext(this,event)"/></td>
+    <td><input class="cell-input vp-input r" type="text" inputmode="decimal" value="${p[3]!=null&&p[3]!==''?parseFloat(p[3]).toFixed(2):''}" placeholder="0.00" onchange="updateField(${i},3,parseFloat(this.value)||0)" oninput="markUnsaved()" onkeydown="tabToNext(this,event)"/></td>
     <td><input class="cell-input par-input c" type="text" inputmode="numeric" value="${p[4]||0}" onchange="updateField(${i},4,parseInt(this.value)||0)" oninput="markUnsaved()" onkeydown="tabToNext(this,event)"/></td>
     <td><button class="del-btn" onclick="deleteProduct(${i})" title="Remove">✕</button></td>
   </tr>`;
