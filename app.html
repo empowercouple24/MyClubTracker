@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-10 04:00:00 -->
+<!-- CACHE BUST: 2026-04-10 07:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -733,6 +733,17 @@ if('serviceWorker' in navigator){
       #inv-sticky-wrap .btn-primary[onclick="saveInvSnapshot()"] { flex: 0 0 auto; order: 6; }
       #inv-snapshot-picker { font-size: 12px !important; max-width: 100% !important; width: 100%; }
 
+      /* ── HISTORY SUMMARY TABLE — compact mobile ── */
+      .smtbl th { font-size: 8px !important; padding: 3px 4px !important; letter-spacing: 0 !important; }
+      .smtbl td { font-size: 9px !important; padding: 2px 4px !important; line-height: 1.3 !important; }
+      .smtbl td:first-child { font-size: 8px !important; padding: 2px 5px !important; }
+      .smtbl td.sm-wk, .smtbl td.sm-total { font-size: 9px !important; }
+      .smtbl tr.s-section td { font-size: 7px !important; padding: 2px 5px !important; }
+      .sgrid th { font-size: 8px !important; padding: 3px 4px !important; letter-spacing: 0 !important; }
+      .sgrid td { font-size: 9px !important; padding: 2px 4px !important; line-height: 1.3 !important; }
+      .sgrid td:first-child { font-size: 8px !important; padding: 2px 5px !important; }
+      .sgrid tr.s-section td { font-size: 7px !important; padding: 2px 5px !important; }
+
     }
 
     /* ── THEMES ── */
@@ -1289,7 +1300,7 @@ if('serviceWorker' in navigator){
   </div>
 
   <!-- SECTION LABEL -->
-  <div class="section-label">Sales</div>
+  <div class="section-label">Sales &mdash; <span id="sales-oh-label" style="font-weight:600;"></span></div>
 
   <!-- TWO-COLUMN: Sales | Other Sales + Gift Cards -->
   <div class="enter-sales-row">
@@ -1307,8 +1318,8 @@ if('serviceWorker' in navigator){
       <div class="card">
         <div class="collapsible-toggle" onclick="toggleCollapse(this)" data-target="other-body">Other Sales <span class="arrow">▼</span></div>
         <div class="collapsible-body" id="other-body">
-          <div class="field-row"><div class="field-label">Other Sales (Waffles/Bowls)<span class="oh-badge" id="badge-otherRate" style="background:#dce9f9;color:#1a4a8a;"></span></div><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" type="text" inputmode="decimal" id="f-otherSales" placeholder="0.00" oninput="recalc(true)"/></div></div>
-          <div class="field-row"><div class="field-label">Merchandise<span class="oh-badge" id="badge-merchRate" style="background:#d4eedf;color:#1a7042;"></span></div><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" type="text" inputmode="decimal" id="f-merchSales" placeholder="0.00" oninput="recalc(true)"/></div></div>
+          <div class="field-row"><div class="field-label">Other Sales (Waffles/Bowls)<span class="oh-badge" id="badge-otherRate" style="background:rgba(255,255,255,0.18);color:rgba(255,255,255,0.75);"></span></div><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" type="text" inputmode="decimal" id="f-otherSales" placeholder="0.00" oninput="recalc(true)"/></div></div>
+          <div class="field-row"><div class="field-label">Merchandise<span class="oh-badge" id="badge-merchRate" style="background:rgba(255,255,255,0.18);color:rgba(255,255,255,0.75);"></span></div><div class="input-wrap"><span class="input-prefix">$</span><input class="field-input" type="text" inputmode="decimal" id="f-merchSales" placeholder="0.00" oninput="recalc(true)"/></div></div>
         </div>
       </div>
       <div class="card">
@@ -6641,6 +6652,9 @@ function recalc(userChanged=false){
   const badgeMerch=document.getElementById('badge-merchRate');
   if(badgeOther)badgeOther.textContent=SETTINGS.otherRate+'% OH';
   if(badgeMerch)badgeMerch.textContent=SETTINGS.merchRate+'% OH';
+  // Sales section OH label
+  const salesOhLbl=document.getElementById('sales-oh-label');
+  if(salesOhLbl)salesOhLbl.textContent=SETTINGS.ohRate+'% OH';
   // Fundraiser hero (top-right of summary hero)
   const heroEl=document.getElementById('sum-fundraiser-hero');
   if(heroEl)heroEl.classList.toggle('visible',c.hasFundraiser);
@@ -8485,7 +8499,7 @@ function renderInventory(){
         <td style="color:var(--text-muted);font-size:13px;">${p.par}</td>
         <td><span class="need-badge ${bc}">${bt}</span></td>
         <td class="dv-product">${p.vp||'--'}</td>
-        <td><input class="inv-input" type="number" inputmode="numeric" pattern="[0-9]*" min="0" value="${haveEntered?have:''}" oninput="setHave('${p.sku}',this.value)" onfocus="this.closest('tr').classList.add('inv-row-active')" onblur="this.closest('tr').classList.remove('inv-row-active')" ondblclick="this.select()" onclick="this.focus()" onwheel="this.blur()" ${isOos?'disabled style="opacity:0.4"':''}/></td>
+        <td><input class="inv-input" type="number" inputmode="numeric" pattern="[0-9]*" min="0" value="${haveEntered?have:''}" oninput="setHave('${p.sku}',this.value)" onfocus="invInputFocus(this)" onblur="this.closest('tr').classList.remove('inv-row-active')" ondblclick="this.select()" onclick="this.focus()" onwheel="this.blur()" onkeydown="invInputKeydown(event,this)" ${isOos?'disabled style="opacity:0.4"':''}/></td>
         <td id="vptot-${p.sku}" class="dv-subtotal">${dvNeedStr}</td>
       </tr>`;
     });
@@ -8505,6 +8519,42 @@ function renderInventory(){
     picker.value=cur||'';
   }
 }
+function invInputFocus(el) {
+  el.closest('tr').classList.add('inv-row-active');
+  // After browser does its scroll, correct it so the sticky cat header stays visible
+  requestAnimationFrame(function() {
+    const ca = document.querySelector('.content-area');
+    if (!ca) return;
+    const catTop = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--inv-cat-top')) || 110;
+    const stickyH = catTop; // total sticky height above content
+    const elRect = el.getBoundingClientRect();
+    const caRect = ca.getBoundingClientRect();
+    // If input is hidden behind sticky header, scroll down to show it with padding
+    const topEdge = caRect.top + stickyH + 8;
+    if (elRect.top < topEdge) {
+      ca.scrollTop -= (topEdge - elRect.top);
+    }
+    // If input is below visible area, scroll up to show it
+    const bottomEdge = caRect.bottom - 16;
+    if (elRect.bottom > bottomEdge) {
+      ca.scrollTop += (elRect.bottom - bottomEdge);
+    }
+  });
+}
+
+function invInputKeydown(e, el) {
+  if (e.key === 'Tab' || e.key === 'Enter') {
+    e.preventDefault();
+    const allInputs = Array.from(document.querySelectorAll('#inv-body .inv-input:not(:disabled)'));
+    const idx = allInputs.indexOf(el);
+    const next = e.shiftKey && e.key === 'Tab' ? allInputs[idx - 1] : allInputs[idx + 1];
+    if (next) {
+      next.focus();
+      next.select();
+    }
+  }
+}
+
 function setHave(s,v){
   const parsed=parseInt(v);
   invHave[s]=(v===''||v===null||v===undefined||isNaN(parsed))?null:parsed;
@@ -12043,7 +12093,7 @@ function renderWeekGrid(el) {
     if (!val) return `<td class="s-empty${extraCls?' '+extraCls:''}">—</td>`;
     let s;
     if (fmt==='$') s = '$'+val.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-    else s = val.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1});
+    else s = val.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
     return `<td class="${cls}">${s}</td>`;
   }
 
@@ -12142,7 +12192,7 @@ function renderMonthTable(el) {
     if (!val) return `<td class="sm-nodata${extraCls?' '+extraCls:''}" ${allocStyle}>—</td>`;
     let s;
     if (fmt==='$') s = '$'+val.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-    else s = val.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1});
+    else s = val.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
     return `<td class="${cls}" ${allocStyle}>${s}</td>`;
   }
 
