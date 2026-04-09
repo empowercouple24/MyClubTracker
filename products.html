@@ -565,33 +565,47 @@ function computeDiff(oldList, newList){
   // oldList/newList: arrays of [cat, name, sku, vp, par]
   // Key: SKU when present, otherwise "cat||name" as stable identity
   const changes = [];
-  function keyOf(p){ return p[2] ? p[2] : (p[0]+'||'+p[1]); }
+
+  // Normalizers — applied to BOTH sides so any type/whitespace difference is irrelevant
+  function normStr(v){ return String(v||'').trim(); }
+  function normVP(v){
+    var n = parseFloat(v);
+    return isNaN(n) ? 0 : Math.round(n * 10000) / 10000;
+  }
+  function normPAR(v){
+    var n = parseInt(v, 10);
+    return isNaN(n) ? 0 : n;
+  }
+
+  function keyOf(p){ return normStr(p[2]) || (normStr(p[0])+'||'+normStr(p[1])); }
+
   const oldByKey = {};
   const newByKey = {};
   oldList.forEach(function(p){ oldByKey[keyOf(p)] = p; });
   newList.forEach(function(p){ newByKey[keyOf(p)] = p; });
+
   // Added: in new but not in old
   newList.forEach(function(p){
     if(!oldByKey[keyOf(p)]){
-      changes.push({type:'add', sku:p[2]||'', name:p[1], cat:p[0], vp:p[3], par:p[4]});
+      changes.push({type:'add', sku:normStr(p[2]), name:p[1], cat:p[0], vp:p[3], par:p[4]});
     }
   });
   // Removed: in old but not in new
   oldList.forEach(function(p){
     if(!newByKey[keyOf(p)]){
-      changes.push({type:'remove', sku:p[2]||'', name:p[1], cat:p[0]});
+      changes.push({type:'remove', sku:normStr(p[2]), name:p[1], cat:p[0]});
     }
   });
-  // Changed: present in both, check fields
+  // Changed: present in both, compare normalized values only
   newList.forEach(function(p){
     const old = oldByKey[keyOf(p)];
     if(!old) return;
     const diffs = [];
-    if(old[1] !== p[1]) diffs.push({field:'name', from:old[1], to:p[1]});
-    if(parseFloat(old[3]||0) !== parseFloat(p[3]||0)) diffs.push({field:'vp', from:old[3], to:p[3]});
-    if(parseInt(old[4]||0) !== parseInt(p[4]||0)) diffs.push({field:'par', from:old[4], to:p[4]});
-    if(old[0] !== p[0]) diffs.push({field:'cat', from:old[0], to:p[0]});
-    if(diffs.length) changes.push({type:'change', sku:p[2], name:p[1], cat:p[0], diffs});
+    if(normStr(old[1]) !== normStr(p[1]))   diffs.push({field:'name', from:old[1], to:p[1]});
+    if(normVP(old[3])  !== normVP(p[3]))    diffs.push({field:'vp',   from:old[3], to:p[3]});
+    if(normPAR(old[4]) !== normPAR(p[4]))   diffs.push({field:'par',  from:old[4], to:p[4]});
+    if(normStr(old[0]) !== normStr(p[0]))   diffs.push({field:'cat',  from:old[0], to:p[0]});
+    if(diffs.length) changes.push({type:'change', sku:normStr(p[2]), name:p[1], cat:p[0], diffs});
   });
   return changes;
 }
