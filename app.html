@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-10 10:00:00 -->
+<!-- CACHE BUST: 2026-04-10 11:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -5696,7 +5696,12 @@ function gcalSaveCalendar(){
   gcalCloseShiftsModal();
   gcalPersist();
   gcalUpdateUI();
-  showToast('Calendar connected ok','success');
+  showToast('Calendar connected — '+sel.options[sel.selectedIndex].text,'success');
+  // If profile modal is open, rebuild it so the Connected badge and calendar name show immediately
+  var profileModal=document.getElementById('profile-modal');
+  if(profileModal&&profileModal.classList.contains('open')){
+    buildSettingsUI();
+  }
 }
 
 function gcalDisconnect(){
