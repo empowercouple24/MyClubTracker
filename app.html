@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-10 11:00:00 -->
+<!-- CACHE BUST: 2026-04-10 12:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -9195,53 +9195,62 @@ function renderHourlyPayrollInline() {
       var lastPaid = getHourlyLastPaidDate(emp.name);
       var lastPaidStr = lastPaid ? 'Last paid ' + new Date(lastPaid+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) : 'No prior payments';
 
-      // Build per-day breakdown string
-      var dayBreakdown = '';
+      // Per-shift rows
+      var shiftRows = '';
       if (data.shifts && data.shifts.length) {
-        dayBreakdown = data.shifts.map(function(s){
-          var dayLbl = s.date ? new Date(s.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}) : '';
-          return dayLbl + ': ' + s.hrs + ' hrs';
-        }).join(' · ');
-        if (dayBreakdown) dayBreakdown += ' · ';
+        data.shifts.forEach(function(s) {
+          var dayLbl = s.date ? new Date(s.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}) : '—';
+          var shiftPay = rate ? '$'+(s.hrs*rate).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '';
+          shiftRows += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border-light);">'
+            + '<div style="flex:1;font-size:12px;font-weight:600;color:var(--text);">'+escHtml(dayLbl)+'</div>'
+            + '<div style="font-size:12px;color:var(--text-muted);flex-shrink:0;">'+escHtml(s.timeStr||'')+'</div>'
+            + '<div style="font-size:12px;font-weight:700;color:var(--text);flex-shrink:0;min-width:38px;text-align:right;">'+s.hrs+'h</div>'
+            + (shiftPay ? '<div style="font-size:12px;font-weight:700;color:var(--g6);flex-shrink:0;min-width:58px;text-align:right;">'+shiftPay+'</div>' : '')
+            + '</div>';
+        });
+      } else {
+        shiftRows = '<div style="padding:8px 0;font-size:12px;color:var(--text-faint);">No shifts found in this range</div>';
       }
-      var subtitleStr = dayBreakdown + data.totalHrs + ' hrs &times; $' + rate.toFixed(2) + '/hr'
-        + (data.totalHrs > 0 && rate > 0 ? ' = $' + pay.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '')
-        + ' &nbsp;&middot;&nbsp; ' + lastPaidStr;
-      rowsHtml += '<div class="payout-op-row" data-emp-name="'+escHtml(emp.name)+'" data-emp-amt="'+pay.toFixed(2)+'" style="background:var(--b1);margin-bottom:4px;flex-direction:column;align-items:stretch;">'
-        + '<div style="display:flex;justify-content:space-between;align-items:center;">'
-        + '<div style="display:flex;align-items:center;gap:8px;">'
-        + '<div style="width:28px;height:28px;border-radius:50%;background:'+color+';display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;">' + initials + '</div>'
-        + '<div>'
-        + '<div class="payout-op-name" style="font-weight:700;">' + escHtml(emp.name) + '</div>'
-        + '<div style="font-size:10px;color:var(--text-faint);">' + subtitleStr + '</div>'
+
+      rowsHtml += '<div class="card" data-emp-name="'+escHtml(emp.name)+'" data-emp-amt="'+pay.toFixed(2)+'" style="margin-bottom:10px;padding:12px 14px;">'
+        // Header
+        + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">'
+        + '<div style="width:34px;height:34px;border-radius:50%;background:'+color+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;">'+initials+'</div>'
+        + '<div style="flex:1;">'
+        + '<div style="font-size:14px;font-weight:700;color:var(--text);">'+escHtml(emp.name)+'</div>'
+        + '<div style="font-size:11px;color:var(--text-muted);margin-top:1px;">$'+rate.toFixed(2)+'/hr &nbsp;·&nbsp; '+escHtml(lastPaidStr)+'</div>'
+        + '</div>'
+        + '<div style="font-family:Outfit,sans-serif;font-size:16px;font-weight:800;color:'+(pay>0?'var(--g6)':'var(--text-faint)')+';flex-shrink:0;">'
+        + (pay > 0 ? '$'+pay.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—')
         + '</div>'
         + '</div>'
-        + '<div class="payout-op-amt" style="font-size:15px;">'
-        + (data.totalHrs > 0
-            ? '$' + pay.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})
-            : '<span style="color:var(--text-faint);font-size:12px;">No shifts found</span>')
+        // Shift rows
+        + '<div style="border-top:1px solid var(--border-light);padding-top:4px;">'
+        + shiftRows
         + '</div>'
-        + '</div>'
+        // Footer total
+        + (data.totalHrs > 0 ? '<div style="display:flex;justify-content:flex-end;align-items:center;gap:10px;padding-top:8px;margin-top:4px;">'
+          + '<span style="font-size:11px;color:var(--text-muted);">'+data.totalHrs+' hrs &times; $'+rate.toFixed(2)+'/hr</span>'
+          + '<span style="font-size:13px;font-weight:800;color:var(--g6);">= $'+pay.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+'</span>'
+          + '</div>' : '')
         + '</div>';
     });
 
     var html = '<div class="section-label" style="margin-top:4px;">Hourly Employees — ' + fromFmt + ' – ' + toFmt + '</div>'
-      + '<div class="card" style="padding:12px;margin-bottom:12px;">'
       + rowsHtml;
 
     if (grandTotal > 0) {
-      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 8px 0;margin-top:6px;border-top:1px solid var(--border-light);">'
-        + '<span style="font-weight:700;font-size:13px;">Total Hourly Pay</span>'
-        + '<span style="font-family:Outfit,sans-serif;font-size:15px;font-weight:800;color:var(--g5);">$' + grandTotal.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) + '</span>'
+      html += '<div class="card" style="margin-bottom:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;">'
+        + '<span style="font-weight:700;font-size:13px;color:var(--text);">Total Hourly Pay</span>'
+        + '<span style="font-family:Outfit,sans-serif;font-size:16px;font-weight:800;color:var(--g6);">$' + grandTotal.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) + '</span>'
         + '</div>'
-        + '<div style="padding:8px 8px 0;margin-top:6px;">'
-        + '<button onclick="openHourlyApproveModal()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:7px;padding:9px 14px;border-radius:var(--radius-sm);border:1.5px solid var(--g4);background:var(--g0);color:var(--g5);font-family:DM Sans,sans-serif;font-size:13px;font-weight:700;cursor:pointer;">'
+        + '<div style="margin-bottom:16px;">'
+        + '<button onclick="openHourlyApproveModal()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:7px;padding:10px 14px;border-radius:var(--radius-sm);border:1.5px solid var(--g4);background:var(--g0);color:var(--g5);font-family:DM Sans,sans-serif;font-size:13px;font-weight:700;cursor:pointer;">'
         + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'
         + 'Approve &amp; Post to Register'
         + '</button>'
         + '</div>';
     }
-    html += '</div>';
     el.innerHTML = html;
   });
 }
