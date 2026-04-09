@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-09 11:00:00 -->
+<!-- CACHE BUST: 2026-04-09 12:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -3081,14 +3081,6 @@ if('serviceWorker' in navigator){
         <div style="font-size:11px;color:var(--text-faint);margin-top:6px;">Connection is saved to your location and persists across sessions.</div>
       </div>
     </div>
-    <!-- ── STAFF PAY RATES (owner only) ── -->
-    <div id="prof-staff-rates-section" style="display:none;">
-      <div class="settings-group">
-        <div class="settings-group-title">Staff Pay Rates</div>
-        <div style="font-size:11px;color:var(--text-faint);padding:0 0 8px;">Hourly rates for operators not in the 4-slot list. Auto-populated from your team members.</div>
-        <div id="s-staff-rates-list"></div>
-      </div>
-    </div>
     <!-- ── CHANGE PASSWORD (all roles) ── -->
     <div style="padding:0 16px 12px;">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--border-light);">
@@ -3363,9 +3355,6 @@ async function loadTeamMembers(){
   const primaryOwners=members.filter(m=>m.role==='owner'||m.role==='admin');
   const otherOwners=[];
   const employees=members.filter(m=>m.role!=='owner'&&m.role!=='admin');
-  // Build staff pay rates UI from employee list
-  const empForRates=employees.map(function(m){return{id:m.id,name:[m.first_name,m.last_name].filter(Boolean).join(' ')||m.display_name||m.email,email:m.email};});
-  buildStaffRatesUI(empForRates);
 
   const renderPrimaryOwner=(m,badge='Primary Owner')=>{
     const name=[m.first_name,m.last_name].filter(Boolean).join(' ')||m.display_name||m.email;
@@ -3447,7 +3436,6 @@ async function saveProfileAndSettings(){
     SETTINGS.otherRate=parseFloat(document.getElementById('s-otherrate')?.value||SETTINGS.otherRate);
     SETTINGS.merchRate=parseFloat(document.getElementById('s-merchrate')?.value||SETTINGS.merchRate);
     SETTINGS.dvDelta=parseFloat(document.getElementById('s-dvdelta')?.value||SETTINGS.dvDelta);
-    // staffRates saved live via saveStaffRate() oninput — no need to collect here
     // Collect teamMembers live from DOM (names/rates/roles updated live, just collect and persist)
     SETTINGS.teamMembers = collectTeamMembersFromDOM();
     // Keep legacy operators array in sync for any server-side or admin reads
@@ -3999,6 +3987,8 @@ async function init(){
   // Mark This Month chip active
   setTimeout(()=>{ const _tc=document.querySelector('.payout-preset-chip:nth-child(4)');if(_tc)_tc.classList.add('active'); },100);
   applyTheme(SETTINGS.theme||'ocean');populateOperatorDropdowns();buildSettingsUI();loadDay();renderHistory();renderHistAlloc();initUndoListeners();renderInventory();renderInvSnapPicker();renderPayoutSnapshots();renderPaymentRegister();renderDashboardWidgets();
+  // ── ONE-TIME PAY PERIOD MIGRATION ──
+  if(!SETTINGS._payPeriodMigrated2026){setTimeout(function(){migratePayPeriods2026();},1000);}
   recalcContentTop();
   // Unconditionally set nav name after everything loads
   const _finalNcn = document.getElementById('nav-club-name');
@@ -5160,51 +5150,6 @@ function cvaRecalc(){
 
 // ── STAFF PAY RATES ──
 
-function buildStaffRatesUI(employees){
-  // employees: [{id, name, email}] — role=employee, not in 4-slot operators
-  const section = document.getElementById('prof-staff-rates-section');
-  const list = document.getElementById('s-staff-rates-list');
-  if(!section||!list)return;
-  if(!employees||!employees.length){section.style.display='none';return;}
-  section.style.display='block';
-  if(!SETTINGS.staffRates)SETTINGS.staffRates=[];
-  list.innerHTML = employees.map(function(emp){
-    const saved = SETTINGS.staffRates.find(function(r){return r.userId===emp.id;})||{};
-    const rate = saved.hourlyRate||'';
-    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-light);gap:10px;">'
-      +'<div style="min-width:0;flex:1;">'
-      +'<div style="font-size:13px;font-weight:600;color:var(--text);">'+escHtml(emp.name)+'</div>'
-      +'<div style="font-size:11px;color:var(--text-faint);">'+escHtml(emp.email)+'</div>'
-      +'</div>'
-      +'<div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">'
-      +'<span style="font-size:13px;font-weight:600;color:var(--text-muted);">$</span>'
-      +'<input type="number" min="0" max="999" step="0.25" placeholder="0.00" value="'+escHtml(String(rate))+'" '
-      +'data-uid="'+escHtml(emp.id)+'" data-name="'+escHtml(emp.name)+'" '
-      +'onchange="saveStaffRate(this)" '
-      +'style="width:72px;font-family:DM Sans,sans-serif;font-size:14px;font-weight:600;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 6px;outline:none;text-align:right;background:var(--b0);color:var(--text);"/>'
-      +'<span style="font-size:11px;color:var(--text-faint);">/hr</span>'
-      +'</div></div>';
-  }).join('');
-}
-
-function saveStaffRate(inp){
-  const uid = inp.dataset.uid;
-  const name = inp.dataset.name;
-  const rate = parseFloat(inp.value)||0;
-  if(!SETTINGS.staffRates)SETTINGS.staffRates=[];
-  const idx = SETTINGS.staffRates.findIndex(function(r){return r.userId===uid;});
-  if(idx>=0){SETTINGS.staffRates[idx].hourlyRate=rate;}
-  else{SETTINGS.staffRates.push({userId:uid,name,hourlyRate:rate});}
-}
-
-function getStaffRate(name){
-  if(!SETTINGS.staffRates)return 0;
-  const r = SETTINGS.staffRates.find(function(r){
-    return r.name.toLowerCase()===name.toLowerCase();
-  });
-  return r?r.hourlyRate:0;
-}
-
 // ── HOURLY EMPLOYEES ──
 
 function buildHourlyEmployeesUI() {
@@ -5423,14 +5368,13 @@ function spRenderResults(byPerson,unmatched,from,to){
     var grandTotal=0;
     entries.forEach(function(entry){
       var name=entry[0],data=entry[1];
-      var rate=getStaffRate(name);
+      var hm=getHourlyMembers().find(function(m){return m.name.toLowerCase()===name.toLowerCase();});
+      var rate=hm?hm.hourlyRate:0;
       var pay=rate?data.totalHrs*rate:null;
       if(pay)grandTotal+=pay;
-      var rateStr=SETTINGS.staffRates&&SETTINGS.staffRates.find(function(r){return r.name.toLowerCase()===name.toLowerCase();})
-        ?'$'+rate.toFixed(2)+'/hr':'<span style="color:var(--a6);font-size:11px;">No rate set</span>';
+      var rateStr=hm&&rate?'$'+rate.toFixed(2)+'/hr':'<span style="color:var(--a6);font-size:11px;">No rate set</span>';
       var initials=name.trim().split(/\s+/).map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
-      var sr=SETTINGS.staffRates&&SETTINGS.staffRates.find(function(r){return r.name.toLowerCase()===name.toLowerCase();});
-      var color=sr&&sr.color||'var(--b5)';
+      var color=hm&&hm.color?hm.color:'var(--b5)';
       html+='<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-light);">'
         +'<div style="width:32px;height:32px;border-radius:50%;background:'+color+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;">'+initials+'</div>'
         +'<div style="flex:1;min-width:0;">'
@@ -5488,7 +5432,8 @@ function spAssignUnmatched(sel){
   var row=sel.closest('div[style*="fef7e8"]');
   if(row){
     row.style.background='var(--g0)';row.style.borderColor='var(--g1)';
-    var rate=getStaffRate(name);
+    var hm2=getHourlyMembers().find(function(m){return m.name.toLowerCase()===name.toLowerCase();});
+    var rate=hm2?hm2.hourlyRate:0;
     var pay=rate?hrs*rate:null;
     row.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;">'
       +'<div><div style="font-size:12px;font-weight:600;color:var(--g5);">'+escHtml(name)+' — assigned</div>'
@@ -9785,6 +9730,52 @@ function renderPaymentRegister() {
     : '<div class="preg-empty" style="padding:24px;text-align:center;color:var(--text-faint);">No payments in this period.</div>';
 
   if (footerTotal) footerTotal.textContent = (_pregFilter!=='all') ? 'Filtered: '+sorted.length+' of '+allLog.length+' entries' : '';
+}
+
+// ── ONE-TIME PAY PERIOD MIGRATION ────────────────────────────────────────────
+async function migratePayPeriods2026() {
+  if (!SETTINGS.paymentLog || !SETTINGS.paymentLog.length) return;
+  const MAP = {
+    '1180': { from: '2026-03-23', to: '2026-03-29' }, // Mary Nemecek $752.56
+    '1102': { from: '2026-03-02', to: '2026-03-22' }, // Giana Taft $576.00
+    '1103': { from: '2026-03-16', to: '2026-03-22' }, // Heather Mercsak $325.00
+    '1177': { from: '2026-03-16', to: '2026-03-22' }, // Jessica Glover $418.69
+    '1178': { from: '2026-03-16', to: '2026-03-22' }, // Mary Nemecek $617.62
+    '1100': { from: '2026-03-02', to: '2026-03-15' }, // Heather Mercsak $299.00
+    '1175': { from: '2026-03-09', to: '2026-03-15' }, // Jessica Glover $331.94
+    '1176': { from: '2026-03-09', to: '2026-03-15' }, // Mary Nemecek $807.35
+    '1173': { from: '2026-03-02', to: '2026-03-08' }, // Jessica Glover $292.49
+    '1174': { from: '2026-03-02', to: '2026-03-08' }, // Mary Nemecek $663.47
+    '1097': { from: '2026-02-15', to: '2026-03-01' }, // Giana Taft $288.00
+    '1098': { from: '2026-02-23', to: '2026-03-01' }, // Heather Mercsak $192.00
+    '1171': { from: '2026-02-23', to: '2026-03-01' }, // Jessica Glover $573.28
+    '1172': { from: '2026-02-23', to: '2026-03-01' }, // Mary Nemecek $500.65
+    '1095': { from: '2026-01-21', to: '2026-02-22' }, // Heather Mercsak $549.00
+    '1069': { from: '2026-02-15', to: '2026-02-21' }, // Jessica Glover $349.71
+    '1094': { from: '2026-01-26', to: '2026-02-14' }, // Giana Taft $552.00
+    '1168': { from: '2026-02-01', to: '2026-02-14' }, // Jessica Glover $1045.85
+    '1170': { from: '2026-02-07', to: '2026-02-21' }, // Mary Nemecek $1414.56
+    '1167': { from: '2026-02-01', to: '2026-02-06' }, // Mary Nemecek $452.37
+    '1165': { from: '2026-01-27', to: '2026-01-31' }, // Jessica Glover $412.34
+    '1166': { from: '2026-01-27', to: '2026-01-31' }, // Mary Nemecek $499.78
+    '1091': { from: '2026-01-12', to: '2026-01-25' }, // Giana Taft $384.00
+    '1162': { from: '2026-01-19', to: '2026-01-24' }, // Briana Kozak $110.29
+  };
+  var updated = 0;
+  SETTINGS.paymentLog.forEach(function(e) {
+    var pp = e.checkNum ? MAP[String(e.checkNum)] : null;
+    if (pp && !e.periodFrom) {
+      e.periodFrom = pp.from;
+      e.periodTo   = pp.to;
+      updated++;
+    }
+  });
+  if (updated === 0) { SETTINGS._payPeriodMigrated2026 = true; return; }
+  SETTINGS._payPeriodMigrated2026 = true;
+  const {error} = await sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID);
+  if (error) { console.warn('Pay period migration save failed:', error.message); return; }
+  renderPaymentRegister();
+  console.log('Pay period migration: updated ' + updated + ' entries.');
 }
 
 function confirmDeletePregEntry(id) {
