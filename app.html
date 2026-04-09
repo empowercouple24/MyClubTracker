@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-08 20:45:00 -->
+<!-- CACHE BUST: 2026-04-08 21:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -11033,60 +11033,46 @@ function printSummaryPDF() {
   var today      = new Date();
   var dateStr    = today.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
 
-  var captureEl = document.getElementById('history-sum-view');
-  if(!captureEl){resetBtn();return;}
-
   function doCapture(){
-    // Hide button so it doesn't appear in the capture
+    var jsPDF = window.jspdf && window.jspdf.jsPDF;
+    if(!jsPDF){resetBtn();return;}
+
+    // Get the full table element
+    var tbl = tableWrap.querySelector('table');
+    if(!tbl){resetBtn();return;}
+
+    // Clone the table into a hidden offscreen container — no visual disruption
+    var container = document.createElement('div');
+    container.style.cssText = 'position:fixed;left:-99999px;top:0;overflow:visible;background:var(--b0,#1e2d3a);padding:12px;';
+    var clone = tbl.cloneNode(true);
+    clone.style.cssText = 'border-collapse:collapse;white-space:nowrap;';
+    container.appendChild(clone);
+    document.body.appendChild(container);
+
+    // Hide the export button in the clone (it won't be there, but just in case)
     if(btn) btn.style.visibility = 'hidden';
 
-    // Expand table to full scroll width
-    var origOverflow = tableWrap.style.overflow;
-    var origWidth    = tableWrap.style.width;
-    var tbl          = tableWrap.querySelector('table');
-    var fullW        = tbl ? tbl.scrollWidth + 32 : tableWrap.scrollWidth;
-    tableWrap.style.overflow = 'visible';
-    tableWrap.style.width    = fullW + 'px';
-
-    window.html2canvas(captureEl, {
+    window.html2canvas(container, {
       scale: 3,
       useCORS: true,
       logging: false,
-      width: captureEl.scrollWidth,
-      windowWidth: captureEl.scrollWidth + 100
+      backgroundColor: null
     }).then(function(canvas){
-      // Restore
-      tableWrap.style.overflow = origOverflow;
-      tableWrap.style.width    = origWidth;
+      document.body.removeChild(container);
       if(btn) btn.style.visibility = 'visible';
-
-      var jsPDF = window.jspdf && window.jspdf.jsPDF;
-      if(!jsPDF){resetBtn();return;}
 
       var imgW = canvas.width;
       var imgH = canvas.height;
 
-      // Use a custom wide PDF page that matches the table's aspect ratio
-      // Base on landscape letter width (792pt) but extend height if needed
-      var ML = 28, MR = 28, MT = 54, MB = 20;
-      var printW = 792 - ML - MR;  // available width in points
-
-      // Scale image to fill printW, calculate resulting height
-      var scale   = printW / imgW;
-      var rendH   = imgH * scale;
-
-      // Total page height = header + image + footer
-      var pageH = MT + rendH + MB;
-      // Minimum page height is landscape letter (612pt)
-      if(pageH < 612) pageH = 612;
-
-      var doc = new jsPDF({
-        orientation: 'landscape',
-        unit: 'pt',
-        format: [792, pageH]
-      });
-
+      // PDF: landscape, custom height to fit image at full width
+      var ML = 28, MR = 28, MT = 54, MB = 28;
       var PW = 792;
+      var printW = PW - ML - MR;
+      var scale  = printW / imgW;
+      var rendH  = imgH * scale;
+      var pageH  = Math.max(612, MT + rendH + MB + 20);
+
+      var doc = new jsPDF({orientation:'landscape', unit:'pt', format:[PW, pageH]});
 
       // ── Header ──
       doc.setFont('helvetica','bold');
@@ -11107,20 +11093,20 @@ function printSummaryPDF() {
       doc.setLineWidth(0.5);
       doc.line(ML, 46, PW-MR, 46);
 
-      // ── Image — full width, single page ──
+      // ── Image ──
       var imgData = canvas.toDataURL('image/png');
       doc.addImage(imgData, 'PNG', ML, MT, printW, rendH, undefined, 'FAST');
 
       // ── Footer ──
-      var footY = MT + rendH + 12;
+      var footY = MT + rendH + 10;
       doc.setDrawColor(205,214,224);
       doc.setLineWidth(0.4);
-      doc.line(ML, footY - 4, PW-MR, footY - 4);
+      doc.line(ML, footY, PW-MR, footY);
       doc.setFont('helvetica','normal');
       doc.setFontSize(6.5);
       doc.setTextColor(143,163,179);
-      doc.text('MyClubTracker \u00b7 myclubtracker.com', ML, footY + 4);
-      doc.text(locName + ' \u00b7 ' + monthLabel, PW-MR, footY + 4, {align:'right'});
+      doc.text('MyClubTracker \u00b7 myclubtracker.com', ML, footY + 9);
+      doc.text(locName + ' \u00b7 ' + monthLabel, PW-MR, footY + 9, {align:'right'});
 
       // ── Save ──
       var safeName  = (locName.replace(/[^a-z0-9]/gi,'_').toLowerCase()||'club');
@@ -11151,8 +11137,7 @@ function printSummaryPDF() {
       }
     }).catch(function(err){
       console.error('html2canvas error:',err);
-      tableWrap.style.overflow = origOverflow;
-      tableWrap.style.width    = origWidth;
+      document.body.removeChild(container);
       if(btn) btn.style.visibility = 'visible';
       resetBtn();
     });
