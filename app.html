@@ -1,14 +1,18 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-09 19:00:00 -->
+<!-- CACHE BUST: 2026-04-09 19:30:00 -->
 <html lang="en">
 <head>
 <script>
 if(location.protocol==='http:'&&location.hostname!=='localhost'){
   location.replace('https://'+location.host+location.pathname+location.search+location.hash);
 }
-// Kill any stale service workers
+// Register service worker for PWA
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.getRegistrations().then(regs=>{regs.forEach(r=>r.unregister());});
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('/sw.js')
+      .then(function(reg){ console.log('SW registered:', reg.scope); })
+      .catch(function(err){ console.log('SW registration failed:', err); });
+  });
 }
 </script>
   <meta charset="UTF-8"/>
@@ -17,7 +21,28 @@ if('serviceWorker' in navigator){
   <meta http-equiv="Expires" content="0"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
   <title>MyClubTracker - Club App</title>
-  <meta name="theme-color" content="#e8edf4"/>
+
+  <!-- PWA manifest -->
+  <link rel="manifest" href="/manifest.json"/>
+
+  <!-- Theme color (browser chrome + splash) -->
+  <meta name="theme-color" content="#1e3a5f"/>
+
+  <!-- iOS PWA meta tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="MyClubTracker"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+
+  <!-- iOS home screen icons -->
+  <link rel="apple-touch-icon" href="/icon-180.png"/>
+  <link rel="apple-touch-icon" sizes="152x152" href="/icon-152.png"/>
+  <link rel="apple-touch-icon" sizes="180x180" href="/icon-180.png"/>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/icon-32.png"/>
+  <link rel="icon" type="image/png" sizes="16x16" href="/icon-16.png"/>
+  <link rel="shortcut icon" href="/favicon.ico"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Outfit:wght@400;600;700;800&display=block" rel="stylesheet"/>
