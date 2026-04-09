@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-10 17:00:00 -->
+<!-- CACHE BUST: 2026-04-09 21:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -174,6 +174,10 @@ if('serviceWorker' in navigator){
     .summary-card-sub{font-size:11px;font-weight:500;color:rgba(255,255,255,0.65);margin-top:1px}
     .summary-card-val{font-family:Outfit,sans-serif;font-size:22px;font-weight:800;letter-spacing:-0.5px;line-height:1;color:white}
     .summary-card-rate{font-size:11px;font-weight:700;color:rgba(255,255,255,0.6);margin-left:8px;white-space:nowrap;flex-shrink:0;}
+    .sum-copy-btn{background:rgba(255,255,255,0.15);border:none;border-radius:6px;padding:3px 7px;cursor:pointer;font-size:11px;font-weight:700;color:rgba(255,255,255,0.75);display:none;align-items:center;gap:3px;transition:background 0.15s,color 0.15s;flex-shrink:0;margin-left:8px;line-height:1.2;}
+    .sum-copy-btn.visible{display:flex;}
+    .sum-copy-btn:active,.sum-copy-btn:hover{background:rgba(255,255,255,0.28);color:#fff;}
+    .sum-copy-btn.copied{background:rgba(125,232,138,0.35);color:#7de88a;}
     .summary-balance{margin-top:2px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:space-between;font-size:11px}
     .sq-deposit-row{margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between;font-size:11px}
     .sq-deposit-label{color:rgba(125,232,138,0.75);font-weight:700;display:flex;align-items:center;gap:5px}
@@ -1212,6 +1216,7 @@ if('serviceWorker' in navigator){
           <div class="summary-card-label">Taxes</div>
           <div class="summary-card-rate" id="sum-tax-rate"></div>
         </div>
+        <button class="sum-copy-btn" id="copy-btn-tax" onclick="copySummaryVal('sum-tax','copy-btn-tax')" title="Copy to clipboard">📋 Copy</button>
         <div class="summary-card-val" id="sum-tax">—</div>
       </div>
       <div class="summary-card">
@@ -1219,6 +1224,7 @@ if('serviceWorker' in navigator){
           <div class="summary-card-label">Overhead</div>
           <div class="summary-card-rate" id="sum-oh-rate"></div>
         </div>
+        <button class="sum-copy-btn" id="copy-btn-oh" onclick="copySummaryVal('sum-oh','copy-btn-oh')" title="Copy to clipboard">📋 Copy</button>
         <div class="summary-card-val" id="sum-oh">—</div>
       </div>
       <div class="summary-card">
@@ -1226,6 +1232,7 @@ if('serviceWorker' in navigator){
           <div class="summary-card-label">Herbalife</div>
           <div class="summary-card-rate" id="sum-prod-rate"></div>
         </div>
+        <button class="sum-copy-btn" id="copy-btn-prod" onclick="copySummaryVal('sum-prod','copy-btn-prod')" title="Copy to clipboard">📋 Copy</button>
         <div class="summary-card-val" id="sum-prod">—</div>
       </div>
       <div class="summary-card">
@@ -1233,6 +1240,7 @@ if('serviceWorker' in navigator){
           <div class="summary-card-label">Payouts</div>
           <div class="summary-card-rate" id="sum-pay-rate">remaining</div>
         </div>
+        <button class="sum-copy-btn" id="copy-btn-payouts" onclick="copySummaryVal('sum-payouts','copy-btn-payouts')" title="Copy to clipboard">📋 Copy</button>
         <div style="text-align:right;">
           <div class="summary-card-val" id="sum-payouts">—</div>
           <div class="summary-card-sub" id="sum-perdv">—</div>
@@ -6579,6 +6587,10 @@ function recalc(userChanged=false){
   setText('sum-prod',    c.group2?fmt$(c.products):'--');
   setText('sum-payouts', c.group2?fmt$(c.payouts):'--');
   setText('sum-perdv',   c.group2?'$/DV: '+fmt$(c.perDV):'$/DV: --');
+  setSumCopyVisible('sum-tax',     'copy-btn-tax');
+  setSumCopyVisible('sum-oh',      'copy-btn-oh');
+  setSumCopyVisible('sum-prod',    'copy-btn-prod');
+  setSumCopyVisible('sum-payouts', 'copy-btn-payouts');
   // Rate indicators
   setText('sum-tax-rate',  SETTINGS.taxRate+'%');
   setText('sum-oh-rate',   SETTINGS.ohRate+'%');
@@ -8291,6 +8303,38 @@ function wifRecalc(){
 function renderWhatIf(){}
 
 function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
+
+function copySummaryVal(valId, btnId) {
+  const el = document.getElementById(valId);
+  if (!el) return;
+  const raw = el.textContent.replace(/[$,\s]/g, '');
+  if (!raw || isNaN(parseFloat(raw))) return;
+  navigator.clipboard.writeText(raw).then(() => {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✓ Copied';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('copied'); }, 1800);
+  }).catch(() => {
+    // Fallback for older browsers
+    const ta = document.createElement('textarea');
+    ta.value = raw; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    const btn = document.getElementById(btnId);
+    if (btn) { const orig = btn.innerHTML; btn.innerHTML = '✓ Copied'; btn.classList.add('copied'); setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('copied'); }, 1800); }
+  });
+}
+
+function setSumCopyVisible(valId, btnId) {
+  const el = document.getElementById(valId);
+  const btn = document.getElementById(btnId);
+  if (!el || !btn) return;
+  const raw = el.textContent.replace(/[$,\s]/g, '');
+  const hasVal = raw && !isNaN(parseFloat(raw));
+  btn.classList.toggle('visible', hasVal);
+}
 
 function setInvFilter(f,btn){invFilter=f;document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));btn.classList.add('active');renderInventory();}
 function clearAllInv(){
