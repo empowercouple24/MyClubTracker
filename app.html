@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-09 01:30:00 -->
+<!-- CACHE BUST: 2026-04-09 03:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -1793,7 +1793,7 @@ if('serviceWorker' in navigator){
         <div class="payout-preset-chip" onclick="setPayoutPreset('lastmonth',this)"><span class="ppc-name">Last Month</span><span class="ppc-range" id="ppc-range-lastmonth"></span></div>
         <div class="payout-preset-chip reset-chip" onclick="resetPayouts()"><span class="ppc-name">&#10005; Reset</span></div>
       </div>
-      <!-- Range bar — tap to open picker -->
+      <!-- Range bar — tap to open airline-style picker -->
       <div class="payout-range-bar" onclick="openCalPicker()">
         <div style="flex:1;display:flex;align-items:center;gap:6px;">
           <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">From</span>
@@ -1803,19 +1803,20 @@ if('serviceWorker' in navigator){
           <span class="payout-range-val" id="payout-range-to-lbl">—</span>
         </div>
         <span style="font-size:11px;color:var(--b5);">&#9998; Edit</span>
-        <button class="btn btn-primary" style="font-size:12px;padding:5px 14px;margin-left:6px;" onclick="event.stopPropagation();renderPayouts();">Load</button>
-        <button id="gcal-payout-btn" onclick="event.stopPropagation();gcalLoadPayoutShifts();" style="display:none;font-size:12px;padding:5px 12px;margin-left:0;border-radius:var(--radius-sm);border:1px solid var(--b5);background:var(--b1);color:var(--b7);font-family:DM Sans,sans-serif;font-weight:700;cursor:pointer;white-space:nowrap;display:none;align-items:center;gap:5px;">
+        <button class="btn btn-primary" style="font-size:12px;padding:5px 14px;margin-left:6px;" onclick="event.stopPropagation();renderUnifiedPayouts();">Load</button>
+        <button id="gcal-payout-btn" onclick="event.stopPropagation();gcalLoadPayoutShifts();" style="display:none;font-size:12px;padding:5px 12px;margin-left:0;border-radius:var(--radius-sm);border:1px solid var(--b5);background:var(--b1);color:var(--b7);font-family:DM Sans,sans-serif;font-weight:700;cursor:pointer;white-space:nowrap;align-items:center;gap:5px;">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
           Shifts
         </button>
       </div>
-      <!-- Hidden date inputs kept for renderPayouts() compatibility -->
+      <!-- Hidden date inputs kept for compatibility -->
       <input type="hidden" id="payout-from"/>
       <input type="hidden" id="payout-to"/>
     </div>
 
-    <!-- Results -->
+    <!-- Unified Payroll Results — operators + hourly employees -->
     <div id="payouts-body"></div>
+    <div id="unified-hourly-body"></div>
 
     <!-- Snapshot save — shown after load -->
     <div id="payout-snapshot-wrap" style="display:none;margin-top:4px;">
@@ -1835,48 +1836,6 @@ if('serviceWorker' in navigator){
         <span>Saved Snapshots</span>
       </div>
       <div id="payout-snaps-list"></div>
-    </div>
-
-    <!-- ── STAFF PAYROLL ── -->
-    <div id="staff-payroll-section" style="margin-bottom:4px;">
-      <div class="section-label" id="staff-payroll-header" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="toggleStaffPayroll()">
-        <span>Staff Payroll</span>
-        <span id="staff-payroll-chevron" style="font-size:12px;color:var(--text-faint);">&#9660;</span>
-      </div>
-      <div id="staff-payroll-body" class="card" style="margin-bottom:12px;padding:0;overflow:hidden;">
-        <!-- Calendar status bar — shows connection from profile settings -->
-        <div style="padding:10px 14px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-          <div style="display:flex;align-items:center;gap:8px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--b7)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            <span style="font-size:12px;font-weight:600;color:var(--text-muted);">Google Calendar</span>
-            <span id="sp-gcal-badge" style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--border-light);color:var(--text-faint);">Not connected</span>
-          </div>
-          <div style="display:flex;gap:6px;align-items:center;">
-            <button class="btn btn-ghost btn-sm" onclick="clearStaffPayroll()" style="font-size:11px;color:var(--r5);">Clear</button>
-            <button class="btn btn-primary" onclick="spGcalConnect()" id="sp-gcal-connect-btn" style="font-size:11px;padding:5px 12px;">Connect Calendar</button>
-            <button class="btn btn-ghost btn-sm" onclick="gcalPickCalendar()" id="sp-gcal-pick-btn" style="font-size:11px;display:none;">Change</button>
-            <button class="btn btn-ghost btn-sm" onclick="gcalDisconnect()" id="sp-gcal-disconnect-btn" style="font-size:11px;display:none;color:var(--r5);">Disconnect</button>
-          </div>
-        </div>
-        <!-- Date range + load -->
-        <div id="sp-range-bar" style="display:none;padding:10px 14px;border-bottom:1px solid var(--border-light);display:none;align-items:center;gap:8px;flex-wrap:wrap;">
-          <div class="payout-range-bar" onclick="openSpCalPicker()" style="flex:1;min-width:200px;border-radius:var(--radius-sm);border:1px solid var(--border);">
-            <div style="flex:1;display:flex;align-items:center;gap:6px;">
-              <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">From</span>
-              <span class="payout-range-val" id="sp-from-lbl">--</span>
-              <span style="font-size:12px;color:var(--text-faint);">&#8594;</span>
-              <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">To</span>
-              <span class="payout-range-val" id="sp-to-lbl">--</span>
-            </div>
-            <span style="font-size:11px;color:var(--b5);">&#9998; Edit</span>
-          </div>
-          <input type="hidden" id="sp-from"/>
-          <input type="hidden" id="sp-to"/>
-          <button class="btn btn-primary" onclick="spLoadShifts()" style="font-size:12px;padding:5px 14px;white-space:nowrap;">Load Shifts</button>
-        </div>
-        <!-- Results -->
-        <div id="sp-results" style="padding:0 14px 4px;"></div>
-      </div>
     </div>
 
     <!-- Payee Lookup -->
@@ -3062,15 +3021,12 @@ if('serviceWorker' in navigator){
         <div class="settings-row"><label>Merchandise Rate</label><select id="s-merchrate"></select></div>
         <div class="settings-row"><label>DV △ Rate</label><select id="s-dvdelta"></select></div>
       </div>
-      <!-- Pay Accounts -->
+      <!-- ── PAY SECTION: Operators → Hourly Employees → Pay Accounts ── -->
       <div class="settings-group">
-        <div class="settings-group-title">Pay Accounts</div>
-        <div id="s-pay-accounts"></div>
-        <button class="btn btn-ghost" onclick="addPayAccount()" style="margin-top:8px;font-size:12px;width:100%;">+ Add Account</button>
-      </div>
-      <!-- Operators -->
-      <div class="settings-group">
-        <div class="settings-group-title">Operators</div>
+        <div class="settings-group-title" style="display:flex;align-items:center;justify-content:space-between;">
+          Operators
+          <span style="font-size:10px;font-weight:400;color:var(--text-faint);text-transform:none;letter-spacing:0;">Name · Aliases · Color · Role · Status</span>
+        </div>
         <div id="s-operators"></div>
       </div>
       <!-- Hourly Employees -->
@@ -3081,6 +3037,12 @@ if('serviceWorker' in navigator){
         </div>
         <div id="s-hourly-list"></div>
         <button class="btn btn-ghost" onclick="addHourlyEmployee()" style="margin-top:8px;font-size:12px;width:100%;">+ Add Hourly Employee</button>
+      </div>
+      <!-- Pay Accounts -->
+      <div class="settings-group">
+        <div class="settings-group-title">Pay Accounts</div>
+        <div id="s-pay-accounts"></div>
+        <button class="btn btn-ghost" onclick="addPayAccount()" style="margin-top:8px;font-size:12px;width:100%;">+ Add Account</button>
       </div>
       <!-- Team Members -->
       <div class="settings-group" id="prof-role-section">
@@ -5292,7 +5254,7 @@ function buildHourlyEmployeesUI() {
       + '</div>'
       + '<div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">'
       + '<span style="font-size:13px;font-weight:600;color:var(--text-muted);">$</span>'
-      + '<input type="number" min="0" max="999" step="0.25" placeholder="0.00" data-hi="' + i + '" data-field="hourlyRate" value="' + (emp.hourlyRate||'') + '" '
+      + '<input type="number" min="0" max="999" step="0.50" placeholder="0.00" data-hi="' + i + '" data-field="hourlyRate" value="' + (emp.hourlyRate||'') + '" '
       + 'onchange="updateHourlyEmployee(this)" '
       + 'style="width:68px;font-family:DM Sans,sans-serif;font-size:14px;font-weight:600;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 6px;outline:none;text-align:right;background:var(--b0);color:var(--text);"/>'
       + '<span style="font-size:11px;color:var(--text-faint);">/hr</span>'
@@ -5814,7 +5776,7 @@ function gcalLoadPayoutShifts(){
       window._gcalShiftCountsForPayout[s.op] = (window._gcalShiftCountsForPayout[s.op]||0) + 1;
     });
     // Re-render payouts to show shift verification badges
-    renderPayouts();
+    renderUnifiedPayouts();
     gcalShowShiftsModal(shifts,unmatched,'range');
   });
 }
@@ -8899,6 +8861,115 @@ function renderPayouts(){
   renderPayoutSnapshots();
 }
 
+// ── UNIFIED PAYOUTS — operators + hourly employees ───────────────────────────
+function renderUnifiedPayouts() {
+  renderPayouts(); // renders operator totals into #payouts-body
+  renderHourlyPayrollInline(); // renders hourly employee totals into #unified-hourly-body
+}
+
+function renderHourlyPayrollInline() {
+  const el = document.getElementById('unified-hourly-body');
+  if (!el) return;
+  const from = document.getElementById('payout-from')?.value;
+  const to   = document.getElementById('payout-to')?.value;
+  const employees = getHourlyEmployees();
+  if (!from || !to || !employees.length) { el.innerHTML = ''; return; }
+
+  const connected = !!(SETTINGS.gcal && SETTINGS.gcal.calendarId);
+  if (!connected) {
+    el.innerHTML = '<div class="section-label" style="margin-top:4px;">Hourly Employees</div>'
+      + '<div class="card" style="padding:14px;margin-bottom:12px;">'
+      + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">'
+      + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--b7)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'
+      + '<span style="font-size:12px;font-weight:600;color:var(--text-muted);">Google Calendar</span>'
+      + '<span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--border-light);color:var(--text-faint);">Not connected</span>'
+      + '</div>'
+      + '<div style="font-size:12px;color:var(--text-faint);margin-bottom:8px;">Connect Google Calendar in Profile &amp; Settings to load hourly employee shifts.</div>'
+      + '<button class="btn btn-primary" onclick="gcalConnect()" style="font-size:12px;padding:5px 14px;">Connect Calendar</button>'
+      + '</div>';
+    return;
+  }
+
+  el.innerHTML = '<div class="section-label" style="margin-top:4px;">Hourly Employees — Loading shifts…</div>';
+
+  gcalFetchEvents(from, to, function(events, err) {
+    if (err) {
+      el.innerHTML = '<div class="section-label" style="margin-top:4px;">Hourly Employees</div>'
+        + '<div class="card" style="padding:12px;margin-bottom:12px;"><div style="font-size:12px;color:var(--r5);">Calendar error: ' + escHtml(err) + '</div></div>';
+      return;
+    }
+
+    // Build lookup of employee names (lowercase) to hourlyRate
+    const empMap = {};
+    employees.forEach(function(e) { empMap[e.name.toLowerCase()] = e; });
+
+    // Sum hours per employee from calendar events
+    var byEmp = {}; // { empName: { totalHrs, shifts[] } }
+    (events || []).forEach(function(ev) {
+      var hrs = gcalEventHours(ev);
+      var date = (ev.start.dateTime || ev.start.date || '').slice(0, 10);
+      var timeStr = '';
+      if (ev.start && ev.start.dateTime) {
+        var s = new Date(ev.start.dateTime), en = new Date(ev.end.dateTime);
+        timeStr = s.toLocaleTimeString('en-US', {hour:'numeric',minute:'2-digit'}) + ' - ' + en.toLocaleTimeString('en-US', {hour:'numeric',minute:'2-digit'});
+      }
+      // Try to match calendar event title to a known hourly employee by name
+      var title = (ev.summary || '').toLowerCase();
+      var matched = null;
+      employees.forEach(function(emp) {
+        var parts = emp.name.toLowerCase().split(/\s+/);
+        var anyPart = parts.some(function(p) { return p.length > 1 && title.includes(p); });
+        if (anyPart) matched = emp.name;
+      });
+      if (matched) {
+        if (!byEmp[matched]) byEmp[matched] = { totalHrs: 0, shifts: [] };
+        byEmp[matched].totalHrs += hrs;
+        byEmp[matched].shifts.push({ date: date, timeStr: timeStr, hrs: hrs });
+      }
+    });
+
+    var fromFmt = new Date(from + 'T00:00:00').toLocaleDateString('en-US', {month:'short',day:'numeric'});
+    var toFmt   = new Date(to   + 'T00:00:00').toLocaleDateString('en-US', {month:'short',day:'numeric'});
+    var grandTotal = 0;
+    var rowsHtml = '';
+
+    employees.forEach(function(emp) {
+      var data = byEmp[emp.name] || { totalHrs: 0, shifts: [] };
+      var rate = emp.hourlyRate || 0;
+      var pay  = data.totalHrs * rate;
+      grandTotal += pay;
+      var initials = emp.name.trim().split(/\s+/).map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
+      var lastPaid = getHourlyLastPaidDate(emp.name);
+      var lastPaidStr = lastPaid ? 'Last paid ' + new Date(lastPaid+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) : 'No prior payments';
+      rowsHtml += '<div class="payout-op-row" style="background:var(--b1);margin-bottom:4px;flex-direction:column;align-items:stretch;">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;">'
+        + '<div style="display:flex;align-items:center;gap:8px;">'
+        + '<div style="width:28px;height:28px;border-radius:50%;background:var(--b5);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;">' + initials + '</div>'
+        + '<div>'
+        + '<div class="payout-op-name" style="font-weight:700;">' + escHtml(emp.name) + '</div>'
+        + '<div style="font-size:10px;color:var(--text-faint);">' + data.totalHrs + ' hrs &times; $' + rate.toFixed(2) + '/hr &nbsp;&middot;&nbsp; ' + lastPaidStr + '</div>'
+        + '</div>'
+        + '</div>'
+        + '<div class="payout-op-amt" style="font-size:15px;">' + (data.totalHrs > 0 ? '$' + pay.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '<span style="color:var(--text-faint);font-size:12px;">No shifts found</span>') + '</div>'
+        + '</div>'
+        + '</div>';
+    });
+
+    var html = '<div class="section-label" style="margin-top:4px;">Hourly Employees — ' + fromFmt + ' – ' + toFmt + '</div>'
+      + '<div class="card" style="padding:12px;margin-bottom:12px;">'
+      + rowsHtml;
+
+    if (grandTotal > 0) {
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 8px 0;margin-top:6px;border-top:1px solid var(--border-light);">'
+        + '<span style="font-weight:700;font-size:13px;">Total Hourly Pay</span>'
+        + '<span style="font-family:Outfit,sans-serif;font-size:15px;font-weight:800;color:var(--g5);">$' + grandTotal.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) + '</span>'
+        + '</div>';
+    }
+    html += '</div>';
+    el.innerHTML = html;
+  });
+}
+
 // ── PAYROLL APPROVE & POST ──
 var _payrollPending = []; // [{payee, amount, hrs}]
 var _payrollFrom = '';
@@ -10583,7 +10654,7 @@ function setPayoutPreset(preset, btn) {
     to = localToday();
   }
   applyPayoutDates(from, to);
-  renderPayouts();
+  renderUnifiedPayouts();
 }
 
 function initPresetChipLabels() {
@@ -10633,6 +10704,8 @@ function resetPayouts() {
 function clearPayouts() {
   const el = document.getElementById('payouts-body');
   if (el) el.innerHTML = '<div class="empty-state">Select a date range and tap Load.</div>';
+  const hEl = document.getElementById('unified-hourly-body');
+  if (hEl) hEl.innerHTML = '';
   const snapWrap = document.getElementById('payout-snapshot-wrap');
   if (snapWrap) snapWrap.style.display = 'none';
   window._gcalShiftCountsForPayout = {};
@@ -10693,7 +10766,7 @@ function shiftCalPicker(dir) {
 }
 
 function renderCalPicker() {
-  const DOWS = ['Mo','Tu','We','Th','Fr','Sa','Su'];
+  const DOWS = ['Su','Mo','Tu','We','Th','Fr','Sa'];
   const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   const lbl = document.getElementById('cal-picker-month-label');
   if (lbl) lbl.textContent = monthNames[_calPickerMonth] + ' ' + _calPickerYear + ' – ' + monthNames[(_calPickerMonth+1)%12] + ' ' + (_calPickerMonth===11?_calPickerYear+1:_calPickerYear);
@@ -10711,16 +10784,14 @@ function renderCalPicker() {
     const el = document.getElementById('cal-picker-month-' + offset);
     if (!el) return;
 
-    const firstDow = new Date(yr, mo, 1).getDay(); // 0=Sun
-    // Convert to Mon-first: Sun=6, Mon=0, Tue=1...
-    const firstOffset = firstDow === 0 ? 6 : firstDow - 1;
+    const firstDow = new Date(yr, mo, 1).getDay(); // 0=Sun — Sunday-first, no conversion needed
     const daysInMo = new Date(yr, mo+1, 0).getDate();
     const todayStr = localToday();
 
     let html = `<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px;text-align:center;">${monthNames[mo]} ${yr}</div>`;
     html += '<div class="cal-month-grid">';
     DOWS.forEach(d => { html += `<div class="cal-m-dow">${d}</div>`; });
-    for (let i = 0; i < firstOffset; i++) html += '<div></div>';
+    for (let i = 0; i < firstDow; i++) html += '<div></div>';
     for (let d = 1; d <= daysInMo; d++) {
       const ds = yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
       const isFuture = ds > todayStr;
@@ -10761,7 +10832,7 @@ function applyCalPicker() {
   } else {
     applyPayoutDates(_calPickerStart, _calPickerEnd);
     document.querySelectorAll('.payout-preset-chip').forEach(c => c.classList.remove('active'));
-    renderPayouts();
+    renderUnifiedPayouts();
   }
   closeCalPicker();
 }
@@ -12001,10 +12072,10 @@ function buildSettingsUI(){
     const isOwner=op.isOwner===true;
     const opColor=op.color||_OP_PALETTE[i%_OP_PALETTE.length];
     const swatchesHtml=_swatchColors.map(c=>`<div class="op-color-swatch${c===opColor?' op-color-selected':''}" style="background:${c};" onclick="pickOpColor(${i},'${c}')"></div>`).join('');
-    return`<div class="settings-row" style="gap:8px;align-items:center;">
-      <label style="min-width:80px;color:${isActive?'var(--text)':'var(--text-faint)'};">Operator ${i+1}</label>
-      <input type="text" id="s-op-${i}" value="${op.name||''}" placeholder="Name" style="flex:1;opacity:${isActive?1:0.45};"/>
-      <input type="text" id="s-alias-${i}" value="${op.aliases||''}" placeholder="Aliases e.g. MN" style="flex:1;opacity:${isActive?1:0.45};"/>
+    return`<div class="settings-row" style="gap:8px;align-items:center;flex-wrap:wrap;">
+      <label style="min-width:80px;color:${isActive?'var(--text)':'var(--text-faint)'};">Op ${i+1}</label>
+      <input type="text" id="s-op-${i}" value="${op.name||''}" placeholder="Name" style="flex:1;min-width:80px;opacity:${isActive?1:0.45};"/>
+      <input type="text" id="s-alias-${i}" value="${op.aliases||''}" placeholder="Aliases e.g. MN" style="flex:1;min-width:70px;opacity:${isActive?1:0.45};"/>
       <div style="position:relative;flex-shrink:0;">
         <div id="s-op-color-trigger-${i}" class="op-color-trigger" style="background:${opColor};" onclick="toggleOpColorPop(${i})" title="Pick color"></div>
         <div id="s-op-color-pop-${i}" class="op-color-pop">
@@ -12012,7 +12083,7 @@ function buildSettingsUI(){
           <div class="op-color-grid">${swatchesHtml}</div>
         </div>
       </div>
-      <button type="button" id="s-op-owner-${i}" onclick="toggleOperatorOwner(${i})" title="Mark as club owner" style="flex-shrink:0;font-size:11px;font-weight:700;padding:4px 9px;border-radius:var(--radius-sm);border:1px solid ${isOwner?'var(--b6)':'var(--border)'};background:${isOwner?'var(--b1)':'var(--b0)'};color:${isOwner?'var(--b7)':'var(--text-faint)'};cursor:pointer;white-space:nowrap;">${isOwner?'Owner':'Owner?'}</button>
+      <button type="button" id="s-op-owner-${i}" onclick="toggleOperatorOwner(${i})" title="Mark as club owner" style="flex-shrink:0;font-size:11px;font-weight:700;padding:4px 9px;border-radius:var(--radius-sm);border:1px solid ${isOwner?'var(--b6)':'var(--border)'};background:${isOwner?'var(--b1)':'var(--b0)'};color:${isOwner?'var(--b7)':'var(--text-faint)'};cursor:pointer;white-space:nowrap;">${isOwner?'Owner':'Operator'}</button>
       <button type="button" id="s-op-active-${i}" onclick="toggleOperatorActive(${i})" style="flex-shrink:0;font-size:11px;font-weight:700;padding:4px 9px;border-radius:var(--radius-sm);border:1px solid ${isActive?'var(--g5)':'var(--border)'};background:${isActive?'var(--g0)':'var(--b0)'};color:${isActive?'var(--g6)':'var(--text-faint)'};cursor:pointer;white-space:nowrap;">${isActive?'Active':'Inactive'}</button>
     </div>`;
   }).join('');
@@ -12042,7 +12113,7 @@ function toggleOperatorOwner(i){
     const btn=document.getElementById('s-op-owner-'+j);
     if(!btn)return;
     const isOwner=op.isOwner===true;
-    btn.textContent=isOwner?'Owner':'Owner?';
+    btn.textContent=isOwner?'Owner':'Operator';
     btn.style.borderColor=isOwner?'var(--b6)':'var(--border)';
     btn.style.background=isOwner?'var(--b1)':'var(--b0)';
     btn.style.color=isOwner?'var(--b7)':'var(--text-faint)';
