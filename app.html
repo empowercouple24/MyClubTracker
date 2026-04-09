@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-10 03:00:00 -->
+<!-- CACHE BUST: 2026-04-10 04:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -170,15 +170,17 @@ if('serviceWorker' in navigator){
     .summary-hero-right.visible{display:block}
     .summary-cards{display:flex;flex-direction:column;gap:7px;margin-bottom:10px}
     .summary-card{background:rgba(255,255,255,0.13);border-radius:9px;padding:9px 14px;display:flex;align-items:center;justify-content:space-between}
-    .summary-card.sc-allocated{background:rgba(125,232,138,0.14);outline:1px solid rgba(125,232,138,0.3);}
-    .summary-card.sc-allocated .summary-card-val{color:#7de88a;}
     .summary-card.sc-tappable{cursor:pointer;transition:background 0.15s;}
     .summary-card.sc-tappable:active{background:rgba(255,255,255,0.2);}
+    .sc-radio{width:18px;height:18px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.35);background:transparent;flex-shrink:0;margin-left:14px;transition:all 0.15s;display:flex;align-items:center;justify-content:center;}
+    .sc-allocated .sc-radio{background:#7de88a;border-color:#7de88a;}
+    .sc-radio-check{width:9px;height:7px;display:none;}
+    .sc-allocated .sc-radio-check{display:block;}
     .summary-card-label{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:white}
     .summary-card-sub{font-size:11px;font-weight:500;color:rgba(255,255,255,0.65);margin-top:1px}
     .summary-card-val{font-family:Outfit,sans-serif;font-size:22px;font-weight:800;letter-spacing:-0.5px;line-height:1;color:white}
     .summary-card-rate{font-size:11px;font-weight:700;color:rgba(255,255,255,0.6);margin-left:8px;white-space:nowrap;flex-shrink:0;}
-    .sum-copy-btn{background:rgba(255,255,255,0.15);border:none;border-radius:6px;padding:3px 7px;cursor:pointer;font-size:11px;font-weight:700;color:rgba(255,255,255,0.75);display:none;align-items:center;gap:3px;transition:background 0.15s,color 0.15s;flex-shrink:0;margin-left:8px;margin-right:10px;line-height:1.2;}
+    .sum-copy-btn{background:rgba(255,255,255,0.15);border:none;border-radius:6px;padding:6px 8px;cursor:pointer;font-size:11px;font-weight:700;color:rgba(255,255,255,0.75);display:none;align-items:center;gap:3px;transition:background 0.15s,color 0.15s;flex-shrink:0;margin-left:8px;margin-right:14px;line-height:1.2;align-self:stretch;}
     .sum-copy-btn.visible{display:flex;}
     .sum-copy-btn:active,.sum-copy-btn:hover{background:rgba(255,255,255,0.28);color:#fff;}
     .sum-copy-btn.copied{background:rgba(125,232,138,0.35);color:#7de88a;}
@@ -1230,6 +1232,7 @@ if('serviceWorker' in navigator){
         </div>
         <button class="sum-copy-btn" id="copy-btn-tax" onclick="event.stopPropagation();copySummaryVal('sum-tax','copy-btn-tax')" title="Copy to clipboard">📋 Copy</button>
         <div class="summary-card-val" id="sum-tax">—</div>
+        <div class="sc-radio"><svg class="sc-radio-check" viewBox="0 0 9 7"><polyline points="1,3.5 3.5,6 8,1" stroke="#1a3d20" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
       </div>
       <div class="summary-card sc-tappable" id="sc-overhead" onclick="toggleSumCardAlloc('overhead')">
         <div style="display:flex;align-items:baseline;gap:6px;flex:1;">
@@ -1238,6 +1241,7 @@ if('serviceWorker' in navigator){
         </div>
         <button class="sum-copy-btn" id="copy-btn-oh" onclick="event.stopPropagation();copySummaryVal('sum-oh','copy-btn-oh')" title="Copy to clipboard">📋 Copy</button>
         <div class="summary-card-val" id="sum-oh">—</div>
+        <div class="sc-radio"><svg class="sc-radio-check" viewBox="0 0 9 7"><polyline points="1,3.5 3.5,6 8,1" stroke="#1a3d20" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
       </div>
       <div class="summary-card sc-tappable" id="sc-herbalife" onclick="toggleSumCardAlloc('herbalife')">
         <div style="display:flex;align-items:baseline;gap:6px;flex:1;">
@@ -1246,6 +1250,7 @@ if('serviceWorker' in navigator){
         </div>
         <button class="sum-copy-btn" id="copy-btn-prod" onclick="event.stopPropagation();copySummaryVal('sum-prod','copy-btn-prod')" title="Copy to clipboard">📋 Copy</button>
         <div class="summary-card-val" id="sum-prod">—</div>
+        <div class="sc-radio"><svg class="sc-radio-check" viewBox="0 0 9 7"><polyline points="1,3.5 3.5,6 8,1" stroke="#1a3d20" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
       </div>
       <div class="summary-card sc-tappable" id="sc-payouts" onclick="toggleSumCardAlloc('payouts')">
         <div style="display:flex;align-items:baseline;gap:6px;flex:1;">
@@ -1257,6 +1262,7 @@ if('serviceWorker' in navigator){
           <div class="summary-card-val" id="sum-payouts">—</div>
           <div class="summary-card-sub" id="sum-perdv">—</div>
         </div>
+        <div class="sc-radio"><svg class="sc-radio-check" viewBox="0 0 9 7"><polyline points="1,3.5 3.5,6 8,1" stroke="#1a3d20" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
       </div>
       <div class="summary-card sc-tappable" id="sum-fundraiser-card" style="display:none;" onclick="toggleSumCardAlloc('fundraiser')">
         <div style="display:flex;align-items:baseline;gap:6px;flex:1;">
@@ -1265,6 +1271,7 @@ if('serviceWorker' in navigator){
         </div>
         <button class="sum-copy-btn" id="copy-btn-fundraiser" onclick="event.stopPropagation();copySummaryVal('sum-fundraiser-card-val','copy-btn-fundraiser')" title="Copy to clipboard">📋 Copy</button>
         <div class="summary-card-val" id="sum-fundraiser-card-val" style="color:#f5c96a;margin-left:12px;">—</div>
+        <div class="sc-radio"><svg class="sc-radio-check" viewBox="0 0 9 7"><polyline points="1,3.5 3.5,6 8,1" stroke="#1a3d20" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
       </div>
     </div>
     <div style="font-size:10px;color:rgba(255,255,255,0.35);text-align:right;margin:-4px 0 6px;">Tap a row to mark allocated</div>
