@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-08 23:15:00 -->
+<!-- CACHE BUST: 2026-04-08 23:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -11105,24 +11105,24 @@ function printSummaryPDF() {
     var SEC_H    = 11;  // section label row
     var ROW_H    = 13;  // data row
 
-    // Colors
+    // Colors — light theme
     var C = {
       headerBg:  [53, 78, 98],    // dark blue header
       headerFg:  [255,255,255],
-      sectionBg: [40, 60, 76],    // slightly lighter for section rows
-      sectionFg: [143,163,179],
-      rowAlt:    [30, 46, 58],    // alternate row
-      rowNorm:   [26, 40, 51],    // normal row
-      allocBg:   [35, 52, 66],    // allocation rows
-      text:      [210,225,235],   // normal text
-      textMuted: [143,163,179],   // muted
-      textFaint: [100,125,145],   // faint / dashes
-      green:     [125,232,138],   // positive green
-      amber:     [255,180,80],    // amber / fees
-      wkBg:      [45, 68, 86],    // week subtotal bg
-      monthBg:   [55, 82, 103],   // month total bg
-      border:    [50, 72, 90],    // row border
-      allocText: [180,210,240],   // alloc row text
+      sectionBg: [235,240,245],   // light section rows
+      sectionFg: [96, 126, 150],
+      rowAlt:    [247,250,252],   // alternate row
+      rowNorm:   [255,255,255],   // normal row
+      allocBg:   [255,248,235],   // allocation rows (warm tint)
+      text:      [53, 78, 98],    // normal text
+      textMuted: [96, 126, 150],  // muted
+      textFaint: [180,195,210],   // faint / dashes
+      green:     [45, 160, 80],   // positive green
+      amber:     [200, 120, 20],  // amber / fees
+      wkBg:      [224,232,240],   // week subtotal bg
+      monthBg:   [210,222,232],   // month total bg
+      border:    [220,228,235],   // row border
+      allocText: [120, 90, 30],   // alloc row text
     };
 
     // ── Figure out total page height needed ──
@@ -11139,13 +11139,13 @@ function printSummaryPDF() {
     var doc = new jsPDF({orientation:'landscape', unit:'pt', format:[PW, pageH]});
 
     // ── Background ──
-    doc.setFillColor(22, 35, 45);
+    doc.setFillColor(255, 255, 255);
     doc.rect(0, 0, PW, pageH, 'F');
 
     // ── Page header ──
     doc.setFont('helvetica','bold');
     doc.setFontSize(13);
-    doc.setTextColor(210,225,235);
+    doc.setTextColor(53,78,98);
     doc.text(locName, ML, 18);
     doc.setFont('helvetica','normal');
     doc.setFontSize(8.5);
