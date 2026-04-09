@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-10 11:00:00 -->
+<!-- CACHE BUST: 2026-04-10 12:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -13056,7 +13056,9 @@ function togglePregChipPayee(name, checked) {
   } else {
     SETTINGS.pregChipPayees = SETTINGS.pregChipPayees.filter(n => n !== name);
   }
-  saveSettings();
+  sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID).then(function(res){
+    if(res.error) showToast('Save failed: '+res.error.message,'error');
+  });
   renderPregPayeeChips(getPregChipPayees());
 }
 
