@@ -9709,7 +9709,7 @@ function renderHourlyPayrollInline() {
         + '<div style="font-size:11px;color:var(--text-muted);margin-top:1px;">$'+rate.toFixed(2)+'/hr &nbsp;·&nbsp; '+escHtml(lastPaidStr)+'</div>'
         + '</div>'
         + '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">'
-        + '<div style="font-family:Outfit,sans-serif;font-size:16px;font-weight:800;color:'+(pay>0?'var(--g6)':'var(--text-faint))+'";>'
+        + '<div style="font-family:Outfit,sans-serif;font-size:16px;font-weight:800;color:'+(pay>0?'var(--g6)':'var(--text-faint)')+'">'
         + (pay > 0 ? '$'+pay.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—')
         + '</div>'
         + (pay > 0 ? '<button onclick="openPayrollApproveForOne(\''+emp.name.replace(/\x27/g,"\\\x27")+'\','+pay.toFixed(2)+',\'hourly\')" style="font-size:11px;font-weight:700;padding:5px 10px;border-radius:6px;border:1.5px solid var(--g4);background:var(--g0);color:var(--g5);cursor:pointer;font-family:DM Sans,sans-serif;white-space:nowrap;">Review &amp; Post</button>' : '')
