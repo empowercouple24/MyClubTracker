@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-09 06:00:00 -->
+<!-- CACHE BUST: 2026-04-09 11:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -76,10 +76,10 @@ if('serviceWorker' in navigator){
     .tab.green:hover{color:var(--g5)}
     /* CONTENT */
     .content-area{position:absolute;top:calc(var(--nav-h) + var(--tab-h) + env(safe-area-inset-top,0px));left:0;right:0;bottom:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
-    .content-area.payouts-active{overflow:hidden;}
+    .content-area.payouts-active{overflow-y:auto;}
     .tab-panel{display:none;padding:10px 12px}
     .tab-panel.active{display:block;animation:tabIn 0.18s ease}
-    #panel-payouts.active{display:flex !important;height:100%;padding:0;}
+    #panel-payouts.active{display:block !important;padding:0;}
     @keyframes tabIn{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
     .card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:var(--shadow-sm)}
     .section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-faint);margin-bottom:5px;margin-top:12px}
@@ -1246,24 +1246,8 @@ if('serviceWorker' in navigator){
           <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);text-align:center;">Hours</div>
           <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);text-align:right;">Payout</div>
         </div>
-        <!-- Op 1 row -->
-        <div style="display:grid;grid-template-columns:1fr 90px 90px;gap:8px;padding:4px 10px;align-items:center;border-top:1px solid var(--border-light);">
-          <select class="field-input" id="f-op1" onchange="recalc(true)" style="margin:0;"></select>
-          <select id="f-op1-hrs" onchange="recalc(true)" style="font-family:DM Sans,sans-serif;font-size:13px;padding:5px 6px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--b0);color:var(--text);text-align:center;"></select>
-          <div id="op1-payout-pill" style="font-family:Outfit,sans-serif;font-size:13px;font-weight:700;color:var(--g6);border-radius:var(--radius-sm);padding:5px 8px;text-align:right;">--</div>
-        </div>
-        <!-- Op 2 row -->
-        <div style="display:grid;grid-template-columns:1fr 90px 90px;gap:8px;padding:4px 10px;align-items:center;border-top:1px solid var(--border-light);">
-          <select class="field-input" id="f-op2" onchange="recalc(true)" style="margin:0;"></select>
-          <select id="f-op2-hrs" onchange="recalc(true)" style="font-family:DM Sans,sans-serif;font-size:13px;padding:5px 6px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--b0);color:var(--text);text-align:center;"></select>
-          <div id="op2-payout-pill" style="font-family:Outfit,sans-serif;font-size:13px;font-weight:700;color:var(--g6);border-radius:var(--radius-sm);padding:5px 8px;text-align:right;">--</div>
-        </div>
-        <!-- Calendar auto-fill bar -->
-        <div id="gcal-enter-bar" style="display:none;align-items:center;gap:8px;padding:6px 10px;background:var(--b0);border-top:1px solid var(--border-light);">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--b7)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          <span style="font-size:11px;color:var(--text-muted);flex:1;">Auto-fill from calendar</span>
-          <button onclick="gcalFillToday()" style="font-size:11px;font-weight:700;padding:4px 11px;border-radius:6px;border:1px solid var(--b5);background:var(--b1);color:var(--b7);cursor:pointer;font-family:DM Sans,sans-serif;">Load Today</button>
-        </div>
+        <!-- Dynamic operator rows — built by populateOperatorDropdowns() -->
+        <div id="ops-dynamic-rows"></div>
         <!-- Duplicate operator warning banner -->
         <div id="ops-dup-warning" style="display:none;align-items:flex-start;gap:8px;padding:7px 12px;background:#fef7e8;border-top:1px solid #f0b440;">
           <span style="font-size:13px;flex-shrink:0;margin-top:1px;">&#9888;&#65039;</span>
@@ -1772,10 +1756,10 @@ if('serviceWorker' in navigator){
   </div>
 </div>
 
-<div class="tab-panel" id="panel-payouts" style="flex-direction:column;height:100%;overflow:hidden;">
+<div class="tab-panel" id="panel-payouts" style="padding:0;">
 
   <!-- STICKY TOP — everything above the register rows -->
-  <div id="payouts-sticky-top" style="flex-shrink:0;overflow-y:auto;max-height:60vh;background:var(--bg);">
+  <div id="payouts-sticky-top" style="background:var(--bg);">
   <div style="max-width:960px;margin:0 auto;padding:12px 12px 0;">
 
     <!-- Payout Calculator -->
@@ -1875,15 +1859,15 @@ if('serviceWorker' in navigator){
   </div><!-- /max-width inner -->
   </div><!-- /payouts-sticky-top -->
 
-  <!-- PAYMENT REGISTER — fills remaining height, rows scroll -->
-  <div style="flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0;">
-  <div style="max-width:960px;margin:0 auto;width:100%;flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0;padding:0 12px;">
+  <!-- PAYMENT REGISTER -->
+  <div style="background:var(--bg);">
+  <div style="max-width:960px;margin:0 auto;width:100%;padding:0 12px 20px;">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0 6px;flex-shrink:0;">
       <span class="section-label" style="margin:0;">Payment Register</span>
       <button class="btn btn-primary" onclick="openPregSheet()" style="font-size:12px;padding:4px 12px;">+ Add Payment</button>
     </div>
-    <div class="card" style="flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0;margin-bottom:0;">
-      <!-- Filter chips — sticky above rows -->
+    <div class="card" style="margin-bottom:0;">
+      <!-- Filter chips -->
       <div style="flex-shrink:0;">
         <div class="preg-filter-row">
           <div class="preg-fchip active" onclick="setPregFilter('all',this)">All</div>
@@ -1906,10 +1890,8 @@ if('serviceWorker' in navigator){
           </select>
         </div>
       </div>
-      <!-- Scrolling rows only -->
-      <div class="preg-scroll-box" id="preg-scroll-box" style="flex:1;overflow-y:auto;overflow-x:auto;">
-        <div id="preg-list"></div>
-      </div>
+      <!-- Rows -->
+      <div id="preg-list"></div>
       <!-- Footer -->
       <div class="preg-footer-bar" style="flex-shrink:0;">
         <span class="preg-footer-total" id="preg-footer-total"></span>
@@ -1917,7 +1899,7 @@ if('serviceWorker' in navigator){
       </div>
     </div>
   </div>
-  </div><!-- /register flex -->
+  </div><!-- /register -->
 
 </div>
 
@@ -3223,7 +3205,7 @@ const DEFAULT_PRODUCTS=[
   ["Retail","Tea - Lemon (1.8 oz)","0255",21.95,1],["Retail","Tea - Raspberry (1.8 oz)","0256",21.95,1],
   ["Retail","Tea - Peach (1.8 oz)","0257",21.95,1],["Retail","Tea - Original (1.8 oz)","0105",21.95,1],
   ["Retail","Aloe - Mandarin (pint)","2631",27.45,1],["Retail","Aloe - Mango (pint)","1065",27.45,1],
-  ["Retail","Aloe - Cranberry (pint)","1189",27.45,1],["Retail","Aloe - Grape (pint)","1610",27.45,1],
+  ["Retail","Aloe - Cranberry (pint)","1189",27.45,1],["Retail","Aloe - Grape (pint)","1610R",27.45,1],
   ["Retail","Liftoff - Orange (10 tablets)","3151",17.55,1],["Retail","Liftoff - Lemon Lime (10 tab)","3152",17.55,1],
   ["Retail","Liftoff - Pomegranate (10 tab)","2629",17.55,1],["Retail","Liftoff - Tropical Fruit (10 tab)","2696",17.55,1],
   ["Tablets","F2 - Multivitamin Complex","3115",21.95,1],["Tablets","F3 - Cell Activator","3123",24.15,1],
@@ -4057,8 +4039,6 @@ function switchTab(name){
   if(name==='payouts'){renderPayoutSnapshots();renderPaymentRegister();initPresetChipLabels();}if(name==='history'){renderHistAlloc();renderReconWidget();}
   if(name==='order'){renderOrderTab();}
   if(name==='inv')recalcInvCatTop();
-  // Toggle payouts-active on content-area for flex height layout
-  if(ca)ca.classList.toggle('payouts-active', name==='payouts');
   if(name==='order'){
     setTimeout(()=>{
       const w=document.getElementById('order-sticky-wrap');
@@ -5542,7 +5522,6 @@ function gcalUpdateUI(){
   const disconnectBtn=document.getElementById('gcal-disconnect-btn');
   const pickBtn=document.getElementById('gcal-pick-cal-btn');
   const calDisp=document.getElementById('gcal-cal-id-display');
-  const enterBar=document.getElementById('gcal-enter-bar');
   const payoutBtn=document.getElementById('gcal-payout-btn');
   const section=document.getElementById('prof-gcal-section');
   if(section)section.style.display='block';
@@ -5551,7 +5530,6 @@ function gcalUpdateUI(){
   if(disconnectBtn)disconnectBtn.style.display=connected?'inline-flex':'none';
   if(pickBtn)pickBtn.style.display=connected?'inline-flex':'none';
   if(calDisp)calDisp.textContent=(SETTINGS.gcal&&SETTINGS.gcal.calendarId)?SETTINGS.gcal.calendarId:'Not set';
-  if(enterBar)enterBar.style.display=connected?'flex':'none';
   if(payoutBtn)payoutBtn.style.display=connected?'inline-flex':'none';
   // Show calendar ID row when connected
   const calIdRow=document.getElementById('gcal-cal-id-row');
@@ -5843,12 +5821,13 @@ function gcalAssignUnmatched(sel){
 
 function gcalApplyShifts(){
   if(_gcalPendingMode==='enter'){
-    // Fill op1/op2 dropdowns + hours for today
-    var ops=_gcalPendingShifts.slice(0,2);
-    var sel1=document.getElementById('f-op1'),sel2=document.getElementById('f-op2');
-    var hrs1=document.getElementById('f-op1-hrs'),hrs2=document.getElementById('f-op2-hrs');
-    if(ops[0]&&sel1){sel1.value=ops[0].op;if(hrs1&&ops[0].hrs)hrs1.value=ops[0].hrs;}
-    if(ops[1]&&sel2){sel2.value=ops[1].op;if(hrs2&&ops[1].hrs)hrs2.value=ops[1].hrs;}
+    // Fill op1..op4 dropdowns + hours for today
+    var ops=_gcalPendingShifts.slice(0,4);
+    for(var i=0;i<ops.length;i++){
+      var sel=document.getElementById('f-op'+(i+1));
+      var hrs=document.getElementById('f-op'+(i+1)+'-hrs');
+      if(ops[i]&&sel){sel.value=ops[i].op;if(hrs&&ops[i].hrs)hrs.value=ops[i].hrs;}
+    }
     recalc(true);
     showToast('Operators loaded from calendar','success');
   } else {
@@ -6353,11 +6332,10 @@ function calcAll(){
   const payoutsRaw=group2&&tax!==null&&overhead!==null?totalSales-tax-overhead-products-fundraiserCard:null;
   // Owner reinvestment: if checked, owner's share goes back to overhead
   const ownerReinvest=document.getElementById('f-owner-reinvest')?.checked||false;
-  const op1Val=document.getElementById('f-op1')?.value||'';
-  const op2Val=document.getElementById('f-op2')?.value||'';
+  const _opVals=[1,2,3,4].map(function(i){return document.getElementById('f-op'+i)?.value||'';}).filter(Boolean);
   const ownerName=getOwnerOpName();
-  const ownerIsSelected=ownerName&&(op1Val===ownerName||op2Val===ownerName);
-  const opsCount=[op1Val,op2Val].filter(Boolean).length;
+  const ownerIsSelected=ownerName&&_opVals.includes(ownerName);
+  const opsCount=_opVals.length;
   const ownerShare=(ownerReinvest&&ownerIsSelected&&payoutsRaw!==null&&opsCount>0)?payoutsRaw/opsCount:0;
   const overhead2=overhead!==null?(overhead+ownerShare):null;
   const payouts=payoutsRaw!==null?(payoutsRaw-ownerShare):null;
@@ -6392,10 +6370,10 @@ function calcAllFromData(d){
   const products=group2?dv*(dvDelta+1):null;
   const payoutsRaw=group2&&tax!==null&&overhead!==null?totalSales-tax-overhead-products-fundraiserCard:null;
   const ownerReinvest=d.ownerReinvest||false;
-  const op1Val=d.op1||'', op2Val=d.op2||'';
+  const _opValsD=[d.op1||'',d.op2||'',d.op3||'',d.op4||''].filter(Boolean);
   const ownerName=getOwnerOpName();
-  const ownerIsSelected=ownerName&&(op1Val===ownerName||op2Val===ownerName);
-  const opsCount=[op1Val,op2Val].filter(Boolean).length;
+  const ownerIsSelected=ownerName&&_opValsD.includes(ownerName);
+  const opsCount=_opValsD.length;
   const ownerShare=(ownerReinvest&&ownerIsSelected&&payoutsRaw!==null&&opsCount>0)?payoutsRaw/opsCount:0;
   const overhead2=overhead!==null?(overhead+ownerShare):null;
   const payouts=payoutsRaw!==null?(payoutsRaw-ownerShare):null;
@@ -6681,10 +6659,12 @@ function loadDay(){
     const d=ex.data;
     ENTRY_FIELDS.forEach(k=>{const el=document.getElementById('f-'+k);if(el)el.value=d[k]!==undefined?d[k]:'';});
     const fp=document.getElementById('f-fundraiserPct');if(fp)fp.value=d.fundraiserPct||'0';
-    const o1=document.getElementById('f-op1'),o2=document.getElementById('f-op2');
+    const o1=document.getElementById('f-op1'),o2=document.getElementById('f-op2'),o3=document.getElementById('f-op3'),o4=document.getElementById('f-op4');
     if(o1&&d.op1!==undefined)o1.value=d.op1;if(o2&&d.op2!==undefined)o2.value=d.op2;
-    const h1=document.getElementById('f-op1-hrs'),h2=document.getElementById('f-op2-hrs');
+    if(o3&&d.op3!==undefined)o3.value=d.op3;if(o4&&d.op4!==undefined)o4.value=d.op4;
+    const h1=document.getElementById('f-op1-hrs'),h2=document.getElementById('f-op2-hrs'),h3=document.getElementById('f-op3-hrs'),h4=document.getElementById('f-op4-hrs');
     if(h1)h1.value=d.op1Hrs||'';if(h2)h2.value=d.op2Hrs||'';
+    if(h3)h3.value=d.op3Hrs||'';if(h4)h4.value=d.op4Hrs||'';
     const rc=document.getElementById('f-owner-reinvest');if(rc)rc.checked=d.ownerReinvest===true;
     formatAllCurrencyFields();
     var dvEl=document.getElementById('f-dv');
@@ -6710,8 +6690,7 @@ function loadDay(){
     ENTRY_FIELDS.forEach(k=>{const el=document.getElementById('f-'+k);if(el)el.value='';});
     const fp=document.getElementById('f-fundraiserPct');if(fp)fp.value='0';
     const rc=document.getElementById('f-owner-reinvest');if(rc)rc.checked=false;
-    const h1=document.getElementById('f-op1-hrs'),h2=document.getElementById('f-op2-hrs');
-    if(h1)h1.value='';if(h2)h2.value='';
+    for(var _ci=1;_ci<=4;_ci++){const sel=document.getElementById('f-op'+_ci);const hrs=document.getElementById('f-op'+_ci+'-hrs');if(sel)sel.value='';if(hrs)hrs.value='';}
     formatAllCurrencyFields();
     updateClosedDayToggle(date);
     clearDirty();
@@ -6738,26 +6717,26 @@ let _pendingSaveDupNote = null; // note from dup-op modal
 async function saveDay(){
   const date=document.getElementById('entry-date').value;
   if(!date){showToast('Please set a date','error');return;}
-  // Check for duplicate operators
-  const _op1v = document.getElementById('f-op1')?.value||'';
-  const _op2v = document.getElementById('f-op2')?.value||'';
-  if(_op1v && _op2v && _op1v === _op2v && _pendingSaveDupNote === null){
-    // Show confirmation modal
+  // Check for duplicate operators across all slots
+  const _opVals=[1,2,3,4].map(function(i){return document.getElementById('f-op'+i)?.value||'';}).filter(Boolean);
+  const _hasDupSave = _opVals.length !== new Set(_opVals).size;
+  const _dupName = _opVals.find(function(n,i){return _opVals.indexOf(n)!==i;})||'';
+  if(_hasDupSave && _pendingSaveDupNote === null){
     const dateDisp = new Date(date+'T00:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
     const lbl = document.getElementById('dup-op-date-label');
     const warn = document.getElementById('dup-op-warn-text');
     const noteEl = document.getElementById('dup-op-note');
     const saveBtn = document.getElementById('dup-op-save-btn');
     if(lbl) lbl.textContent = dateDisp;
-    if(warn) warn.textContent = _op1v.split(' ')[0] + ' is selected in both operator slots.';
+    if(warn) warn.textContent = _dupName.split(' ')[0] + ' is selected in multiple operator slots.';
     if(noteEl) noteEl.value = '';
     if(saveBtn) saveBtn.disabled = true;
     document.getElementById('dup-op-modal').style.display = 'flex';
-    return; // wait for modal confirmation
+    return;
   }
   const c=calcAll();
   const isClosedDay=document.getElementById('f-closed-day')?.checked||false;
-  const data={cashSales:pv('f-cashSales'),cardSales:pv('f-cardSales'),cardFees:pv('f-cardFees'),giftCardRedeemed:pv('f-giftCardRedeemed'),cashAppPay:pv('f-cashAppPay'),venmo:pv('f-venmo'),otherSales:pv('f-otherSales'),merchSales:pv('f-merchSales'),giftCardSales:pv('f-giftCardSales'),giftCardLoadFees:pv('f-giftCardLoadFees'),fundraiserCash:pv('f-fundraiserCash'),fundraiserCard:pv('f-fundraiserCard'),fundraiserPct:pv('f-fundraiserPct'),dv:pv('f-dv'),notes:(()=>{const base=document.getElementById('f-notes')?.value||'';const dup=_pendingSaveDupNote?'[Duplicate operator note: '+_pendingSaveDupNote+']':'';return base&&dup?base+'\n'+dup:dup||base;})(),op1:document.getElementById('f-op1')?.value||'',op2:document.getElementById('f-op2')?.value||'',op1Hrs:parseFloat(document.getElementById('f-op1-hrs')?.value)||0,op2Hrs:parseFloat(document.getElementById('f-op2-hrs')?.value)||0,closedDay:isClosedDay,totalSales:c.totalSales||0,overhead:c.overhead||0,taxes:c.tax||0,products:c.products||0,payouts:c.payouts||0,donation:c.donation||0,perDV:c.perDV||0,ownerReinvest:c.ownerReinvest||false,ownerShare:c.ownerShare||0,savedRates:{taxRate:SETTINGS.taxRate,ohRate:SETTINGS.ohRate,otherRate:SETTINGS.otherRate,merchRate:SETTINGS.merchRate,dvDelta:SETTINGS.dvDelta}};
+  const data={cashSales:pv('f-cashSales'),cardSales:pv('f-cardSales'),cardFees:pv('f-cardFees'),giftCardRedeemed:pv('f-giftCardRedeemed'),cashAppPay:pv('f-cashAppPay'),venmo:pv('f-venmo'),otherSales:pv('f-otherSales'),merchSales:pv('f-merchSales'),giftCardSales:pv('f-giftCardSales'),giftCardLoadFees:pv('f-giftCardLoadFees'),fundraiserCash:pv('f-fundraiserCash'),fundraiserCard:pv('f-fundraiserCard'),fundraiserPct:pv('f-fundraiserPct'),dv:pv('f-dv'),notes:(()=>{const base=document.getElementById('f-notes')?.value||'';const dup=_pendingSaveDupNote?'[Duplicate operator note: '+_pendingSaveDupNote+']':'';return base&&dup?base+'\n'+dup:dup||base;})(),op1:document.getElementById('f-op1')?.value||'',op2:document.getElementById('f-op2')?.value||'',op3:document.getElementById('f-op3')?.value||'',op4:document.getElementById('f-op4')?.value||'',op1Hrs:parseFloat(document.getElementById('f-op1-hrs')?.value)||0,op2Hrs:parseFloat(document.getElementById('f-op2-hrs')?.value)||0,op3Hrs:parseFloat(document.getElementById('f-op3-hrs')?.value)||0,op4Hrs:parseFloat(document.getElementById('f-op4-hrs')?.value)||0,closedDay:isClosedDay,totalSales:c.totalSales||0,overhead:c.overhead||0,taxes:c.tax||0,products:c.products||0,payouts:c.payouts||0,donation:c.donation||0,perDV:c.perDV||0,ownerReinvest:c.ownerReinvest||false,ownerShare:c.ownerShare||0,savedRates:{taxRate:SETTINGS.taxRate,ohRate:SETTINGS.ohRate,otherRate:SETTINGS.otherRate,merchRate:SETTINGS.merchRate,dvDelta:SETTINGS.dvDelta}};
   // Track specific closed day overrides in settings
   if(!SETTINGS.closedDays)SETTINGS.closedDays={};
   const dow=new Date(date+'T00:00:00').getDay();
@@ -7122,87 +7101,93 @@ document.addEventListener('click',function(e){
 });
 
 function clearOperators() {
-  const sel1 = document.getElementById('f-op1');
-  const sel2 = document.getElementById('f-op2');
-  if (sel1) sel1.value = '';
-  if (sel2) sel2.value = '';
-  // Reset hours to default
-  const hrs1 = document.getElementById('f-op1-hrs');
-  const hrs2 = document.getElementById('f-op2-hrs');
-  if (hrs1) hrs1.value = hrs1.options[0]?.value || '';
-  if (hrs2) hrs2.value = hrs2.options[0]?.value || '';
+  for(var i=1;i<=4;i++){
+    const sel = document.getElementById('f-op'+i);
+    const hrs = document.getElementById('f-op'+i+'-hrs');
+    if(sel) sel.value = '';
+    if(hrs) hrs.value = hrs.options[0]?.value || '';
+  }
   recalc(true);
 }
 
 function renderOpsEarningsPreview(){
   const c = calcAll();
   const reinvestRow = document.getElementById('reinvest-row');
-  const op1 = document.getElementById('f-op1')?.value || '';
-  const op2 = document.getElementById('f-op2')?.value || '';
-  const h1 = parseFloat(document.getElementById('f-op1-hrs')?.value) || 0;
-  const h2 = parseFloat(document.getElementById('f-op2-hrs')?.value) || 0;
-  const ops = [op1, op2].filter(Boolean);
   const ownerName = getOwnerOpName();
-  const ownerIsSelected = ownerName && ops.includes(ownerName);
+
+  // Read all active op slots
+  const opSlots = [];
+  for(var i=1;i<=4;i++){
+    const sel = document.getElementById('f-op'+i);
+    const hrsEl = document.getElementById('f-op'+i+'-hrs');
+    if(!sel) break;
+    opSlots.push({
+      idx: i,
+      name: sel.value || '',
+      hrs: parseFloat(hrsEl?.value) || 0,
+      sel: sel,
+      hrsEl: hrsEl
+    });
+  }
+  const ops = opSlots.filter(function(s){ return s.name; });
+  const ownerIsSelected = ownerName && ops.some(function(s){ return s.name === ownerName; });
 
   if(reinvestRow) reinvestRow.style.display = ownerIsSelected ? 'block' : 'none';
 
-  const totalHrs = h1 + h2;
+  const totalHrs = opSlots.reduce(function(sum,s){ return sum + s.hrs; }, 0);
   const payouts = c.group2 && c.payouts !== null ? c.payouts : null;
   const hourlyRate = (payouts !== null && totalHrs > 0) ? payouts / totalHrs : null;
 
-  // Op payout pills (in-row)
-  const pill1 = document.getElementById('op1-payout-pill');
-  const pill2 = document.getElementById('op2-payout-pill');
-  const pay1 = (op1 && payouts !== null) ? (hourlyRate !== null && h1 > 0 ? hourlyRate * h1 : (ops.length > 0 ? payouts / ops.length : null)) : null;
-  const pay2 = (op2 && payouts !== null) ? (hourlyRate !== null && h2 > 0 ? hourlyRate * h2 : (ops.length > 0 ? payouts / ops.length : null)) : null;
-  const isR1 = ownerName && op1 === ownerName && c.ownerReinvest;
-  const isR2 = ownerName && op2 === ownerName && c.ownerReinvest;
+  // Per-slot payout pills
+  opSlots.forEach(function(s){
+    const pill = document.getElementById('op'+s.idx+'-payout-pill');
+    if(!pill) return;
+    const isR = ownerName && s.name === ownerName && c.ownerReinvest;
+    const pay = (s.name && payouts !== null) ? (hourlyRate !== null && s.hrs > 0 ? hourlyRate * s.hrs : (ops.length > 0 ? payouts / ops.length : null)) : null;
+    pill.textContent = s.name && pay !== null ? (isR ? '↩ reinvested' : fmt$(pay)) : '--';
+    pill.style.color = isR ? 'var(--b6)' : 'var(--g6)';
+    pill.style.background = isR ? 'var(--b1)' : 'transparent';
+  });
 
-  if(pill1){ pill1.textContent = op1 && pay1 !== null ? (isR1 ? '↩ reinvested' : fmt$(pay1)) : '--'; pill1.style.color = isR1 ? 'var(--b6)' : 'var(--g6)'; pill1.style.background = isR1 ? 'var(--b1)' : 'transparent'; }
-  if(pill2){ pill2.textContent = op2 && pay2 !== null ? (isR2 ? '↩ reinvested' : fmt$(pay2)) : '--'; pill2.style.color = isR2 ? 'var(--b6)' : 'var(--g6)'; pill2.style.background = isR2 ? 'var(--b1)' : 'transparent'; }
-
-  // Footer row — show when any operator selected
+  // Footer row
   const footerRow = document.getElementById('ops-footer-row');
   const pillsEl = document.getElementById('ops-payout-pills');
   const rateVal = document.getElementById('ops-hourly-rate-val');
   const totalHrsLabel = document.getElementById('ops-total-hrs-label');
 
-  // Duplicate operator detection
+  // Duplicate detection — any two slots with same non-empty name
   const warnBanner = document.getElementById('ops-dup-warning');
   const warnText = document.getElementById('ops-dup-warning-text');
-  const isDup = op1 && op2 && op1 === op2;
-  if (warnBanner) warnBanner.style.display = isDup ? 'flex' : 'none';
-  if (warnText && isDup) warnText.textContent = op1.split(' ')[0] + ' is selected twice. You can still save — you will be asked to add a note explaining why.';
-  // Amber highlight on both selects
-  const sel1 = document.getElementById('f-op1');
-  const sel2 = document.getElementById('f-op2');
-  if (sel1) { sel1.style.borderColor = isDup ? '#f0b440' : ''; sel1.style.background = isDup ? '#fef7e8' : ''; }
-  if (sel2) { sel2.style.borderColor = isDup ? '#f0b440' : ''; sel2.style.background = isDup ? '#fef7e8' : ''; }
+  const filledNames = opSlots.map(function(s){ return s.name; }).filter(Boolean);
+  const hasDup = filledNames.length !== new Set(filledNames).size;
+  const dupName = filledNames.find(function(n,i){ return filledNames.indexOf(n) !== i; }) || '';
+  if(warnBanner) warnBanner.style.display = hasDup ? 'flex' : 'none';
+  if(warnText && hasDup) warnText.textContent = dupName.split(' ')[0] + ' is selected twice. You can still save — you will be asked to add a note explaining why.';
+  opSlots.forEach(function(s){
+    if(s.sel){ s.sel.style.borderColor = (hasDup && s.name === dupName) ? '#f0b440' : ''; s.sel.style.background = (hasDup && s.name === dupName) ? '#fef7e8' : ''; }
+  });
 
-  if (footerRow) {
-    if (ops.length > 0) {
+  if(footerRow){
+    if(ops.length > 0){
       footerRow.style.display = 'flex';
-      // Colored pills
-      if (pillsEl) {
-        const pillData = [{name:op1, pay:pay1, isR:isR1, h:h1}, {name:op2, pay:pay2, isR:isR2, h:h2}].filter(p => p.name);
-        pillsEl.innerHTML = pillData.map(p => {
-          const color = getOpColor(p.name);
-          const label = p.isR ? '↩' : (p.pay !== null ? fmt$(p.pay) : '--');
-          const initial = p.name.charAt(0).toUpperCase();
-          return `<span style="display:inline-flex;align-items:center;gap:4px;background:var(--b0);border:1px solid var(--border-light);border-radius:20px;padding:2px 8px 2px 4px;font-size:11px;font-weight:700;color:var(--text);">
-            <span style="width:14px;height:14px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:800;color:white;flex-shrink:0;">${initial}</span>
-            ${label}
-          </span>`;
+      if(pillsEl){
+        pillsEl.innerHTML = ops.map(function(s){
+          const isR = ownerName && s.name === ownerName && c.ownerReinvest;
+          const pay = payouts !== null ? (hourlyRate !== null && s.hrs > 0 ? hourlyRate * s.hrs : (ops.length > 0 ? payouts / ops.length : null)) : null;
+          const color = getOpColor(s.name);
+          const label = isR ? '↩' : (pay !== null ? fmt$(pay) : '--');
+          const initial = s.name.charAt(0).toUpperCase();
+          return '<span style="display:inline-flex;align-items:center;gap:4px;background:var(--b0);border:1px solid var(--border-light);border-radius:20px;padding:2px 8px 2px 4px;font-size:11px;font-weight:700;color:var(--text);">'
+            + '<span style="width:14px;height:14px;border-radius:50%;background:'+color+';display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:800;color:white;flex-shrink:0;">'+initial+'</span>'
+            + label + '</span>';
         }).join('');
       }
-      // Hourly rate
-      if (hourlyRate !== null && totalHrs > 0) {
-        if (rateVal) rateVal.textContent = fmt$(hourlyRate) + '/hr';
-        if (totalHrsLabel) totalHrsLabel.textContent = totalHrs.toFixed(1) + ' total hrs';
+      if(hourlyRate !== null && totalHrs > 0){
+        if(rateVal) rateVal.textContent = fmt$(hourlyRate) + '/hr';
+        if(totalHrsLabel) totalHrsLabel.textContent = totalHrs.toFixed(1) + ' total hrs';
       } else {
-        if (rateVal) rateVal.textContent = '--';
-        if (totalHrsLabel) totalHrsLabel.textContent = '';
+        if(rateVal) rateVal.textContent = '--';
+        if(totalHrsLabel) totalHrsLabel.textContent = '';
       }
     } else {
       footerRow.style.display = 'none';
@@ -7474,7 +7459,7 @@ function renderHistCal(){
         : '';
 
       if(data){
-        const ops=[data.op1,data.op2].filter(Boolean).join(', ');
+        const ops=[data.op1,data.op2,data.op3,data.op4].filter(Boolean).join(', ');
         const noteIcon=data.notes?'<span style="font-size:12px;line-height:1;">&#128221;</span>':'';
         const adminIcon=data._adminEdit?'<span style="font-size:8px;color:var(--a5);">✎</span> ':'';
         const closedBadge=data.closedDay?'<div class="hcal-closed-label">Closed</div>':'';
@@ -7495,7 +7480,7 @@ function renderHistCal(){
           ${_cashDeposited?'<circle cx="11" cy="11" r="4" fill="none" stroke="white" stroke-width="1"/>':''}
         </svg>`;
         // Operator dots — assign color by position in SETTINGS.operators
-        const _opList=[data.op1,data.op2].filter(Boolean);
+        const _opList=[data.op1,data.op2,data.op3,data.op4].filter(Boolean);
         const _opDots=_opList.map(name=>{
           const color=getOpColor(name);
           const initial=(name||'?').charAt(0).toUpperCase();
@@ -7680,7 +7665,7 @@ function openDetail(date){
   // Balance indicator
   const dsBalance = document.getElementById('ds-balance');
   const dsOpsLabel = document.getElementById('ds-ops-label');
-  const ops2 = [d.op1,d.op2].filter(Boolean);
+  const ops2 = [d.op1,d.op2,d.op3,d.op4].filter(Boolean);
   dsOpsLabel.textContent = ops2.length ? ops2.join(' · ') : '—';
   if(c.group1){
     if(c.balanced){ dsBalance.className='balance-ok'; dsBalance.textContent='✓ Balanced'; }
@@ -7703,25 +7688,48 @@ function openDetail(date){
 
   const ownerName = getOwnerOpName();
   const reinvestTag = d.ownerReinvest ? ' <span style="font-size:10px;font-weight:700;background:#dbeafe;color:#1d4ed8;border-radius:4px;padding:1px 5px;vertical-align:middle;">&#8617; Reinvested</span>' : '';
-  const h1 = parseFloat(d.op1Hrs)||0, h2 = parseFloat(d.op2Hrs)||0;
-  const totalHrs = h1 + h2;
+  const _hrsArr = [parseFloat(d.op1Hrs)||0, parseFloat(d.op2Hrs)||0, parseFloat(d.op3Hrs)||0, parseFloat(d.op4Hrs)||0];
+  const totalHrs = _hrsArr.reduce(function(s,h){return s+h;},0);
   const hourlyRate = (c.payouts !== null && totalHrs > 0) ? c.payouts / totalHrs : null;
+  const _opNames = [d.op1||'', d.op2||'', d.op3||'', d.op4||''];
 
-  if(d.op1){
-    const isOwner1 = ownerName && d.op1===ownerName;
-    const hrsTag = h1 > 0 ? ` <span style="font-size:11px;color:var(--text-faint);font-weight:500;">${h1.toFixed(1)} hrs</span>` : '';
-    const payTag = hourlyRate !== null && h1 > 0 ? ` · <span style="font-weight:700;color:var(--g6);">${fmt$(hourlyRate*h1)}</span>` : '';
-    document.getElementById('df-op1').innerHTML = d.op1 + hrsTag + payTag + (isOwner1&&d.ownerReinvest?reinvestTag:'');
-  } else {
-    document.getElementById('df-op1').innerHTML = `<span class="detail-row-val dim">--</span>`;
+  // Render op1 and op2 into fixed detail rows (always visible)
+  [0,1].forEach(function(i){
+    const el = document.getElementById('df-op'+(i+1));
+    if(!el) return;
+    const name = _opNames[i], hrs = _hrsArr[i];
+    if(name){
+      const isOwner = ownerName && name===ownerName;
+      const hrsTag = hrs > 0 ? ' <span style="font-size:11px;color:var(--text-faint);font-weight:500;">'+hrs.toFixed(1)+' hrs</span>' : '';
+      const payTag = hourlyRate !== null && hrs > 0 ? ' · <span style="font-weight:700;color:var(--g6);">'+fmt$(hourlyRate*hrs)+'</span>' : '';
+      el.innerHTML = escHtml(name) + hrsTag + payTag + (isOwner&&d.ownerReinvest?reinvestTag:'');
+    } else {
+      el.innerHTML = '<span class="detail-row-val dim">--</span>';
+    }
+  });
+
+  // Render op3/op4 into dynamic extra rows below df-op2
+  var dfExtra = document.getElementById('df-op-extra');
+  if(!dfExtra){
+    const dfOp2El = document.getElementById('df-op2');
+    if(dfOp2El){
+      dfExtra = document.createElement('div');
+      dfExtra.id = 'df-op-extra';
+      dfOp2El.closest('.detail-row')?.after(dfExtra);
+    }
   }
-  if(d.op2){
-    const isOwner2 = ownerName && d.op2===ownerName;
-    const hrsTag = h2 > 0 ? ` <span style="font-size:11px;color:var(--text-faint);font-weight:500;">${h2.toFixed(1)} hrs</span>` : '';
-    const payTag = hourlyRate !== null && h2 > 0 ? ` · <span style="font-weight:700;color:var(--g6);">${fmt$(hourlyRate*h2)}</span>` : '';
-    document.getElementById('df-op2').innerHTML = d.op2 + hrsTag + payTag + (isOwner2&&d.ownerReinvest?reinvestTag:'');
-  } else {
-    document.getElementById('df-op2').innerHTML = `<span class="detail-row-val dim">--</span>`;
+  if(dfExtra){
+    var extraHtml = '';
+    [2,3].forEach(function(i){
+      const name = _opNames[i], hrs = _hrsArr[i];
+      if(!name) return;
+      const isOwner = ownerName && name===ownerName;
+      const hrsTag = hrs > 0 ? ' <span style="font-size:11px;color:var(--text-faint);font-weight:500;">'+hrs.toFixed(1)+' hrs</span>' : '';
+      const payTag = hourlyRate !== null && hrs > 0 ? ' · <span style="font-weight:700;color:var(--g6);">'+fmt$(hourlyRate*hrs)+'</span>' : '';
+      extraHtml += '<div class="detail-row"><span class="detail-row-label">Operator '+(i+1)+'</span>'
+        + '<span class="detail-row-val">'+escHtml(name)+hrsTag+payTag+(isOwner&&d.ownerReinvest?reinvestTag:'')+'</span></div>';
+    });
+    dfExtra.innerHTML = extraHtml;
   }
   const hourlyRow = document.getElementById('df-hourly-row');
   const hourlyRateEl = document.getElementById('df-hourly-rate');
@@ -8913,6 +8921,14 @@ function togglePayoutCalc(){
   body.style.display=hidden?'':'none';
   if(chev)chev.textContent=hidden?'▼':'▶';
 }
+function toggleDailyBreakdown(el){
+  const body=document.getElementById('daily-breakdown-body');
+  if(!body)return;
+  const hidden=body.style.display==='none';
+  body.style.display=hidden?'block':'none';
+  const chev=document.getElementById('daily-breakdown-chev');
+  if(chev)chev.textContent=hidden?'▼':'▶';
+}
 function renderPayouts(){
   const from=document.getElementById('payout-from')?.value;
   const to=document.getElementById('payout-to')?.value;
@@ -8928,7 +8944,7 @@ function renderPayouts(){
     const data=d.data||{};
     const dt=new Date(d.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
     const py=data.payouts||0;
-    const ops=[data.op1,data.op2].filter(Boolean);
+    const ops=[data.op1,data.op2,data.op3,data.op4].filter(Boolean);
     const ownerName=getOwnerOpName();
     const sh=ops.length>0?py/ops.length:0;
     // Payouts are already stored post-reinvestment, so just accumulate as-is
@@ -8993,8 +9009,11 @@ function renderPayouts(){
         </button>
       </div>
     </div>
-    <div class="section-label">Daily Breakdown</div>
-    ${dayRows}`;
+    <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;padding:2px 0 4px;" onclick="toggleDailyBreakdown(this)">
+      <div class="section-label" style="margin:0;">Daily Breakdown</div>
+      <span style="font-size:11px;color:var(--text-faint);" id="daily-breakdown-chev">▶</span>
+    </div>
+    <div id="daily-breakdown-body" style="display:none;">${dayRows}</div>`;
 
   if(snapWrap)snapWrap.style.display='block';
   renderPayoutSnapshots();
@@ -9084,13 +9103,26 @@ function renderHourlyPayrollInline() {
       var initials = emp.name.trim().split(/\s+/).map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
       var lastPaid = getHourlyLastPaidDate(emp.name);
       var lastPaidStr = lastPaid ? 'Last paid ' + new Date(lastPaid+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) : 'No prior payments';
+
+      // Build per-day breakdown string
+      var dayBreakdown = '';
+      if (data.shifts && data.shifts.length) {
+        dayBreakdown = data.shifts.map(function(s){
+          var dayLbl = s.date ? new Date(s.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}) : '';
+          return dayLbl + ': ' + s.hrs + ' hrs';
+        }).join(' · ');
+        if (dayBreakdown) dayBreakdown += ' · ';
+      }
+      var subtitleStr = dayBreakdown + data.totalHrs + ' hrs &times; $' + rate.toFixed(2) + '/hr'
+        + (data.totalHrs > 0 && rate > 0 ? ' = $' + pay.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '')
+        + ' &nbsp;&middot;&nbsp; ' + lastPaidStr;
       rowsHtml += '<div class="payout-op-row" style="background:var(--b1);margin-bottom:4px;flex-direction:column;align-items:stretch;">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;">'
         + '<div style="display:flex;align-items:center;gap:8px;">'
         + '<div style="width:28px;height:28px;border-radius:50%;background:'+color+';display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;">' + initials + '</div>'
         + '<div>'
         + '<div class="payout-op-name" style="font-weight:700;">' + escHtml(emp.name) + '</div>'
-        + '<div style="font-size:10px;color:var(--text-faint);">' + data.totalHrs + ' hrs &times; $' + rate.toFixed(2) + '/hr &nbsp;&middot;&nbsp; ' + lastPaidStr + '</div>'
+        + '<div style="font-size:10px;color:var(--text-faint);">' + subtitleStr + '</div>'
         + '</div>'
         + '</div>'
         + '<div class="payout-op-amt" style="font-size:15px;">'
@@ -9135,7 +9167,7 @@ function openPayrollApproveModal(){
   const ownerName = getOwnerOpName();
   fl.forEach(function(d){
     const data = d.data||{};
-    const ops  = [data.op1,data.op2].filter(Boolean);
+    const ops  = [data.op1,data.op2,data.op3,data.op4].filter(Boolean);
     const sh   = ops.length>0?(data.payouts||0)/ops.length:0;
     ops.forEach(function(o){
       const k = resolveAlias(o);
@@ -9253,7 +9285,7 @@ async function savePayoutSnapshot(){
   const ownerName=getOwnerOpName();
   fl.forEach(d=>{
     const data=d.data||{};
-    const ops=[data.op1,data.op2].filter(Boolean);
+    const ops=[data.op1,data.op2,data.op3,data.op4].filter(Boolean);
     const sh=ops.length>0?(data.payouts||0)/ops.length:0;
     ops.forEach(o=>{
       const k=resolveAlias(o);
@@ -9726,6 +9758,7 @@ function renderPaymentRegister() {
     <th ${thClick('check')}style="min-width:80px;">Check #${sortArr('check')}</th>
     <th ${thClick('period')}style="min-width:110px;">Pay Period${sortArr('period')}</th>
     <th ${thClick('account')}style="min-width:110px;">Account${sortArr('account')}</th>
+    <th style="width:36px;"></th>
   </tr></thead>`;
 
   const rows = sorted.map(e => {
@@ -9737,13 +9770,14 @@ function renderPaymentRegister() {
       <td class="preg-td-check">${escHtml(checkDisp)}</td>
       <td class="preg-td-period">${fmtPeriod(e.periodFrom, e.periodTo)}</td>
       <td class="preg-td-acct">${escHtml(e.account||'—')}</td>
+      <td style="text-align:center;padding:4px 6px;"><button onclick="event.stopPropagation();confirmDeletePregEntry('${e.id}')" title="Delete" style="background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:14px;padding:2px 5px;border-radius:4px;line-height:1;" onmouseover="this.style.color='var(--r5)';this.style.background='var(--r0)'" onmouseout="this.style.color='var(--text-faint)';this.style.background='none'">&#10005;</button></td>
     </tr>`;
   }).join('');
 
   const tfoot = `<tfoot><tr>
     <td style="font-weight:700;color:var(--text);">${sorted.length} entries</td>
     <td class="preg-td-amt" style="font-weight:700;">${fmt$(total)}</td>
-    <td colspan="4"></td>
+    <td colspan="5"></td>
   </tr></tfoot>`;
 
   el.innerHTML = sorted.length
@@ -9751,6 +9785,19 @@ function renderPaymentRegister() {
     : '<div class="preg-empty" style="padding:24px;text-align:center;color:var(--text-faint);">No payments in this period.</div>';
 
   if (footerTotal) footerTotal.textContent = (_pregFilter!=='all') ? 'Filtered: '+sorted.length+' of '+allLog.length+' entries' : '';
+}
+
+function confirmDeletePregEntry(id) {
+  if (!confirm('Delete this payment entry? This cannot be undone.')) return;
+  deletePregEntry(id);
+}
+async function deletePregEntry(id) {
+  if (!SETTINGS.paymentLog) return;
+  SETTINGS.paymentLog = SETTINGS.paymentLog.filter(function(e){ return e.id !== id; });
+  const {error} = await sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID);
+  if (error) { showToast('Delete failed: '+error.message,'error'); return; }
+  showToast('Entry deleted','success');
+  renderPaymentRegister();
 }
 
 function pregSortBy(col) {
@@ -10639,7 +10686,7 @@ const _UNDO_FIELDS = [
   'cashSales','cardSales','cardFees','giftCardRedeemed','cashAppPay','venmo',
   'otherSales','merchSales','giftCardSales','giftCardLoadFees',
   'fundraiserCash','fundraiserCard','fundraiserPct',
-  'dv','notes','op1','op2','op1Hrs','op2Hrs','owner-reinvest'
+  'dv','notes','op1','op2','op3','op4','op1Hrs','op2Hrs','op3Hrs','op4Hrs','owner-reinvest'
 ];
 let _undoStack = [];   // array of state snapshots
 let _redoStack = [];   // redo stack
@@ -12137,10 +12184,7 @@ function resetDayFields() {
   const dvEl = document.getElementById('f-dv');
   if (dvEl) dvEl.value = '';
   // Clear operators
-  const op1 = document.getElementById('f-op1');
-  const op2 = document.getElementById('f-op2');
-  if (op1) op1.value = '';
-  if (op2) op2.value = '';
+  for(var _ri=1;_ri<=4;_ri++){const _rop=document.getElementById('f-op'+_ri);if(_rop)_rop.value='';}
   // Clear fundraiser pct
   const fPct = document.getElementById('f-fundraiserPct');
   if (fPct) fPct.value = '0';
@@ -12246,19 +12290,30 @@ function buildSelect(id,vals,cur,fn){const el=document.getElementById(id);if(!el
 function openProductsEditor(){closeProfileModal();window.location.href=IS_ADMIN_VIEW?`products.html?location_id=${LOCATION_ID}&admin=1`:`products.html?location_id=${LOCATION_ID}`;}
 
 function populateOperatorDropdowns(){
-  const ops=getOperatorMembers(),blank='<option value="">--</option>';
-  ['f-op1','f-op2'].forEach(id=>{const el=document.getElementById(id);if(!el)return;const cur=el.value;el.innerHTML=blank+ops.map(o=>`<option value="${o.name}">${o.name}</option>`).join('');el.value=cur;});
-  // Populate hours dropdowns if not already done
-  ['f-op1-hrs','f-op2-hrs'].forEach(id=>{
-    const el=document.getElementById(id);if(!el||el.options.length>1)return;
-    el.innerHTML='<option value="">-- hrs</option>';
-    for(let h=0.5;h<=12;h+=0.5){
-      const opt=document.createElement('option');
-      opt.value=h;
-      opt.textContent=Number.isInteger(h)?h+'.0 hrs':h+' hrs';
-      el.appendChild(opt);
+  const ops = getOperatorMembers();
+  const nRows = Math.max(2, Math.min(ops.length, 4)); // at least 2 rows, up to 4
+  const blank = '<option value="">--</option>';
+  const hrsOpts = (function(){
+    var o = '<option value="">-- hrs</option>';
+    for(var h=0.5;h<=12;h+=0.5){
+      o += '<option value="'+h+'">'+(Number.isInteger(h)?h+'.0 hrs':h+' hrs')+'</option>';
     }
-  });
+    return o;
+  })();
+
+  const container = document.getElementById('ops-dynamic-rows');
+  if(container){
+    var html = '';
+    for(var i=1; i<=nRows; i++){
+      const opOpts = blank + ops.map(function(o){ return '<option value="'+escHtml(o.name)+'">'+escHtml(o.name)+'</option>'; }).join('');
+      html += '<div style="display:grid;grid-template-columns:1fr 90px 90px;gap:8px;padding:4px 10px;align-items:center;border-top:1px solid var(--border-light);">'
+        + '<select class="field-input" id="f-op'+i+'" onchange="recalc(true)" style="margin:0;">'+opOpts+'</select>'
+        + '<select id="f-op'+i+'-hrs" onchange="recalc(true)" style="font-family:DM Sans,sans-serif;font-size:13px;padding:5px 6px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--b0);color:var(--text);text-align:center;">'+hrsOpts+'</select>'
+        + '<div id="op'+i+'-payout-pill" style="font-family:Outfit,sans-serif;font-size:13px;font-weight:700;color:var(--g6);border-radius:var(--radius-sm);padding:5px 8px;text-align:right;">--</div>'
+        + '</div>';
+    }
+    container.innerHTML = html;
+  }
   renderOpsEarningsPreview();
 }
 
@@ -12635,27 +12690,6 @@ document.addEventListener('gesturechange',function(e){e.preventDefault();},{pass
 document.addEventListener('gestureend',function(e){e.preventDefault();},{passive:false});
 document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
 </script>
-<script>
-// Forward wheel events on the payouts panel to the register scroll box
-// so scrolling anywhere below the sticky top scrolls the register rows
-(function(){
-  document.addEventListener('DOMContentLoaded',function(){
-    const panel=document.getElementById('panel-payouts');
-    const stickyTop=document.getElementById('payouts-sticky-top');
-    if(!panel)return;
-    panel.addEventListener('wheel',function(e){
-      const scrollBox=document.getElementById('preg-scroll-box');
-      if(!scrollBox)return;
-      // Only redirect if not already scrolling inside the sticky top section
-      if(stickyTop&&stickyTop.contains(e.target))return;
-      // Don't redirect if already inside the scroll box itself
-      if(scrollBox.contains(e.target))return;
-      // Forward the vertical scroll delta to the register scroll box
-      e.preventDefault();
-      scrollBox.scrollTop+=e.deltaY;
-    },{passive:false});
-  });
-})();
-</script>
+
 </body>
 </html>
