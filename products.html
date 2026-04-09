@@ -322,7 +322,7 @@ const DEFAULT_PRODUCTS=[
   ["Retail","Tea - Lemon (1.8 oz)","0255",21.95,1],["Retail","Tea - Raspberry (1.8 oz)","0256",21.95,1],
   ["Retail","Tea - Peach (1.8 oz)","0257",21.95,1],["Retail","Tea - Original (1.8 oz)","0105",21.95,1],
   ["Retail","Aloe - Mandarin (pint)","2631",27.45,1],["Retail","Aloe - Mango (pint)","1065",27.45,1],
-  ["Retail","Aloe - Cranberry (pint)","1189",27.45,1],["Retail","Aloe - Grape (pint)","1610",27.45,1],
+  ["Retail","Aloe - Cranberry (pint)","1189",27.45,1],["Retail","Aloe - Grape (pint)","1610R",27.45,1],
   ["Retail","Liftoff - Orange (10 tablets)","3151",17.55,1],["Retail","Liftoff - Lemon Lime (10 tab)","3152",17.55,1],
   ["Retail","Liftoff - Pomegranate (10 tab)","2629",17.55,1],["Retail","Liftoff - Tropical Fruit (10 tab)","2696",17.55,1],
   ["Tablets","F2 - Multivitamin Complex","3115",21.95,1],["Tablets","F3 - Cell Activator","3123",24.15,1],
@@ -577,7 +577,7 @@ function computeDiff(oldList, newList){
     return isNaN(n) ? 0 : n;
   }
 
-  function keyOf(p){ return normStr(p[2]) || (normStr(p[0])+'||'+normStr(p[1])); }
+  function keyOf(p){ return normStr(p[2]) ? (normStr(p[2])+'||'+normStr(p[0])) : (normStr(p[0])+'||'+normStr(p[1])); }
 
   const oldByKey = {};
   const newByKey = {};
