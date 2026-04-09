@@ -41,7 +41,7 @@ I'm Jeffrey Nemecek, owner of Empower Nutrition & Energy (7659 Mentor Ave, Mento
 
 ## Active Files
 
-`index.html`, `app.html`, `admin.html`, `settings.html`, `locations.html`, `products.html`, `org-admin.html`, `organizations.html`, `onboard.html`, `request.html`, `import.html`, `privacy.html`, `nav.css`, `nav.js`, `shared.css`
+`index.html`, `app.html`, `admin.html`, `settings.html`, `products.html`, `org-admin.html`, `organizations.html`, `onboard.html`, `request.html`, `privacy.html`, `nav.css`, `nav.js`, `shared.css`
 
 ## Permanently Deleted — Never Recreate
 
