@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-10 08:00:00 -->
+<!-- CACHE BUST: 2026-04-10 09:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -5578,8 +5578,14 @@ function gcalRequestToken(cb){
   // 2. Try server-side refresh (uses stored refresh token — no UI)
   sb.functions.invoke('gcal-refresh',{body:{location_id:LOCATION_ID}})
     .then(function(res){
-      console.log('[gcal] refresh result:', JSON.stringify(res.data));
+      console.log('[gcal] refresh result:', JSON.stringify(res));
       const d=res.data;
+      const err=res.error;
+      if(err){
+        console.log('[gcal] refresh error (expected on first run):', JSON.stringify(err));
+        _gcalTokenPromptFull(clientId,cb);
+        return;
+      }
       if(d&&d.access_token){
         SETTINGS.gcal.token=d.access_token;
         SETTINGS.gcal.tokenExpiry=Date.now()+(d.expires_in||3600)*1000;
@@ -5628,8 +5634,17 @@ function _gcalTokenPromptFull(clientId,cb){
       redirect_uri:redirectUri,
       location_id:LOCATION_ID
     }}).then(function(res){
-      console.log('[gcal] exchange result:', JSON.stringify(res.data));
+      console.log('[gcal] exchange result:', JSON.stringify(res));
       var d=res.data;
+      var err=res.error;
+      // Supabase returns error object when function returns non-2xx
+      if(err){
+        console.error('[gcal] exchange supabase error:',JSON.stringify(err));
+        // Try to parse the error context for the actual Google message
+        var msg=(err.context&&err.context.error)||err.message||'unknown';
+        showToast('Google auth failed: '+msg,'error');
+        cb(null); return;
+      }
       if(d&&d.access_token){
         SETTINGS.gcal.token=d.access_token;
         SETTINGS.gcal.tokenExpiry=Date.now()+(d.expires_in||3600)*1000;
