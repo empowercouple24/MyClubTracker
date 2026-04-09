@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-08 22:30:00 -->
+<!-- CACHE BUST: 2026-04-08 22:45:00 -->
 <html lang="en">
 <head>
 <script>
@@ -11049,13 +11049,17 @@ function printSummaryPDF() {
     mask.innerHTML = '<div style="color:rgba(255,255,255,0.5);font-family:DM Sans,sans-serif;font-size:13px;font-weight:600;letter-spacing:0.5px;">Generating PDF\u2026</div>';
     document.body.appendChild(mask);
 
-    var savedScrollLeft = tableWrap.scrollLeft;
-    var savedOverflow   = tableWrap.style.overflow;
-    var savedWidth      = tableWrap.style.width;
-    var savedPosition   = tableWrap.style.position;
-    var savedTop        = tableWrap.style.top;
-    var savedLeft       = tableWrap.style.left;
-    var savedZIndex     = tableWrap.style.zIndex;
+    var savedScrollLeft   = tableWrap.scrollLeft;
+    var savedOverflow     = tableWrap.style.overflow;
+    var savedWidth        = tableWrap.style.width;
+    var savedPosition     = tableWrap.style.position;
+    var savedTop          = tableWrap.style.top;
+    var savedLeft         = tableWrap.style.left;
+    var savedZIndex       = tableWrap.style.zIndex;
+    var savedHtmlOverflow = document.documentElement.style.overflow;
+
+    // Lock html element — prevents document scroll expansion during capture
+    document.documentElement.style.overflow = 'hidden';
 
     tableWrap.style.position  = 'fixed';
     tableWrap.style.top       = '0';
@@ -11084,6 +11088,7 @@ function printSummaryPDF() {
         tableWrap.style.overflow = savedOverflow;
         tableWrap.style.zIndex   = savedZIndex;
         tableWrap.scrollLeft     = savedScrollLeft;
+        document.documentElement.style.overflow = savedHtmlOverflow;
         document.body.removeChild(mask);
         if(btn) btn.style.visibility = 'visible';
 
@@ -11143,6 +11148,7 @@ function printSummaryPDF() {
         tableWrap.style.overflow = savedOverflow;
         tableWrap.style.zIndex   = savedZIndex;
         tableWrap.scrollLeft     = savedScrollLeft;
+        document.documentElement.style.overflow = savedHtmlOverflow;
         if(document.body.contains(mask)) document.body.removeChild(mask);
         if(btn) btn.style.visibility = 'visible';
         resetBtn();
