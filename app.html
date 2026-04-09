@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-08 23:45:00 -->
+<!-- CACHE BUST: 2026-04-09 00:15:00 -->
 <html lang="en">
 <head>
 <script>
@@ -729,10 +729,14 @@ if('serviceWorker' in navigator){
 
     /* ── PAYOUT DATE RANGE PICKER ── */
     .payout-preset-row{display:flex;gap:6px;flex-wrap:wrap;padding:10px 12px;border-bottom:1px solid var(--border-light);}
-    .payout-preset-chip{font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--b0);color:var(--text-muted);cursor:pointer;white-space:nowrap;transition:background 0.12s,color 0.12s;}
+    .payout-preset-chip{display:flex;flex-direction:column;gap:1px;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--b0);cursor:pointer;white-space:nowrap;transition:background 0.12s,color 0.12s;}
     .payout-preset-chip:hover{background:var(--b1);}
-    .payout-preset-chip.active{background:var(--b7);color:white;border-color:var(--b7);}
-    .payout-preset-chip.reset-chip{color:var(--r5);border-color:var(--border);}
+    .payout-preset-chip.active{background:var(--b7);border-color:var(--b7);}
+    .payout-preset-chip.reset-chip .ppc-name{color:var(--r5);}
+    .ppc-name{font-size:12px;font-weight:600;color:var(--text-muted);}
+    .payout-preset-chip.active .ppc-name{color:white;}
+    .ppc-range{font-size:10px;color:var(--text-faint);}
+    .payout-preset-chip.active .ppc-range{color:rgba(255,255,255,0.75);}
     .payout-range-bar{display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;background:var(--b0);border-bottom:1px solid var(--border-light);}
     .payout-range-bar:hover{background:var(--b1);}
     .payout-range-val{font-size:13px;font-weight:600;color:var(--text);}
@@ -1782,11 +1786,12 @@ if('serviceWorker' in navigator){
     <div id="payout-calc-body" class="card" style="margin-bottom:12px;">
       <!-- Preset chips -->
       <div class="payout-preset-row">
-        <div class="payout-preset-chip" onclick="setPayoutPreset('lastweek',this)">Last Week</div>
-        <div class="payout-preset-chip" onclick="setPayoutPreset('last2weeks',this)">Last 2 Weeks</div>
-        <div class="payout-preset-chip" onclick="setPayoutPreset('lastmonth',this)">Last Month</div>
-        <div class="payout-preset-chip" onclick="setPayoutPreset('thismonth',this)">This Month</div>
-        <div class="payout-preset-chip reset-chip" onclick="resetPayouts()">&#10005; Reset</div>
+        <div class="payout-preset-chip" onclick="setPayoutPreset('thisweek',this)"><span class="ppc-name">This Week</span><span class="ppc-range" id="ppc-range-thisweek"></span></div>
+        <div class="payout-preset-chip" onclick="setPayoutPreset('lastweek',this)"><span class="ppc-name">Last Week</span><span class="ppc-range" id="ppc-range-lastweek"></span></div>
+        <div class="payout-preset-chip" onclick="setPayoutPreset('last2weeks',this)"><span class="ppc-name">Last 2 Weeks</span><span class="ppc-range" id="ppc-range-last2weeks"></span></div>
+        <div class="payout-preset-chip" onclick="setPayoutPreset('thismonth',this)"><span class="ppc-name">This Month</span><span class="ppc-range" id="ppc-range-thismonth"></span></div>
+        <div class="payout-preset-chip" onclick="setPayoutPreset('lastmonth',this)"><span class="ppc-name">Last Month</span><span class="ppc-range" id="ppc-range-lastmonth"></span></div>
+        <div class="payout-preset-chip reset-chip" onclick="resetPayouts()"><span class="ppc-name">&#10005; Reset</span></div>
       </div>
       <!-- Range bar — tap to open picker -->
       <div class="payout-range-bar" onclick="openCalPicker()">
@@ -3068,6 +3073,15 @@ if('serviceWorker' in navigator){
         <div class="settings-group-title">Operators</div>
         <div id="s-operators"></div>
       </div>
+      <!-- Hourly Employees -->
+      <div class="settings-group" id="prof-hourly-section" style="display:none;">
+        <div class="settings-group-title" style="display:flex;align-items:center;justify-content:space-between;">
+          Hourly Employees
+          <span style="font-size:10px;font-weight:400;color:var(--text-faint);text-transform:none;letter-spacing:0;">Opex Account · auto pay period</span>
+        </div>
+        <div id="s-hourly-list"></div>
+        <button class="btn btn-ghost" onclick="addHourlyEmployee()" style="margin-top:8px;font-size:12px;width:100%;">+ Add Hourly Employee</button>
+      </div>
       <!-- Team Members -->
       <div class="settings-group" id="prof-role-section">
         <div class="settings-group-title">Team Members</div>
@@ -3481,6 +3495,8 @@ async function saveProfileAndSettings(){
     SETTINGS.merchRate=parseFloat(document.getElementById('s-merchrate')?.value||SETTINGS.merchRate);
     SETTINGS.dvDelta=parseFloat(document.getElementById('s-dvdelta')?.value||SETTINGS.dvDelta);
     // staffRates saved live via saveStaffRate() oninput — no need to collect here
+    // Collect hourly employees (names/rates updated live via updateHourlyEmployee, just persist)
+    if (!SETTINGS.hourlyEmployees) SETTINGS.hourlyEmployees = [];
     SETTINGS.operators=[0,1,2,3].map(i=>({name:document.getElementById('s-op-'+i)?.value.trim()||'',visible:SETTINGS.operators[i]?.visible!==false,isOwner:SETTINGS.operators[i]?.isOwner===true,aliases:document.getElementById('s-alias-'+i)?.value.trim()||'',color:SETTINGS.operators[i]?.color||null}));
     // opDays are toggled live into SETTINGS.opDays directly -- no read needed here
     const empCode=document.getElementById('s-emp-code')?.value.trim();
@@ -4066,7 +4082,7 @@ function switchTab(name){
   if(hsh){if(name!=='history')hsh.classList.remove('visible');};
   // Scroll content area to top
   var ca=document.querySelector('.content-area');if(ca)ca.scrollTop=0;
-  if(name==='payouts'){renderPayoutSnapshots();}if(name==='payouts'){renderPaymentRegister();}if(name==='history'){renderHistAlloc();renderReconWidget();}
+  if(name==='payouts'){renderPayoutSnapshots();renderPaymentRegister();initPresetChipLabels();}if(name==='history'){renderHistAlloc();renderReconWidget();}
   if(name==='order'){renderOrderTab();}
   if(name==='inv')recalcInvCatTop();
   // Toggle payouts-active on content-area for flex height layout
@@ -5235,6 +5251,95 @@ function getStaffRate(name){
     return r.name.toLowerCase()===name.toLowerCase();
   });
   return r?r.hourlyRate:0;
+}
+
+// ── HOURLY EMPLOYEES ──
+
+function buildHourlyEmployeesUI() {
+  const section = document.getElementById('prof-hourly-section');
+  const list    = document.getElementById('s-hourly-list');
+  if (!section || !list) return;
+  // Show for owners only
+  if (USER_ROLE !== 'owner' && USER_ROLE !== 'admin') { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  if (!SETTINGS.hourlyEmployees) SETTINGS.hourlyEmployees = [];
+  if (!SETTINGS.hourlyEmployees.length) {
+    list.innerHTML = '<div style="font-size:12px;color:var(--text-faint);padding:6px 0;">No hourly employees yet.</div>';
+    return;
+  }
+  list.innerHTML = SETTINGS.hourlyEmployees.map(function(emp, i) {
+    return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border-light);">'
+      + '<div style="flex:1;">'
+      + '<input type="text" data-hi="' + i + '" data-field="name" value="' + escHtml(emp.name||'') + '" placeholder="Employee name" '
+      + 'onchange="updateHourlyEmployee(this)" '
+      + 'style="font-family:DM Sans,sans-serif;font-size:13px;font-weight:600;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 8px;outline:none;background:var(--b0);color:var(--text);width:100%;"/>'
+      + '</div>'
+      + '<div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">'
+      + '<span style="font-size:13px;font-weight:600;color:var(--text-muted);">$</span>'
+      + '<input type="number" min="0" max="999" step="0.25" placeholder="0.00" data-hi="' + i + '" data-field="hourlyRate" value="' + (emp.hourlyRate||'') + '" '
+      + 'onchange="updateHourlyEmployee(this)" '
+      + 'style="width:68px;font-family:DM Sans,sans-serif;font-size:14px;font-weight:600;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 6px;outline:none;text-align:right;background:var(--b0);color:var(--text);"/>'
+      + '<span style="font-size:11px;color:var(--text-faint);">/hr</span>'
+      + '</div>'
+      + '<button onclick="removeHourlyEmployee(' + i + ')" title="Remove" style="background:none;border:1px solid var(--border);border-radius:5px;padding:3px 7px;cursor:pointer;font-size:13px;color:var(--r5);line-height:1;">&#10005;</button>'
+      + '</div>';
+  }).join('');
+}
+
+function addHourlyEmployee() {
+  if (!SETTINGS.hourlyEmployees) SETTINGS.hourlyEmployees = [];
+  SETTINGS.hourlyEmployees.push({ name: '', hourlyRate: 0 });
+  buildHourlyEmployeesUI();
+}
+
+function updateHourlyEmployee(inp) {
+  const i = parseInt(inp.dataset.hi);
+  const field = inp.dataset.field;
+  if (!SETTINGS.hourlyEmployees || !SETTINGS.hourlyEmployees[i]) return;
+  SETTINGS.hourlyEmployees[i][field] = field === 'hourlyRate' ? (parseFloat(inp.value)||0) : inp.value.trim();
+}
+
+function removeHourlyEmployee(i) {
+  if (!SETTINGS.hourlyEmployees) return;
+  SETTINGS.hourlyEmployees.splice(i, 1);
+  buildHourlyEmployeesUI();
+}
+
+function getHourlyEmployees() {
+  return (SETTINGS.hourlyEmployees || []).filter(function(e){ return e.name && e.name.trim(); });
+}
+
+function getHourlyLastPaidDate(name) {
+  // Find the most recent payment register entry for this employee
+  const log = SETTINGS.paymentLog || [];
+  const entries = log.filter(function(e){ return (e.payee||'').toLowerCase() === name.toLowerCase(); });
+  if (!entries.length) return null;
+  return entries.reduce(function(best, e){ return (!best || e.date > best) ? e.date : best; }, null);
+}
+
+function getHourlyAutoPeriod(name) {
+  // Period: day after last paid -> last Sunday (start of current week)
+  const lastPaid = getHourlyLastPaidDate(name);
+  const today = new Date();
+  const dow = today.getDay();
+  const lastSun = new Date(today);
+  lastSun.setDate(today.getDate() - dow); // most recent Sunday
+
+  let fromDate;
+  if (lastPaid) {
+    const lp = new Date(lastPaid + 'T00:00:00');
+    lp.setDate(lp.getDate() + 1); // day after last paid
+    fromDate = lp;
+  } else {
+    // No payment history — default to start of current week
+    fromDate = new Date(lastSun);
+  }
+
+  return {
+    from: fmtDateStr(fromDate),
+    to:   fmtDateStr(lastSun),
+    lastPaid: lastPaid
+  };
 }
 
 // ── STAFF PAYROLL UI ──
@@ -9249,8 +9354,9 @@ function getNextCheckNum() {
 
 function getPayeeList() {
   const ops = (SETTINGS.operators || []).filter(o => o.name && o.visible !== false).map(o => o.name);
+  const hourly = getHourlyEmployees().map(function(e){ return e.name; });
   const logNames = (SETTINGS.paymentLog || []).map(e => e.payee).filter(Boolean);
-  const all = [...new Set([...ops, ...logNames])].sort();
+  const all = [...new Set([...ops, ...hourly, ...logNames])].sort();
   return all;
 }
 
@@ -9437,7 +9543,11 @@ function openPregSheet(id) {
     document.getElementById('preg-f-period-to').value = '';
     document.getElementById('preg-f-method').value = 'check';
     document.getElementById('preg-f-checknum').value = getNextCheckNum();
-    document.getElementById('preg-f-account').value = getPregAccounts()[0];
+    const _defaultAcct = getPregAccounts()[0];
+    document.getElementById('preg-f-account').value = _defaultAcct;
+    // If payee already selected (e.g. from snapshot), auto-switch account
+    const _initPayeeSel = document.getElementById('preg-f-payee');
+    if (_initPayeeSel) onPregPayeeChange(_initPayeeSel);
     document.getElementById('preg-f-notes').value = '';
   }
   onPregMethodChange();
@@ -9494,6 +9604,16 @@ function onPregPayeeChange(sel) {
   } else {
     row.style.display = 'none';
   }
+  // Auto-switch account: hourly employees default to Opex Account
+  const acctSel = document.getElementById('preg-f-account');
+  if (!acctSel) return;
+  const name = sel.value === '__other__' ? '' : sel.value;
+  const isHourly = name && getHourlyEmployees().some(function(e){ return e.name === name; });
+  const accounts = getPregAccounts();
+  const opex = accounts.find(function(a){ return a.toLowerCase().includes('opex'); });
+  const payout = accounts.find(function(a){ return a.toLowerCase().includes('payout'); });
+  if (isHourly && opex) acctSel.value = opex;
+  else if (!isHourly && payout) acctSel.value = payout;
 }
 
 function onPregMethodChange() {
@@ -10343,29 +10463,27 @@ document.addEventListener('keydown', function(e) {
 
 
 // ── PAYOUT PRESET DATE LOGIC ─────────────────────────────────────────────────
-function getMonWeekRange(weeksBack) {
-  // Returns {from, to} for the Mon-Sun week that ended most recently
-  // weeksBack=0 means current/last complete Mon-Sun block
-  // "Last week" = the Mon-Sun week containing or most recently past
+function getSunWeekRange(weeksBack) {
+  // Returns {from, to} for Sun-Sat weeks (Sunday = start of week)
+  // weeksBack=0 = current week (this Sunday through today)
+  // weeksBack=1 = last complete week (previous Sun through Sat)
   const today = new Date();
-  const dow = today.getDay(); // 0=Sun, 1=Mon...
-  // Days since last Monday (if today is Sun=0, days since Mon = 6; Mon=1 -> 0; etc)
-  const daysSinceMon = dow === 0 ? 6 : dow - 1;
-  const thisMon = new Date(today);
-  thisMon.setDate(today.getDate() - daysSinceMon);
-  // "Last week" = this current Mon-Sun span (Mon through today incl. if Sun)
-  const from = new Date(thisMon);
+  const dow = today.getDay(); // 0=Sun, 1=Mon...6=Sat
+  // Find the most recent Sunday (start of current week)
+  const thisSun = new Date(today);
+  thisSun.setDate(today.getDate() - dow);
+  // Shift back by weeksBack full weeks
+  const from = new Date(thisSun);
   from.setDate(from.getDate() - (weeksBack * 7));
   const to = new Date(from);
-  to.setDate(to.getDate() + 6); // Sun
+  to.setDate(to.getDate() + 6); // Saturday
   // Don't go beyond today
   const todayClean = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   if (to > todayClean) to.setTime(todayClean.getTime());
-  return {
-    from: fmtDateStr(from),
-    to:   fmtDateStr(to)
-  };
+  return { from: fmtDateStr(from), to: fmtDateStr(to) };
 }
+// Legacy alias
+function getMonWeekRange(weeksBack) { return getSunWeekRange(weeksBack); }
 
 function fmtDateStr(d) {
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
@@ -10382,12 +10500,15 @@ function setPayoutPreset(preset, btn) {
   if (btn) btn.classList.add('active');
   const today = new Date();
   let from, to;
-  if (preset === 'lastweek') {
-    const r = getMonWeekRange(0);
+  if (preset === 'thisweek') {
+    const r = getSunWeekRange(0);
+    from = r.from; to = r.to;
+  } else if (preset === 'lastweek') {
+    const r = getSunWeekRange(1);
     from = r.from; to = r.to;
   } else if (preset === 'last2weeks') {
-    const r1 = getMonWeekRange(1); // week before
-    const r2 = getMonWeekRange(0); // current week
+    const r1 = getSunWeekRange(2); // two weeks ago Sun
+    const r2 = getSunWeekRange(1); // last complete week Sat
     from = r1.from; to = r2.to;
   } else if (preset === 'lastmonth') {
     const lm = new Date(today.getFullYear(), today.getMonth()-1, 1);
@@ -10399,6 +10520,30 @@ function setPayoutPreset(preset, btn) {
   }
   applyPayoutDates(from, to);
   renderPayouts();
+}
+
+function initPresetChipLabels() {
+  // Populate date range subtitles on all preset chips
+  const today = new Date();
+  const mo = (d) => d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const r = (from, to) => {
+    const f = new Date(from+'T00:00:00'), t = new Date(to+'T00:00:00');
+    return mo(f) + ' – ' + mo(t);
+  };
+  const tw = getSunWeekRange(0);
+  const lw = getSunWeekRange(1);
+  const l2 = getSunWeekRange(2);
+  const l2end = getSunWeekRange(1);
+  const tm_from = fmtDateStr(new Date(today.getFullYear(), today.getMonth(), 1));
+  const tm_to   = localToday();
+  const lm_from = fmtDateStr(new Date(today.getFullYear(), today.getMonth()-1, 1));
+  const lm_to   = fmtDateStr(new Date(today.getFullYear(), today.getMonth(), 0));
+  const el = (id, txt) => { const e = document.getElementById(id); if(e) e.textContent = txt; };
+  el('ppc-range-thisweek',  r(tw.from, tw.to));
+  el('ppc-range-lastweek',  r(lw.from, lw.to));
+  el('ppc-range-last2weeks',r(l2.from, l2end.to));
+  el('ppc-range-thismonth', r(tm_from, tm_to));
+  el('ppc-range-lastmonth', r(lm_from, lm_to));
 }
 
 function applyPayoutDates(from, to) {
@@ -11768,7 +11913,7 @@ function buildSettingsUI(){
   const _bncn=document.getElementById('nav-club-name');
   if(_bncn&&SETTINGS.clubName){_bncn.textContent=SETTINGS.clubName;}
   const c=document.getElementById('s-prod-count');if(c)c.textContent=PRODUCTS.length+' products ->';
-  buildPayAccountsUI();buildSelect('s-taxrate', range(0,4,0.25), SETTINGS.taxRate,  v=>v.toFixed(2)+'%');
+  buildHourlyEmployeesUI();buildPayAccountsUI();buildSelect('s-taxrate', range(0,4,0.25), SETTINGS.taxRate,  v=>v.toFixed(2)+'%');
   buildSelect('s-ohrate',  range(15,40,1),  SETTINGS.ohRate,   v=>v+'%');
   buildSelect('s-otherrate',range(30,60,2), SETTINGS.otherRate,v=>v+'%');
   buildSelect('s-merchrate',range(5,100,5), SETTINGS.merchRate,v=>v+'%');
