@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-09 03:00:00 -->
+<!-- CACHE BUST: 2026-04-09 06:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -3021,22 +3021,14 @@ if('serviceWorker' in navigator){
         <div class="settings-row"><label>Merchandise Rate</label><select id="s-merchrate"></select></div>
         <div class="settings-row"><label>DV △ Rate</label><select id="s-dvdelta"></select></div>
       </div>
-      <!-- ── PAY SECTION: Operators → Hourly Employees → Pay Accounts ── -->
+      <!-- ── UNIFIED TEAM & PAY SECTION ── -->
       <div class="settings-group">
         <div class="settings-group-title" style="display:flex;align-items:center;justify-content:space-between;">
-          Operators
-          <span style="font-size:10px;font-weight:400;color:var(--text-faint);text-transform:none;letter-spacing:0;">Name · Aliases · Color · Role · Status</span>
+          Club Team
+          <span style="font-size:10px;font-weight:400;color:var(--text-faint);text-transform:none;letter-spacing:0;">Name · Alias · Color · Role · Rate</span>
         </div>
-        <div id="s-operators"></div>
-      </div>
-      <!-- Hourly Employees -->
-      <div class="settings-group" id="prof-hourly-section" style="display:none;">
-        <div class="settings-group-title" style="display:flex;align-items:center;justify-content:space-between;">
-          Hourly Employees
-          <span style="font-size:10px;font-weight:400;color:var(--text-faint);text-transform:none;letter-spacing:0;">Opex Account · auto pay period</span>
-        </div>
-        <div id="s-hourly-list"></div>
-        <button class="btn btn-ghost" onclick="addHourlyEmployee()" style="margin-top:8px;font-size:12px;width:100%;">+ Add Hourly Employee</button>
+        <div id="s-team-members"></div>
+        <button class="btn btn-ghost" onclick="addTeamMember()" style="margin-top:8px;font-size:12px;width:100%;">+ Add Team Member</button>
       </div>
       <!-- Pay Accounts -->
       <div class="settings-group">
@@ -3160,6 +3152,7 @@ let invOos={}; // {sku: {note:'', expectedDate:''}} -- out of stock map
 const DAY_NAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 let SETTINGS={clubName:'',taxRate:1.25,ohRate:32,otherRate:50,merchRate:100,dvDelta:3,gcal:{clientId:'',calendarId:'',token:'',tokenExpiry:0},
   opDays:[false,true,true,true,true,true,true],
+  teamMembers:null,
   operators:[{name:'Operator 1',visible:true,aliases:''},{name:'Operator 2',visible:true,aliases:''},{name:'Operator 3',visible:false,aliases:''},{name:'Operator 4',visible:false,aliases:''}]};
 
 // -- CANONICAL PRODUCT LIST -- matches Google Sheet exactly
@@ -3473,9 +3466,10 @@ async function saveProfileAndSettings(){
     SETTINGS.merchRate=parseFloat(document.getElementById('s-merchrate')?.value||SETTINGS.merchRate);
     SETTINGS.dvDelta=parseFloat(document.getElementById('s-dvdelta')?.value||SETTINGS.dvDelta);
     // staffRates saved live via saveStaffRate() oninput — no need to collect here
-    // Collect hourly employees (names/rates updated live via updateHourlyEmployee, just persist)
-    if (!SETTINGS.hourlyEmployees) SETTINGS.hourlyEmployees = [];
-    SETTINGS.operators=[0,1,2,3].map(i=>({name:document.getElementById('s-op-'+i)?.value.trim()||'',visible:SETTINGS.operators[i]?.visible!==false,isOwner:SETTINGS.operators[i]?.isOwner===true,aliases:document.getElementById('s-alias-'+i)?.value.trim()||'',color:SETTINGS.operators[i]?.color||null}));
+    // Collect teamMembers live from DOM (names/rates/roles updated live, just collect and persist)
+    SETTINGS.teamMembers = collectTeamMembersFromDOM();
+    // Keep legacy operators array in sync for any server-side or admin reads
+    SETTINGS.operators = getOperatorMembers().map(function(m){ return {name:m.name,visible:m.visible!==false,isOwner:m.role==='Owner',aliases:m.aliases||'',color:m.color||null}; });
     // opDays are toggled live into SETTINGS.opDays directly -- no read needed here
     const empCode=document.getElementById('s-emp-code')?.value.trim();
     if(empCode)SETTINGS.employeeInviteCode=empCode;
@@ -5284,7 +5278,8 @@ function removeHourlyEmployee(i) {
 }
 
 function getHourlyEmployees() {
-  return (SETTINGS.hourlyEmployees || []).filter(function(e){ return e.name && e.name.trim(); });
+  // Legacy compatibility — delegates to unified team layer
+  return getHourlyMembers();
 }
 
 function getHourlyLastPaidDate(name) {
@@ -5409,7 +5404,7 @@ function spLoadShifts(){
     if(err){showToast('Calendar error: '+err,'error');if(results)results.innerHTML='';return;}
     if(!events||!events.length){if(results)results.innerHTML='<div style="font-size:12px;color:var(--text-faint);padding:12px 0;">No events found in this range.</div>';return;}
     // Get employee names from staffRates (exclude 4-slot operators)
-    const opNames=(SETTINGS.operators||[]).filter(function(o){return o.name&&o.visible!==false;}).map(function(o){return o.name.toLowerCase();});
+    const opNames=getOperatorMembers().map(function(m){return m.name.toLowerCase();});
     // Group by employee, sum hours
     var byPerson={};
     var unmatched=[];
@@ -5481,9 +5476,7 @@ function spRenderResults(byPerson,unmatched,from,to){
     html+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--a6);padding:10px 0 6px;display:flex;align-items:center;gap:5px;">'
       +'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
       +'Unmatched events</div>';
-    var staffNames=(SETTINGS.staffRates||[]).map(function(r){return r.name;});
-    var allOps=(SETTINGS.operators||[]).filter(function(o){return o.name;}).map(function(o){return o.name;});
-    var allNames=staffNames.concat(allOps.filter(function(n){return !staffNames.includes(n);}));
+    var allNames=getTeamMembers().filter(function(m){return m.name;}).map(function(m){return m.name;});
     unmatched.forEach(function(u,i){
       var dateStr=u.date?new Date(u.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})+' · ':'';
       var opts='<option value="">-- skip --</option>'+allNames.map(function(n){return '<option value="'+escHtml(n)+'">'+escHtml(n)+'</option>';}).join('');
@@ -5684,7 +5677,7 @@ function gcalFetchEvents(from,to,cb){
 // ── MATCH EVENT TO OPERATOR ──
 function gcalMatchOp(event){
   var text=((event.summary||'')+' '+(event.description||'')).toLowerCase();
-  var ops=SETTINGS.operators.filter(function(o){return o.name&&o.visible!==false;});
+  var ops=getOperatorMembers();
   for(var i=0;i<ops.length;i++){
     var op=ops[i];
     if(text.includes(op.name.toLowerCase()))return op.name;
@@ -5792,7 +5785,7 @@ function gcalShowShiftsModal(matched,unmatched,mode){
   if(matched.length){
     html+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:8px;">Matched shifts</div>';
     matched.forEach(function(s,i){
-      var op=SETTINGS.operators.find(function(o){return o.name===s.op;})||{};
+      var op=getTeamMembers().find(function(m){return m.name===s.op;})||{};
       var color=op.color||'var(--b5)';
       var initials=s.op.trim().split(/\s+/).map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
       var dateStr=s.date?new Date(s.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})+' · ':'';
@@ -5813,7 +5806,7 @@ function gcalShowShiftsModal(matched,unmatched,mode){
       +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
       +'Unmatched events · assign an operator</div>';
     unmatched.forEach(function(u,i){
-      var ops=SETTINGS.operators.filter(function(o){return o.name&&o.visible!==false;});
+      var ops=getOperatorMembers();
       var opOpts='<option value="">-- skip --</option>'+ops.map(function(o){return '<option value="'+o.name+'">'+o.name+'</option>';}).join('');
       var dateStr=u.date?new Date(u.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})+' · ':'';
       var hrs=gcalEventHours(u.ev);
@@ -5879,7 +5872,7 @@ function gcalRenderPayoutShifts(shifts){
   if(!payBody)return;
   var rows=Object.entries(byOp).map(function(entry){
     var op=entry[0],data=entry[1];
-    var opObj=SETTINGS.operators.find(function(o){return o.name===op;})||{};
+    var opObj=getTeamMembers().find(function(m){return m.name===op;})||{};
     var color=opObj.color||'var(--b5)';
     var initials=op.trim().split(/\s+/).map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
     return '<div class="payout-op-row" style="margin-bottom:4px;background:var(--b0);">'
@@ -6330,8 +6323,8 @@ document.addEventListener('DOMContentLoaded',function(){
 
 // -- FORMULAS with conditional display
 function getOwnerOpName(){
-  const ownerOp=SETTINGS.operators.find(o=>o.isOwner===true&&o.name);
-  return ownerOp?ownerOp.name:null;
+  const m = getOwnerMember();
+  return m ? m.name : null;
 }
 
 function calcAll(){
@@ -6927,37 +6920,186 @@ function renderDashboardWidgets(){
 }
 
 const _OP_PALETTE = ['#e53935','#1a73e8','#9c27b0','#fb8c00','#00897b','#e91e8c','#3f51b5','#43a047','#f9a825','#00acc1','#6d4c41','#546e7a'];
+const _swatchColors = ['#e53935','#e91e8c','#9c27b0','#3f51b5','#1a73e8','#00acc1','#00897b','#43a047','#f9a825','#fb8c00','#6d4c41','#546e7a'];
 
 function getOpColor(name) {
   if (!name) return _OP_PALETTE[0];
-  const ops = SETTINGS.operators || [];
-  const idx = ops.findIndex(o => o.name === name || (o.aliases||'').split(',').map(a=>a.trim()).includes(name));
-  if(idx>=0&&ops[idx].color)return ops[idx].color;
+  const members = getTeamMembers();
+  const idx = members.findIndex(function(m){ return m.name === name || (m.aliases||'').split(',').map(function(a){return a.trim();}).includes(name); });
+  if (idx >= 0 && members[idx].color) return members[idx].color;
   return _OP_PALETTE[idx >= 0 ? idx % _OP_PALETTE.length : 0];
 }
 
-function toggleOpColorPop(i){
-  const pop=document.getElementById('s-op-color-pop-'+i);
-  if(!pop)return;
-  const wasOpen=pop.classList.contains('open');
-  // Close all pops first
-  document.querySelectorAll('.op-color-pop').forEach(p=>p.classList.remove('open'));
-  if(!wasOpen)pop.classList.add('open');
+// ── TEAM MEMBERS — unified data layer ────────────────────────────────────────
+// Migration: if teamMembers not yet set, build from legacy operators + hourlyEmployees
+function getTeamMembers() {
+  if (SETTINGS.teamMembers && SETTINGS.teamMembers.length) return SETTINGS.teamMembers;
+  // Build from legacy
+  var result = [];
+  (SETTINGS.operators || []).forEach(function(op) {
+    if (!op.name) return;
+    result.push({
+      name: op.name,
+      aliases: op.aliases || '',
+      color: op.color || null,
+      role: op.isOwner ? 'Owner' : 'Operator',
+      hourlyRate: 0,
+      visible: op.visible !== false
+    });
+  });
+  (SETTINGS.hourlyEmployees || []).forEach(function(emp) {
+    if (!emp.name) return;
+    result.push({
+      name: emp.name,
+      aliases: '',
+      color: null,
+      role: 'Hourly',
+      hourlyRate: emp.hourlyRate || 0,
+      visible: true
+    });
+  });
+  return result;
 }
 
-function pickOpColor(i,color){
-  SETTINGS.operators[i].color=color;
-  // Update trigger swatch
-  const trigger=document.getElementById('s-op-color-trigger-'+i);
-  if(trigger)trigger.style.background=color;
-  // Update selected ring
-  const pop=document.getElementById('s-op-color-pop-'+i);
-  if(pop){
-    pop.querySelectorAll('.op-color-swatch').forEach(s=>{
-      s.classList.toggle('op-color-selected',s.style.background===color||s.style.background===hexToRgbStr(color));
+function getOperatorMembers() {
+  return getTeamMembers().filter(function(m){ return (m.role==='Owner'||m.role==='Operator') && m.name && m.visible!==false; });
+}
+
+function getHourlyMembers() {
+  return getTeamMembers().filter(function(m){ return m.role==='Hourly' && m.name && m.name.trim(); });
+}
+
+function getOwnerMember() {
+  return getTeamMembers().find(function(m){ return m.role==='Owner' && m.name; }) || null;
+}
+
+// ── TEAM UI ──────────────────────────────────────────────────────────────────
+function buildTeamMembersUI() {
+  const el = document.getElementById('s-team-members');
+  if (!el) return;
+  const members = getTeamMembers();
+  if (!members.length) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--text-faint);padding:6px 0;">No team members yet.</div>';
+    return;
+  }
+  el.innerHTML = members.map(function(m, i) {
+    const color = m.color || _OP_PALETTE[i % _OP_PALETTE.length];
+    const isHourly = m.role === 'Hourly';
+    const isActive = m.visible !== false;
+    const rateDisplay = isHourly ? 'flex' : 'none';
+    const activeBorder = isActive ? 'var(--g5)' : 'var(--border)';
+    const activeBg = isActive ? 'var(--g0)' : 'var(--b0)';
+    const activeColor = isActive ? 'var(--g6)' : 'var(--text-faint)';
+    const activeLabel = isActive ? 'Active' : 'Inactive';
+    const swatchesHtml = _swatchColors.map(function(c){
+      return '<div class="op-color-swatch' + (c===color?' op-color-selected':'') + '" style="background:'+c+';" onclick="pickTeamMemberColor('+i+',\''+c+'\')"></div>';
+    }).join('');
+    return '<div class="tm-row" data-tmi="'+i+'" style="display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:1px solid var(--border-light);flex-wrap:nowrap;">'
+      // color swatch trigger
+      + '<div style="position:relative;flex-shrink:0;">'
+      +   '<div id="tm-color-trigger-'+i+'" class="op-color-trigger" style="background:'+color+';width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid var(--border);" onclick="toggleTmColorPop('+i+')" title="Pick color"></div>'
+      +   '<div id="tm-color-pop-'+i+'" class="op-color-pop" style="min-width:160px;">'
+      +     '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:8px;">Color</div>'
+      +     '<div class="op-color-grid">'+swatchesHtml+'</div>'
+      +   '</div>'
+      + '</div>'
+      // name
+      + '<input type="text" data-tmi="'+i+'" data-tmf="name" value="'+escHtml(m.name||'')+'" placeholder="Name" onchange="updateTeamMember(this)" style="flex:1.4;min-width:0;font-family:DM Sans,sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 7px;outline:none;background:var(--b0);color:var(--text);"/>'
+      // alias
+      + '<input type="text" data-tmi="'+i+'" data-tmf="aliases" value="'+escHtml(m.aliases||'')+'" placeholder="Alias" onchange="updateTeamMember(this)" style="width:58px;flex-shrink:0;font-family:DM Sans,sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 5px;outline:none;background:var(--b0);color:var(--text);text-align:center;" title="Aliases e.g. MN, comma-separated"/>'
+      // role chooser
+      + '<select data-tmi="'+i+'" onchange="changeTeamMemberRole(this)" style="flex-shrink:0;font-family:DM Sans,sans-serif;font-size:12px;padding:5px 5px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);color:var(--text);outline:none;cursor:pointer;">'
+      +   '<option'+(m.role==='Owner'?' selected':'')+'>Owner</option>'
+      +   '<option'+(m.role==='Operator'?' selected':'')+'>Operator</option>'
+      +   '<option'+(m.role==='Hourly'?' selected':'')+'>Hourly</option>'
+      + '</select>'
+      // hourly rate — only shown when role=Hourly
+      + '<div class="tm-rate-wrap" style="display:'+rateDisplay+';align-items:center;gap:3px;flex-shrink:0;">'
+      +   '<span style="font-size:12px;color:var(--text-muted);">$</span>'
+      +   '<input type="number" min="0" max="999" step="0.50" placeholder="0.00" data-tmi="'+i+'" data-tmf="hourlyRate" value="'+(m.hourlyRate||'')+'" onchange="updateTeamMember(this)" style="width:56px;font-family:DM Sans,sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 4px;outline:none;text-align:right;background:var(--b0);color:var(--text);" />'
+      +   '<span style="font-size:11px;color:var(--text-faint);">/hr</span>'
+      + '</div>'
+      // active/inactive toggle — not shown for hourly
+      + '<button type="button" onclick="toggleTeamMemberActive('+i+')" data-tmi="'+i+'" style="display:'+(isHourly?'none':'inline-flex')+';flex-shrink:0;font-size:11px;font-weight:700;padding:4px 7px;border-radius:var(--radius-sm);border:1px solid '+activeBorder+';background:'+activeBg+';color:'+activeColor+';cursor:pointer;white-space:nowrap;">'+activeLabel+'</button>'
+      // remove
+      + '<button type="button" onclick="removeTeamMember('+i+')" style="flex-shrink:0;background:none;border:1px solid var(--border);border-radius:5px;padding:3px 7px;cursor:pointer;font-size:13px;color:var(--r5);line-height:1;">&#10005;</button>'
+      + '</div>';
+  }).join('');
+}
+
+function addTeamMember() {
+  if (!SETTINGS.teamMembers) SETTINGS.teamMembers = getTeamMembers();
+  SETTINGS.teamMembers.push({ name: '', aliases: '', color: null, role: 'Operator', hourlyRate: 0, visible: true });
+  buildTeamMembersUI();
+}
+
+function removeTeamMember(i) {
+  if (!SETTINGS.teamMembers) SETTINGS.teamMembers = getTeamMembers();
+  SETTINGS.teamMembers.splice(i, 1);
+  buildTeamMembersUI();
+  populateOperatorDropdowns();
+}
+
+function updateTeamMember(inp) {
+  if (!SETTINGS.teamMembers) SETTINGS.teamMembers = getTeamMembers();
+  const i = parseInt(inp.dataset.tmi);
+  const field = inp.dataset.tmf;
+  if (!SETTINGS.teamMembers[i]) return;
+  SETTINGS.teamMembers[i][field] = field === 'hourlyRate' ? (parseFloat(inp.value) || 0) : inp.value.trim();
+  if (field === 'name') populateOperatorDropdowns();
+}
+
+function changeTeamMemberRole(sel) {
+  if (!SETTINGS.teamMembers) SETTINGS.teamMembers = getTeamMembers();
+  const i = parseInt(sel.dataset.tmi);
+  if (!SETTINGS.teamMembers[i]) return;
+  SETTINGS.teamMembers[i].role = sel.value;
+  // Re-render this row only so open color pops do not reset
+  buildTeamMembersUI();
+  populateOperatorDropdowns();
+}
+
+function toggleTeamMemberActive(i) {
+  if (!SETTINGS.teamMembers) SETTINGS.teamMembers = getTeamMembers();
+  if (!SETTINGS.teamMembers[i]) return;
+  SETTINGS.teamMembers[i].visible = !(SETTINGS.teamMembers[i].visible !== false);
+  buildTeamMembersUI();
+  populateOperatorDropdowns();
+}
+
+function toggleTmColorPop(i) {
+  const pop = document.getElementById('tm-color-pop-' + i);
+  if (!pop) return;
+  const wasOpen = pop.classList.contains('open');
+  document.querySelectorAll('.op-color-pop').forEach(function(p){ p.classList.remove('open'); });
+  if (!wasOpen) pop.classList.add('open');
+}
+
+function pickTeamMemberColor(i, color) {
+  if (!SETTINGS.teamMembers) SETTINGS.teamMembers = getTeamMembers();
+  if (!SETTINGS.teamMembers[i]) return;
+  SETTINGS.teamMembers[i].color = color;
+  const trigger = document.getElementById('tm-color-trigger-' + i);
+  if (trigger) trigger.style.background = color;
+  const pop = document.getElementById('tm-color-pop-' + i);
+  if (pop) {
+    pop.querySelectorAll('.op-color-swatch').forEach(function(s){
+      s.classList.toggle('op-color-selected', s.style.background === color || s.style.background === hexToRgbStr(color));
     });
     pop.classList.remove('open');
   }
+}
+
+function collectTeamMembersFromDOM() {
+  // Team member data is updated live via updateTeamMember/changeTeamMemberRole/etc.
+  // Just return the current in-memory array
+  if (!SETTINGS.teamMembers) SETTINGS.teamMembers = getTeamMembers();
+  return SETTINGS.teamMembers;
+}
+
+function pickOpColor(i,color){
+  // Legacy: still called from old swatch HTML if any — redirect to team member
+  pickTeamMemberColor(i,color);
 }
 
 function hexToRgbStr(hex){
@@ -8230,18 +8372,17 @@ function saveInvSnapshot(){
   if(IS_ADMIN_VIEW){showToast('Admin view -- cannot save','error');return;}
   _snapSaveInitials='';
   _snapSaveColor='';
-  // Build operator chips from SETTINGS.operators
+  // Build team member chips (operators/owners only) for snapshot save
   const chips=document.getElementById('snap-save-op-chips');
   if(chips){
     chips.innerHTML='';
-    (SETTINGS.operators||[]).forEach(function(op,i){
-      if(!op.name||op.visible===false)return;
-      const initials=op.name.trim().split(/\s+/).map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
-      const color=op.color||_OP_PALETTE[i%_OP_PALETTE.length];
+    getOperatorMembers().forEach(function(m,i){
+      const initials=m.name.trim().split(/\s+/).map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
+      const color=m.color||_OP_PALETTE[i%_OP_PALETTE.length];
       const chip=document.createElement('div');
       chip.style.cssText='display:flex;align-items:center;gap:7px;padding:6px 12px;border-radius:20px;border:1.5px solid var(--border-light);background:var(--bg);cursor:pointer;transition:all 0.12s;';
       chip.innerHTML='<div style="width:26px;height:26px;border-radius:50%;background:'+color+';display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;">'+initials+'</div>'
-        +'<span style="font-size:12px;font-weight:600;color:var(--text);">'+op.name+'</span>';
+        +'<span style="font-size:12px;font-weight:600;color:var(--text);">'+m.name+'</span>';
       chip.dataset.initials=initials;
       chip.dataset.color=color;
       chip.onclick=function(){
@@ -8500,7 +8641,7 @@ function renderOrderBody(){
   const oosNoteEl=document.getElementById('order-oos-note');
   if(oosNoteEl)oosNoteEl.textContent=oosItems.length?`${oosItems.length} item${oosItems.length>1?'s':''} OOS \u2212${fmtVP(oosDv)} DV`:'DV you can actually order today';
   // Operator list from settings
-  const ops=(SETTINGS.operators||[]).filter(o=>o.visible!==false).map(o=>o.name);
+  const ops=getOperatorMembers().map(function(m){ return m.name; });
   // Per-operator DV totals
   const opTotals={};
   const opCounts={};
@@ -8581,8 +8722,7 @@ function renderOrderBody(){
 
 function orderAssignCycle(sku,btn){
   if(!_orderPlanActive)return;
-  const ops=(SETTINGS.operators||[]).filter(o=>o.visible!==false).map(o=>o.name);
-  const current=_orderPlanActive.assignments[sku]||'';
+  const ops=getOperatorMembers().map(function(m){ return m.name; });
   const idx=ops.indexOf(current);
   const next=ops[(idx+1)%ops.length];
   // If we've cycled back to first op after being on last op, go to unassigned first
@@ -8645,8 +8785,7 @@ function renderOrderSummaryCards(){
   if(!_orderPlanActive)return;
   const needItems=[];
   PRODUCTS.forEach(p=>{const haveRaw=invHave[p[2]];const haveEntered=haveRaw!=null;const have=haveRaw||0;const need=Math.max(0,(p[4]||0)-have);if(haveEntered&&need>=1)needItems.push({sku:p[2],vp:p[3],need});});
-  const ops=(SETTINGS.operators||[]).filter(o=>o.visible!==false).map(o=>o.name);
-  const opTotals={};const opCounts={};
+  const ops=getOperatorMembers().map(function(m){ return m.name; });
   ops.forEach(o=>{opTotals[o]=0;opCounts[o]=0;});
   needItems.forEach(p=>{
     const assigned=_orderPlanActive.assignments[p.sku];
@@ -8827,7 +8966,7 @@ function renderPayouts(){
         }
         var gcalHtml = '';
         if(gcalShiftCount>0){
-          var op=SETTINGS.operators.find(function(x){return x.name===o;})||{};
+          var op=getTeamMembers().find(function(x){return x.name===o;})||{};
           gcalHtml='<div style="font-size:10px;color:var(--g5);margin-top:1px;display:flex;align-items:center;gap:3px;">'
             +'<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'
             +'Calendar: '+gcalShiftCount+' shift'+(gcalShiftCount!==1?'s':'')+' confirmed</div>';
@@ -8872,7 +9011,7 @@ function renderHourlyPayrollInline() {
   if (!el) return;
   const from = document.getElementById('payout-from')?.value;
   const to   = document.getElementById('payout-to')?.value;
-  const employees = getHourlyEmployees();
+  const employees = getHourlyMembers();
   if (!from || !to || !employees.length) { el.innerHTML = ''; return; }
 
   const connected = !!(SETTINGS.gcal && SETTINGS.gcal.calendarId);
@@ -8899,12 +9038,8 @@ function renderHourlyPayrollInline() {
       return;
     }
 
-    // Build lookup of employee names (lowercase) to hourlyRate
-    const empMap = {};
-    employees.forEach(function(e) { empMap[e.name.toLowerCase()] = e; });
-
-    // Sum hours per employee from calendar events
-    var byEmp = {}; // { empName: { totalHrs, shifts[] } }
+    // Sum hours per employee — match by name or aliases
+    var byEmp = {};
     (events || []).forEach(function(ev) {
       var hrs = gcalEventHours(ev);
       var date = (ev.start.dateTime || ev.start.date || '').slice(0, 10);
@@ -8913,13 +9048,20 @@ function renderHourlyPayrollInline() {
         var s = new Date(ev.start.dateTime), en = new Date(ev.end.dateTime);
         timeStr = s.toLocaleTimeString('en-US', {hour:'numeric',minute:'2-digit'}) + ' - ' + en.toLocaleTimeString('en-US', {hour:'numeric',minute:'2-digit'});
       }
-      // Try to match calendar event title to a known hourly employee by name
       var title = (ev.summary || '').toLowerCase();
+      var desc  = (ev.description || '').toLowerCase();
+      var fullText = title + ' ' + desc;
       var matched = null;
       employees.forEach(function(emp) {
-        var parts = emp.name.toLowerCase().split(/\s+/);
-        var anyPart = parts.some(function(p) { return p.length > 1 && title.includes(p); });
-        if (anyPart) matched = emp.name;
+        if (matched) return;
+        // Check full name
+        if (fullText.includes(emp.name.toLowerCase())) { matched = emp.name; return; }
+        // Check name parts (first name, last name)
+        var parts = emp.name.toLowerCase().split(/\s+/).filter(function(p){ return p.length > 1; });
+        if (parts.some(function(p){ return fullText.includes(p); })) { matched = emp.name; return; }
+        // Check aliases
+        var aliases = (emp.aliases || '').split(',').map(function(a){ return a.trim().toLowerCase(); }).filter(Boolean);
+        if (aliases.some(function(a){ return fullText.includes(a); })) { matched = emp.name; }
       });
       if (matched) {
         if (!byEmp[matched]) byEmp[matched] = { totalHrs: 0, shifts: [] };
@@ -8933,24 +9075,29 @@ function renderHourlyPayrollInline() {
     var grandTotal = 0;
     var rowsHtml = '';
 
-    employees.forEach(function(emp) {
+    employees.forEach(function(emp, i) {
       var data = byEmp[emp.name] || { totalHrs: 0, shifts: [] };
       var rate = emp.hourlyRate || 0;
       var pay  = data.totalHrs * rate;
       grandTotal += pay;
+      var color = emp.color || _OP_PALETTE[i % _OP_PALETTE.length];
       var initials = emp.name.trim().split(/\s+/).map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
       var lastPaid = getHourlyLastPaidDate(emp.name);
       var lastPaidStr = lastPaid ? 'Last paid ' + new Date(lastPaid+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) : 'No prior payments';
       rowsHtml += '<div class="payout-op-row" style="background:var(--b1);margin-bottom:4px;flex-direction:column;align-items:stretch;">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;">'
         + '<div style="display:flex;align-items:center;gap:8px;">'
-        + '<div style="width:28px;height:28px;border-radius:50%;background:var(--b5);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;">' + initials + '</div>'
+        + '<div style="width:28px;height:28px;border-radius:50%;background:'+color+';display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;">' + initials + '</div>'
         + '<div>'
         + '<div class="payout-op-name" style="font-weight:700;">' + escHtml(emp.name) + '</div>'
         + '<div style="font-size:10px;color:var(--text-faint);">' + data.totalHrs + ' hrs &times; $' + rate.toFixed(2) + '/hr &nbsp;&middot;&nbsp; ' + lastPaidStr + '</div>'
         + '</div>'
         + '</div>'
-        + '<div class="payout-op-amt" style="font-size:15px;">' + (data.totalHrs > 0 ? '$' + pay.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '<span style="color:var(--text-faint);font-size:12px;">No shifts found</span>') + '</div>'
+        + '<div class="payout-op-amt" style="font-size:15px;">'
+        + (data.totalHrs > 0
+            ? '$' + pay.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})
+            : '<span style="color:var(--text-faint);font-size:12px;">No shifts found</span>')
+        + '</div>'
         + '</div>'
         + '</div>';
     });
@@ -9013,7 +9160,7 @@ function openPayrollApproveModal(){
   var html  = '';
   _payrollPending.forEach(function(p,i){
     total += p.amount;
-    const op = (SETTINGS.operators||[]).find(function(o){return o.name===p.payee;})||{};
+    const op = getTeamMembers().find(function(m){return m.name===p.payee;})||{};
     const color = op.color||'var(--b5)';
     const initials = p.payee.trim().split(/\s+/).map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
     html += '<div style="display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--border-light);">'
@@ -9488,9 +9635,9 @@ function getNextCheckNum() {
 }
 
 function getPayeeList() {
-  const ops = (SETTINGS.operators || []).filter(o => o.name && o.visible !== false).map(o => o.name);
-  const hourly = getHourlyEmployees().map(function(e){ return e.name; });
-  const logNames = (SETTINGS.paymentLog || []).map(e => e.payee).filter(Boolean);
+  const ops = getOperatorMembers().map(function(m){ return m.name; });
+  const hourly = getHourlyMembers().map(function(m){ return m.name; });
+  const logNames = (SETTINGS.paymentLog || []).map(function(e){ return e.payee; }).filter(Boolean);
   const all = [...new Set([...ops, ...hourly, ...logNames])].sort();
   return all;
 }
@@ -12012,7 +12159,7 @@ function resetDayFields() {
   showToast('Fields cleared', 'success');
 }
 
-function resolveAlias(n){for(const op of SETTINGS.operators){if(!op.name)continue;const a=(op.aliases||'').split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);if(op.name.toLowerCase()===n.toLowerCase())return op.name;if(a.includes(n.toLowerCase()))return op.name;}return n;}
+function resolveAlias(n){for(const m of getTeamMembers()){if(!m.name)continue;const a=(m.aliases||'').split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);if(m.name.toLowerCase()===n.toLowerCase())return m.name;if(a.includes(n.toLowerCase()))return m.name;}return n;}
 
 function buildPayAccountsUI() {
   const el = document.getElementById('s-pay-accounts');
@@ -12057,7 +12204,7 @@ function buildSettingsUI(){
   const _gcalSec = document.getElementById('prof-gcal-section');
   if(_gcalSec) _gcalSec.style.display = (USER_ROLE==='owner'||USER_ROLE==='admin') ? 'block' : 'none';
   gcalUpdateUI();
-  buildHourlyEmployeesUI();buildPayAccountsUI();buildSelect('s-taxrate', range(0,4,0.25), SETTINGS.taxRate,  v=>v.toFixed(2)+'%');
+  buildTeamMembersUI();buildPayAccountsUI();buildSelect('s-taxrate', range(0,4,0.25), SETTINGS.taxRate,  v=>v.toFixed(2)+'%');
   buildSelect('s-ohrate',  range(15,40,1),  SETTINGS.ohRate,   v=>v+'%');
   buildSelect('s-otherrate',range(30,60,2), SETTINGS.otherRate,v=>v+'%');
   buildSelect('s-merchrate',range(5,100,5), SETTINGS.merchRate,v=>v+'%');
@@ -12065,28 +12212,6 @@ function buildSettingsUI(){
   // Pre-fill club name from location name if not set
   const _cnEl=document.getElementById('s-clubname');
   if(_cnEl) _cnEl.value=SETTINGS.clubName||'';
-
-  const _swatchColors=['#e53935','#e91e8c','#9c27b0','#3f51b5','#1a73e8','#00acc1','#00897b','#43a047','#f9a825','#fb8c00','#6d4c41','#546e7a'];
-  document.getElementById('s-operators').innerHTML=SETTINGS.operators.map((op,i)=>{
-    const isActive=op.visible!==false;
-    const isOwner=op.isOwner===true;
-    const opColor=op.color||_OP_PALETTE[i%_OP_PALETTE.length];
-    const swatchesHtml=_swatchColors.map(c=>`<div class="op-color-swatch${c===opColor?' op-color-selected':''}" style="background:${c};" onclick="pickOpColor(${i},'${c}')"></div>`).join('');
-    return`<div class="settings-row" style="gap:8px;align-items:center;flex-wrap:wrap;">
-      <label style="min-width:80px;color:${isActive?'var(--text)':'var(--text-faint)'};">Op ${i+1}</label>
-      <input type="text" id="s-op-${i}" value="${op.name||''}" placeholder="Name" style="flex:1;min-width:80px;opacity:${isActive?1:0.45};"/>
-      <input type="text" id="s-alias-${i}" value="${op.aliases||''}" placeholder="Aliases e.g. MN" style="flex:1;min-width:70px;opacity:${isActive?1:0.45};"/>
-      <div style="position:relative;flex-shrink:0;">
-        <div id="s-op-color-trigger-${i}" class="op-color-trigger" style="background:${opColor};" onclick="toggleOpColorPop(${i})" title="Pick color"></div>
-        <div id="s-op-color-pop-${i}" class="op-color-pop">
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:8px;">Pick a color</div>
-          <div class="op-color-grid">${swatchesHtml}</div>
-        </div>
-      </div>
-      <button type="button" id="s-op-owner-${i}" onclick="toggleOperatorOwner(${i})" title="Mark as club owner" style="flex-shrink:0;font-size:11px;font-weight:700;padding:4px 9px;border-radius:var(--radius-sm);border:1px solid ${isOwner?'var(--b6)':'var(--border)'};background:${isOwner?'var(--b1)':'var(--b0)'};color:${isOwner?'var(--b7)':'var(--text-faint)'};cursor:pointer;white-space:nowrap;">${isOwner?'Owner':'Operator'}</button>
-      <button type="button" id="s-op-active-${i}" onclick="toggleOperatorActive(${i})" style="flex-shrink:0;font-size:11px;font-weight:700;padding:4px 9px;border-radius:var(--radius-sm);border:1px solid ${isActive?'var(--g5)':'var(--border)'};background:${isActive?'var(--g0)':'var(--b0)'};color:${isActive?'var(--g6)':'var(--text-faint)'};cursor:pointer;white-space:nowrap;">${isActive?'Active':'Inactive'}</button>
-    </div>`;
-  }).join('');
   // Employee invite code
   const empEl=document.getElementById('s-emp-code');
   const empDisp=document.getElementById('s-emp-code-text');
@@ -12105,36 +12230,9 @@ function buildSettingsUI(){
   if(empSection)empSection.style.display=USER_ROLE==='employee'?'none':'block';
 }
 
-function toggleOperatorOwner(i){
-  // Only one operator can be owner at a time
-  SETTINGS.operators.forEach((op,j)=>{ op.isOwner = (j===i) ? !op.isOwner : false; });
-  // Rebuild just the owner buttons
-  SETTINGS.operators.forEach((op,j)=>{
-    const btn=document.getElementById('s-op-owner-'+j);
-    if(!btn)return;
-    const isOwner=op.isOwner===true;
-    btn.textContent=isOwner?'Owner':'Operator';
-    btn.style.borderColor=isOwner?'var(--b6)':'var(--border)';
-    btn.style.background=isOwner?'var(--b1)':'var(--b0)';
-    btn.style.color=isOwner?'var(--b7)':'var(--text-faint)';
-  });
-  // Refresh enter tab so reinvest checkbox appears/disappears
-  recalc();
-}
+function toggleOperatorOwner(i){ /* superseded by changeTeamMemberRole */ }
+function toggleOperatorActive(i){ /* superseded by toggleTeamMemberActive */ }
 
-function toggleOperatorActive(i){
-  SETTINGS.operators[i].visible=!SETTINGS.operators[i].visible;
-  const isActive=SETTINGS.operators[i].visible;
-  const btn=document.getElementById('s-op-active-'+i);
-  const nameEl=document.getElementById('s-op-'+i);
-  const aliasEl=document.getElementById('s-alias-'+i);
-  const label=btn?.closest('.settings-row')?.querySelector('label');
-  if(btn){btn.textContent=isActive?'Active':'Inactive';btn.style.borderColor=isActive?'var(--g5)':'var(--border)';btn.style.background=isActive?'var(--g0)':'var(--b0)';btn.style.color=isActive?'var(--g6)':'var(--text-faint)';}
-  if(nameEl)nameEl.style.opacity=isActive?1:0.45;
-  if(aliasEl)aliasEl.style.opacity=isActive?1:0.45;
-  if(label)label.style.color=isActive?'var(--text)':'var(--text-faint)';
-  populateOperatorDropdowns();
-}
 
 function toggleOpDay(i){
   SETTINGS.opDays[i]=!SETTINGS.opDays[i];
@@ -12148,7 +12246,7 @@ function buildSelect(id,vals,cur,fn){const el=document.getElementById(id);if(!el
 function openProductsEditor(){closeProfileModal();window.location.href=IS_ADMIN_VIEW?`products.html?location_id=${LOCATION_ID}&admin=1`:`products.html?location_id=${LOCATION_ID}`;}
 
 function populateOperatorDropdowns(){
-  const ops=SETTINGS.operators.filter(o=>o.name&&o.visible!==false),blank='<option value="">--</option>';
+  const ops=getOperatorMembers(),blank='<option value="">--</option>';
   ['f-op1','f-op2'].forEach(id=>{const el=document.getElementById(id);if(!el)return;const cur=el.value;el.innerHTML=blank+ops.map(o=>`<option value="${o.name}">${o.name}</option>`).join('');el.value=cur;});
   // Populate hours dropdowns if not already done
   ['f-op1-hrs','f-op2-hrs'].forEach(id=>{
