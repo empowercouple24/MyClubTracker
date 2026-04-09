@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-10 09:00:00 -->
+<!-- CACHE BUST: 2026-04-10 11:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -1881,7 +1881,7 @@ if('serviceWorker' in navigator){
           </div>
           <span style="font-size:10px;color:var(--b5);flex-shrink:0;">&#9998;</span>
           <button class="btn btn-primary" style="font-size:11px;padding:4px 10px;margin-left:4px;" onclick="event.stopPropagation();renderUnifiedPayouts();">Load</button>
-          <button id="gcal-payout-btn" onclick="event.stopPropagation();gcalLoadPayoutShifts();" style="display:none;font-size:11px;padding:4px 9px;margin-left:0;border-radius:var(--radius-sm);border:1px solid var(--b5);background:var(--b1);color:var(--b7);font-family:DM Sans,sans-serif;font-weight:700;cursor:pointer;white-space:nowrap;">
+          <button id="gcal-payout-btn" onclick="event.stopPropagation();gcalLoadPayoutShifts();" style="display:none !important;visibility:hidden;font-size:11px;padding:4px 9px;margin-left:0;border-radius:var(--radius-sm);border:1px solid var(--b5);background:var(--b1);color:var(--b7);font-family:DM Sans,sans-serif;font-weight:700;cursor:pointer;white-space:nowrap;">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             Shifts
           </button>
@@ -3143,6 +3143,12 @@ if('serviceWorker' in navigator){
         <div class="settings-group-title">Pay Accounts</div>
         <div id="s-pay-accounts"></div>
         <button class="btn btn-ghost" onclick="addPayAccount()" style="margin-top:8px;font-size:12px;width:100%;">+ Add Account</button>
+      </div>
+      <!-- Register Filter Payees -->
+      <div class="settings-group">
+        <div class="settings-group-title">Register Filter Chips</div>
+        <div style="font-size:11px;color:var(--text-faint);margin-bottom:8px;">Choose who appears as quick-filter chips on the Payment Register.</div>
+        <div id="s-preg-chip-payees"></div>
       </div>
       <!-- Team Members -->
       <div class="settings-group" id="prof-role-section">
@@ -5603,7 +5609,7 @@ function gcalUpdateUI(){
   if(disconnectBtn)disconnectBtn.style.display=connected?'inline-flex':'none';
   if(pickBtn)pickBtn.style.display=connected?'inline-flex':'none';
   if(calDisp)calDisp.textContent=(SETTINGS.gcal&&SETTINGS.gcal.calendarId)?SETTINGS.gcal.calendarId:'Not set';
-  if(payoutBtn)payoutBtn.style.display=connected?'inline-flex':'none';
+  if(payoutBtn)payoutBtn.style.display='none'; // Operators use Enter tab data only — Shifts button removed
   // Show calendar ID row when connected
   const calIdRow=document.getElementById('gcal-cal-id-row');
   if(calIdRow)calIdRow.style.display=connected?'block':'none';
@@ -9295,7 +9301,6 @@ function renderPayouts(){
     var initials=o.trim().split(/\s+/).map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
     var lastPaid=getLastPaidDate(o);
     var lastPaidStr=lastPaid?'Last paid '+new Date(lastPaid+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}):'No prior payments';
-    var gcalShiftCount=(window._gcalShiftCountsForPayout&&window._gcalShiftCountsForPayout[o])||0;
     var shifts=byOp[o]||[];
     var shiftId='op-shifts-'+o.replace(/\s+/g,'_');
     var shiftRows=shifts.map(function(s){
@@ -9305,17 +9310,13 @@ function renderPayouts(){
         +'<div style="font-size:12px;font-weight:700;color:var(--g6);flex-shrink:0;">'+fmt$(s.amt)+'</div>'
         +'</div>';
     }).join('');
-    var gcalBadge=gcalShiftCount>0
-      ?'<div style="font-size:10px;color:var(--g5);margin-top:1px;display:flex;align-items:center;gap:3px;">'
-        +'<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'
-        +gcalShiftCount+' shift'+(gcalShiftCount!==1?'s':'')+' confirmed</div>'
-      :'';
+    var gcalBadge='';
     return '<div class="card" style="margin-bottom:10px;padding:12px 14px;">'
       +'<div style="display:flex;align-items:center;gap:10px;">'
       +'<div style="width:34px;height:34px;border-radius:50%;background:'+color+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;">'+initials+'</div>'
       +'<div style="flex:1;">'
       +'<div style="font-size:14px;font-weight:700;color:var(--text);">'+escHtml(o)+'</div>'
-      +'<div style="font-size:11px;color:var(--text-muted);margin-top:1px;">'+escHtml(lastPaidStr)+gcalBadge+'</div>'
+      +'<div style="font-size:11px;color:var(--text-muted);margin-top:1px;">'+escHtml(lastPaidStr)+'</div>'
       +'</div>'
       +'<div style="font-family:Outfit,sans-serif;font-size:16px;font-weight:800;color:var(--g6);flex-shrink:0;margin-right:8px;">'+fmt$(total)+'</div>'
       +(shifts.length?'<span onclick="togglePaySection(\''+shiftId+'\')" style="font-size:11px;color:var(--text-faint);cursor:pointer;flex-shrink:0;" id="'+shiftId+'-chev">▶</span>':'')
@@ -10114,8 +10115,8 @@ function renderPaymentRegister() {
     const payees = getPayeeList();
     lookupSel.innerHTML = payees.map(p => `<option value="${p}">${p}</option>`).join('');
   }
-  // Render payee filter chips (multi-select)
-  renderPregPayeeChips(getPayeeList());
+  // Render payee filter chips (multi-select, curated list)
+  renderPregPayeeChips(getPregChipPayees());
   // Render account filter chips
   renderPregAccountChips();
   const now = new Date();
@@ -11854,7 +11855,8 @@ function renderPregPayeeChips(payees) {
   if (!wrap) return;
   const chipHtml = payees.map(p => {
     const active = _pregPayeeFilter.has(p);
-    return `<div class="preg-fchip${active?' active':''}" style="font-size:11px;padding:3px 9px;" onclick="togglePregPayeeChip(${JSON.stringify(p)})">${escHtml(p)}</div>`;
+    const display = firstNameOnly(p);
+    return `<div class="preg-fchip${active?' active':''}" style="font-size:11px;padding:3px 9px;" onclick="togglePregPayeeChip(${JSON.stringify(p)})" title="${escHtml(p)}">${escHtml(display)}</div>`;
   }).join('');
   wrap.innerHTML = `<span style="font-size:11px;font-weight:600;color:var(--text-faint);white-space:nowrap;flex-shrink:0;">Payees:</span>${chipHtml}`;
 }
@@ -13032,6 +13034,44 @@ function resetDayFields() {
 
 function resolveAlias(n){for(const m of getTeamMembers()){if(!m.name)continue;const a=(m.aliases||'').split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);if(m.name.toLowerCase()===n.toLowerCase())return m.name;if(a.includes(n.toLowerCase()))return m.name;}return n;}
 
+function buildPregChipPayeesUI() {
+  const el = document.getElementById('s-preg-chip-payees');
+  if (!el) return;
+  const all = getPayeeList();
+  const selected = new Set(SETTINGS.pregChipPayees || []);
+  el.innerHTML = all.map(name => {
+    const checked = selected.has(name);
+    const safeId = 'preg-chip-chk-' + name.replace(/[^a-z0-9]/gi,'_');
+    return `<label style="display:flex;align-items:center;gap:8px;padding:5px 0;cursor:pointer;font-size:13px;color:var(--text);">
+      <input type="checkbox" id="${safeId}" ${checked?'checked':''} onchange="togglePregChipPayee(${JSON.stringify(name)},this.checked)" style="width:15px;height:15px;accent-color:var(--b6);cursor:pointer;flex-shrink:0;"/>
+      ${escHtml(name)}
+    </label>`;
+  }).join('') || '<div style="font-size:12px;color:var(--text-faint);">No payees found. Add team members first.</div>';
+}
+
+function togglePregChipPayee(name, checked) {
+  if (!SETTINGS.pregChipPayees) SETTINGS.pregChipPayees = [];
+  if (checked) {
+    if (!SETTINGS.pregChipPayees.includes(name)) SETTINGS.pregChipPayees.push(name);
+  } else {
+    SETTINGS.pregChipPayees = SETTINGS.pregChipPayees.filter(n => n !== name);
+  }
+  saveSettings();
+  renderPregPayeeChips(getPregChipPayees());
+}
+
+function getPregChipPayees() {
+  // Return curated list if configured, otherwise fall back to all payees
+  if (SETTINGS.pregChipPayees && SETTINGS.pregChipPayees.length > 0) {
+    return SETTINGS.pregChipPayees;
+  }
+  return getPayeeList();
+}
+
+function firstNameOnly(fullName) {
+  return (fullName || '').split(' ')[0];
+}
+
 function buildPayAccountsUI() {
   const el = document.getElementById('s-pay-accounts');
   if (!el) return;
@@ -13075,7 +13115,7 @@ function buildSettingsUI(){
   const _gcalSec = document.getElementById('prof-gcal-section');
   if(_gcalSec) _gcalSec.style.display = (USER_ROLE==='owner'||USER_ROLE==='admin') ? 'block' : 'none';
   gcalUpdateUI();
-  buildTeamMembersUI();buildPayAccountsUI();buildSelect('s-taxrate', range(0,4,0.25), SETTINGS.taxRate,  v=>v.toFixed(2)+'%');
+  buildTeamMembersUI();buildPayAccountsUI();buildPregChipPayeesUI();buildSelect('s-taxrate', range(0,4,0.25), SETTINGS.taxRate,  v=>v.toFixed(2)+'%');
   buildSelect('s-ohrate',  range(15,40,1),  SETTINGS.ohRate,   v=>v+'%');
   buildSelect('s-otherrate',range(30,60,2), SETTINGS.otherRate,v=>v+'%');
   buildSelect('s-merchrate',range(5,100,5), SETTINGS.merchRate,v=>v+'%');
