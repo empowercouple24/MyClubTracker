@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-08 22:00:00 -->
+<!-- CACHE BUST: 2026-04-08 22:15:00 -->
 <html lang="en">
 <head>
 <script>
@@ -11040,38 +11040,54 @@ function printSummaryPDF() {
     var tbl = tableWrap.querySelector('table');
     if(!tbl){resetBtn();return;}
 
-    // Full natural dimensions of the table
     var fullW = tbl.scrollWidth;
     var fullH = tbl.scrollHeight;
 
-    // Where the tableWrap sits on the page
-    var rect = tableWrap.getBoundingClientRect();
-    var scrollX = window.pageXOffset || document.documentElement.scrollLeft;
-    var scrollY = window.pageYOffset || document.documentElement.scrollTop;
-    var absLeft = rect.left + scrollX;
-    var absTop  = rect.top  + scrollY;
+    // Save states
+    var savedScrollLeft    = tableWrap.scrollLeft;
+    var savedOverflow      = tableWrap.style.overflow;
+    var savedWidth         = tableWrap.style.width;
+    var savedPosition      = tableWrap.style.position;
+    var savedTop           = tableWrap.style.top;
+    var savedLeft          = tableWrap.style.left;
+    var savedZIndex        = tableWrap.style.zIndex;
 
-    // Reset horizontal scroll so FIELD col is at position 0 inside tableWrap
-    var savedScrollLeft = tableWrap.scrollLeft;
-    tableWrap.scrollLeft = 0;
+    // Clip the BODY so the expanded element doesn't cause page reflow/scrollbars
+    var savedBodyOverflow  = document.body.style.overflow;
+    var savedBodyMaxW      = document.body.style.maxWidth;
+    document.body.style.overflow = 'hidden';
+    document.body.style.maxWidth = '100vw';
+
+    // Expand tableWrap off-screen to full width
+    tableWrap.style.position  = 'fixed';
+    tableWrap.style.top       = '-9999px';   // way off screen — user can't see it
+    tableWrap.style.left      = '0';
+    tableWrap.style.width     = fullW + 'px';
+    tableWrap.style.overflow  = 'visible';
+    tableWrap.style.zIndex    = '9999';
+    tableWrap.scrollLeft      = 0;
 
     if(btn) btn.style.visibility = 'hidden';
 
-    // Capture the full document but crop to just the table area at full width
-    window.html2canvas(document.documentElement, {
+    window.html2canvas(tableWrap, {
       scale: 3,
       useCORS: true,
       logging: false,
-      x: absLeft,
-      y: absTop,
       width:  fullW,
       height: fullH,
-      scrollX: -absLeft,
-      scrollY: -absTop,
-      windowWidth:  fullW + absLeft,
-      windowHeight: fullH + absTop
+      windowWidth:  fullW,
+      windowHeight: fullH
     }).then(function(canvas){
-      tableWrap.scrollLeft = savedScrollLeft;
+      // Restore everything
+      tableWrap.style.position  = savedPosition;
+      tableWrap.style.top       = savedTop;
+      tableWrap.style.left      = savedLeft;
+      tableWrap.style.width     = savedWidth;
+      tableWrap.style.overflow  = savedOverflow;
+      tableWrap.style.zIndex    = savedZIndex;
+      tableWrap.scrollLeft      = savedScrollLeft;
+      document.body.style.overflow = savedBodyOverflow;
+      document.body.style.maxWidth = savedBodyMaxW;
       if(btn) btn.style.visibility = 'visible';
 
       var imgW = canvas.width;
@@ -11086,30 +11102,27 @@ function printSummaryPDF() {
 
       var doc = new jsPDF({orientation:'landscape', unit:'pt', format:[PW, pageH]});
 
-      // ── Header ──
+      // Header
       doc.setFont('helvetica','bold');
       doc.setFontSize(14);
       doc.setTextColor(53,78,98);
       doc.text(locName, ML, 26);
-
       doc.setFont('helvetica','normal');
       doc.setFontSize(9);
       doc.setTextColor(96,126,150);
       doc.text('Monthly Summary \u2014 ' + monthLabel, ML, 40);
-
       doc.setFontSize(7.5);
       doc.setTextColor(143,163,179);
       doc.text('Generated ' + dateStr + ' \u00b7 myclubtracker.com', PW-MR, 40, {align:'right'});
-
       doc.setDrawColor(205,214,224);
       doc.setLineWidth(0.5);
       doc.line(ML, 46, PW-MR, 46);
 
-      // ── Image ──
+      // Image
       var imgData = canvas.toDataURL('image/png');
       doc.addImage(imgData, 'PNG', ML, MT, printW, rendH, undefined, 'FAST');
 
-      // ── Footer ──
+      // Footer
       var footY = MT + rendH + 10;
       doc.setDrawColor(205,214,224);
       doc.setLineWidth(0.4);
@@ -11120,7 +11133,7 @@ function printSummaryPDF() {
       doc.text('MyClubTracker \u00b7 myclubtracker.com', ML, footY + 9);
       doc.text(locName + ' \u00b7 ' + monthLabel, PW-MR, footY + 9, {align:'right'});
 
-      // ── Save ──
+      // Save
       var safeName  = (locName.replace(/[^a-z0-9]/gi,'_').toLowerCase()||'club');
       var safeMonth = (monthLabel.replace(/[^a-z0-9]/gi,'_').toLowerCase()||'summary');
       var fileName  = safeName + '_' + safeMonth + '_summary.pdf';
@@ -11149,7 +11162,15 @@ function printSummaryPDF() {
       }
     }).catch(function(err){
       console.error('html2canvas error:',err);
-      tableWrap.scrollLeft = savedScrollLeft;
+      tableWrap.style.position  = savedPosition;
+      tableWrap.style.top       = savedTop;
+      tableWrap.style.left      = savedLeft;
+      tableWrap.style.width     = savedWidth;
+      tableWrap.style.overflow  = savedOverflow;
+      tableWrap.style.zIndex    = savedZIndex;
+      tableWrap.scrollLeft      = savedScrollLeft;
+      document.body.style.overflow = savedBodyOverflow;
+      document.body.style.maxWidth = savedBodyMaxW;
       if(btn) btn.style.visibility = 'visible';
       resetBtn();
     });
