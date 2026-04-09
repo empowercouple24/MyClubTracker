@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-10 12:00:00 -->
+<!-- CACHE BUST: 2026-04-10 13:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -11856,9 +11856,12 @@ function renderPregPayeeChips(payees) {
   const chipHtml = payees.map(p => {
     const active = _pregPayeeFilter.has(p);
     const display = firstNameOnly(p);
-    return `<div class="preg-fchip${active?' active':''}" style="font-size:11px;padding:3px 9px;" onclick="togglePregPayeeChip(${JSON.stringify(p)})" title="${escHtml(p)}">${escHtml(display)}</div>`;
+    return `<div class="preg-fchip${active?' active':''}" style="font-size:11px;padding:3px 9px;cursor:pointer;" data-payee="${escHtml(p)}" title="${escHtml(p)}">${escHtml(display)}</div>`;
   }).join('');
   wrap.innerHTML = `<span style="font-size:11px;font-weight:600;color:var(--text-faint);white-space:nowrap;flex-shrink:0;">Payees:</span>${chipHtml}`;
+  wrap.querySelectorAll('.preg-fchip[data-payee]').forEach(function(chip) {
+    chip.addEventListener('click', function() { togglePregPayeeChip(chip.dataset.payee); });
+  });
 }
 
 function renderPregAccountChips() {
@@ -11867,9 +11870,12 @@ function renderPregAccountChips() {
   const accounts = getPregAccounts();
   const chipHtml = accounts.map(a => {
     const active = _pregAccountFilter === a;
-    return `<div class="preg-fchip${active?' active':''}" style="font-size:11px;padding:3px 9px;" onclick="togglePregAccountChip(${JSON.stringify(a)})">${escHtml(a)}</div>`;
+    return `<div class="preg-fchip${active?' active':''}" style="font-size:11px;padding:3px 9px;cursor:pointer;" data-acct="${escHtml(a)}">${escHtml(a)}</div>`;
   }).join('');
   wrap.innerHTML = `<span style="font-size:11px;font-weight:600;color:var(--text-faint);white-space:nowrap;flex-shrink:0;">Account:</span>${chipHtml}`;
+  wrap.querySelectorAll('.preg-fchip[data-acct]').forEach(function(chip) {
+    chip.addEventListener('click', function() { togglePregAccountChip(chip.dataset.acct); });
+  });
 }
 
 function updatePregClearBtn() {
@@ -13043,10 +13049,16 @@ function buildPregChipPayeesUI() {
     const checked = selected.has(name);
     const safeId = 'preg-chip-chk-' + name.replace(/[^a-z0-9]/gi,'_');
     return `<label style="display:flex;align-items:center;gap:8px;padding:5px 0;cursor:pointer;font-size:13px;color:var(--text);">
-      <input type="checkbox" id="${safeId}" ${checked?'checked':''} onchange="togglePregChipPayee(${JSON.stringify(name)},this.checked)" style="width:15px;height:15px;accent-color:var(--b6);cursor:pointer;flex-shrink:0;"/>
+      <input type="checkbox" id="${safeId}" ${checked?'checked':''} data-chipname="${escHtml(name)}" class="preg-chip-chk" style="width:15px;height:15px;accent-color:var(--b6);cursor:pointer;flex-shrink:0;"/>
       ${escHtml(name)}
     </label>`;
   }).join('') || '<div style="font-size:12px;color:var(--text-faint);">No payees found. Add team members first.</div>';
+  // Attach handlers via event listeners, not inline onchange
+  el.querySelectorAll('.preg-chip-chk').forEach(function(chk) {
+    chk.addEventListener('change', function() {
+      togglePregChipPayee(chk.dataset.chipname, chk.checked);
+    });
+  });
 }
 
 function togglePregChipPayee(name, checked) {
