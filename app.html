@@ -65,7 +65,7 @@ if('serviceWorker' in navigator){
     html,body{height:100%;overflow:hidden;font-family:DM Sans,sans-serif;background:var(--bg);color:var(--text);font-size:13px}
     /* NAV */
     .topnav{background:var(--surface);border-bottom:1px solid var(--border-light);display:flex;align-items:center;gap:8px;padding:var(--safe-top) 12px 0;min-height:calc(var(--nav-h) + var(--safe-top));position:relative;z-index:50;box-shadow:var(--shadow-sm)}
-    .nav-logo{width:28px;height:28px;background:white;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,0.1);cursor:pointer;}
+    .nav-logo{width:36px;height:36px;background:white;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,0.1);cursor:pointer;}
     .nav-logo svg{width:24px;height:24px;}
     .nav-logo:hover{background:var(--b0);}
     .nav-menu-btn{display:flex;align-items:center;gap:6px;font-family:DM Sans,sans-serif;font-size:13px;font-weight:700;color:var(--b7);border:1.5px solid var(--b3);border-radius:20px;padding:5px 14px;background:white;cursor:pointer;max-width:260px;}
@@ -1032,20 +1032,7 @@ if('serviceWorker' in navigator){
 
 <nav class="topnav">
   <button class="nav-btn back" id="nav-back-btn" style="display:none;font-weight:700;color:var(--b5);font-size:13px;padding:4px 10px;background:var(--b0);border-radius:8px;border:1px solid var(--border);" onclick="goBackToAdmin()">← Locations</button>
-  <div class="nav-logo" onclick="switchTab(USER_ROLE==='employee'?'inv':'enter')" title="Go to home tab"><svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
-  <g transform="rotate(-18, 16, 36)">
-    <rect x="8" y="24" width="16" height="20" rx="2" fill="#1a5c2a"/>
-    <rect x="10" y="28" width="12" height="8" rx="1" fill="rgba(255,255,255,0.25)"/>
-    <line x1="16" y1="18" x2="14" y2="24" stroke="#1a5c2a" stroke-width="2.5" stroke-linecap="round"/>
-  </g>
-  <g transform="rotate(14, 38, 36)">
-    <rect x="30" y="26" width="16" height="20" rx="2" fill="#1a5c2a"/>
-    <rect x="32" y="30" width="12" height="8" rx="1" fill="rgba(255,255,255,0.25)"/>
-    <line x1="38" y1="20" x2="40" y2="26" stroke="#1a5c2a" stroke-width="2.5" stroke-linecap="round"/>
-  </g>
-  <circle cx="40" cy="16" r="11" fill="#4caf60"/>
-  <path d="M34 22 L44 12 M38 12 L44 12 L44 18" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-</svg></div>
+  <div class="nav-logo" onclick="switchTab(USER_ROLE==='employee'?'inv':'enter')" title="Go to home tab"><svg viewBox="0 0 52 80" xmlns="http://www.w3.org/2000/svg" width="20" height="30" style="display:block;"><polygon points="38,0 14,44 26,44 12,80 46,32 30,32" fill="#1e5c35"/></svg></div>
   <div style="display:flex;flex-direction:column;justify-content:center;flex:1;min-width:0;overflow:hidden;">
     <div class="nav-club-name" id="nav-club-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Loading…</div>
     <div id="nav-club-addr" style="font-size:11px;color:var(--text-faint);font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:none;"></div>
@@ -1076,14 +1063,16 @@ if('serviceWorker' in navigator){
   </div>
 </nav>
 
-<div class="tabbar">
-  <button class="tab amber"  onclick="switchTab('inv')"       id="tab-inv"       data-short="Inventory">Inventory</button>
-  <button class="tab green"  onclick="switchTab('order')"     id="tab-order"     data-short="Order">Order</button>
+<div class="tabbar" id="main-tabbar">
   <button class="tab"        onclick="switchTab('enter')"     id="tab-enter"     data-short="Enter">Enter</button>
   <button class="tab"        onclick="switchTab('history')"   id="tab-history"   data-short="History">History</button>
-  <button class="tab green"  onclick="switchTab('expansion')" id="tab-expansion" data-short="Expansion">Expansion</button>
+  <div class="tab-divider" id="tab-divider-1"></div>
+  <button class="tab amber"  onclick="switchTab('inv')"       id="tab-inv"       data-short="Inventory">Inventory</button>
+  <button class="tab green"  onclick="switchTab('order')"     id="tab-order"     data-short="Order">Order</button>
   <div class="tab-divider" id="tab-divider-payouts"></div>
   <button class="tab"        onclick="switchTab('payouts')"   id="tab-payouts"   data-short="Payouts">Payouts</button>
+  <div class="tab-divider" id="tab-divider-2"></div>
+  <button class="tab green"  onclick="switchTab('expansion')" id="tab-expansion" data-short="Expansion">Expansion</button>
 </div>
 
 <div id="hist-sticky-header">
@@ -4029,9 +4018,20 @@ async function init(){
     USER_ROLE=u.role||'owner';
     // Employee: restricted tabs, no settings
     if(USER_ROLE==='employee'){
-      // Operator: hide Payouts tab and its divider, land on Inventory
+      // Operator: hide Payouts + its divider + divider-2
       var _tp=document.getElementById('tab-payouts');if(_tp)_tp.style.display='none';
       var _td=document.getElementById('tab-divider-payouts');if(_td)_td.style.display='none';
+      var _td2=document.getElementById('tab-divider-2');if(_td2)_td2.style.display='none';
+      var _td1=document.getElementById('tab-divider-1');if(_td1)_td1.style.display='none';
+      // Reorder tabs for operator: Inventory, Order, Enter, History, Expansion
+      var bar=document.getElementById('main-tabbar');
+      if(bar){
+        var order=['tab-inv','tab-order','tab-enter','tab-history','tab-expansion'];
+        order.forEach(function(id){
+          var el=document.getElementById(id);
+          if(el)bar.appendChild(el);
+        });
+      }
       switchTab('inv');
     }
     // Show profile button for owners and employees (not admin view)
@@ -6147,10 +6147,12 @@ async function applyProdUpdate(){
     .map(function(cb){return parseInt(cb.dataset.changeIdx);});
   if(!accepted.length){dismissProdUpdate();return;}
 
-  // Start from current product list
+  // Start from current product list — always use the full live PRODUCTS array
+  // (which is already the merged result of DEFAULT_PRODUCTS + any prior customizations)
+  // Never fall back to window.PRODUCTS which can be stale or scoped incorrectly
   let prods = (SETTINGS.customProducts && SETTINGS.customProducts.length)
     ? SETTINGS.customProducts.map(function(p){return p.slice();})
-    : (window.PRODUCTS||[]).map(function(p){return p.slice();});
+    : DEFAULT_PRODUCTS.map(function(p){return p.slice();});
 
   // Match helper: SKU when present, otherwise cat+name
   function prodMatch(p, ch){
