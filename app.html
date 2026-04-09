@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-10 01:00:00 -->
+<!-- CACHE BUST: 2026-04-10 02:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -108,7 +108,6 @@ if('serviceWorker' in navigator){
     .tab-panel.active{display:block;animation:tabIn 0.18s ease}
     #panel-payouts.active{display:block !important;padding:0;}
     #panel-payouts.active #payouts-sticky-top{position:sticky;top:0;z-index:30;background:var(--bg);box-shadow:0 2px 8px -2px rgba(53,78,98,0.07);}
-    @media(max-width:600px){#payouts-pane-grid{grid-template-columns:1fr !important;}}
     @keyframes tabIn{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
     .card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:var(--shadow-sm)}
     .section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-faint);margin-bottom:5px;margin-top:12px}
@@ -1810,8 +1809,8 @@ if('serviceWorker' in navigator){
   <div id="payouts-sticky-top" style="background:var(--bg);position:sticky;top:0;z-index:30;box-shadow:0 2px 8px -2px rgba(53,78,98,0.07);">
   <div style="max-width:960px;margin:0 auto;padding:10px 12px 0;">
 
-    <!-- Two-column preset grid -->
-    <div id="payouts-pane-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+    <!-- Stacked preset cards -->
+    <div id="payouts-pane-grid" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;">
 
       <!-- LEFT: Operator Payouts -->
       <div class="card" style="margin:0;padding:10px 12px;">
