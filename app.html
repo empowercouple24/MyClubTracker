@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-10 00:00:00 -->
+<!-- CACHE BUST: 2026-04-10 01:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -891,6 +891,14 @@ if('serviceWorker' in navigator){
     .alloc-bucket.cash-deposit .alloc-bucket-amt{color:var(--text);}
     .alloc-bucket.cash-deposit.transferred .alloc-bucket-amt{color:var(--b6);}
     .alloc-bucket.cash-deposit.transferred .alloc-bucket-check{background:var(--b6);border-color:var(--b6);}
+    .alloc-bucket.fundraiser-bucket{border-color:var(--g3);background:var(--g0);grid-column:1/-1;display:none;}
+    .alloc-bucket.fundraiser-bucket.visible{display:block;}
+    .alloc-bucket.fundraiser-bucket:hover{background:#d4f0d8;border-color:var(--g4);}
+    .alloc-bucket.fundraiser-bucket.transferred{background:#d4f0d8;border-color:var(--g5);}
+    .alloc-bucket.fundraiser-bucket .alloc-bucket-label{color:var(--g5);}
+    .alloc-bucket.fundraiser-bucket .alloc-bucket-amt{color:var(--g6);}
+    .alloc-bucket.fundraiser-bucket.transferred .alloc-bucket-check{background:var(--g5);border-color:var(--g5);}
+    .alloc-bucket.fundraiser-bucket .alloc-fund-sub{font-size:10px;color:var(--g4);margin-top:3px;}
 
     /* ── MULTI-SELECT ALLOCATION ── */
     .msel-panel{background:linear-gradient(135deg,var(--b8) 0%,var(--b7) 100%);border-radius:var(--radius);padding:12px 14px;}
@@ -2624,6 +2632,12 @@ if('serviceWorker' in navigator){
         <div class="alloc-bucket" id="alloc-b-payouts" onclick="toggleAllocBucket('payouts')">
           <div class="alloc-bucket-label">Payouts</div>
           <div class="alloc-bucket-amt" id="alloc-amt-payouts">—</div>
+          <div class="alloc-bucket-check"><svg class="alloc-check-svg" viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>
+        </div>
+        <div class="alloc-bucket fundraiser-bucket" id="alloc-b-fundraiser" onclick="toggleAllocBucket('fundraiser')">
+          <div class="alloc-bucket-label">Fundraisers</div>
+          <div class="alloc-bucket-amt" id="alloc-amt-fundraiser">—</div>
+          <div class="alloc-fund-sub" id="alloc-sub-fundraiser"></div>
           <div class="alloc-bucket-check"><svg class="alloc-check-svg" viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>
         </div>
       </div>
@@ -9851,14 +9865,16 @@ function openAllocDetail(dateStr) {
   // Sales
   document.getElementById('alloc-detail-sales').textContent = fmt$(calSales(data));
 
-  // Status — includes cashdeposit
-  const keys = ['tax','overhead','herbalife','payouts'];
+  // Status — dynamic based on whether fundraiser bucket is present
+  const hasFund = c.hasFundraiser;
+  const keys = ['tax','overhead','herbalife','payouts'].concat(hasFund ? ['fundraiser'] : []);
   const allKeys = ['cashdeposit',...keys];
+  const totalBuckets = allKeys.length;
   const doneCount = allKeys.filter(k => transfers[k]).length;
   const statusEl = document.getElementById('alloc-detail-status');
-  if (doneCount === 5) statusEl.textContent = 'All complete';
+  if (doneCount === totalBuckets) statusEl.textContent = 'All complete';
   else if (doneCount === 0) statusEl.textContent = 'Nothing marked yet';
-  else statusEl.textContent = doneCount + ' of 5 complete';
+  else statusEl.textContent = doneCount + ' of ' + totalBuckets + ' complete';
 
   // Cash deposit amount = cashSales for that day
   const cashDeposit = parseFloat(data.cashSales) || 0;
@@ -9883,6 +9899,24 @@ function openAllocDetail(dateStr) {
   document.getElementById('alloc-amt-overhead').textContent = fmt$(c.overhead || 0);
   document.getElementById('alloc-amt-herbalife').textContent = fmt$(c.products || 0);
   document.getElementById('alloc-amt-payouts').textContent = fmt$(c.payouts || 0);
+
+  // Fundraiser bucket — show only when fundraiser data exists
+  const fundBucket = document.getElementById('alloc-b-fundraiser');
+  if (fundBucket) {
+    if (c.hasFundraiser) {
+      fundBucket.classList.add('visible');
+      document.getElementById('alloc-amt-fundraiser').textContent = fmt$(c.fundraiserTotal || 0);
+      const subParts = [];
+      if (c.fundraiserCard > 0) subParts.push('Card ' + fmt$(c.fundraiserCard));
+      if (c.fundraiserCash > 0) subParts.push('Cash ' + fmt$(c.fundraiserCash));
+      if (c.donation > 0) subParts.push(parseFloat(data.fundraiserPct||0) + '% donation ' + fmt$(c.donation));
+      const subEl = document.getElementById('alloc-sub-fundraiser');
+      if (subEl) subEl.textContent = subParts.join(' · ');
+    } else {
+      fundBucket.classList.remove('visible');
+      fundBucket.classList.remove('transferred');
+    }
+  }
 
   // Bucket states
   allKeys.forEach(k => {
@@ -9917,14 +9951,15 @@ async function toggleAllocBucket(key) {
   const el = document.getElementById('alloc-b-' + key);
   if (el) el.classList.toggle('transferred', data.transfers[key]);
 
-  // Update status label — includes cashdeposit
-  const allKeys = ['cashdeposit','tax','overhead','herbalife','payouts'];
-  const doneCount = allKeys.filter(k => data.transfers[k]).length;
+  // Update status label — dynamic based on whether fundraiser bucket is present
+  const c2 = calcAllFromData(data);
+  const _allKeys2 = ['cashdeposit','tax','overhead','herbalife','payouts'].concat(c2.hasFundraiser ? ['fundraiser'] : []);
+  const doneCount = _allKeys2.filter(k => data.transfers[k]).length;
   const statusEl = document.getElementById('alloc-detail-status');
   if (statusEl) {
-    if (doneCount === 5) statusEl.textContent = 'All complete';
+    if (doneCount === _allKeys2.length) statusEl.textContent = 'All complete';
     else if (doneCount === 0) statusEl.textContent = 'Nothing marked yet';
-    else statusEl.textContent = doneCount + ' of 5 complete';
+    else statusEl.textContent = doneCount + ' of ' + _allKeys2.length + ' complete';
   }
 
   // Save to Supabase
