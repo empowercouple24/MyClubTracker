@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-08 21:30:00 -->
+<!-- CACHE BUST: 2026-04-08 21:45:00 -->
 <html lang="en">
 <head>
 <script>
@@ -11050,13 +11050,15 @@ function printSummaryPDF() {
     // Strategy: move tableWrap to a fixed overlay position at full width,
     // capture it, then restore — no layout reflow, no page blowout
     var savedStyles = {
-      overflow:   tableWrap.style.overflow,
-      width:      tableWrap.style.width,
-      position:   tableWrap.style.position,
-      top:        tableWrap.style.top,
-      left:       tableWrap.style.left,
-      zIndex:     tableWrap.style.zIndex,
-      scrollLeft: tableWrap.scrollLeft
+      overflow:      tableWrap.style.overflow,
+      width:         tableWrap.style.width,
+      position:      tableWrap.style.position,
+      top:           tableWrap.style.top,
+      left:          tableWrap.style.left,
+      zIndex:        tableWrap.style.zIndex,
+      opacity:       tableWrap.style.opacity,
+      pointerEvents: tableWrap.style.pointerEvents,
+      scrollLeft:    tableWrap.scrollLeft
     };
 
     // Place tableWrap in a fixed overlay — won't affect page flow
@@ -11065,7 +11067,9 @@ function printSummaryPDF() {
     tableWrap.style.left      = '0';
     tableWrap.style.width     = fullTableW + 'px';
     tableWrap.style.overflow  = 'visible';
-    tableWrap.style.zIndex    = '-1000'; // behind everything — invisible to user
+    tableWrap.style.zIndex    = '-1000'; // behind everything
+    tableWrap.style.opacity   = '0';    // invisible to user during capture
+    tableWrap.style.pointerEvents = 'none';
     tableWrap.scrollLeft      = 0;       // reset scroll so FIELD col is at left edge
 
     window.html2canvas(tableWrap, {
@@ -11080,13 +11084,15 @@ function printSummaryPDF() {
       y: 0
     }).then(function(canvas){
       // Restore tableWrap exactly as it was
-      tableWrap.style.position  = savedStyles.position;
-      tableWrap.style.top       = savedStyles.top;
-      tableWrap.style.left      = savedStyles.left;
-      tableWrap.style.width     = savedStyles.width;
-      tableWrap.style.overflow  = savedStyles.overflow;
-      tableWrap.style.zIndex    = savedStyles.zIndex;
-      tableWrap.scrollLeft      = savedStyles.scrollLeft;
+      tableWrap.style.position      = savedStyles.position;
+      tableWrap.style.top           = savedStyles.top;
+      tableWrap.style.left          = savedStyles.left;
+      tableWrap.style.width         = savedStyles.width;
+      tableWrap.style.overflow      = savedStyles.overflow;
+      tableWrap.style.zIndex        = savedStyles.zIndex;
+      tableWrap.style.opacity       = savedStyles.opacity;
+      tableWrap.style.pointerEvents = savedStyles.pointerEvents;
+      tableWrap.scrollLeft          = savedStyles.scrollLeft;
       if(btn) btn.style.visibility = 'visible';
 
       var imgW = canvas.width;
@@ -11165,13 +11171,15 @@ function printSummaryPDF() {
     }).catch(function(err){
       console.error('html2canvas error:',err);
       // Always restore on error
-      tableWrap.style.position  = savedStyles.position;
-      tableWrap.style.top       = savedStyles.top;
-      tableWrap.style.left      = savedStyles.left;
-      tableWrap.style.width     = savedStyles.width;
-      tableWrap.style.overflow  = savedStyles.overflow;
-      tableWrap.style.zIndex    = savedStyles.zIndex;
-      tableWrap.scrollLeft      = savedStyles.scrollLeft;
+      tableWrap.style.position      = savedStyles.position;
+      tableWrap.style.top           = savedStyles.top;
+      tableWrap.style.left          = savedStyles.left;
+      tableWrap.style.width         = savedStyles.width;
+      tableWrap.style.overflow      = savedStyles.overflow;
+      tableWrap.style.zIndex        = savedStyles.zIndex;
+      tableWrap.style.opacity       = savedStyles.opacity;
+      tableWrap.style.pointerEvents = savedStyles.pointerEvents;
+      tableWrap.scrollLeft          = savedStyles.scrollLeft;
       if(btn) btn.style.visibility = 'visible';
       resetBtn();
     });
