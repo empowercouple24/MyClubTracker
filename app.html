@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-10 16:00:00 -->
+<!-- CACHE BUST: 2026-04-10 17:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -9039,6 +9039,15 @@ function togglePayoutCalc(){
   body.style.display=hidden?'':'none';
   if(chev)chev.textContent=hidden?'▼':'▶';
 }
+function togglePaySection(id){
+  var el=document.getElementById(id);
+  var chev=document.getElementById(id+'-chev');
+  if(!el)return;
+  var hidden=el.style.display==='none';
+  el.style.display=hidden?'block':'none';
+  if(chev)chev.textContent=hidden?'▼':'▶';
+}
+
 function toggleDailyBreakdown(el){
   const body=document.getElementById('daily-breakdown-body');
   if(!body)return;
@@ -9102,6 +9111,7 @@ function renderPayouts(){
     var lastPaidStr=lastPaid?'Last paid '+new Date(lastPaid+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}):'No prior payments';
     var gcalShiftCount=(window._gcalShiftCountsForPayout&&window._gcalShiftCountsForPayout[o])||0;
     var shifts=byOp[o]||[];
+    var shiftId='op-shifts-'+o.replace(/\s+/g,'_');
     var shiftRows=shifts.map(function(s){
       var dayLbl=new Date(s.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
       return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border-light);">'
@@ -9115,15 +9125,16 @@ function renderPayouts(){
         +gcalShiftCount+' shift'+(gcalShiftCount!==1?'s':'')+' confirmed</div>'
       :'';
     return '<div class="card" style="margin-bottom:10px;padding:12px 14px;">'
-      +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">'
+      +'<div style="display:flex;align-items:center;gap:10px;">'
       +'<div style="width:34px;height:34px;border-radius:50%;background:'+color+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;">'+initials+'</div>'
       +'<div style="flex:1;">'
       +'<div style="font-size:14px;font-weight:700;color:var(--text);">'+escHtml(o)+'</div>'
       +'<div style="font-size:11px;color:var(--text-muted);margin-top:1px;">'+escHtml(lastPaidStr)+gcalBadge+'</div>'
       +'</div>'
-      +'<div style="font-family:Outfit,sans-serif;font-size:16px;font-weight:800;color:var(--g6);flex-shrink:0;">'+fmt$(total)+'</div>'
+      +'<div style="font-family:Outfit,sans-serif;font-size:16px;font-weight:800;color:var(--g6);flex-shrink:0;margin-right:8px;">'+fmt$(total)+'</div>'
+      +(shifts.length?'<span onclick="togglePaySection(\''+shiftId+'\')" style="font-size:11px;color:var(--text-faint);cursor:pointer;flex-shrink:0;" id="'+shiftId+'-chev">▶</span>':'')
       +'</div>'
-      +'<div style="border-top:1px solid var(--border-light);padding-top:4px;">'+shiftRows+'</div>'
+      +(shifts.length?'<div id="'+shiftId+'" style="display:none;border-top:1px solid var(--border-light);padding-top:4px;margin-top:10px;">'+shiftRows+'</div>':'')
       +'</div>';
   }).join('')||'<div style="font-size:12px;color:var(--text-faint);padding:8px 0;">No operators found in this range.</div>';
 
@@ -9153,8 +9164,8 @@ function renderPayouts(){
 
 // ── UNIFIED PAYOUTS — operators + hourly employees ───────────────────────────
 function renderUnifiedPayouts() {
-  renderPayouts(); // renders operator totals into #payouts-body
-  renderHourlyPayrollInline(); // renders hourly employee totals into #unified-hourly-body
+  renderPayouts(); // renders operator totals into #payouts-body only
+  // Note: hourly employees have their own independent Load button — not triggered here
 }
 
 function renderHourlyPayrollInline() {
@@ -9254,27 +9265,22 @@ function renderHourlyPayrollInline() {
         shiftRows = '<div style="padding:8px 0;font-size:12px;color:var(--text-faint);">No shifts found in this range</div>';
       }
 
+      var shiftId='emp-shifts-'+emp.name.replace(/\s+/g,'_');
       rowsHtml += '<div class="card" data-emp-name="'+escHtml(emp.name)+'" data-emp-amt="'+pay.toFixed(2)+'" style="margin-bottom:10px;padding:12px 14px;">'
         // Header
-        + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">'
+        + '<div style="display:flex;align-items:center;gap:10px;">'
         + '<div style="width:34px;height:34px;border-radius:50%;background:'+color+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;">'+initials+'</div>'
         + '<div style="flex:1;">'
         + '<div style="font-size:14px;font-weight:700;color:var(--text);">'+escHtml(emp.name)+'</div>'
         + '<div style="font-size:11px;color:var(--text-muted);margin-top:1px;">$'+rate.toFixed(2)+'/hr &nbsp;·&nbsp; '+escHtml(lastPaidStr)+'</div>'
         + '</div>'
-        + '<div style="font-family:Outfit,sans-serif;font-size:16px;font-weight:800;color:'+(pay>0?'var(--g6)':'var(--text-faint)')+';flex-shrink:0;">'
+        + '<div style="font-family:Outfit,sans-serif;font-size:16px;font-weight:800;color:'+(pay>0?'var(--g6)':'var(--text-faint)')+';flex-shrink:0;margin-right:8px;">'
         + (pay > 0 ? '$'+pay.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—')
         + '</div>'
+        + (data.shifts&&data.shifts.length ? '<span onclick="togglePaySection(\''+shiftId+'\')" style="font-size:11px;color:var(--text-faint);cursor:pointer;flex-shrink:0;" id="'+shiftId+'-chev">▶</span>' : '')
         + '</div>'
-        // Shift rows
-        + '<div style="border-top:1px solid var(--border-light);padding-top:4px;">'
-        + shiftRows
-        + '</div>'
-        // Footer total
-        + (data.totalHrs > 0 ? '<div style="display:flex;justify-content:flex-end;align-items:center;gap:10px;padding-top:8px;margin-top:4px;">'
-          + '<span style="font-size:11px;color:var(--text-muted);">'+data.totalHrs+' hrs &times; $'+rate.toFixed(2)+'/hr</span>'
-          + '<span style="font-size:13px;font-weight:800;color:var(--g6);">= $'+pay.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+'</span>'
-          + '</div>' : '')
+        // Collapsible shift rows
+        + (data.shifts&&data.shifts.length ? '<div id="'+shiftId+'" style="display:none;border-top:1px solid var(--border-light);padding-top:4px;margin-top:10px;">'+shiftRows+'<div style="display:flex;justify-content:flex-end;align-items:center;gap:10px;padding-top:8px;margin-top:4px;"><span style="font-size:11px;color:var(--text-muted);">'+data.totalHrs+' hrs &times; $'+rate.toFixed(2)+'/hr</span><span style="font-size:13px;font-weight:800;color:var(--g6);">= $'+pay.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+'</span></div></div>' : '')
         + '</div>';
     });
 
@@ -11340,7 +11346,7 @@ function setPayoutPreset(preset, btn) {
     to = localToday();
   }
   applyPayoutDates(from, to);
-  renderUnifiedPayouts();
+  renderPayouts();
 }
 
 // Show hourly section once operator payouts are loaded
@@ -11598,7 +11604,7 @@ function applyCalPicker() {
   } else {
     applyPayoutDates(_calPickerStart, _calPickerEnd);
     document.querySelectorAll('.payout-preset-chip').forEach(c => c.classList.remove('active'));
-    renderUnifiedPayouts();
+    renderPayouts();
   }
   closeCalPicker();
 }
