@@ -8574,7 +8574,7 @@ function renderInventory(){
         <td><div class="inv-name-cell" style="display:flex;align-items:center;gap:7px;"><input type="checkbox" class="oos-check" tabindex="-1" title="Mark out of stock" ${isOos?'checked':''} onchange="toggleOos('${p.sku}','${escHtml(p.name)}',this)"/><div style="display:flex;flex-direction:column;overflow:hidden;min-width:0;">${(()=>{const _pn=parseProdName(p.name);return `<div style="display:flex;align-items:baseline;gap:8px;overflow:hidden;"><span class="inv-name" style="font-weight:600;">${_pn.main}</span><span class="inv-sku inv-sku-desktop">${p.sku||''}</span></div>${_pn.sub?`<span class="inv-name-sub">${_pn.sub}</span>`:''}`;})()} ${oosInfo}</div></td>
         <td style="color:var(--text-muted);font-size:13px;">${p.par}</td>
         <td><span class="need-badge ${bc}">${bt}</span></td>
-        <td class="dv-product">${p.vp||'--'}</td>
+        <td class="dv-product">${p.vp!=null&&p.vp!==''?fmtVP(p.vp):'--'}</td>
         <td><input class="inv-input" type="number" inputmode="numeric" pattern="[0-9]*" min="0" value="${haveEntered?have:''}" oninput="setHave('${p.sku}',this.value)" onfocus="invInputFocus(this)" onblur="this.closest('tr').classList.remove('inv-row-active')" ondblclick="this.select()" onclick="this.focus()" onwheel="this.blur()" onkeydown="invInputKeydown(event,this)" ${isOos?'disabled style="opacity:0.4"':''}/></td>
         <td id="vptot-${p.sku}" class="dv-subtotal">${dvNeedStr}</td>
       </tr>`;
@@ -9113,7 +9113,7 @@ function renderOrderBody(){
       html+=`<tr class="${rowClass}" id="order-row-${p.sku}">
         <td><div class="inv-name-cell" style="display:flex;align-items:center;gap:7px;"><input type="checkbox" class="oos-check" tabindex="-1" title="Mark out of stock" ${isOos?'checked':''} onchange="toggleOos('${p.sku}','${escHtml(p.name)}',this)"/><div style="display:flex;flex-direction:column;overflow:hidden;min-width:0;">${(()=>{const _pn=parseProdName(p.name);return `<div style="display:flex;align-items:baseline;gap:8px;overflow:hidden;"><span class="inv-name" style="font-weight:600;">${_pn.main}</span><span class="inv-sku">${p.sku||''}</span></div>${_pn.sub?`<span class="inv-name-sub">${_pn.sub}</span>`:''}`;})()} </div>${oosInfo}</div></td>
         <td style="color:var(--b6);font-weight:700;">${p.need}</td>
-        <td class="dv-product">${p.vp||'--'}</td>
+        <td class="dv-product">${p.vp!=null&&p.vp!==''?fmtVP(p.vp):'--'}</td>
         <td style="text-align:left;padding-left:8px;">${makeAssignBtn(p,isOos,assigned,ops)}</td>
         <td id="order-dvsub-${p.sku}" class="dv-subtotal">${dvSubStr}</td>
       </tr>`;
