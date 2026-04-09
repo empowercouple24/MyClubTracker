@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-09 16:00:00 -->
+<!-- CACHE BUST: 2026-04-09 17:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -12063,10 +12063,9 @@ function calcReconTotals() {
     const allKeys = ['cashdeposit','tax','overhead','herbalife','payouts'];
 
     const cashDep = parseFloat(data.cashSales)||0;
-    // fundraiserCard: collected via Square but allocated out via reduced overhead — exclude from bank balance
-    // cashAppPay: goes to separate CashApp account, not main bank — exclude from bank balance
     const _fundraiserCard = parseFloat(data.fundraiserCard) || 0;
     const _cashAppPay     = parseFloat(data.cashAppPay)     || 0;
+    const _venmo          = parseFloat(data.venmo)          || 0;
     const cardDep = (c.cardDeposits || 0) - _fundraiserCard - _cashAppPay;
 
     // Card deposits: Square auto-deposits every day — always counts
@@ -12075,11 +12074,19 @@ function calcReconTotals() {
     // Cash deposits: only count when physically deposited (marked ✓)
     if (tr.cashdeposit) cashDepositsTotal += cashDep;
 
-    // Transfers out: only count when marked ✓
-    if (tr.tax)       transfersTotal += c.tax      || 0;
-    if (tr.overhead)  transfersTotal += c.overhead || 0;
-    if (tr.herbalife) transfersTotal += c.products || 0;
-    if (tr.payouts)   transfersTotal += c.payouts  || 0;
+    // Transfers out: recalculate excluding Venmo and CashApp so the bank ledger balances
+    // Venmo/CashApp land in separate accounts — not the main bank
+    const _bankSales = (c.totalSales || 0) - _venmo - _cashAppPay;
+    const _totalSales = c.totalSales || 0;
+    const _ratio = _totalSales > 0 ? _bankSales / _totalSales : 1;
+    const _taxAdj      = (c.tax      || 0) * _ratio;
+    const _overheadAdj = (c.overhead || 0) * _ratio;
+    const _productsAdj = (c.products || 0) * _ratio;
+    const _payoutsAdj  = (c.payouts  || 0) * _ratio;
+    if (tr.tax)       transfersTotal += _taxAdj;
+    if (tr.overhead)  transfersTotal += _overheadAdj;
+    if (tr.herbalife) transfersTotal += _productsAdj;
+    if (tr.payouts)   transfersTotal += _payoutsAdj;
 
     // Track unallocated days for the list view (days with any pending bucket)
     const allDone = allKeys.every(k => tr[k]);
@@ -12123,7 +12130,11 @@ function renderReconWidget() {
   initReconFromDate();
   const totals = calcReconTotals();
   const widget = document.getElementById('recon-widget');
-  if (widget) widget.style.display = totals.unalloc > 0 || totals.unallocDays.length > 0 ? 'block' : 'none';
+  // Always show the widget if there's any data at all — never auto-hide after user interacts
+  const bankVal = parseFloat((document.getElementById('recon-bank-input')?.value||'').replace(/[$,]/g,''))||0;
+  const pendingVal = parseFloat((document.getElementById('recon-pending-input')?.value||'').replace(/[$,]/g,''))||0;
+  const hasData = totals.unalloc !== 0 || totals.unallocDays.length > 0 || bankVal > 0 || pendingVal > 0 || totals.cardDeposits > 0;
+  if (widget) widget.style.display = hasData ? 'block' : 'none';
   const valEl = document.getElementById('recon-unalloc-val');
   if (valEl) valEl.textContent = fmt$(totals.unalloc);
   const cardEl = document.getElementById('recon-card-val');
