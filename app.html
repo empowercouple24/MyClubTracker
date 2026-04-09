@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-08 21:00:00 -->
+<!-- CACHE BUST: 2026-04-08 21:15:00 -->
 <html lang="en">
 <head>
 <script>
@@ -11037,26 +11037,51 @@ function printSummaryPDF() {
     var jsPDF = window.jspdf && window.jspdf.jsPDF;
     if(!jsPDF){resetBtn();return;}
 
-    // Get the full table element
     var tbl = tableWrap.querySelector('table');
     if(!tbl){resetBtn();return;}
 
-    // Clone the table into a hidden offscreen container — no visual disruption
-    var container = document.createElement('div');
-    container.style.cssText = 'position:fixed;left:-99999px;top:0;overflow:visible;background:var(--b0,#1e2d3a);padding:12px;';
+    // Read actual rendered column widths from the live table header cells
+    var liveThs = tbl.querySelectorAll('thead tr th');
+    var colWidths = [];
+    liveThs.forEach(function(th){ colWidths.push(th.getBoundingClientRect().width); });
+    var totalW = colWidths.reduce(function(a,b){return a+b;}, 0);
+
+    // Clone table and stamp explicit widths onto every cell so html2canvas sees them
     var clone = tbl.cloneNode(true);
-    clone.style.cssText = 'border-collapse:collapse;white-space:nowrap;';
+    clone.style.cssText = 'border-collapse:collapse;table-layout:fixed;width:'+totalW+'px;font-family:DM Sans,sans-serif;font-size:11px;';
+
+    // Apply widths to header cells
+    var cloneThs = clone.querySelectorAll('thead tr th');
+    cloneThs.forEach(function(th, i){
+      if(colWidths[i]) th.style.width = colWidths[i]+'px';
+      th.style.whiteSpace = 'nowrap';
+      th.style.overflow   = 'hidden';
+    });
+
+    // Apply widths to all body cells by column index
+    var cloneRows = clone.querySelectorAll('tbody tr');
+    cloneRows.forEach(function(tr){
+      var cells = tr.querySelectorAll('td');
+      cells.forEach(function(td, i){
+        if(colWidths[i]) td.style.width = colWidths[i]+'px';
+        td.style.whiteSpace = 'nowrap';
+        td.style.overflow   = 'hidden';
+      });
+    });
+
+    // Place clone in hidden offscreen container
+    var container = document.createElement('div');
+    container.style.cssText = 'position:fixed;left:-99999px;top:0;overflow:visible;padding:12px 16px;background:#1e2d3a;';
     container.appendChild(clone);
     document.body.appendChild(container);
 
-    // Hide the export button in the clone (it won't be there, but just in case)
     if(btn) btn.style.visibility = 'hidden';
 
     window.html2canvas(container, {
       scale: 3,
       useCORS: true,
       logging: false,
-      backgroundColor: null
+      backgroundColor: '#1e2d3a'
     }).then(function(canvas){
       document.body.removeChild(container);
       if(btn) btn.style.visibility = 'visible';
@@ -11064,7 +11089,6 @@ function printSummaryPDF() {
       var imgW = canvas.width;
       var imgH = canvas.height;
 
-      // PDF: landscape, custom height to fit image at full width
       var ML = 28, MR = 28, MT = 54, MB = 28;
       var PW = 792;
       var printW = PW - ML - MR;
