@@ -839,7 +839,7 @@ async function executePush(){
 
   // Insert a product_updates row per location
   const rows = selected.map(function(lid){
-    return{location_id:lid, changes:_pushChanges, status:'pending'};
+    return{location_id:lid, changes:_pushChanges, status:'pending', pushed_at:new Date().toISOString()};
   });
   const{error} = await sb.from('product_updates').insert(rows);
   if(error){showToast('Push failed: '+error.message,'error');if(btn){btn.disabled=false;btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Send to Selected';}return;}

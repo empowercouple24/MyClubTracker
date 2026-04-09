@@ -1032,7 +1032,7 @@ if('serviceWorker' in navigator){
 
 <nav class="topnav">
   <button class="nav-btn back" id="nav-back-btn" style="display:none;font-weight:700;color:var(--b5);font-size:13px;padding:4px 10px;background:var(--b0);border-radius:8px;border:1px solid var(--border);" onclick="goBackToAdmin()">← Locations</button>
-  <div class="nav-logo" onclick="switchTab('enter')" title="Go to Enter tab"><svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
+  <div class="nav-logo" onclick="switchTab(USER_ROLE==='employee'?'inv':'enter')" title="Go to home tab"><svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
   <g transform="rotate(-18, 16, 36)">
     <rect x="8" y="24" width="16" height="20" rx="2" fill="#1a5c2a"/>
     <rect x="10" y="28" width="12" height="8" rx="1" fill="rgba(255,255,255,0.25)"/>
@@ -1077,15 +1077,13 @@ if('serviceWorker' in navigator){
 </nav>
 
 <div class="tabbar">
-  <button class="tab active" onclick="switchTab('enter')"   id="tab-enter" data-short="Enter">Enter</button>
-  <button class="tab"        onclick="switchTab('history')" id="tab-history" data-short="History">History</button>
-  <div class="tab-divider"></div>
-  <button class="tab amber"  onclick="switchTab('inv')"     id="tab-inv" data-short="Inventory">Inventory</button>
-  <button class="tab green"  onclick="switchTab('order')" id="tab-order" data-short="Order">Order</button>
-  <div class="tab-divider"></div>
-  <button class="tab"        onclick="switchTab('payouts')" id="tab-payouts" data-short="Payouts">Payouts</button>
-  <div class="tab-divider"></div>
+  <button class="tab amber"  onclick="switchTab('inv')"       id="tab-inv"       data-short="Inventory">Inventory</button>
+  <button class="tab green"  onclick="switchTab('order')"     id="tab-order"     data-short="Order">Order</button>
+  <button class="tab"        onclick="switchTab('enter')"     id="tab-enter"     data-short="Enter">Enter</button>
+  <button class="tab"        onclick="switchTab('history')"   id="tab-history"   data-short="History">History</button>
   <button class="tab green"  onclick="switchTab('expansion')" id="tab-expansion" data-short="Expansion">Expansion</button>
+  <div class="tab-divider" id="tab-divider-payouts"></div>
+  <button class="tab"        onclick="switchTab('payouts')"   id="tab-payouts"   data-short="Payouts">Payouts</button>
 </div>
 
 <div id="hist-sticky-header">
@@ -3034,10 +3032,14 @@ if('serviceWorker' in navigator){
     <div class="modal-handle"></div>
     <div class="modal-title">Save Inventory Snapshot</div>
     <div style="padding:0 16px 20px;">
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:6px;margin-top:4px;">Snapshot name <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:6px;margin-top:4px;">Snapshot name <span style="color:var(--r5);margin-left:2px;">*</span></div>
       <input type="text" id="snap-save-name" placeholder="e.g. Pre-order count, Week 2..."
         style="width:100%;font-family:DM Sans,sans-serif;font-size:14px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;outline:none;box-sizing:border-box;"
-        oninput="snapSaveUpdatePreview()" onkeydown="if(event.key==='Enter')document.getElementById('snap-save-initials-input').focus()"/>
+        oninput="snapSaveUpdatePreview()" onkeydown="if(event.key==='Enter')document.getElementById('snap-save-date-input').focus()"/>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:6px;margin-top:14px;">Snapshot date <span style="color:var(--r5);margin-left:2px;">*</span></div>
+      <input type="date" id="snap-save-date-input"
+        style="width:100%;font-family:DM Sans,sans-serif;font-size:14px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;outline:none;box-sizing:border-box;"
+        oninput="snapSaveUpdatePreview()"/>
       <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-top:14px;margin-bottom:8px;">Who is taking this count?</div>
       <div id="snap-save-op-chips" style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px;"></div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
@@ -4027,10 +4029,10 @@ async function init(){
     USER_ROLE=u.role||'owner';
     // Employee: restricted tabs, no settings
     if(USER_ROLE==='employee'){
-      // settings merged into profile modal
-      document.getElementById('tab-payouts').style.display='none';
-      // hide divider before payouts tab
-      document.querySelectorAll('.tab-divider')[1].style.display='none';
+      // Operator: hide Payouts tab and its divider, land on Inventory
+      var _tp=document.getElementById('tab-payouts');if(_tp)_tp.style.display='none';
+      var _td=document.getElementById('tab-divider-payouts');if(_td)_td.style.display='none';
+      switchTab('inv');
     }
     // Show profile button for owners and employees (not admin view)
     const _pb=document.getElementById('nav-profile-btn');if(_pb)_pb.style.display='';
@@ -6065,13 +6067,14 @@ var _pendingProdUpdate = null;
 async function checkPendingProductUpdates(){
   if(!LOCATION_ID) return;
   const{data,error} = await sb.from('product_updates')
-    .select('id,changes,pushed_at')
+    .select('id,changes,pushed_at,created_at')
     .eq('location_id', LOCATION_ID)
     .eq('status','pending')
-    .order('pushed_at', {ascending:false})
+    .order('created_at', {ascending:false})
     .limit(1)
-    .single();
-  if(error||!data) return;
+    .maybeSingle();
+  if(error){console.warn('[prodUpdate] query error:',error.message);return;}
+  if(!data) return;
   _pendingProdUpdate = data;
   openProdUpdateModal(data);
 }
@@ -6084,7 +6087,7 @@ function openProdUpdateModal(update){
   const rows   = document.getElementById('prod-update-rows');
   if(!modal||!meta||!rows) return;
 
-  const dt = new Date(update.pushed_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  const dt = new Date(update.pushed_at||update.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
   const adds    = changes.filter(function(c){return c.type==='add';}).length;
   const removes = changes.filter(function(c){return c.type==='remove';}).length;
   const edits   = changes.filter(function(c){return c.type==='change';}).length;
@@ -8782,6 +8785,8 @@ function saveInvSnapshot(){
   if(inp)inp.value='';
   const nameInp=document.getElementById('snap-save-name');
   if(nameInp)nameInp.value='';
+  const dateInp=document.getElementById('snap-save-date-input');
+  if(dateInp)dateInp.value=new Date().toISOString().slice(0,10);
   const prev=document.getElementById('snap-save-avatar-preview');
   if(prev){prev.textContent='?';prev.style.background='var(--b5)';}
   snapSaveUpdatePreview();
@@ -8809,19 +8814,34 @@ function snapSaveUpdatePreview(){
   const av=document.getElementById('snap-save-preview-avatar');
   const lbl=document.getElementById('snap-save-preview-label');
   const dt=document.getElementById('snap-save-preview-dt');
-  const now=new Date().toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
+  const dateVal=document.getElementById('snap-save-date-input')?.value||'';
+  const dateStr=dateVal?new Date(dateVal+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'No date selected';
   if(av){av.textContent=initials||'';av.style.background=color;}
   var labelParts=[];
   if(name)labelParts.push(name);
   if(initials)labelParts.push(initials);
   if(lbl)lbl.textContent=labelParts.join(' · ')||'(no name or initials)';
-  if(dt)dt.textContent=now;
+  if(dt)dt.textContent=dateStr;
 }
 
 async function confirmSaveSnapshot(){
   const name=document.getElementById('snap-save-name')?.value.trim()||'';
+  const dateVal=document.getElementById('snap-save-date-input')?.value||'';
   const initials=_snapSaveInitials||'';
   const color=_snapSaveColor||'';
+  // Enforce required fields
+  const nameInpEl=document.getElementById('snap-save-name');
+  const dateInpEl=document.getElementById('snap-save-date-input');
+  if(!name){
+    if(nameInpEl){nameInpEl.style.borderColor='var(--r5)';nameInpEl.focus();}
+    showToast('Snapshot name is required','error');return;
+  }
+  if(!dateVal){
+    if(dateInpEl){dateInpEl.style.borderColor='var(--r5)';dateInpEl.focus();}
+    showToast('Snapshot date is required','error');return;
+  }
+  if(nameInpEl)nameInpEl.style.borderColor='';
+  if(dateInpEl)dateInpEl.style.borderColor='';
   closeSnapSaveModal();
   const entries=PRODUCTS.map(function(p){
     const filled=invHave[p[2]]!==undefined&&invHave[p[2]]!==null;
@@ -8831,7 +8851,7 @@ async function confirmSaveSnapshot(){
   if(name)labelParts.push(name);
   if(initials)labelParts.push(initials);
   const label=labelParts.join(' · ')||null;
-  const{data:ns,error}=await sb.from('inventory').insert({location_id:LOCATION_ID,data:{entries,label,takenBy:{initials,color}}}).select().single();
+  const{data:ns,error}=await sb.from('inventory').insert({location_id:LOCATION_ID,data:{entries,label,snapshotDate:dateVal,takenBy:{initials,color}}}).select().single();
   if(error){showToast('Snapshot failed','error');return;}
   INV_SNAPSHOTS.unshift(ns);showToast('Snapshot saved ok','success');renderInvSnapPicker();renderDashboardWidgets();
 }
