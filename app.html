@@ -7117,32 +7117,20 @@ const _swatchColors = ['#e53935','#e91e8c','#9c27b0','#3f51b5','#1a73e8','#00acc
 
 
 // ── PRODUCT NAME DISPLAY PARSER ──────────────────────────────────────────────
-// Splits "Base Name - Flavor (size/qty)" into {main, sub}
-// main = everything before first " - "
-// sub  = dash part + paren part joined with " · " (parens stripped)
+// Row 1 (main): base name + flavor/variant (everything except parens qty/size)
+// Row 2 (sub):  parens content only (size, qty, packet count)
+//
+// "NRG Tea - PF Hibiscus (30 pkt)"  → main: "NRG Tea - PF Hibiscus"  sub: "30 pkt"
+// "Blackberry (4.4 oz)"             → main: "Blackberry"              sub: "4.4 oz"
+// "Iced Coffee - Mocha"             → main: "Iced Coffee - Mocha"     sub: ""
+// "Vanilla PDM"                     → main: "Vanilla PDM"             sub: ""
 function parseProdName(name) {
   if (!name) return {main: '', sub: ''};
-  var dashIdx = name.indexOf(' - ');
-  var parenIdx = name.indexOf('(');
-  var main, sub = '';
-  if (dashIdx >= 0) {
-    main = name.slice(0, dashIdx).trim();
-    var rest = name.slice(dashIdx + 3).trim();
-    // rest may contain parens at the end: "Flavor (qty)"
-    var pm = rest.match(/^(.*?)\s*\(([^)]+)\)\s*$/);
-    if (pm) {
-      sub = [pm[1].trim(), pm[2].trim()].filter(Boolean).join(' · ');
-    } else {
-      sub = rest;
-    }
-  } else if (parenIdx >= 0) {
-    main = name.slice(0, parenIdx).trim();
-    var pm2 = name.match(/\(([^)]+)\)/);
-    sub = pm2 ? pm2[1].trim() : '';
-  } else {
-    main = name;
+  var parenMatch = name.match(/^(.*?)\s*\(([^)]+)\)\s*$/);
+  if (parenMatch) {
+    return {main: parenMatch[1].trim(), sub: parenMatch[2].trim()};
   }
-  return {main: main, sub: sub};
+  return {main: name, sub: ''};
 }
 // ─────────────────────────────────────────────────────────────────────────────
 function getOpColor(name) {
