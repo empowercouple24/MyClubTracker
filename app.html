@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-10 14:00:00 -->
+<!-- CACHE BUST: 2026-04-10 15:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -442,7 +442,7 @@ if('serviceWorker' in navigator){
     .op-assign-btn.oos-btn{background:var(--r0,#fee2e2);color:var(--r5,#ef4444);border-color:var(--r3,#fca5a5);cursor:default;}
     .op-color-trigger{width:26px;height:26px;border-radius:50%;cursor:pointer;flex-shrink:0;border:2px solid rgba(255,255,255,0.6);box-shadow:0 0 0 1.5px rgba(0,0,0,0.15);transition:transform 0.12s;}
     .op-color-trigger:hover{transform:scale(1.12);}
-    .op-color-pop{display:none;position:absolute;right:0;top:32px;z-index:200;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:10px;box-shadow:0 4px 16px rgba(0,0,0,0.14);width:168px;}
+    .op-color-pop{display:none;position:fixed;z-index:2000;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:10px;box-shadow:0 4px 16px rgba(0,0,0,0.18);width:168px;}
     .op-color-pop.open{display:block;}
     .op-color-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;}
     .op-color-swatch{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2.5px solid transparent;transition:transform 0.1s;}
@@ -7142,10 +7142,26 @@ function toggleTeamMemberActive(i) {
 
 function toggleTmColorPop(i) {
   const pop = document.getElementById('tm-color-pop-' + i);
+  const trigger = document.getElementById('tm-color-trigger-' + i);
   if (!pop) return;
   const wasOpen = pop.classList.contains('open');
   document.querySelectorAll('.op-color-pop').forEach(function(p){ p.classList.remove('open'); });
-  if (!wasOpen) pop.classList.add('open');
+  if (!wasOpen) {
+    pop.classList.add('open');
+    // Position popup relative to trigger, keeping it in viewport
+    if (trigger) {
+      const r = trigger.getBoundingClientRect();
+      const popW = 168, popH = 120;
+      var left = r.left;
+      var top  = r.bottom + 6;
+      // Clamp right edge
+      if (left + popW > window.innerWidth - 8) left = window.innerWidth - popW - 8;
+      // Clamp bottom edge — flip above if needed
+      if (top + popH > window.innerHeight - 8) top = r.top - popH - 6;
+      pop.style.left = left + 'px';
+      pop.style.top  = top  + 'px';
+    }
+  }
 }
 
 function pickTeamMemberColor(i, color) {
