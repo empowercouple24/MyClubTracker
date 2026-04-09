@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-08 21:15:00 -->
+<!-- CACHE BUST: 2026-04-08 21:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -11040,50 +11040,53 @@ function printSummaryPDF() {
     var tbl = tableWrap.querySelector('table');
     if(!tbl){resetBtn();return;}
 
-    // Read actual rendered column widths from the live table header cells
-    var liveThs = tbl.querySelectorAll('thead tr th');
-    var colWidths = [];
-    liveThs.forEach(function(th){ colWidths.push(th.getBoundingClientRect().width); });
-    var totalW = colWidths.reduce(function(a,b){return a+b;}, 0);
+    // Measure the full natural table dimensions before any manipulation
+    var fullTableW = tbl.scrollWidth;
+    var fullTableH = tbl.scrollHeight;
 
-    // Clone table and stamp explicit widths onto every cell so html2canvas sees them
-    var clone = tbl.cloneNode(true);
-    clone.style.cssText = 'border-collapse:collapse;table-layout:fixed;width:'+totalW+'px;font-family:DM Sans,sans-serif;font-size:11px;';
-
-    // Apply widths to header cells
-    var cloneThs = clone.querySelectorAll('thead tr th');
-    cloneThs.forEach(function(th, i){
-      if(colWidths[i]) th.style.width = colWidths[i]+'px';
-      th.style.whiteSpace = 'nowrap';
-      th.style.overflow   = 'hidden';
-    });
-
-    // Apply widths to all body cells by column index
-    var cloneRows = clone.querySelectorAll('tbody tr');
-    cloneRows.forEach(function(tr){
-      var cells = tr.querySelectorAll('td');
-      cells.forEach(function(td, i){
-        if(colWidths[i]) td.style.width = colWidths[i]+'px';
-        td.style.whiteSpace = 'nowrap';
-        td.style.overflow   = 'hidden';
-      });
-    });
-
-    // Place clone in hidden offscreen container
-    var container = document.createElement('div');
-    container.style.cssText = 'position:fixed;left:-99999px;top:0;overflow:visible;padding:12px 16px;background:#1e2d3a;';
-    container.appendChild(clone);
-    document.body.appendChild(container);
-
+    // Hide button so it won't appear
     if(btn) btn.style.visibility = 'hidden';
 
-    window.html2canvas(container, {
+    // Strategy: move tableWrap to a fixed overlay position at full width,
+    // capture it, then restore — no layout reflow, no page blowout
+    var savedStyles = {
+      overflow:   tableWrap.style.overflow,
+      width:      tableWrap.style.width,
+      position:   tableWrap.style.position,
+      top:        tableWrap.style.top,
+      left:       tableWrap.style.left,
+      zIndex:     tableWrap.style.zIndex,
+      scrollLeft: tableWrap.scrollLeft
+    };
+
+    // Place tableWrap in a fixed overlay — won't affect page flow
+    tableWrap.style.position  = 'fixed';
+    tableWrap.style.top       = '0';
+    tableWrap.style.left      = '0';
+    tableWrap.style.width     = fullTableW + 'px';
+    tableWrap.style.overflow  = 'visible';
+    tableWrap.style.zIndex    = '-1000'; // behind everything — invisible to user
+    tableWrap.scrollLeft      = 0;       // reset scroll so FIELD col is at left edge
+
+    window.html2canvas(tableWrap, {
       scale: 3,
       useCORS: true,
       logging: false,
-      backgroundColor: '#1e2d3a'
+      width:  fullTableW,
+      height: fullTableH,
+      windowWidth:  fullTableW,
+      windowHeight: fullTableH,
+      x: 0,
+      y: 0
     }).then(function(canvas){
-      document.body.removeChild(container);
+      // Restore tableWrap exactly as it was
+      tableWrap.style.position  = savedStyles.position;
+      tableWrap.style.top       = savedStyles.top;
+      tableWrap.style.left      = savedStyles.left;
+      tableWrap.style.width     = savedStyles.width;
+      tableWrap.style.overflow  = savedStyles.overflow;
+      tableWrap.style.zIndex    = savedStyles.zIndex;
+      tableWrap.scrollLeft      = savedStyles.scrollLeft;
       if(btn) btn.style.visibility = 'visible';
 
       var imgW = canvas.width;
@@ -11161,7 +11164,14 @@ function printSummaryPDF() {
       }
     }).catch(function(err){
       console.error('html2canvas error:',err);
-      document.body.removeChild(container);
+      // Always restore on error
+      tableWrap.style.position  = savedStyles.position;
+      tableWrap.style.top       = savedStyles.top;
+      tableWrap.style.left      = savedStyles.left;
+      tableWrap.style.width     = savedStyles.width;
+      tableWrap.style.overflow  = savedStyles.overflow;
+      tableWrap.style.zIndex    = savedStyles.zIndex;
+      tableWrap.scrollLeft      = savedStyles.scrollLeft;
       if(btn) btn.style.visibility = 'visible';
       resetBtn();
     });
