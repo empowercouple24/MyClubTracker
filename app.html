@@ -7187,8 +7187,8 @@ function getTeamMembers() {
     if (!emp.name) return;
     result.push({
       name: emp.name,
-      aliases: '',
-      color: null,
+      aliases: emp.aliases || '',
+      color: emp.color || null,
       role: 'Hourly',
       hourlyRate: emp.hourlyRate || 0,
       visible: true
@@ -10269,12 +10269,21 @@ function renderPaymentRegister() {
     <th style="width:36px;"></th>
   </tr></thead>`;
 
-  const currentMembers = new Set(getTeamMembers().map(function(m){ return m.name; }));
+  // Build name+alias → color map for all team members (all roles)
+  const _memberColorMap = {};
+  getTeamMembers().forEach(function(m){
+    if(!m.name) return;
+    const c = getOpColor(m.name);
+    _memberColorMap[m.name.trim().toLowerCase()] = c;
+    (m.aliases||'').split(',').forEach(function(a){
+      var at = a.trim().toLowerCase();
+      if(at) _memberColorMap[at] = c;
+    });
+  });
 
   const rows = sorted.map(e => {
     const checkDisp = e.checkNum ? '#'+e.checkNum : (e.method&&e.method!=='check'?({venmo:'Venmo',cash:'Cash',direct_deposit:'Dir. Dep.',other:'Other'}[e.method]||e.method):'—');
-    const isCurrentMember = currentMembers.has(e.payee||'');
-    const memberColor = isCurrentMember ? getOpColor(e.payee) : null;
+    const memberColor = e.payee ? (_memberColorMap[(e.payee||'').trim().toLowerCase()] || null) : null;
     const rowBg = memberColor ? `background:${memberColor}18;` : '';
     const leftAccent = memberColor ? `border-left:3px solid ${memberColor}55;` : 'border-left:3px solid transparent;';
     return `<tr onclick="openPregSheet('${e.id}')" style="${rowBg}${leftAccent}">
