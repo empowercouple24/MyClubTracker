@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-09 21:00:00 -->
+<!-- CACHE BUST: 2026-04-10 00:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -1245,6 +1245,14 @@ if('serviceWorker' in navigator){
           <div class="summary-card-val" id="sum-payouts">—</div>
           <div class="summary-card-sub" id="sum-perdv">—</div>
         </div>
+      </div>
+      <div class="summary-card" id="sum-fundraiser-card" style="display:none;background:rgba(125,232,138,0.18);border:1px solid rgba(125,232,138,0.3);">
+        <div style="display:flex;align-items:baseline;gap:6px;flex:1;">
+          <div class="summary-card-label" style="color:#7de88a;">Fundraisers</div>
+          <div class="summary-card-rate" id="sum-fundraiser-card-sub" style="color:rgba(125,232,138,0.75);"></div>
+        </div>
+        <button class="sum-copy-btn" id="copy-btn-fundraiser" onclick="copySummaryVal('sum-fundraiser-card-val','copy-btn-fundraiser')" title="Copy to clipboard">📋 Copy</button>
+        <div class="summary-card-val" id="sum-fundraiser-card-val" style="color:#7de88a;">—</div>
       </div>
     </div>
     <div class="summary-balance">
@@ -6448,9 +6456,12 @@ function calcAll(){
   const fundraiserTotal=fundraiserCard+fundraiserCash+donation;
   // Row 32: $/DV -- use overhead2 (which includes reinvested share)
   const perDV=group2&&overhead2!==null?(tax+overhead2+products+payouts+fundraiserTotal-fundraiserCash)/dv:null;
-  // Balance -- use overhead2 so balance check still passes with reinvestment
+  // Balance -- fundraiserCash is outside totalSales so excluded.
+  // donation cancels algebraically (removed from overhead, flows back through payouts).
+  // Only fundraiserCard needs adding back (it was deducted from overhead but also cancels in payouts, leaving it missing).
   const hasFundraiser=fundraiserCard>0||fundraiserCash>0||fundraiserPct>0;
-  const balLHS=tax!==null&&overhead2!==null&&products!==null&&payouts!==null?Math.round((tax+overhead2+products+payouts+(hasFundraiser?fundraiserTotal:0))*100)/100:null;
+  const fundraiserInFlow=fundraiserCard; // only card donations need restoring to balance
+  const balLHS=tax!==null&&overhead2!==null&&products!==null&&payouts!==null?Math.round((tax+overhead2+products+payouts+fundraiserInFlow)*100)/100:null;
   const balRHS=group1?Math.round(totalSales*100)/100:null;
   const balanced=balLHS!==null&&balRHS!==null?balLHS===balRHS:null;
   const balDiff=balLHS!==null&&balRHS!==null?balLHS-balRHS:null;
@@ -6485,7 +6496,8 @@ function calcAllFromData(d){
   const fundraiserTotal=fundraiserCard+fundraiserCash+donation;
   const perDV=group2&&overhead2!==null?(tax+overhead2+products+payouts+fundraiserTotal-fundraiserCash)/dv:null;
   const hasFundraiser=fundraiserCard>0||fundraiserCash>0||fundraiserPct>0;
-  const balLHS=tax!==null&&overhead2!==null&&products!==null&&payouts!==null?Math.round((tax+overhead2+products+payouts+(hasFundraiser?fundraiserTotal:0))*100)/100:null;
+  const fundraiserInFlow=fundraiserCard;
+  const balLHS=tax!==null&&overhead2!==null&&products!==null&&payouts!==null?Math.round((tax+overhead2+products+payouts+fundraiserInFlow)*100)/100:null;
   const balRHS=group1?Math.round(totalSales*100)/100:null;
   const balanced=balLHS!==null&&balRHS!==null?balLHS===balRHS:null;
   const balDiff=balLHS!==null&&balRHS!==null?balLHS-balRHS:null;
@@ -6603,7 +6615,7 @@ function recalc(userChanged=false){
   const badgeMerch=document.getElementById('badge-merchRate');
   if(badgeOther)badgeOther.textContent=SETTINGS.otherRate+'% OH';
   if(badgeMerch)badgeMerch.textContent=SETTINGS.merchRate+'% OH';
-  // Fundraiser hero
+  // Fundraiser hero (top-right of summary hero)
   const heroEl=document.getElementById('sum-fundraiser-hero');
   if(heroEl)heroEl.classList.toggle('visible',c.hasFundraiser);
   if(c.hasFundraiser){
@@ -6615,6 +6627,23 @@ function recalc(userChanged=false){
     if(fPct>0&&c.group1)lines.push(fPct+'% of deposits: '+fmt$(c.donation));
     const bdEl=document.getElementById('sum-fundraiser-breakdown');
     if(bdEl)bdEl.innerHTML=lines.map(l=>'<span>'+l+'</span>').join('');
+  }
+  // Fundraiser summary card (inline in cards list)
+  const fCard=document.getElementById('sum-fundraiser-card');
+  if(fCard){
+    if(c.hasFundraiser){
+      fCard.style.display='flex';
+      setText('sum-fundraiser-card-val', fmt$(c.fundraiserTotal));
+      const fPct2=parseFloat(document.getElementById('f-fundraiserPct')?.value||0);
+      const subParts=[];
+      if(c.fundraiserCard>0)subParts.push('card '+fmt$(c.fundraiserCard));
+      if(c.fundraiserCash>0)subParts.push('cash '+fmt$(c.fundraiserCash));
+      if(fPct2>0&&c.group1)subParts.push(fPct2+'% donation');
+      setText('sum-fundraiser-card-sub', subParts.join(' · '));
+      setSumCopyVisible('sum-fundraiser-card-val','copy-btn-fundraiser');
+    } else {
+      fCard.style.display='none';
+    }
   }
   // Donation % subtitle
   const fPct=parseFloat(document.getElementById('f-fundraiserPct')?.value||0);
