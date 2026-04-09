@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-09 12:00:00 -->
+<!-- CACHE BUST: 2026-04-09 15:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -918,6 +918,7 @@ if('serviceWorker' in navigator){
     .recon-date-lbl{font-size:11px;color:rgba(255,255,255,0.55);white-space:nowrap;}
     .recon-date-input{font-size:12px;font-weight:600;padding:5px 10px;border-radius:7px;border:0.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.1);color:white;outline:none;font-family:DM Sans,sans-serif;width:145px;}
     .recon-date-input::-webkit-calendar-picker-indicator{filter:invert(1);opacity:0.5;}
+    #recon-from-date::-webkit-calendar-picker-indicator{filter:invert(1);opacity:0.6;cursor:pointer;}
     .recon-run-btn{font-size:12px;font-weight:700;padding:5px 14px;border-radius:7px;border:none;background:white;color:var(--b8);cursor:pointer;white-space:nowrap;font-family:DM Sans,sans-serif;}
     .recon-run-btn:hover{background:var(--b1);}
     .recon-run-btn:disabled{opacity:0.4;cursor:default;}
@@ -1331,15 +1332,15 @@ if('serviceWorker' in navigator){
     <!-- Bank Reconciliation Widget — banner always visible, body expands -->
     <div class="recon-widget" id="recon-widget" style="display:none;margin-bottom:4px;">
       <!-- HEADER — always visible, click to expand/collapse -->
-      <div class="recon-banner" onclick="toggleReconWidget()">
-        <div class="recon-banner-left">
+      <div class="recon-banner" onclick="toggleReconWidget()" style="align-items:center;">
+        <div class="recon-banner-left" style="display:flex;flex-direction:column;justify-content:center;">
           <div class="recon-banner-lbl">Unallocated Balance</div>
-          <div style="display:flex;align-items:baseline;gap:12px;">
+          <div style="display:flex;align-items:flex-start;gap:12px;margin-top:1px;">
             <div class="recon-banner-val" id="recon-unalloc-val">—</div>
-            <div id="recon-off-block" style="display:none;align-items:baseline;gap:8px;">
-              <div style="width:0.5px;height:20px;background:rgba(255,255,255,0.2);flex-shrink:0;align-self:center;"></div>
-              <div style="display:flex;flex-direction:column;gap:0px;">
-                <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:rgba(255,255,255,0.4);line-height:1;margin-bottom:1px;">Off by</div>
+            <div id="recon-off-block" style="display:none;align-items:flex-start;gap:8px;">
+              <div style="width:0.5px;height:36px;background:rgba(255,255,255,0.2);flex-shrink:0;margin-top:2px;"></div>
+              <div style="display:flex;flex-direction:column;gap:0px;padding-top:2px;">
+                <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:rgba(255,255,255,0.4);line-height:1;margin-bottom:2px;">Off by</div>
                 <div id="recon-off-val" style="font-family:Outfit,sans-serif;font-size:20px;font-weight:800;color:#e09820;line-height:1;">—</div>
               </div>
             </div>
@@ -1367,10 +1368,12 @@ if('serviceWorker' in navigator){
       <!-- BODY — expands on click, NOT sticky (scrolls away) -->
       <div class="recon-body" id="recon-body">
 
-        <!-- Lookback month picker -->
+        <!-- Lookback date picker -->
         <div style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:0.5px solid rgba(255,255,255,0.08);">
           <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:rgba(255,255,255,0.45);">From</span>
-          <select id="recon-from-month" onchange="onReconMonthChange()" style="font-family:DM Sans,sans-serif;font-size:12px;font-weight:600;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:4px 8px;color:white;outline:none;cursor:pointer;"></select>
+          <button onclick="shiftReconFromDate(-1)" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:5px;color:rgba(255,255,255,0.7);font-size:13px;font-weight:700;padding:2px 7px;cursor:pointer;line-height:1;flex-shrink:0;">&#8592;</button>
+          <input type="date" id="recon-from-date" onchange="onReconFromDateChange()" style="font-family:DM Sans,sans-serif;font-size:12px;font-weight:600;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:4px 8px;color:white;outline:none;cursor:pointer;width:140px;" />
+          <button onclick="shiftReconFromDate(1)" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:5px;color:rgba(255,255,255,0.7);font-size:13px;font-weight:700;padding:2px 7px;cursor:pointer;line-height:1;flex-shrink:0;">&#8594;</button>
           <span style="font-size:11px;color:rgba(255,255,255,0.35);">to today</span>
           <button onclick="resetReconFromDate()" style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.4);background:none;border:none;cursor:pointer;padding:0 2px;margin-left:auto;">Reset</button>
         </div>
@@ -1487,9 +1490,16 @@ if('serviceWorker' in navigator){
 
     <!-- Allocation remaining — always visible below calendar -->
     <div id="hist-alloc-section" style="margin-top:14px;display:none;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-        <div class="section-label" style="margin:0;">Remaining This Month</div>
-        <button onclick="toggleHistAllocList()" id="hist-alloc-toggle-btn" style="font-size:11px;font-weight:600;color:var(--b6);background:none;border:none;cursor:pointer;padding:2px 0;">Hide ▲</button>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:6px;">
+        <div class="section-label" style="margin:0;" id="hist-alloc-title">Remaining This Month</div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div style="display:flex;gap:4px;" id="hist-alloc-filter-pills">
+            <button onclick="setHistAllocFilter('unallocated',this)" id="hist-fpill-unallocated" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;border:1.5px solid var(--b5);background:var(--b5);color:#fff;cursor:pointer;font-family:DM Sans,sans-serif;white-space:nowrap;">Unallocated</button>
+            <button onclick="setHistAllocFilter('allocated',this)" id="hist-fpill-allocated" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;border:1.5px solid var(--border);background:var(--b0);color:var(--text-muted);cursor:pointer;font-family:DM Sans,sans-serif;white-space:nowrap;">Allocated</button>
+            <button onclick="setHistAllocFilter('all',this)" id="hist-fpill-all" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;border:1.5px solid var(--border);background:var(--b0);color:var(--text-muted);cursor:pointer;font-family:DM Sans,sans-serif;white-space:nowrap;">All</button>
+          </div>
+          <button onclick="toggleHistAllocList()" id="hist-alloc-toggle-btn" style="font-size:11px;font-weight:600;color:var(--b6);background:none;border:none;cursor:pointer;padding:2px 0;">Hide ▲</button>
+        </div>
       </div>
       <div id="hist-alloc-list"></div>
       <div id="hist-alloc-done" style="display:none;margin-bottom:8px;padding:12px;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);text-align:center;box-shadow:var(--shadow-sm);">
@@ -7145,6 +7155,7 @@ function calSales(d){if(!d)return 0;const cs=parseFloat(d.cashSales)||0,cas=pars
 
 // History calendar state
 let _histCalYear=null,_histCalMonth=null;
+let _histAllocFilter='unallocated'; // 'all' | 'unallocated' | 'allocated'
 
 // -- FILL MISSING DV --
 function getMissingDvDays(){
@@ -9732,51 +9743,248 @@ function renderPaymentRegister() {
   if (footerTotal) footerTotal.textContent = (_pregFilter!=='all') ? 'Filtered: '+sorted.length+' of '+allLog.length+' entries' : '';
 }
 
-// ── ONE-TIME PAY PERIOD MIGRATION ────────────────────────────────────────────
+// ── COMPLETE PAY PERIOD MIGRATION ────────────────────────────────────────────
 async function migratePayPeriods2026() {
   if (!SETTINGS.paymentLog || !SETTINGS.paymentLog.length) return;
+  // Keyed by exact entry ID — covers all 224 records, always overwrites
   const MAP = {
-    '1180': { from: '2026-03-23', to: '2026-03-29' }, // Mary Nemecek $752.56
-    '1102': { from: '2026-03-02', to: '2026-03-22' }, // Giana Taft $576.00
-    '1103': { from: '2026-03-16', to: '2026-03-22' }, // Heather Mercsak $325.00
-    '1177': { from: '2026-03-16', to: '2026-03-22' }, // Jessica Glover $418.69
-    '1178': { from: '2026-03-16', to: '2026-03-22' }, // Mary Nemecek $617.62
-    '1100': { from: '2026-03-02', to: '2026-03-15' }, // Heather Mercsak $299.00
-    '1175': { from: '2026-03-09', to: '2026-03-15' }, // Jessica Glover $331.94
-    '1176': { from: '2026-03-09', to: '2026-03-15' }, // Mary Nemecek $807.35
-    '1173': { from: '2026-03-02', to: '2026-03-08' }, // Jessica Glover $292.49
-    '1174': { from: '2026-03-02', to: '2026-03-08' }, // Mary Nemecek $663.47
-    '1097': { from: '2026-02-15', to: '2026-03-01' }, // Giana Taft $288.00
-    '1098': { from: '2026-02-23', to: '2026-03-01' }, // Heather Mercsak $192.00
-    '1171': { from: '2026-02-23', to: '2026-03-01' }, // Jessica Glover $573.28
-    '1172': { from: '2026-02-23', to: '2026-03-01' }, // Mary Nemecek $500.65
-    '1095': { from: '2026-01-21', to: '2026-02-22' }, // Heather Mercsak $549.00
-    '1069': { from: '2026-02-15', to: '2026-02-21' }, // Jessica Glover $349.71
-    '1094': { from: '2026-01-26', to: '2026-02-14' }, // Giana Taft $552.00
-    '1168': { from: '2026-02-01', to: '2026-02-14' }, // Jessica Glover $1045.85
-    '1170': { from: '2026-02-07', to: '2026-02-21' }, // Mary Nemecek $1414.56
-    '1167': { from: '2026-02-01', to: '2026-02-06' }, // Mary Nemecek $452.37
-    '1165': { from: '2026-01-27', to: '2026-01-31' }, // Jessica Glover $412.34
-    '1166': { from: '2026-01-27', to: '2026-01-31' }, // Mary Nemecek $499.78
-    '1091': { from: '2026-01-12', to: '2026-01-25' }, // Giana Taft $384.00
-    '1162': { from: '2026-01-19', to: '2026-01-24' }, // Briana Kozak $110.29
+    'import_1_20240820':  ['2024-08-12','2024-08-28'],
+    'import_2_20240905':  ['2024-08-12','2024-09-04'],
+    'import_3_20240911':  ['2024-09-05','2024-09-11'],
+    'import_4_20240917':  ['2024-08-30','2024-09-14'],
+    'import_5_20240926':  ['2024-09-12','2024-09-26'],
+    'import_6_20240927':  ['2024-09-17','2024-09-25'],
+    'import_7_20241003':  ['2024-09-27','2024-10-01'],
+    'import_8_20241004':  ['2024-09-27','2024-10-04'],
+    'import_9_20241012':  ['2024-10-07','2024-10-12'],
+    'import_10_20241012': ['2024-10-07','2024-10-12'],
+    'import_11_20241012': ['2024-10-07','2024-10-12'],
+    'import_12_20241021': ['2024-10-14','2024-10-19'],
+    'import_13_20241021': ['2024-10-14','2024-10-19'],
+    'import_14_20241031': ['2024-10-21','2024-10-31'],
+    'import_15_20241108': ['2024-10-21','2024-11-08'],
+    'import_16_20241108': ['2024-11-01','2024-11-08'],
+    'import_17_20241118': ['2024-11-09','2024-11-16'],
+    'import_18_20241118': ['2024-11-09','2024-11-16'],
+    'import_19_20241118': ['2024-11-09','2024-11-16'],
+    'import_20_20241118': ['2024-11-09','2024-11-16'],
+    'import_21_20241125': ['2024-11-18','2024-11-23'],
+    'import_22_20241125': ['2024-11-18','2024-11-23'],
+    'import_23_20241125': ['2024-11-18','2024-11-23'],
+    'import_24_20241125': ['2024-11-18','2024-11-23'],
+    'import_25_20241202': ['2024-11-25','2024-11-30'],
+    'import_26_20241202': ['2024-11-25','2024-11-30'],
+    'import_27_20241208': ['2024-12-02','2024-12-07'],
+    'import_28_20241208': ['2024-12-02','2024-12-07'],
+    'import_29_20241211': ['2024-12-09','2024-12-14'],
+    'import_30_20241217': ['2024-12-09','2024-12-14'],
+    'import_31_20241217': ['2024-12-16','2024-12-21'],
+    'import_32_20241217': ['2024-12-14','2024-12-14'],
+    'import_33_20241226': ['2024-12-16','2024-12-21'],
+    'import_34_20241226': ['2024-12-16','2024-12-16'],
+    'import_35_20241226': ['2024-12-20','2024-12-20'],
+    'import_36_20250102': ['2024-12-26','2024-12-31'],
+    'import_37_20250112': ['2025-01-01','2025-01-11'],
+    'import_38_20250112': ['2025-01-01','2025-01-11'],
+    'import_39_20250118': ['2025-01-13','2025-01-18'],
+    'import_40_20250118': ['2025-01-13','2025-01-18'],
+    'import_41_20250118': ['2025-01-10','2025-01-10'],
+    'import_42_20250125': ['2025-01-20','2025-01-25'],
+    'import_43_20250125': ['2025-01-20','2025-01-25'],
+    'import_44_20250201': ['2025-01-26','2025-01-31'],
+    'import_45_20250201': ['2025-01-26','2025-01-31'],
+    'import_46_20250209': ['2025-02-01','2025-02-09'],
+    'import_47_20250209': ['2025-02-01','2025-02-09'],
+    'import_48_20250209': ['2025-02-01','2025-02-09'],
+    'import_49_20250216': ['2025-02-10','2025-02-15'],
+    'import_50_20250216': ['2025-02-10','2025-02-15'],
+    'import_51_20250224': ['2025-02-17','2025-02-22'],
+    'import_52_20250224': ['2025-02-17','2025-02-22'],
+    'import_53_20250224': ['2025-02-22','2025-02-22'],
+    'import_54_20250227': ['2025-02-24','2025-02-27'],
+    'import_55_20250305': ['2025-02-24','2025-03-01'],
+    'import_56_20250312': ['2025-03-03','2025-03-08'],
+    'import_57_20250312': ['2025-03-03','2025-03-08'],
+    'import_58_20250315': ['2025-03-10','2025-03-15'],
+    'import_59_20250315': ['2025-03-10','2025-03-15'],
+    'import_60_20250324': ['2025-03-17','2025-03-22'],
+    'import_61_20250328': ['2025-03-16','2025-03-22'],
+    'import_62_20250403': ['2025-03-24','2025-03-31'],
+    'import_63_20250403': ['2025-03-24','2025-03-31'],
+    'import_64_20250405': ['2025-04-01','2025-04-05'],
+    'import_65_20250405': ['2025-04-01','2025-04-05'],
+    'import_66_20250414': ['2025-04-07','2025-04-12'],
+    'import_67_20250414': ['2025-04-07','2025-04-12'],
+    'import_68_20250421': ['2025-04-14','2025-04-19'],
+    'import_69_20250421': ['2025-04-14','2025-04-19'],
+    'import_70_20250424': ['2025-04-14','2025-04-19'],
+    'import_71_20250421': ['2025-04-07','2025-04-19'],
+    'import_72_20250429': ['2025-04-19','2025-04-26'],
+    'import_73_20250429': ['2025-04-19','2025-04-26'],
+    'import_74_20250505': ['2025-04-21','2025-05-04'],
+    'import_75_20250505': ['2025-04-21','2025-05-04'],
+    'import_76_20250505': ['2025-04-21','2025-05-04'],
+    'import_77_20250505': ['2025-05-04','2025-05-09'],
+    'import_78_20250509': ['2025-05-04','2025-05-09'],
+    'import_79_20250509': ['2025-05-04','2025-05-09'],
+    'import_80_20250509': ['2025-05-04','2025-05-09'],
+    'import_81_20250511': ['2025-05-05','2025-05-17'],
+    'import_82_20250518': ['2025-05-05','2025-05-17'],
+    'import_83_20250518': ['2025-05-05','2025-05-17'],
+    'import_84_20250518': ['2025-05-05','2025-05-17'],
+    'import_85_20250518': ['2025-05-05','2025-05-17'],
+    'import_86_20250527': ['2025-05-19','2025-05-27'],
+    'import_87_20250527': ['2025-05-19','2025-05-27'],
+    'import_88_20250527': ['2025-05-19','2025-05-27'],
+    'import_89_20250602': ['2025-05-27','2025-05-31'],
+    'import_90_20250602': ['2025-05-27','2025-05-31'],
+    'import_91_20250602': ['2025-05-27','2025-05-31'],
+    'import_92_20250602': ['2025-05-19','2025-05-31'],
+    'import_93_20250608': ['2025-06-01','2025-06-07'],
+    'import_94_20250608': ['2025-06-01','2025-06-07'],
+    'import_95_20250608': ['2025-06-01','2025-06-07'],
+    'import_96_20250614': ['2025-06-09','2025-06-14'],
+    'import_97_20250615':  ['2025-06-09','2025-06-14'],
+    'import_98_20250615':  ['2025-06-09','2025-06-14'],
+    'import_99_20250615':  ['2025-06-02','2025-06-14'],
+    'import_100_20250615': ['2025-06-02','2025-06-14'],
+    'import_101_20250615': ['2025-06-09','2025-06-14'],
+    'import_102_20250623': ['2025-06-16','2025-06-21'],
+    'import_103_20250623': ['2025-06-16','2025-06-21'],
+    'import_104_20250623': ['2025-06-16','2025-06-21'],
+    'import_105_20250625': ['2025-06-23','2025-06-25'],
+    'import_106_20250627': ['2025-06-27','2025-06-27'],
+    'import_107_20250630': ['2025-06-23','2025-06-30'],
+    'import_108_20250630': ['2025-06-15','2025-06-30'],
+    'import_109_20250630': ['2025-06-23','2025-06-30'],
+    'import_110_20250630': ['2025-06-02','2025-06-30'],
+    'import_111_20250630': ['2025-06-15','2025-06-30'],
+    'import_112_20250630': ['2025-06-09','2025-06-30'],
+    'import_113_20250630': ['2025-06-15','2025-06-30'],
+    'import_114_20250709': ['2025-07-01','2025-07-09'],
+    'import_115_20250709': ['2025-07-01','2025-07-09'],
+    'import_116_20250721': ['2025-07-10','2025-07-21'],
+    'import_117_20250721': ['2025-07-10','2025-07-21'],
+    'import_118_20250721': ['2025-07-01','2025-07-15'],
+    'import_119_20250721': ['2025-07-01','2025-07-15'],
+    'import_120_20250721': ['2025-07-01','2025-07-15'],
+    'import_121_20250801': ['2025-07-16','2025-07-31'],
+    'import_122_20250801': ['2025-07-16','2025-07-31'],
+    'import_123_20250801': ['2025-07-16','2025-07-31'],
+    'import_124_20250801': ['2025-07-16','2025-07-31'],
+    'import_125_20250730': ['2025-07-16','2025-07-31'],
+    'import_126_20250810': ['2025-08-01','2025-08-10'],
+    'import_127_20250810': ['2025-08-01','2025-08-10'],
+    'import_128_20250818': ['2025-08-11','2025-08-17'],
+    'import_129_20250818': ['2025-08-11','2025-08-17'],
+    'import_130_20250818': ['2025-08-01','2025-08-18'],
+    'import_131_20250818': ['2025-08-01','2025-08-18'],
+    'import_132_20250821': ['2025-08-01','2025-08-18'],
+    'import_133_20250902': ['2025-08-18','2025-08-31'],
+    'import_134_20250902': ['2025-08-18','2025-08-31'],
+    'import_135_20250902': ['2025-08-18','2025-08-31'],
+    'import_136_20250908': ['2025-09-01','2025-09-07'],
+    'import_137_20250908': ['2025-09-01','2025-09-07'],
+    'import_138_20250908': ['2025-09-01','2025-09-07'],
+    'import_139_20250915': ['2025-09-08','2025-09-13'],
+    'import_140_20250915': ['2025-09-08','2025-09-13'],
+    'import_141_20250915': ['2025-09-08','2025-09-13'],
+    'import_142_20250922': ['2025-09-15','2025-09-20'],
+    'import_143_20250922': ['2025-09-15','2025-09-20'],
+    'import_144_20250922': ['2025-09-15','2025-09-20'],
+    'import_145_20250929': ['2025-09-22','2025-09-27'],
+    'import_146_20250929': ['2025-09-22','2025-09-27'],
+    'import_147_20250929': ['2025-09-22','2025-09-27'],
+    'import_148_20251006': ['2025-09-29','2025-10-04'],
+    'import_149_20251006': ['2025-09-29','2025-10-04'],
+    'import_150_20251006': ['2025-09-29','2025-10-04'],
+    'import_151_20251014': ['2025-10-06','2025-10-11'],
+    'import_152_20251014': ['2025-10-06','2025-10-11'],
+    'import_153_20251014': ['2025-10-06','2025-10-11'],
+    'import_154_20251027': ['2025-10-13','2025-10-26'],
+    'import_155_20251027': ['2025-10-13','2025-10-26'],
+    'import_156_20251027': ['2025-10-13','2025-10-26'],
+    'import_157_20251021': ['2025-10-01','2025-10-21'],
+    'import_158_20251021': ['2025-10-01','2025-10-21'],
+    'import_159_20251108': ['2025-10-22','2025-11-08'],
+    'import_160_20251103': ['2025-10-27','2025-10-31'],
+    'import_161_20251103': ['2025-10-27','2025-10-31'],
+    'import_162_20251103': ['2025-10-27','2025-10-31'],
+    'import_163_20251109': ['2025-11-01','2025-11-09'],
+    'import_164_20251109': ['2025-11-01','2025-11-09'],
+    'import_165_20251109': ['2025-11-01','2025-11-09'],
+    'import_166_20251124': ['2025-11-10','2025-11-22'],
+    'import_167_20251124': ['2025-11-10','2025-11-22'],
+    'import_168_20251124': ['2025-11-10','2025-11-22'],
+    'import_169_20251124': ['2025-11-10','2025-11-22'],
+    'import_170_20251130': ['2025-11-28','2025-11-30'],
+    'import_171_20251202': ['2025-11-24','2025-11-30'],
+    'import_172_20251202': ['2025-11-24','2025-11-30'],
+    'import_173_20251210': ['2025-12-01','2025-12-10'],
+    'import_174_20251210': ['2025-12-01','2025-12-10'],
+    'import_175_20251210': ['2025-12-01','2025-12-10'],
+    'import_176_20251210': ['2025-12-01','2025-12-10'],
+    'import_177_20251210': ['2025-11-24','2025-12-06'],
+    'import_178_20251222': ['2025-12-08','2025-12-21'],
+    'import_179_20251222': ['2025-12-08','2025-12-21'],
+    'import_180_20251222': ['2025-12-08','2025-12-21'],
+    'import_181_20251222': ['2025-12-11','2025-12-21'],
+    'import_182_20251222': ['2025-12-11','2025-12-21'],
+    'import_183_20251222': ['2025-12-11','2025-12-21'],
+    'import_184_20251222': ['Merry Christmas',''],
+    'import_185_20251222': ['Merry Christmas',''],
+    'import_186_20251222': ['Merry Christmas',''],
+    'import_187_20251222': ['Merry Christmas',''],
+    'import_188_20251222': ['Merry Christmas',''],
+    'import_189_20260105': ['2025-12-22','2026-01-04'],
+    'import_190_20260105': ['2025-12-22','2026-01-04'],
+    'import_191_20260105': ['2025-12-22','2026-01-04'],
+    'import_192_20260106': ['2025-12-22','2026-01-11'],
+    'import_193_20260106': ['2025-12-22','2026-01-11'],
+    'import_194_20260106': ['2025-12-22','2026-01-11'],
+    'import_195_20260118': ['2026-01-05','2026-01-18'],
+    'import_196_20260118': ['2026-01-05','2026-01-18'],
+    'import_197_20260118': ['2026-01-05','2026-01-18'],
+    'import_198_20260126': ['2026-01-12','2026-01-25'],
+    'import_199_20260126': ['2026-01-19','2026-01-24'],
+    'import_200_20260126': ['2026-01-19','2026-01-24'],
+    'import_201_20260126': ['2026-01-19','2026-01-26'],
+    'import_202_20260121': ['2025-12-17','2026-01-20'],
+    'import_203_20260202': ['2026-01-27','2026-01-31'],
+    'import_204_20260202': ['2026-01-27','2026-01-31'],
+    'import_205_20260206': ['2026-02-01','2026-02-06'],
+    'import_206_20260214': ['2026-01-26','2026-02-14'],
+    'import_207_20260214': ['2026-02-01','2026-02-14'],
+    'import_208_20260214': ['2026-02-07','2026-02-21'],
+    'import_209_20260221': ['2026-01-21','2026-02-22'],
+    'import_210_20260221': ['2026-02-15','2026-02-21'],
+    'import_211_20260302': ['2026-02-15','2026-03-01'],
+    'import_212_20260302': ['2026-02-23','2026-03-01'],
+    'import_213_20260302': ['2026-02-23','2026-03-01'],
+    'import_214_20260302': ['2026-02-23','2026-03-01'],
+    'import_215_20260316': ['2026-03-02','2026-03-15'],
+    'import_216_20260308': ['2026-03-02','2026-03-08'],
+    'import_217_20260314': ['2026-03-09','2026-03-15'],
+    'import_218_20260314': ['2026-03-09','2026-03-15'],
+    'import_219_20260308': ['2026-03-02','2026-03-08'],
+    'import_220_20260324': ['2026-03-02','2026-03-22'],
+    'import_221_20260324': ['2026-03-16','2026-03-22'],
+    'import_222_20260324': ['2026-03-16','2026-03-22'],
+    'import_223_20260324': ['2026-03-16','2026-03-22'],
+    'import_225_20260331': ['2026-03-23','2026-03-29'],
   };
   var updated = 0;
   SETTINGS.paymentLog.forEach(function(e) {
-    var pp = e.checkNum ? MAP[String(e.checkNum)] : null;
-    if (pp && !e.periodFrom) {
-      e.periodFrom = pp.from;
-      e.periodTo   = pp.to;
-      updated++;
-    }
+    var pp = MAP[e.id];
+    if (pp) { e.periodFrom = pp[0]; e.periodTo = pp[1]; updated++; }
   });
-  if (updated === 0) { SETTINGS._payPeriodMigrated2026 = true; return; }
   SETTINGS._payPeriodMigrated2026 = true;
   const {error} = await sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID);
   if (error) { console.warn('Pay period migration save failed:', error.message); return; }
   renderPaymentRegister();
-  console.log('Pay period migration: updated ' + updated + ' entries.');
+  console.log('Pay period migration complete: ' + updated + ' of ' + SETTINGS.paymentLog.length + ' entries updated.');
 }
+
 
 function confirmDeletePregEntry(id) {
   if (!confirm('Delete this payment entry? This cannot be undone.')) return;
@@ -10468,18 +10676,43 @@ function openReconDiag() {
 
 // ── END RECON DIAGNOSTIC ──────────────────────────────────────────────────────
 
+function setHistAllocFilter(val, btn) {
+  _histAllocFilter = val;
+  ['unallocated','allocated','all'].forEach(function(f) {
+    var el = document.getElementById('hist-fpill-' + f);
+    if (!el) return;
+    var active = f === val;
+    el.style.background = active ? 'var(--b5)' : 'var(--b0)';
+    el.style.color = active ? '#fff' : 'var(--text-muted)';
+    el.style.borderColor = active ? 'var(--b5)' : 'var(--border)';
+  });
+  var title = document.getElementById('hist-alloc-title');
+  if (title) {
+    title.textContent = val === 'allocated' ? 'Allocated This Month'
+      : val === 'all' ? 'All Days This Month'
+      : 'Remaining This Month';
+  }
+  renderHistAlloc();
+}
+
 function renderHistAlloc() {
   const yr = _histCalYear, mo = _histCalMonth;
   if (yr === null || mo === null) return;
 
   const keys = ['cashdeposit','tax','overhead','herbalife','payouts'];
   const BUCKET_LABELS = {cashdeposit:'Cash Deposit', tax:'Taxes', overhead:'Overhead', herbalife:'Herbalife', payouts:'Payouts'};
-  const allDays = []; // ALL days with sales data, sorted newest first
+  const allDays = [];
   let monthOwe = 0, monthDone = 0;
+
+  // Determine date range: from 1st of month to today (or end of month)
+  const today = new Date();
+  const todayStr = fmtDate(today);
+  const monthStart = yr + '-' + String(mo+1).padStart(2,'0') + '-01';
 
   ALL_DAYS.forEach(d => {
     const dt = new Date(d.date + 'T00:00:00');
     if (dt.getFullYear() !== yr || dt.getMonth() !== mo) return;
+    if (d.date < monthStart || d.date > todayStr) return; // only 1st → today
     const data = d.data || {};
     if (!calSales(data)) return;
     const c = calcAllFromData(data);
@@ -10488,26 +10721,12 @@ function renderHistAlloc() {
     const tr = data.transfers || {};
     bv.forEach((v,i) => { monthOwe += v; if (tr[keys[i]]) monthDone += v; });
     const doneCount = keys.filter(k => tr[k]).length;
-    const allComplete = doneCount === 5; // all 5 including cashdeposit
-    const allComplete5 = allComplete;
+    const allComplete = doneCount === 5;
     const dl = new Date(d.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
     const totalAmt = bv.reduce((s,v) => s+v, 0);
     const dayRemaining = keys.reduce((s,k,i) => s + (tr[k] ? 0 : bv[i]), 0);
-    allDays.push({
-      dateStr: d.date,
-      label: dl,
-      bv, tr, keys,
-      totalAmt,
-      dayRemaining,
-      doneCount,
-      allComplete,
-      allComplete5
-    });
+    allDays.push({ dateStr: d.date, label: dl, bv, tr, keys, totalAmt, dayRemaining, doneCount, allComplete, allComplete5: allComplete });
   });
-
-  // Sort newest first
-  // Only show days with pending allocations — completed days visible via quadrant circle on calendar
-  const pendingDays = allDays.filter(d => !d.allComplete5).sort((a,b) => b.dateStr.localeCompare(a.dateStr));
 
   const section = document.getElementById('hist-alloc-section');
   const list = document.getElementById('hist-alloc-list');
@@ -10517,12 +10736,29 @@ function renderHistAlloc() {
   if (monthOwe === 0) { section.style.display = 'none'; return; }
   section.style.display = 'block';
 
-  if (pendingDays.length === 0) {
-    list.innerHTML = '';
-    if (done) { done.style.display = 'block'; done.dataset.shouldShow = '1'; }
+  // Apply filter
+  const filter = _histAllocFilter || 'unallocated';
+  var filteredDays;
+  if (filter === 'allocated') {
+    filteredDays = allDays.filter(d => d.allComplete5).sort((a,b) => b.dateStr.localeCompare(a.dateStr));
+  } else if (filter === 'all') {
+    filteredDays = allDays.slice().sort((a,b) => b.dateStr.localeCompare(a.dateStr));
   } else {
-    if (done) { done.style.display = 'none'; done.dataset.shouldShow = '0'; }
-    list.innerHTML = pendingDays.map(day => {
+    filteredDays = allDays.filter(d => !d.allComplete5).sort((a,b) => b.dateStr.localeCompare(a.dateStr));
+  }
+
+  if (done) done.style.display = 'none';
+
+  if (filteredDays.length === 0) {
+    if (filter === 'unallocated') {
+      list.innerHTML = '';
+      if (done) { done.style.display = 'block'; done.dataset.shouldShow = '1'; }
+    } else {
+      list.innerHTML = '<div style="padding:12px;text-align:center;font-size:12px;color:var(--text-faint);">No ' + filter + ' days this month.</div>';
+    }
+  } else {
+    if (done) done.dataset.shouldShow = '0';
+    list.innerHTML = filteredDays.map(day => {
       const buckets = day.keys.map((k,i) => {
         const transferred = !!day.tr[k];
         const isCash = k === 'cashdeposit';
@@ -10539,20 +10775,22 @@ function renderHistAlloc() {
         </div>`;
       }).join('');
       const pendingAmt = day.keys.reduce((s,k,i) => s + (day.tr[k] ? 0 : day.bv[i]), 0);
-      return `<div data-date="${day.dateStr}" style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);margin-bottom:6px;overflow:hidden;box-shadow:var(--shadow-sm);cursor:pointer;transition:border-color 0.15s,box-shadow 0.15s;" onclick="openAllocDetail('${day.dateStr}')">
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid #a8bfcf;background:#b2c4d4;">
+      const headerBg = day.allComplete5 ? '#d0ead8' : '#b2c4d4';
+      const headerBdr = day.allComplete5 ? '#a8d4b4' : '#a8bfcf';
+      const headerAmt = day.allComplete5
+        ? `<span style="font-size:10px;font-weight:700;color:var(--g5);background:var(--g0);border-radius:4px;padding:1px 6px;margin-left:6px;">&#10003; Done</span>`
+        : `<span style="font-family:Outfit,sans-serif;font-size:14px;font-weight:800;color:var(--text);">${fmt$(pendingAmt)}</span>`;
+      return `<div data-date="${day.dateStr}" style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);margin-bottom:6px;overflow:hidden;box-shadow:var(--shadow-sm);cursor:pointer;" onclick="openAllocDetail('${day.dateStr}')">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid ${headerBdr};background:${headerBg};">
           <span style="font-size:13px;font-weight:700;color:#1e3040;">${day.label}</span>
-          <span style="font-family:Outfit,sans-serif;font-size:14px;font-weight:800;color:var(--text);">${fmt$(pendingAmt)}</span>
+          ${headerAmt}
         </div>
         <div style="display:flex;flex-wrap:wrap;">${buckets}</div>
       </div>`;
     }).join('');
   }
 
-  // Apply msel highlights if currently in multi-select mode
   if (_histView === 'msel') updateAllocHighlights();
-
-  // Show projections toggle once there's data
   const toggle = document.getElementById('hist-proj-toggle');
   if (toggle) toggle.style.display = 'block';
 }
@@ -11821,7 +12059,7 @@ function calcReconTotals() {
   let transfersTotal    = 0;
   const unallocDays     = [];
 
-  const _reconFromEl = document.getElementById('recon-from-month');
+  const _reconFromEl = document.getElementById('recon-from-date');
   const reconYearStart = (_reconFromEl && _reconFromEl.value) ? _reconFromEl.value : (new Date().getFullYear() + '-01-01');
 
   ALL_DAYS.forEach(d => {
@@ -11878,25 +12116,19 @@ function calcReconTotals() {
 
 let _reconDaysOpen = false;
 
-function buildReconMonthSelect(){
-  const sel = document.getElementById('recon-from-month');
-  if(!sel || sel.options.length > 0) return;
+function initReconFromDate(){
+  const inp = document.getElementById('recon-from-date');
+  if (!inp || inp.value) return;
+  // Default: Jan 1 of current year
   const now = new Date();
-  const opts = [];
-  for(var i=0; i<24; i++){
-    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
-    const val = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-01';
-    const lbl = d.toLocaleDateString('en-US',{month:'long',year:'numeric'});
-    opts.push('<option value="'+val+'">'+lbl+'</option>');
-  }
-  sel.innerHTML = opts.join('');
-  sel.value = now.getFullYear()+'-01-01';
+  inp.value = now.getFullYear() + '-01-01';
 }
 
-function onReconMonthChange(){ renderReconWidget(); }
+function onReconFromDateChange(){ renderReconWidget(); }
+function onReconMonthChange(){ renderReconWidget(); } // legacy alias
 
 function renderReconWidget() {
-  buildReconMonthSelect();
+  initReconFromDate();
   const totals = calcReconTotals();
   const widget = document.getElementById('recon-widget');
   if (widget) widget.style.display = totals.unalloc > 0 || totals.unallocDays.length > 0 ? 'block' : 'none';
@@ -11908,12 +12140,15 @@ function renderReconWidget() {
   if (cashEl) cashEl.textContent = '+' + fmt$(totals.cashDeposits);
   const xferEl = document.getElementById('recon-xfer-val');
   if (xferEl) xferEl.textContent = '−' + fmt$(totals.transfers);
-  // Update subtitle with selected month
-  const sel = document.getElementById('recon-from-month');
+  // Update subtitle with selected date
+  const fromInp = document.getElementById('recon-from-date');
   const reconSub = document.getElementById('recon-bank-sub');
-  if (reconSub && sel && sel.options.length) {
-    const selText = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : '';
-    reconSub.textContent = selText ? 'From ' + selText + ' – today' : 'Card deposits + cash deposits − transfers';
+  if (reconSub && fromInp && fromInp.value) {
+    const d = new Date(fromInp.value + 'T00:00:00');
+    const lbl = d.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+    reconSub.textContent = 'From ' + lbl + ' – today';
+  } else if (reconSub) {
+    reconSub.textContent = 'Card deposits + cash deposits − transfers';
   }
   // Set bulk date default to end of last month
   const bulkDate = document.getElementById('recon-bulk-date');
@@ -11979,11 +12214,20 @@ function fillPendingFromToday(){
   showToast('Pending set to '+fmt$(cardDep)+' (today Square deposits)','success');
 }
 
+function shiftReconFromDate(dir) {
+  const inp = document.getElementById('recon-from-date');
+  if (!inp) return;
+  if (!inp.value) initReconFromDate();
+  const d = new Date(inp.value + 'T00:00:00');
+  d.setDate(d.getDate() + dir);
+  inp.value = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  renderReconWidget();
+}
+
 function resetReconFromDate(){
-  const sel = document.getElementById('recon-from-month');
-  if(sel){
-    const defaultVal = new Date().getFullYear()+'-01-01';
-    sel.value = defaultVal;
+  const inp = document.getElementById('recon-from-date');
+  if(inp){
+    inp.value = new Date().getFullYear()+'-01-01';
     renderReconWidget();
   }
 }
