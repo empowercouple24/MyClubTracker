@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-10 08:00:00 -->
+<!-- CACHE BUST: 2026-04-10 09:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -2005,17 +2005,16 @@ if('serviceWorker' in navigator){
           <div class="preg-fchip" onclick="setPregFilter('lastyear',this)">Last Year</div>
         </div>
         <div style="display:flex;gap:8px;padding:6px 12px 8px;flex-wrap:wrap;border-bottom:1px solid var(--border-light);">
-          <select id="preg-filter-payee" onchange="setPregPayeeFilter(this.value)" style="font-family:DM Sans,sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 8px;background:var(--surface);color:var(--text);outline:none;flex:1;min-width:120px;">
-            <option value="">All Payees</option>
-          </select>
-          <select id="preg-filter-account" onchange="setPregAccountFilter(this.value)" style="font-family:DM Sans,sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 8px;background:var(--surface);color:var(--text);outline:none;flex:1;min-width:120px;">
-            <option value="">All Accounts</option>
-            <option value="check">Check</option>
-            <option value="venmo">Venmo</option>
-            <option value="cash">Cash</option>
-            <option value="direct_deposit">Direct Deposit</option>
-            <option value="other">Other</option>
-          </select>
+          <div id="preg-filter-payee-wrap" style="flex:1;min-width:160px;">
+            <div id="preg-payee-chips" style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;">
+              <span style="font-size:11px;font-weight:600;color:var(--text-faint);white-space:nowrap;">Payees:</span>
+            </div>
+          </div>
+          <div id="preg-filter-account-wrap" style="flex:1;min-width:140px;">
+            <div id="preg-account-chips" style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;">
+              <span style="font-size:11px;font-weight:600;color:var(--text-faint);white-space:nowrap;">Account:</span>
+            </div>
+          </div>
         </div>
       </div>
       <!-- Rows -->
@@ -10115,16 +10114,10 @@ function renderPaymentRegister() {
     const payees = getPayeeList();
     lookupSel.innerHTML = payees.map(p => `<option value="${p}">${p}</option>`).join('');
   }
-  // Populate payee filter dropdown
-  const filterPayeeSel = document.getElementById('preg-filter-payee');
-  if (filterPayeeSel) {
-    const payees = getPayeeList();
-    const cur = filterPayeeSel.value;
-    filterPayeeSel.innerHTML = '<option value="">All Payees</option>' + payees.map(p => `<option value="${p}"${p===cur?' selected':''}>${p}</option>`).join('');
-  }
-  // Restore account filter selection
-  const filterAcctSel = document.getElementById('preg-filter-account');
-  if (filterAcctSel && _pregAccountFilter) filterAcctSel.value = _pregAccountFilter;
+  // Render payee filter chips (multi-select)
+  renderPregPayeeChips(getPayeeList());
+  // Render account filter chips
+  renderPregAccountChips();
   const now = new Date();
   const lf = document.getElementById('preg-lookup-from');
   const lt = document.getElementById('preg-lookup-to');
@@ -11819,8 +11812,8 @@ function applyCalPicker() {
 
 // ── PAYMENT REGISTER FILTER ───────────────────────────────────────────────────
 let _pregFilter = 'all';
-let _pregPayeeFilter = '';
-let _pregAccountFilter = '';
+let _pregPayeeFilter = new Set(); // multi-select
+let _pregAccountFilter = '';      // single account name ('' = all)
 
 function setPregFilter(filter, btn) {
   _pregFilter = filter;
@@ -11830,8 +11823,22 @@ function setPregFilter(filter, btn) {
   renderPaymentRegister();
 }
 
+function togglePregPayeeChip(payee) {
+  if (_pregPayeeFilter.has(payee)) _pregPayeeFilter.delete(payee);
+  else _pregPayeeFilter.add(payee);
+  updatePregClearBtn();
+  renderPaymentRegister();
+}
+
+function togglePregAccountChip(acct) {
+  _pregAccountFilter = (_pregAccountFilter === acct) ? '' : acct;
+  updatePregClearBtn();
+  renderPaymentRegister();
+}
+
+// Keep old single-select shim for any legacy callers
 function setPregPayeeFilter(val) {
-  _pregPayeeFilter = val;
+  _pregPayeeFilter = val ? new Set([val]) : new Set();
   updatePregClearBtn();
   renderPaymentRegister();
 }
@@ -11842,23 +11849,40 @@ function setPregAccountFilter(val) {
   renderPaymentRegister();
 }
 
+function renderPregPayeeChips(payees) {
+  const wrap = document.getElementById('preg-payee-chips');
+  if (!wrap) return;
+  const chipHtml = payees.map(p => {
+    const active = _pregPayeeFilter.has(p);
+    return `<div class="preg-fchip${active?' active':''}" style="font-size:11px;padding:3px 9px;" onclick="togglePregPayeeChip(${JSON.stringify(p)})">${escHtml(p)}</div>`;
+  }).join('');
+  wrap.innerHTML = `<span style="font-size:11px;font-weight:600;color:var(--text-faint);white-space:nowrap;flex-shrink:0;">Payees:</span>${chipHtml}`;
+}
+
+function renderPregAccountChips() {
+  const wrap = document.getElementById('preg-account-chips');
+  if (!wrap) return;
+  const accounts = getPregAccounts();
+  const chipHtml = accounts.map(a => {
+    const active = _pregAccountFilter === a;
+    return `<div class="preg-fchip${active?' active':''}" style="font-size:11px;padding:3px 9px;" onclick="togglePregAccountChip(${JSON.stringify(a)})">${escHtml(a)}</div>`;
+  }).join('');
+  wrap.innerHTML = `<span style="font-size:11px;font-weight:600;color:var(--text-faint);white-space:nowrap;flex-shrink:0;">Account:</span>${chipHtml}`;
+}
+
 function updatePregClearBtn() {
   const clearBtn = document.getElementById('preg-clear-filter-btn');
-  const hasFilter = _pregFilter !== 'all' || _pregPayeeFilter || _pregAccountFilter;
+  const hasFilter = _pregFilter !== 'all' || _pregPayeeFilter.size > 0 || _pregAccountFilter;
   if (clearBtn) clearBtn.style.display = hasFilter ? 'inline' : 'none';
 }
 
 function clearPregFilter() {
   _pregFilter = 'all';
-  _pregPayeeFilter = '';
+  _pregPayeeFilter = new Set();
   _pregAccountFilter = '';
   document.querySelectorAll('.preg-fchip').forEach(c => c.classList.remove('active'));
   const first = document.querySelector('.preg-fchip');
   if (first) first.classList.add('active');
-  const payeeSel = document.getElementById('preg-filter-payee');
-  const acctSel = document.getElementById('preg-filter-account');
-  if (payeeSel) payeeSel.value = '';
-  if (acctSel) acctSel.value = '';
   const clearBtn = document.getElementById('preg-clear-filter-btn');
   if (clearBtn) clearBtn.style.display = 'none';
   renderPaymentRegister();
@@ -11882,11 +11906,11 @@ function filterPregLog(log) {
   } else if (_pregFilter === 'lastyear') {
     result = result.filter(e => e.date.startsWith((yr-1)+''));
   }
-  if (_pregPayeeFilter) {
-    result = result.filter(e => (e.payee||'').toLowerCase() === _pregPayeeFilter.toLowerCase());
+  if (_pregPayeeFilter.size > 0) {
+    result = result.filter(e => _pregPayeeFilter.has(e.payee||''));
   }
   if (_pregAccountFilter) {
-    result = result.filter(e => (e.account||'') === _pregAccountFilter || (e.method||'') === _pregAccountFilter);
+    result = result.filter(e => (e.account||'') === _pregAccountFilter);
   }
   return result;
 }
