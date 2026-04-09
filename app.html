@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-10 05:00:00 -->
+<!-- CACHE BUST: 2026-04-10 06:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -5595,9 +5595,9 @@ function gcalRequestToken(cb){
 
 function _gcalTokenPromptFull(clientId,cb){
   // One-time authorization code flow (response_type=code, access_type=offline, prompt=consent)
-  // This gets a refresh token that is stored server-side via gcal-exchange
+  // Redirects to oauth-callback.html (a static page) so app.html doesn't reload in the popup
   const scope=encodeURIComponent('https://www.googleapis.com/auth/calendar.readonly');
-  const redirectUri=window.location.origin+'/app.html';
+  const redirectUri=window.location.origin+'/oauth-callback.html';
   const state=Math.random().toString(36).slice(2);
   const loginHint=SETTINGS.gcal&&SETTINGS.gcal.email?'&login_hint='+encodeURIComponent(SETTINGS.gcal.email):'';
   const url='https://accounts.google.com/o/oauth2/v2/auth?client_id='+clientId
@@ -5612,16 +5612,15 @@ function _gcalTokenPromptFull(clientId,cb){
   var timer=setInterval(function(){
     try{
       if(!w||w.closed){clearInterval(timer);cb(null);return;}
-      var search=w.location.search;
-      var hash=w.location.hash;
-      // Look for code= in query string after redirect back to app.html
-      if(w.location.href.includes(window.location.origin)&&(search.includes('code=')||hash.includes('code='))){
+      var href=w.location.href;
+      // Wait until popup has redirected back to our origin
+      if(href.includes(window.location.origin)&&href.includes('code=')){
         clearInterval(timer);
-        var params=new URLSearchParams(search.slice(1)||hash.slice(1));
+        var params=new URLSearchParams(w.location.search.slice(1));
         var code=params.get('code');
         w.close();
         if(!code){cb(null);return;}
-        // Exchange code for tokens server-side
+        // Exchange code for tokens server-side (never expose client secret to browser)
         sb.functions.invoke('gcal-exchange',{body:{
           code:code,
           redirect_uri:redirectUri,
@@ -5632,7 +5631,6 @@ function _gcalTokenPromptFull(clientId,cb){
             SETTINGS.gcal.token=d.access_token;
             SETTINGS.gcal.tokenExpiry=Date.now()+(d.expires_in||3600)*1000;
             if(d.email)SETTINGS.gcal.email=d.email;
-            // Persist token metadata (NOT the refresh token — that's server-side only)
             sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID);
             cb(d.access_token);
           } else {
