@@ -7157,10 +7157,30 @@ const _swatchColors = ['#e53935','#e91e8c','#9c27b0','#3f51b5','#1a73e8','#00acc
 function getOpColor(name) {
   if (!name) return _OP_PALETTE[0];
   const members = getTeamMembers();
-  const idx = members.findIndex(function(m){ return m.name === name || (m.aliases||'').split(',').map(function(a){return a.trim();}).includes(name); });
+  const nameLower = name.trim().toLowerCase();
+  // 1. Exact match on name or alias
+  let idx = members.findIndex(function(m){
+    return m.name.trim().toLowerCase() === nameLower ||
+      (m.aliases||'').split(',').map(function(a){return a.trim().toLowerCase();}).includes(nameLower);
+  });
+  // 2. Word-contains match — team member name/alias appears as a word within payee string
+  if (idx < 0) {
+    idx = members.findIndex(function(m){
+      var tokens = [m.name.trim().toLowerCase()].concat(
+        (m.aliases||'').split(',').map(function(a){return a.trim().toLowerCase();}).filter(Boolean)
+      );
+      return tokens.some(function(t){ return t && nameLower.indexOf(t) >= 0; });
+    });
+  }
   // If found and has an explicitly saved color, use it
   if (idx >= 0 && members[idx].color) return members[idx].color;
-  // Consistent fallback: hash the name so same person always gets same color
+  if (idx >= 0) {
+    // Hash the matched member name for consistent fallback
+    var hash = 0;
+    for (var ci = 0; ci < members[idx].name.length; ci++) hash = (hash * 31 + members[idx].name.charCodeAt(ci)) & 0xffff;
+    return _OP_PALETTE[hash % _OP_PALETTE.length];
+  }
+  // No match — hash the raw name
   var hash = 0;
   for (var ci = 0; ci < name.length; ci++) hash = (hash * 31 + name.charCodeAt(ci)) & 0xffff;
   return _OP_PALETTE[hash % _OP_PALETTE.length];
@@ -10270,20 +10290,34 @@ function renderPaymentRegister() {
   </tr></thead>`;
 
   // Build name+alias → color map for all team members (all roles)
+  // Also stores each token so partial payee names (e.g. "Mary Nemecek") match "Mary"
   const _memberColorMap = {};
+  const _memberTokens = []; // [{token, color}] for word-contains fallback
   getTeamMembers().forEach(function(m){
     if(!m.name) return;
     const c = getOpColor(m.name);
     _memberColorMap[m.name.trim().toLowerCase()] = c;
+    _memberTokens.push({token: m.name.trim().toLowerCase(), color: c});
     (m.aliases||'').split(',').forEach(function(a){
       var at = a.trim().toLowerCase();
-      if(at) _memberColorMap[at] = c;
+      if(at){ _memberColorMap[at] = c; _memberTokens.push({token:at, color:c}); }
     });
   });
+  function _resolvePayeeColor(payee){
+    if(!payee) return null;
+    var pl = payee.trim().toLowerCase();
+    // Exact match first
+    if(_memberColorMap[pl]) return _memberColorMap[pl];
+    // Word-contains: any token found within payee string
+    for(var _ti=0;_ti<_memberTokens.length;_ti++){
+      if(_memberTokens[_ti].token && pl.indexOf(_memberTokens[_ti].token)>=0) return _memberTokens[_ti].color;
+    }
+    return null;
+  }
 
   const rows = sorted.map(e => {
     const checkDisp = e.checkNum ? '#'+e.checkNum : (e.method&&e.method!=='check'?({venmo:'Venmo',cash:'Cash',direct_deposit:'Dir. Dep.',other:'Other'}[e.method]||e.method):'—');
-    const memberColor = e.payee ? (_memberColorMap[(e.payee||'').trim().toLowerCase()] || null) : null;
+    const memberColor = _resolvePayeeColor(e.payee||'');
     const rowBg = memberColor ? `background:${memberColor}18;` : '';
     const leftAccent = memberColor ? `border-left:3px solid ${memberColor}55;` : 'border-left:3px solid transparent;';
     return `<tr onclick="openPregSheet('${e.id}')" style="${rowBg}${leftAccent}">
