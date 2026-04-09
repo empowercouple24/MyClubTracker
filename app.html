@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-10 13:00:00 -->
+<!-- CACHE BUST: 2026-04-10 15:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -1101,6 +1101,12 @@ if('serviceWorker' in navigator){
 <div class="content-area">
 <div class="tab-panel active" id="panel-enter">
 
+  <!-- NO-OPERATOR ALERT -->
+  <div id="no-op-alert-enter" style="display:none;margin:8px 12px 0;padding:10px 14px;background:var(--a0);border:1px solid var(--a4);border-radius:var(--radius);font-size:12px;color:var(--a6);">
+    <div style="font-weight:700;margin-bottom:4px;">⚠ Operators not designated</div>
+    <div id="no-op-alert-enter-body"></div>
+  </div>
+
   <!-- DASHBOARD WIDGETS -->
   <div class="dashboard-widgets" id="dashboard-widgets">
     <!-- Streak — full width -->
@@ -1421,6 +1427,12 @@ if('serviceWorker' in navigator){
 
 <div class="tab-panel" id="panel-history">
   <div style="max-width:900px;margin:0 auto;width:100%;padding-bottom:40px;">
+
+    <!-- NO-OPERATOR ALERT -->
+    <div id="no-op-alert-history" style="display:none;margin:8px 0 4px;padding:10px 14px;background:var(--a0);border:1px solid var(--a4);border-radius:var(--radius);font-size:12px;color:var(--a6);">
+      <div style="font-weight:700;margin-bottom:4px;">⚠ Operators not designated</div>
+      <div id="no-op-alert-history-body"></div>
+    </div>
 
     <!-- STICKY HEADER: recon banner + month nav always visible -->
     <div id="hist-sticky-top" style="position:sticky;top:0;z-index:30;background:var(--bg);padding-bottom:6px;box-shadow:0 4px 8px -2px rgba(53,78,98,0.07)">
@@ -1852,6 +1864,12 @@ if('serviceWorker' in navigator){
 </div>
 
 <div class="tab-panel" id="panel-payouts" style="padding:0;">
+
+  <!-- NO-OPERATOR ALERT -->
+  <div id="no-op-alert-payouts" style="display:none;margin:8px 12px 4px;padding:10px 14px;background:var(--a0);border:1px solid var(--a4);border-radius:var(--radius);font-size:12px;color:var(--a6);">
+    <div style="font-weight:700;margin-bottom:4px;">⚠ Operators not designated</div>
+    <div id="no-op-alert-payouts-body"></div>
+  </div>
 
   <!-- STICKY TOP — operator + hourly presets, always visible -->
   <div id="payouts-sticky-top" style="background:var(--bg);position:sticky;top:0;z-index:30;box-shadow:0 2px 8px -2px rgba(53,78,98,0.07);">
@@ -4113,7 +4131,7 @@ async function init(){
   updateDateDisplay();
   const now=new Date();
   // Payouts start with no selection — user picks a preset or date range
-  applyTheme(SETTINGS.theme||'ocean');populateOperatorDropdowns();buildSettingsUI();loadDay();renderHistory();renderHistAlloc();initUndoListeners();renderInventory();renderInvSnapPicker();renderPayoutSnapshots();renderPaymentRegister();renderDashboardWidgets();initPresetChipLabels();initHourlyPresetChipLabels();
+  applyTheme(SETTINGS.theme||'ocean');populateOperatorDropdowns();buildSettingsUI();loadDay();renderHistory();renderHistAlloc();initUndoListeners();renderInventory();renderInvSnapPicker();renderPayoutSnapshots();renderPaymentRegister();renderDashboardWidgets();initPresetChipLabels();initHourlyPresetChipLabels();checkNoOperatorAlert();
   // ── ONE-TIME PAY PERIOD MIGRATION ──
   if(!SETTINGS._payPeriodMigrated2026v2){setTimeout(function(){migratePayPeriods2026();},1000);}
   recalcContentTop();
@@ -6946,7 +6964,51 @@ async function saveDay(){
   _undoStack.push(_captureFormState()); // baseline after save
   // Persist closedDays overrides to settings
   sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID);
-  renderHistory();renderProjections();renderPayoutSnapshots();renderPaymentRegister();renderDashboardWidgets();
+  renderHistory();renderProjections();renderPayoutSnapshots();renderPaymentRegister();renderDashboardWidgets();checkNoOperatorAlert();
+}
+
+function checkNoOperatorAlert() {
+  // Find days that are fully allocated but have no operators designated
+  const badDays = ALL_DAYS.filter(function(d) {
+    const data = d.data || {};
+    if (data.closedDay) return false; // closed days don't need operators
+    const ops = [data.op1,data.op2,data.op3,data.op4].filter(Boolean);
+    if (ops.length > 0) return false; // has operators — fine
+    // Check if any allocation bucket is marked (meaning it was entered and allocated)
+    const tr = data.transfers || {};
+    const hasAnyAlloc = Object.values(tr).some(Boolean);
+    if (!hasAnyAlloc) return false; // nothing allocated yet — no alert needed
+    // Has allocations but no operators
+    return true;
+  }).sort(function(a,b){ return b.date.localeCompare(a.date); }); // newest first
+
+  const ids = ['no-op-alert-enter','no-op-alert-history','no-op-alert-payouts'];
+  ids.forEach(function(id) {
+    const banner = document.getElementById(id);
+    const body = document.getElementById(id+'-body');
+    if (!banner || !body) return;
+    if (!badDays.length) { banner.style.display = 'none'; return; }
+    banner.style.display = 'block';
+    const dateLinks = badDays.slice(0, 10).map(function(d) {
+      const lbl = new Date(d.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+      return `<a href="javascript:void(0)" onclick="jumpToDateForOp('${d.date}')" style="color:var(--a6);font-weight:700;text-decoration:underline;">${lbl}</a>`;
+    }).join(', ') + (badDays.length > 10 ? ` and ${badDays.length-10} more` : '');
+    body.innerHTML = `The following saved days have allocations but no operators assigned: ${dateLinks}. Tap a date to go there.`;
+  });
+}
+
+function jumpToDateForOp(dateStr) {
+  // Switch to Enter tab and load the date
+  const enterTab = document.querySelector('.tab[onclick*="enter"]') || document.querySelector('.tab');
+  if (enterTab) enterTab.click();
+  setTimeout(function() {
+    const di = document.getElementById('entry-date');
+    if (di) {
+      di.value = dateStr;
+      updateDateDisplay();
+      loadDay();
+    }
+  }, 150);
 }
 
 function renderDashboardWidgets(){
@@ -8402,6 +8464,7 @@ async function toggleSumCardAlloc(key) {
   }
   // Sync history tab live
   renderHistCal();
+  checkNoOperatorAlert();
 }
 
 function refreshSumCardAllocState(date) {
@@ -10075,6 +10138,7 @@ async function toggleAllocBucket(key) {
 
   // Re-render history calendar and alloc list live
   renderHistCal();
+  checkNoOperatorAlert();
 }
 
 
@@ -10183,9 +10247,15 @@ function renderPaymentRegister() {
     <th style="width:36px;"></th>
   </tr></thead>`;
 
+  const currentMembers = new Set(getTeamMembers().map(function(m){ return m.name; }));
+
   const rows = sorted.map(e => {
     const checkDisp = e.checkNum ? '#'+e.checkNum : (e.method&&e.method!=='check'?({venmo:'Venmo',cash:'Cash',direct_deposit:'Dir. Dep.',other:'Other'}[e.method]||e.method):'—');
-    return `<tr onclick="openPregSheet('${e.id}')">
+    const isCurrentMember = currentMembers.has(e.payee||'');
+    const memberColor = isCurrentMember ? getOpColor(e.payee) : null;
+    const rowBg = memberColor ? `background:${memberColor}18;` : '';
+    const leftAccent = memberColor ? `border-left:3px solid ${memberColor}55;` : 'border-left:3px solid transparent;';
+    return `<tr onclick="openPregSheet('${e.id}')" style="${rowBg}${leftAccent}">
       <td class="preg-td-payee">${escHtml(e.payee||'—')}</td>
       <td class="preg-td-amt">${fmt$(parseFloat(e.amount)||0)}</td>
       <td class="preg-td-date">${fmtDateShort(e.date)}</td>
