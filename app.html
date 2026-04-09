@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-08 23:00:00 -->
+<!-- CACHE BUST: 2026-04-08 23:15:00 -->
 <html lang="en">
 <head>
 <script>
@@ -11021,151 +11021,316 @@ function renderMonthTable(el) {
 
 function printSummaryPDF() {
   var btn = document.querySelector('#history-sum-view button[onclick*="printSummaryPDF"]');
-  if(btn){btn.textContent='Capturing...';btn.disabled=true;}
+  if(btn){btn.textContent='Generating...';btn.disabled=true;}
   function resetBtn(){if(btn){btn.innerHTML='&#11015; Export PDF';btn.disabled=false;}}
 
-  var toolbar   = document.getElementById('sum-toolbar');
-  var tableWrap = document.getElementById('sum-table-wrap');
-  if(!tableWrap){resetBtn();return;}
-
-  var monthLabel = toolbar ? (toolbar.querySelector('span')?.textContent||'') : '';
-  var locName    = document.querySelector('.nav-loc-name')?.textContent || SETTINGS.clubName || 'Club';
-  var today      = new Date();
-  var dateStr    = today.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
-
-  function doCapture(){
+  function doRender(){
     var jsPDF = window.jspdf && window.jspdf.jsPDF;
     if(!jsPDF){resetBtn();return;}
-    var tbl = tableWrap.querySelector('table');
-    if(!tbl){resetBtn();return;}
 
-    var fullW = tbl.scrollWidth;
-    var fullH = tbl.scrollHeight;
+    var yr = _histCalYear, mo = _histCalMonth;
+    if(yr===null||mo===null){resetBtn();return;}
 
-    // Dark overlay mask — user sees this during capture
-    var mask = document.createElement('div');
-    mask.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#1a2a35;z-index:99999;display:flex;align-items:center;justify-content:center;overflow:hidden;';
-    mask.innerHTML = '<div style="color:rgba(255,255,255,0.5);font-family:DM Sans,sans-serif;font-size:13px;font-weight:600;letter-spacing:0.5px;">Generating PDF\u2026</div>';
-    document.body.appendChild(mask);
+    var MONTH_NAMES = ['January','February','March','April','May','June','July',
+                       'August','September','October','November','December'];
+    var DOWS_SHORT  = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+    var todayStr    = localToday();
+    var locName     = document.querySelector('.nav-loc-name')?.textContent || SETTINGS.clubName || 'Club';
+    var monthLabel  = MONTH_NAMES[mo] + ' ' + yr;
+    var dateStr     = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
 
-    // Clip container — fixed, full viewport, overflow:hidden — nothing escapes it visually
-    var clipper = document.createElement('div');
-    clipper.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;overflow:hidden;z-index:99998;pointer-events:none;';
-    document.body.appendChild(clipper);
+    // ── Build date/week structure (same logic as renderMonthTable) ──
+    var daysInMonth = new Date(yr, mo+1, 0).getDate();
+    var dateCols = [];
+    for(var d=1; d<=daysInMonth; d++){
+      dateCols.push(yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'));
+    }
+    var dayMap = {};
+    ALL_DAYS.forEach(function(d){
+      var dt = new Date(d.date+'T00:00:00');
+      if(dt.getFullYear()===yr && dt.getMonth()===mo) dayMap[d.date] = d.data||{};
+    });
+    var weeks = [], weekBuf = [];
+    dateCols.forEach(function(ds, i){
+      var dow = new Date(ds+'T12:00:00').getDay();
+      weekBuf.push(ds);
+      if(dow===6 || i===dateCols.length-1){ weeks.push(weekBuf.slice()); weekBuf=[]; }
+    });
+    var opDays    = SETTINGS.opDays    || [false,true,true,true,true,true,true];
+    var closedDays= SETTINGS.closedDays|| {};
 
-    // Move tableWrap into clipper, expand to full width inside it
-    var savedParent      = tableWrap.parentNode;
-    var savedNextSibling = tableWrap.nextSibling;
-    var savedScrollLeft  = tableWrap.scrollLeft;
-    var savedWidth       = tableWrap.style.width;
-    var savedOverflow    = tableWrap.style.overflow;
-    var savedPosition    = tableWrap.style.position;
-    var savedTop         = tableWrap.style.top;
-    var savedLeft        = tableWrap.style.left;
+    // ── Determine which fields have any data (skip zero-only non-always fields) ──
+    var alwaysShow = {net:1,cash:1,card:1,fees:1,gcr:1,cashapp:1,venmo:1,dv:1};
+    var visFields = SUM_FIELDS.filter(function(f){
+      if(alwaysShow[f.key]) return true;
+      return dateCols.some(function(ds){ return dayMap[ds] && f.fn(dayMap[ds])>0; });
+    });
 
-    clipper.appendChild(tableWrap);
-    tableWrap.style.position = 'absolute';
-    tableWrap.style.top      = '0';
-    tableWrap.style.left     = '0';
-    tableWrap.style.width    = fullW + 'px';
-    tableWrap.style.overflow = 'visible';
-    tableWrap.scrollLeft     = 0;
+    // ── Pre-compute all cell values ──
+    // rows[fi] = { monthTotal, weeks:[{wkTotal, days:[val,...]}] }
+    var rows = visFields.map(function(f){
+      var monthTotal = 0;
+      var wkData = weeks.map(function(wk){
+        var wkTotal = 0;
+        var days = wk.map(function(ds){
+          var dow = new Date(ds+'T12:00:00').getDay();
+          var isClosed = (!opDays[dow]||!!closedDays[ds])&&closedDays[ds]!=='open';
+          var isFuture = ds > todayStr;
+          if(isFuture||(isClosed&&!dayMap[ds])||!dayMap[ds]) return null;
+          var val = f.fn(dayMap[ds]);
+          wkTotal  += val;
+          monthTotal+= val;
+          return val;
+        });
+        return {wkTotal:wkTotal, days:days};
+      });
+      return {monthTotal:monthTotal, wkData:wkData};
+    });
 
-    if(btn) btn.style.visibility = 'hidden';
+    // ── PDF layout constants ──
+    // Page: custom width wide enough for all columns, fixed height
+    // We target ~6pt per day col, ~10pt for wk cols, ~14pt for month, ~80pt for field label
+    var FIELD_W  = 82;   // field label column
+    var DAY_W    = 30;   // each day column
+    var WK_W     = 36;   // week subtotal column
+    var MONTH_W  = 48;   // month total column
+    var totalCols= dateCols.length + weeks.length + 1; // days + wk cols + month
+    var tableW   = FIELD_W + (dateCols.length * DAY_W) + (weeks.length * WK_W) + MONTH_W;
+    var PW       = tableW + 40; // page width = table + margins
+    var PH       = 612;  // standard landscape height (pts)
+    var ML       = 20, MR = 20, MT = 52, MB = 20;
 
-    setTimeout(function(){
-      window.html2canvas(tableWrap, {
-        scale: 3,
-        useCORS: true,
-        logging: false,
-        width:  fullW,
-        height: fullH,
-        windowWidth:  fullW,
-        windowHeight: fullH
-      }).then(function(canvas){
-        // Restore tableWrap to original position in DOM
-        tableWrap.style.position = savedPosition;
-        tableWrap.style.top      = savedTop;
-        tableWrap.style.left     = savedLeft;
-        tableWrap.style.width    = savedWidth;
-        tableWrap.style.overflow = savedOverflow;
-        tableWrap.scrollLeft     = savedScrollLeft;
-        if(savedNextSibling){
-          savedParent.insertBefore(tableWrap, savedNextSibling);
-        } else {
-          savedParent.appendChild(tableWrap);
+    // Row heights
+    var HDR_H    = 18;  // column header row
+    var SEC_H    = 11;  // section label row
+    var ROW_H    = 13;  // data row
+
+    // Colors
+    var C = {
+      headerBg:  [53, 78, 98],    // dark blue header
+      headerFg:  [255,255,255],
+      sectionBg: [40, 60, 76],    // slightly lighter for section rows
+      sectionFg: [143,163,179],
+      rowAlt:    [30, 46, 58],    // alternate row
+      rowNorm:   [26, 40, 51],    // normal row
+      allocBg:   [35, 52, 66],    // allocation rows
+      text:      [210,225,235],   // normal text
+      textMuted: [143,163,179],   // muted
+      textFaint: [100,125,145],   // faint / dashes
+      green:     [125,232,138],   // positive green
+      amber:     [255,180,80],    // amber / fees
+      wkBg:      [45, 68, 86],    // week subtotal bg
+      monthBg:   [55, 82, 103],   // month total bg
+      border:    [50, 72, 90],    // row border
+      allocText: [180,210,240],   // alloc row text
+    };
+
+    // ── Figure out total page height needed ──
+    // Count rows: one HDR_H, then for each visField: optional SEC_H + ROW_H
+    var tableH = HDR_H;
+    var lastSection = null;
+    visFields.forEach(function(f){
+      if(f.section && f.section!==lastSection){ tableH+=SEC_H; lastSection=f.section; }
+      tableH += ROW_H;
+    });
+    var pageH = MT + tableH + MB + 16; // +16 for footer
+    if(pageH < PH) pageH = PH;
+
+    var doc = new jsPDF({orientation:'landscape', unit:'pt', format:[PW, pageH]});
+
+    // ── Background ──
+    doc.setFillColor(22, 35, 45);
+    doc.rect(0, 0, PW, pageH, 'F');
+
+    // ── Page header ──
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(13);
+    doc.setTextColor(210,225,235);
+    doc.text(locName, ML, 18);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(143,163,179);
+    doc.text('Monthly Summary \u2014 ' + monthLabel, ML, 30);
+    doc.setFontSize(7);
+    doc.setTextColor(100,125,145);
+    doc.text('Generated ' + dateStr + ' \u00b7 myclubtracker.com', PW-MR, 30, {align:'right'});
+    doc.setDrawColor(50,72,90);
+    doc.setLineWidth(0.4);
+    doc.line(ML, 35, PW-MR, 35);
+
+    // ── Helper: x position of a column ──
+    function colX(type, weekIdx, dayIdx) {
+      // type: 'field' | 'day' | 'wk' | 'month'
+      if(type==='field') return ML;
+      var x = ML + FIELD_W;
+      for(var wi=0; wi<weeks.length; wi++){
+        // days in this week
+        for(var di=0; di<weeks[wi].length; di++){
+          if(type==='day' && wi===weekIdx && di===dayIdx) return x;
+          x += DAY_W;
         }
-        document.body.removeChild(clipper);
-        document.body.removeChild(mask);
-        if(btn) btn.style.visibility = 'visible';
+        if(type==='wk' && wi===weekIdx) return x;
+        x += WK_W;
+      }
+      return x; // month col
+    }
 
-        var imgW = canvas.width;
-        var imgH = canvas.height;
-        var ML = 28, MR = 28, MT = 54, MB = 28, PW = 792;
-        var printW = PW - ML - MR;
-        var rendH  = (imgH / imgW) * printW;
-        var pageH  = Math.max(612, MT + rendH + MB + 20);
+    // ── Helper: format a value ──
+    function fmtVal(val, fmt){
+      if(val===null||val===undefined) return '\u2014';
+      if(val===0) return '\u2014';
+      if(fmt==='$') return '$'+val.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+      return val.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1});
+    }
 
-        var doc = new jsPDF({orientation:'landscape', unit:'pt', format:[PW, pageH]});
-        doc.setFont('helvetica','bold'); doc.setFontSize(14); doc.setTextColor(53,78,98);
-        doc.text(locName, ML, 26);
-        doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(96,126,150);
-        doc.text('Monthly Summary \u2014 ' + monthLabel, ML, 40);
-        doc.setFontSize(7.5); doc.setTextColor(143,163,179);
-        doc.text('Generated ' + dateStr + ' \u00b7 myclubtracker.com', PW-MR, 40, {align:'right'});
-        doc.setDrawColor(205,214,224); doc.setLineWidth(0.5);
-        doc.line(ML, 46, PW-MR, 46);
-        doc.addImage(canvas.toDataURL('image/png'), 'PNG', ML, MT, printW, rendH, undefined, 'FAST');
-        var footY = MT + rendH + 10;
-        doc.setDrawColor(205,214,224); doc.setLineWidth(0.4);
-        doc.line(ML, footY, PW-MR, footY);
-        doc.setFont('helvetica','normal'); doc.setFontSize(6.5); doc.setTextColor(143,163,179);
-        doc.text('MyClubTracker \u00b7 myclubtracker.com', ML, footY + 9);
-        doc.text(locName + ' \u00b7 ' + monthLabel, PW-MR, footY + 9, {align:'right'});
+    // ── Helper: draw a cell (filled rect + centered text) ──
+    function drawCell(x, y, w, h, bgColor, textColor, text, bold, fontSize, align){
+      doc.setFillColor(bgColor[0], bgColor[1], bgColor[2]);
+      doc.rect(x, y, w, h, 'F');
+      if(!text) return;
+      doc.setFont('helvetica', bold?'bold':'normal');
+      doc.setFontSize(fontSize||6.5);
+      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+      var tx = align==='left' ? x+3 : x+w/2;
+      doc.text(String(text), tx, y+h-3.5, {align: align==='left'?'left':'center', maxWidth:w-2});
+    }
 
-        var safeName  = (locName.replace(/[^a-z0-9]/gi,'_').toLowerCase()||'club');
-        var safeMonth = (monthLabel.replace(/[^a-z0-9]/gi,'_').toLowerCase()||'summary');
-        var fileName  = safeName + '_' + safeMonth + '_summary.pdf';
-        var pdfBlob   = doc.output('blob');
-        if(window.showSaveFilePicker){
-          window.showSaveFilePicker({suggestedName:fileName,types:[{description:'PDF Document',accept:{'application/pdf':['.pdf']}}]})
-          .then(function(fh){return fh.createWritable().then(function(w){return w.write(pdfBlob).then(function(){return w.close();});});})
-          .then(function(){resetBtn();})
-          .catch(function(err){
-            if(err.name!=='AbortError'){var u=URL.createObjectURL(pdfBlob);var a=document.createElement('a');a.href=u;a.download=fileName;a.click();setTimeout(function(){URL.revokeObjectURL(u);},2000);}
-            resetBtn();
-          });
-        } else {
-          var u=URL.createObjectURL(pdfBlob);var a=document.createElement('a');a.href=u;a.download=fileName;a.click();
-          setTimeout(function(){URL.revokeObjectURL(u);},2000);
-          resetBtn();
-        }
-      }).catch(function(err){
-        console.error('html2canvas error:',err);
-        tableWrap.style.position = savedPosition;
-        tableWrap.style.top      = savedTop;
-        tableWrap.style.left     = savedLeft;
-        tableWrap.style.width    = savedWidth;
-        tableWrap.style.overflow = savedOverflow;
-        tableWrap.scrollLeft     = savedScrollLeft;
-        if(savedNextSibling){ savedParent.insertBefore(tableWrap, savedNextSibling); } else { savedParent.appendChild(tableWrap); }
-        if(document.body.contains(clipper)) document.body.removeChild(clipper);
-        if(document.body.contains(mask)) document.body.removeChild(mask);
-        if(btn) btn.style.visibility = 'visible';
+    // ── Draw column header row ──
+    var y = MT;
+    // FIELD label cell
+    drawCell(ML, y, FIELD_W, HDR_H, C.headerBg, C.headerFg, 'FIELD', true, 6, 'left');
+    // Day + WK headers
+    var cx = ML + FIELD_W;
+    weeks.forEach(function(wk, wi){
+      wk.forEach(function(ds){
+        var dow  = new Date(ds+'T12:00:00').getDay();
+        var day  = new Date(ds+'T12:00:00').getDate();
+        var isToday = ds===todayStr;
+        var bg   = isToday ? [65,95,118] : C.headerBg;
+        var fg   = isToday ? [255,255,255] : [180,205,220];
+        // Two-line: DOW + day number
+        doc.setFillColor(bg[0],bg[1],bg[2]);
+        doc.rect(cx, y, DAY_W, HDR_H, 'F');
+        doc.setFont('helvetica','bold'); doc.setFontSize(5.5); doc.setTextColor(fg[0],fg[1],fg[2]);
+        doc.text(DOWS_SHORT[dow], cx+DAY_W/2, y+5.5, {align:'center'});
+        doc.setFont('helvetica','normal'); doc.setFontSize(6); doc.setTextColor(fg[0],fg[1],fg[2]);
+        doc.text(String(day), cx+DAY_W/2, y+HDR_H-3, {align:'center'});
+        cx += DAY_W;
+      });
+      // WK header
+      drawCell(cx, y, WK_W, HDR_H, [62,88,108], C.headerFg, 'WK '+(wi+1), true, 6, 'center');
+      cx += WK_W;
+    });
+    // MONTH header
+    drawCell(cx, y, MONTH_W, HDR_H, [72,100,122], C.headerFg, 'MONTH', true, 6.5, 'center');
+    y += HDR_H;
+
+    // ── Draw data rows ──
+    lastSection = null;
+    var rowIdx = 0;
+    visFields.forEach(function(f, fi){
+      var row = rows[fi];
+
+      // Section header
+      if(f.section && f.section!==lastSection){
+        lastSection = f.section;
+        // Full-width section label
+        doc.setFillColor(C.sectionBg[0],C.sectionBg[1],C.sectionBg[2]);
+        doc.rect(ML, y, tableW, SEC_H, 'F');
+        doc.setFont('helvetica','bold'); doc.setFontSize(5.5);
+        doc.setTextColor(C.sectionFg[0],C.sectionFg[1],C.sectionFg[2]);
+        doc.text(f.section.toUpperCase(), ML+4, y+SEC_H-3);
+        y += SEC_H;
+      }
+
+      // Row background
+      var isAlloc = !!f.alloc;
+      var rowBg   = isAlloc ? C.allocBg : (rowIdx%2===0 ? C.rowNorm : C.rowAlt);
+      var textClr = isAlloc ? C.allocText : C.text;
+      rowIdx++;
+
+      // Field label cell
+      doc.setFillColor(rowBg[0],rowBg[1],rowBg[2]);
+      doc.rect(ML, y, FIELD_W, ROW_H, 'F');
+      doc.setFont('helvetica', isAlloc?'bolditalic':'bold');
+      doc.setFontSize(6.2);
+      doc.setTextColor(textClr[0],textClr[1],textClr[2]);
+      doc.text(f.label, ML+3, y+ROW_H-3.5, {maxWidth:FIELD_W-4});
+
+      // Day cells + WK subtotals
+      cx = ML + FIELD_W;
+      row.wkData.forEach(function(wkRow, wi){
+        // Day cells
+        wkRow.days.forEach(function(val){
+          var isEmpty = val===null||val===undefined;
+          var isZero  = val===0;
+          var bg      = isAlloc ? C.allocBg : (rowIdx%2===0 ? C.rowNorm : C.rowAlt);
+          doc.setFillColor(bg[0],bg[1],bg[2]);
+          doc.rect(cx, y, DAY_W, ROW_H, 'F');
+          if(!isEmpty&&!isZero){
+            var fg = f.color==='green' ? C.green : f.color==='amber' ? C.amber : textClr;
+            doc.setFont('helvetica','normal'); doc.setFontSize(6);
+            doc.setTextColor(fg[0],fg[1],fg[2]);
+            doc.text(fmtVal(val,f.fmt), cx+DAY_W/2, y+ROW_H-3.5, {align:'center',maxWidth:DAY_W-1});
+          } else {
+            doc.setFont('helvetica','normal'); doc.setFontSize(6);
+            doc.setTextColor(C.textFaint[0],C.textFaint[1],C.textFaint[2]);
+            doc.text('\u2014', cx+DAY_W/2, y+ROW_H-3.5, {align:'center'});
+          }
+          cx += DAY_W;
+        });
+        // WK subtotal cell
+        var wkBg  = isAlloc ? [50,75,95] : C.wkBg;
+        var wkFg  = f.color==='green' ? C.green : f.color==='amber' ? C.amber : [200,220,235];
+        var wkTxt = wkRow.wkTotal>0 ? fmtVal(wkRow.wkTotal, f.fmt) : '\u2014';
+        drawCell(cx, y, WK_W, ROW_H, wkBg, wkRow.wkTotal>0?wkFg:C.textFaint, wkTxt, true, 6, 'center');
+        cx += WK_W;
+      });
+
+      // Month total cell
+      var moBg  = isAlloc ? [58,87,110] : C.monthBg;
+      var moFg  = f.color==='green' ? C.green : f.color==='amber' ? C.amber : [220,235,245];
+      var moTxt = row.monthTotal>0 ? fmtVal(row.monthTotal, f.fmt) : '\u2014';
+      drawCell(cx, y, MONTH_W, ROW_H, moBg, row.monthTotal>0?moFg:C.textFaint, moTxt, true, 6.5, 'center');
+
+      y += ROW_H;
+    });
+
+    // ── Footer ──
+    var footY = y + 8;
+    doc.setDrawColor(50,72,90); doc.setLineWidth(0.4);
+    doc.line(ML, footY, PW-MR, footY);
+    doc.setFont('helvetica','normal'); doc.setFontSize(6.5);
+    doc.setTextColor(100,125,145);
+    doc.text('MyClubTracker \u00b7 myclubtracker.com', ML, footY+8);
+    doc.text(locName + ' \u00b7 ' + monthLabel, PW-MR, footY+8, {align:'right'});
+
+    // ── Save ──
+    var safeName  = (locName.replace(/[^a-z0-9]/gi,'_').toLowerCase()||'club');
+    var safeMonth = (monthLabel.replace(/[^a-z0-9]/gi,'_').toLowerCase()||'summary');
+    var fileName  = safeName + '_' + safeMonth + '_summary.pdf';
+    var pdfBlob   = doc.output('blob');
+
+    if(window.showSaveFilePicker){
+      window.showSaveFilePicker({suggestedName:fileName,types:[{description:'PDF Document',accept:{'application/pdf':['.pdf']}}]})
+      .then(function(fh){return fh.createWritable().then(function(w){return w.write(pdfBlob).then(function(){return w.close();});});})
+      .then(function(){resetBtn();})
+      .catch(function(err){
+        if(err.name!=='AbortError'){var u=URL.createObjectURL(pdfBlob);var a=document.createElement('a');a.href=u;a.download=fileName;a.click();setTimeout(function(){URL.revokeObjectURL(u);},2000);}
         resetBtn();
       });
-    }, 80);
+    } else {
+      var u=URL.createObjectURL(pdfBlob);var a=document.createElement('a');a.href=u;a.download=fileName;a.click();
+      setTimeout(function(){URL.revokeObjectURL(u);},2000);
+      resetBtn();
+    }
   }
 
   function loadjsPDF(cb){
     if(window.jspdf && window.jspdf.jsPDF){cb();return;}
     var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';s.onload=cb;s.onerror=resetBtn;document.head.appendChild(s);
   }
-  function loadHtml2Canvas(cb){
-    if(window.html2canvas){cb();return;}
-    var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';s.onload=cb;s.onerror=resetBtn;document.head.appendChild(s);
-  }
-  loadHtml2Canvas(function(){ loadjsPDF(function(){ doCapture(); }); });
+  loadjsPDF(doRender);
 }
 
 let _reconOpen = false;
