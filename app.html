@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-08 20:15:00 -->
+<!-- CACHE BUST: 2026-04-08 20:45:00 -->
 <html lang="en">
 <head>
 <script>
@@ -11033,88 +11033,94 @@ function printSummaryPDF() {
   var today      = new Date();
   var dateStr    = today.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
 
-  // Target: the whole sum-view div so we capture exactly what the user sees
   var captureEl = document.getElementById('history-sum-view');
   if(!captureEl){resetBtn();return;}
 
   function doCapture(){
-    // Temporarily expand overflow so full table is captured
+    // Hide button so it doesn't appear in the capture
+    if(btn) btn.style.visibility = 'hidden';
+
+    // Expand table to full scroll width
     var origOverflow = tableWrap.style.overflow;
-    tableWrap.style.overflow = 'visible';
     var origWidth    = tableWrap.style.width;
     var tbl          = tableWrap.querySelector('table');
-    var fullW        = tbl ? tbl.scrollWidth : tableWrap.scrollWidth;
-    tableWrap.style.width = fullW + 'px';
+    var fullW        = tbl ? tbl.scrollWidth + 32 : tableWrap.scrollWidth;
+    tableWrap.style.overflow = 'visible';
+    tableWrap.style.width    = fullW + 'px';
 
     window.html2canvas(captureEl, {
-      scale: 2,
+      scale: 3,
       useCORS: true,
       logging: false,
       width: captureEl.scrollWidth,
-      windowWidth: captureEl.scrollWidth
+      windowWidth: captureEl.scrollWidth + 100
     }).then(function(canvas){
-      // Restore styles
+      // Restore
       tableWrap.style.overflow = origOverflow;
       tableWrap.style.width    = origWidth;
+      if(btn) btn.style.visibility = 'visible';
 
       var jsPDF = window.jspdf && window.jspdf.jsPDF;
       if(!jsPDF){resetBtn();return;}
 
-      // Determine orientation based on aspect ratio
-      var imgW    = canvas.width;
-      var imgH    = canvas.height;
-      var ratio   = imgH / imgW;
-      // Use landscape if wide, portrait if tall
-      var orient  = ratio < 1.2 ? 'landscape' : 'portrait';
-      var doc     = new jsPDF({orientation:orient, unit:'pt', format:'letter'});
+      var imgW = canvas.width;
+      var imgH = canvas.height;
 
-      var PW = orient==='landscape' ? 792 : 612;
-      var PH = orient==='landscape' ? 612 : 792;
-      var ML = 28, MR = 28, MT = 50;
+      // Use a custom wide PDF page that matches the table's aspect ratio
+      // Base on landscape letter width (792pt) but extend height if needed
+      var ML = 28, MR = 28, MT = 54, MB = 20;
+      var printW = 792 - ML - MR;  // available width in points
+
+      // Scale image to fill printW, calculate resulting height
+      var scale   = printW / imgW;
+      var rendH   = imgH * scale;
+
+      // Total page height = header + image + footer
+      var pageH = MT + rendH + MB;
+      // Minimum page height is landscape letter (612pt)
+      if(pageH < 612) pageH = 612;
+
+      var doc = new jsPDF({
+        orientation: 'landscape',
+        unit: 'pt',
+        format: [792, pageH]
+      });
+
+      var PW = 792;
 
       // ── Header ──
       doc.setFont('helvetica','bold');
       doc.setFontSize(14);
       doc.setTextColor(53,78,98);
-      doc.text(locName, ML, 28);
+      doc.text(locName, ML, 26);
 
       doc.setFont('helvetica','normal');
       doc.setFontSize(9);
       doc.setTextColor(96,126,150);
-      doc.text('Monthly Summary \u2014 ' + monthLabel, ML, 42);
+      doc.text('Monthly Summary \u2014 ' + monthLabel, ML, 40);
 
       doc.setFontSize(7.5);
       doc.setTextColor(143,163,179);
-      doc.text('Generated ' + dateStr + ' \u00b7 myclubtracker.com', PW-MR, 42, {align:'right'});
+      doc.text('Generated ' + dateStr + ' \u00b7 myclubtracker.com', PW-MR, 40, {align:'right'});
 
       doc.setDrawColor(205,214,224);
       doc.setLineWidth(0.5);
-      doc.line(ML, 48, PW-MR, 48);
+      doc.line(ML, 46, PW-MR, 46);
 
-      // ── Image ──
-      var availW  = PW - ML - MR;
+      // ── Image — full width, single page ──
       var imgData = canvas.toDataURL('image/png');
-      var dispH   = availW * (imgH / imgW);
-
-      // If image is taller than one page, scale to fit height
-      var maxH = PH - MT - 24;
-      if(dispH > maxH){
-        var scale2 = maxH / dispH;
-        dispH  = maxH;
-        availW = availW * scale2;
-      }
-
-      doc.addImage(imgData, 'PNG', ML, MT, availW, dispH);
+      doc.addImage(imgData, 'PNG', ML, MT, printW, rendH, undefined, 'FAST');
 
       // ── Footer ──
+      var footY = MT + rendH + 12;
       doc.setDrawColor(205,214,224);
       doc.setLineWidth(0.4);
-      doc.line(ML, PH-16, PW-MR, PH-16);
+      doc.line(ML, footY - 4, PW-MR, footY - 4);
       doc.setFont('helvetica','normal');
       doc.setFontSize(6.5);
       doc.setTextColor(143,163,179);
-      doc.text('MyClubTracker \u00b7 myclubtracker.com', ML, PH-7);
-      doc.text(locName + ' \u00b7 ' + monthLabel, PW-MR, PH-7, {align:'right'});
+      doc.text('MyClubTracker \u00b7 myclubtracker.com', ML, footY + 4);
+      doc.text(locName + ' \u00b7 ' + monthLabel, PW-MR, footY + 4, {align:'right'});
 
       // ── Save ──
       var safeName  = (locName.replace(/[^a-z0-9]/gi,'_').toLowerCase()||'club');
@@ -11147,11 +11153,11 @@ function printSummaryPDF() {
       console.error('html2canvas error:',err);
       tableWrap.style.overflow = origOverflow;
       tableWrap.style.width    = origWidth;
+      if(btn) btn.style.visibility = 'visible';
       resetBtn();
     });
   }
 
-  // Load html2canvas, then jsPDF, then capture
   function loadjsPDF(cb){
     if(window.jspdf && window.jspdf.jsPDF){cb();return;}
     var s=document.createElement('script');
