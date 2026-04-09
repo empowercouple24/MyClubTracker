@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-10 07:00:00 -->
+<!-- CACHE BUST: 2026-04-10 08:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -5578,6 +5578,7 @@ function gcalRequestToken(cb){
   // 2. Try server-side refresh (uses stored refresh token — no UI)
   sb.functions.invoke('gcal-refresh',{body:{location_id:LOCATION_ID}})
     .then(function(res){
+      console.log('[gcal] refresh result:', JSON.stringify(res.data));
       const d=res.data;
       if(d&&d.access_token){
         SETTINGS.gcal.token=d.access_token;
@@ -5606,10 +5607,11 @@ function _gcalTokenPromptFull(clientId,cb){
     +'&access_type=offline'
     +'&prompt=consent'
     +loginHint;
+  console.log('[gcal] opening popup, redirectUri=',redirectUri);
   const w=window.open(url,'gcal_auth','width=500,height=600,left=200,top=100');
 
-  // oauth-callback.html posts the code back via postMessage — no polling needed
   function onMessage(evt){
+    console.log('[gcal] postMessage received:', evt.origin, JSON.stringify(evt.data));
     if(evt.origin!==window.location.origin) return;
     if(!evt.data||evt.data.type!=='gcal_code'&&evt.data.type!=='gcal_error') return;
     window.removeEventListener('message',onMessage);
@@ -5619,12 +5621,14 @@ function _gcalTokenPromptFull(clientId,cb){
       cb(null); return;
     }
     var code=evt.data.code;
+    console.log('[gcal] got code, invoking gcal-exchange');
     if(!code){cb(null);return;}
     sb.functions.invoke('gcal-exchange',{body:{
       code:code,
       redirect_uri:redirectUri,
       location_id:LOCATION_ID
     }}).then(function(res){
+      console.log('[gcal] exchange result:', JSON.stringify(res.data));
       var d=res.data;
       if(d&&d.access_token){
         SETTINGS.gcal.token=d.access_token;
@@ -5633,20 +5637,20 @@ function _gcalTokenPromptFull(clientId,cb){
         sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID);
         cb(d.access_token);
       } else {
-        console.error('gcal-exchange response:',JSON.stringify(d));
+        console.error('[gcal] exchange failed:',JSON.stringify(d));
         showToast('Google auth failed: '+(d&&d.error||'unknown'),'error');
         cb(null);
       }
     }).catch(function(e){
-      console.error('gcal-exchange error:',e);
+      console.error('[gcal] exchange error:',e);
       showToast('Google auth error: '+e,'error');
       cb(null);
     });
   }
   window.addEventListener('message',onMessage);
 
-  // Give up after 3 minutes (user closed popup without authorizing)
   var giveUpTimer=setTimeout(function(){
+    console.log('[gcal] timed out waiting for postMessage');
     window.removeEventListener('message',onMessage);
     try{w&&w.close();}catch(e){}
     cb(null);
