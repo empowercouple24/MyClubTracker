@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-09 18:30:00 -->
+<!-- CACHE BUST: 2026-04-09 19:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -9586,6 +9586,20 @@ function openAllocDetail(dateStr) {
   const cashDeposit = parseFloat(data.cashSales) || 0;
   document.getElementById('alloc-amt-cashdeposit').textContent = fmt$(cashDeposit);
 
+  // Square deposit reference — show below cash deposit bucket
+  var sqDepEl = document.getElementById('alloc-sq-deposit-row');
+  const sqDep = c.cardDeposits || 0;
+  if (!sqDepEl) {
+    sqDepEl = document.createElement('div');
+    sqDepEl.id = 'alloc-sq-deposit-row';
+    sqDepEl.style.cssText = 'display:flex;align-items:center;gap:6px;padding:5px 0 2px;margin-bottom:6px;border-bottom:1px solid var(--border-light);';
+    const bucketGrid = document.querySelector('.alloc-bucket-grid');
+    if (bucketGrid) bucketGrid.parentNode.insertBefore(sqDepEl, bucketGrid);
+  }
+  sqDepEl.innerHTML = '<span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);">Square Deposit</span>'
+    + '<span style="font-size:11px;font-weight:700;color:var(--b6);margin-left:auto;">' + fmt$(sqDep) + '</span>'
+    + '<span style="font-size:10px;color:var(--text-faint);">(auto-deposited by Square)</span>';
+
   // Bucket amounts
   document.getElementById('alloc-amt-tax').textContent = fmt$(c.tax || 0);
   document.getElementById('alloc-amt-overhead').textContent = fmt$(c.overhead || 0);
@@ -10761,6 +10775,7 @@ function renderHistAlloc() {
     if (!calSales(data)) return;
     const c = calcAllFromData(data);
     const cashDep = parseFloat(data.cashSales)||0;
+    const sqDep = c.cardDeposits || 0;
     const bv = [cashDep, c.tax||0, c.overhead||0, c.products||0, c.payouts||0];
     const tr = data.transfers || {};
     bv.forEach((v,i) => { monthOwe += v; if (tr[keys[i]]) monthDone += v; });
@@ -10769,7 +10784,7 @@ function renderHistAlloc() {
     const dl = new Date(d.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
     const totalAmt = bv.reduce((s,v) => s+v, 0);
     const dayRemaining = keys.reduce((s,k,i) => s + (tr[k] ? 0 : bv[i]), 0);
-    allDays.push({ dateStr: d.date, label: dl, bv, tr, keys, totalAmt, dayRemaining, doneCount, allComplete, allComplete5: allComplete });
+    allDays.push({ dateStr: d.date, label: dl, bv, tr, keys, totalAmt, dayRemaining, doneCount, allComplete, allComplete5: allComplete, sqDep });
   });
 
   const section = document.getElementById('hist-alloc-section');
@@ -10813,9 +10828,13 @@ function renderHistAlloc() {
         const valColor = transferred ? (isCash?'var(--b6)':'var(--g5)') : 'var(--text)';
         const check = transferred ? '<span style="font-size:9px;margin-left:3px;">&#10003;</span>' : '';
         const flex = isCash ? 'flex:1.6;' : 'flex:1;';
+        const sqLine = isCash && day.sqDep > 0
+          ? `<div style="font-size:9px;color:var(--b5);margin-top:2px;white-space:nowrap;">&#9632; Sq ${fmt$(day.sqDep)}</div>`
+          : '';
         return `<div data-bucket="${k}" data-transferred="${transferred?'1':'0'}" style="${flex}min-width:60px;padding:6px 8px;${br}background:${bg};">
           <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:${labelColor};margin-bottom:2px;">${BUCKET_LABELS[k]}${check}</div>
           <div style="font-family:Outfit,sans-serif;font-size:12px;font-weight:800;color:${valColor};">${fmt$(day.bv[i])}</div>
+          ${sqLine}
         </div>`;
       }).join('');
       const pendingAmt = day.keys.reduce((s,k,i) => s + (day.tr[k] ? 0 : day.bv[i]), 0);
