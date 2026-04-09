@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-09 01:00:00 -->
+<!-- CACHE BUST: 2026-04-09 01:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -6042,18 +6042,24 @@ async function applyProdUpdate(){
     ? SETTINGS.customProducts.map(function(p){return p.slice();})
     : (window.PRODUCTS||[]).map(function(p){return p.slice();});
 
+  // Match helper: SKU when present, otherwise cat+name
+  function prodMatch(p, ch){
+    if(ch.sku) return p[2]===ch.sku;
+    return p[0]===ch.cat && p[1]===ch.name;
+  }
+
   accepted.forEach(function(idx){
     const ch = changes[idx];
     if(!ch) return;
     if(ch.type==='add'){
-      // Add if not already present by SKU
-      if(!prods.find(function(p){return p[2]===ch.sku;})){
+      // Add if not already present (by SKU or cat+name)
+      if(!prods.find(function(p){return prodMatch(p,ch);})){
         prods.push([ch.cat, ch.name, ch.sku, ch.vp, ch.par]);
       }
     } else if(ch.type==='remove'){
-      prods = prods.filter(function(p){return p[2]!==ch.sku;});
+      prods = prods.filter(function(p){return !prodMatch(p,ch);});
     } else if(ch.type==='change'){
-      const p = prods.find(function(p){return p[2]===ch.sku;});
+      const p = prods.find(function(p){return prodMatch(p,ch);});
       if(p && ch.diffs){
         ch.diffs.forEach(function(d){
           if(d.field==='name') p[1]=d.to;

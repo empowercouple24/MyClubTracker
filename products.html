@@ -563,26 +563,28 @@ async function saveProducts(){
 // ── DIFF ENGINE ──
 function computeDiff(oldList, newList){
   // oldList/newList: arrays of [cat, name, sku, vp, par]
+  // Key: SKU when present, otherwise "cat||name" as stable identity
   const changes = [];
-  const oldBySku = {};
-  const newBySku = {};
-  oldList.forEach(function(p){ if(p[2]) oldBySku[p[2]] = p; });
-  newList.forEach(function(p){ if(p[2]) newBySku[p[2]] = p; });
-  // Added
+  function keyOf(p){ return p[2] ? p[2] : (p[0]+'||'+p[1]); }
+  const oldByKey = {};
+  const newByKey = {};
+  oldList.forEach(function(p){ oldByKey[keyOf(p)] = p; });
+  newList.forEach(function(p){ newByKey[keyOf(p)] = p; });
+  // Added: in new but not in old
   newList.forEach(function(p){
-    if(!p[2] || !oldBySku[p[2]]){
+    if(!oldByKey[keyOf(p)]){
       changes.push({type:'add', sku:p[2]||'', name:p[1], cat:p[0], vp:p[3], par:p[4]});
     }
   });
-  // Removed
+  // Removed: in old but not in new
   oldList.forEach(function(p){
-    if(!p[2] || !newBySku[p[2]]){
+    if(!newByKey[keyOf(p)]){
       changes.push({type:'remove', sku:p[2]||'', name:p[1], cat:p[0]});
     }
   });
-  // Changed
+  // Changed: present in both, check fields
   newList.forEach(function(p){
-    const old = p[2] && oldBySku[p[2]];
+    const old = oldByKey[keyOf(p)];
     if(!old) return;
     const diffs = [];
     if(old[1] !== p[1]) diffs.push({field:'name', from:old[1], to:p[1]});
