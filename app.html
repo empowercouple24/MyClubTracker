@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-09 15:30:00 -->
+<!-- CACHE BUST: 2026-04-09 16:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -1538,14 +1538,6 @@ if('serviceWorker' in navigator){
       </div>
     </div>
 
-  <div style="max-width:900px;margin:0 auto;width:100%;">
-    <div id="alloc-cal-nav" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-      <button class="btn btn-ghost" id="alloc-prev-btn" onclick="allocCalShift(-1)" style="padding:5px 12px;font-size:16px;">&#8592;</button>
-      <span id="alloc-cal-label" style="font-family:Outfit,sans-serif;font-size:16px;font-weight:800;color:var(--text);"></span>
-      <button class="btn btn-ghost" id="alloc-next-btn" onclick="allocCalShift(1)" style="padding:5px 12px;font-size:16px;">&#8594;</button>
-    </div>
-    <div id="alloc-cal-grid" style="width:100%;"></div>
-  </div>
 
   </div>
 </div>
@@ -3982,7 +3974,7 @@ async function init(){
   const allInvRows=snaps||[];
   INV_SNAPSHOTS=allInvRows.filter(r=>!r.data?._type);
   ORDER_PLANS=allInvRows.filter(r=>r.data?._type==='order_plan');
-  if(SETTINGS.customProducts)PRODUCTS=SETTINGS.customProducts;
+  if(SETTINGS.customProducts && SETTINGS.customProducts.length > 0) PRODUCTS=SETTINGS.customProducts;
   if(SETTINGS.invOos)invOos=SETTINGS.invOos;
   const today=localToday();
   const _savedDate=localStorage.getItem('mct_entry_date_'+CURRENT_SESSION.user.id);
