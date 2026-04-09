@@ -7115,6 +7115,36 @@ function renderDashboardWidgets(){
 const _OP_PALETTE = ['#e53935','#1a73e8','#9c27b0','#fb8c00','#00897b','#e91e8c','#3f51b5','#43a047','#f9a825','#00acc1','#6d4c41','#546e7a'];
 const _swatchColors = ['#e53935','#e91e8c','#9c27b0','#3f51b5','#1a73e8','#00acc1','#00897b','#43a047','#f9a825','#fb8c00','#6d4c41','#546e7a'];
 
+
+// ── PRODUCT NAME DISPLAY PARSER ──────────────────────────────────────────────
+// Splits "Base Name - Flavor (size/qty)" into {main, sub}
+// main = everything before first " - "
+// sub  = dash part + paren part joined with " · " (parens stripped)
+function parseProdName(name) {
+  if (!name) return {main: '', sub: ''};
+  var dashIdx = name.indexOf(' - ');
+  var parenIdx = name.indexOf('(');
+  var main, sub = '';
+  if (dashIdx >= 0) {
+    main = name.slice(0, dashIdx).trim();
+    var rest = name.slice(dashIdx + 3).trim();
+    // rest may contain parens at the end: "Flavor (qty)"
+    var pm = rest.match(/^(.*?)\s*\(([^)]+)\)\s*$/);
+    if (pm) {
+      sub = [pm[1].trim(), pm[2].trim()].filter(Boolean).join(' · ');
+    } else {
+      sub = rest;
+    }
+  } else if (parenIdx >= 0) {
+    main = name.slice(0, parenIdx).trim();
+    var pm2 = name.match(/\(([^)]+)\)/);
+    sub = pm2 ? pm2[1].trim() : '';
+  } else {
+    main = name;
+  }
+  return {main: main, sub: sub};
+}
+// ─────────────────────────────────────────────────────────────────────────────
 function getOpColor(name) {
   if (!name) return _OP_PALETTE[0];
   const members = getTeamMembers();
@@ -8549,7 +8579,7 @@ function renderInventory(){
       const dvNeedStr=haveEntered&&dvNeed>0?fmtVP(dvNeed):'--';
       const oosInfo=isOos&&oos.expectedDate?`<span class="oos-badge">OOS - ${new Date(oos.expectedDate+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>`:(isOos?`<span class="oos-badge">OOS</span>`:'');
       html+=`<tr class="${rowClass}" id="inv-row-${p.sku}">
-        <td><div class="inv-name-cell" style="display:flex;align-items:center;gap:7px;"><input type="checkbox" class="oos-check" tabindex="-1" title="Mark out of stock" ${isOos?'checked':''} onchange="toggleOos('${p.sku}','${escHtml(p.name)}',this)"/><div style="display:flex;flex-direction:column;overflow:hidden;min-width:0;">${(()=>{const parts=p.name.split(' - ');const main=parts[0];const sub=parts.slice(1).join(' - ');return `<div style="display:flex;align-items:baseline;gap:8px;overflow:hidden;"><span class="inv-name">${main}</span><span class="inv-sku inv-sku-desktop">${p.sku||''}</span></div>${sub?`<span class="inv-name-sub">${sub}</span>`:''}`;})()} ${oosInfo}</div></td>
+        <td><div class="inv-name-cell" style="display:flex;align-items:center;gap:7px;"><input type="checkbox" class="oos-check" tabindex="-1" title="Mark out of stock" ${isOos?'checked':''} onchange="toggleOos('${p.sku}','${escHtml(p.name)}',this)"/><div style="display:flex;flex-direction:column;overflow:hidden;min-width:0;">${(()=>{const _pn=parseProdName(p.name);return `<div style="display:flex;align-items:baseline;gap:8px;overflow:hidden;"><span class="inv-name" style="font-weight:600;">${_pn.main}</span><span class="inv-sku inv-sku-desktop">${p.sku||''}</span></div>${_pn.sub?`<span class="inv-name-sub">${_pn.sub}</span>`:''}`;})()} ${oosInfo}</div></td>
         <td style="color:var(--text-muted);font-size:13px;">${p.par}</td>
         <td><span class="need-badge ${bc}">${bt}</span></td>
         <td class="dv-product">${p.vp||'--'}</td>
@@ -9089,7 +9119,7 @@ function renderOrderBody(){
       const dvSubStr=dvSub!=null?fmtVP(dvSub):'--';
       const oosInfo=isOos&&invOos[p.sku].expectedDate?`<span class="oos-badge">OOS - ${new Date(invOos[p.sku].expectedDate+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>`:(isOos?`<span class="oos-badge">OOS</span>`:'');
       html+=`<tr class="${rowClass}" id="order-row-${p.sku}">
-        <td><div class="inv-name-cell" style="display:flex;align-items:center;gap:7px;"><input type="checkbox" class="oos-check" tabindex="-1" title="Mark out of stock" ${isOos?'checked':''} onchange="toggleOos('${p.sku}','${escHtml(p.name)}',this)"/><div style="display:flex;align-items:baseline;gap:12px;overflow:hidden;"><span class="inv-name">${p.name}</span>${p.sku?`<span class="inv-sku">${p.sku}</span>`:''}</div>${oosInfo}</div></td>
+        <td><div class="inv-name-cell" style="display:flex;align-items:center;gap:7px;"><input type="checkbox" class="oos-check" tabindex="-1" title="Mark out of stock" ${isOos?'checked':''} onchange="toggleOos('${p.sku}','${escHtml(p.name)}',this)"/><div style="display:flex;flex-direction:column;overflow:hidden;min-width:0;">${(()=>{const _pn=parseProdName(p.name);return `<div style="display:flex;align-items:baseline;gap:8px;overflow:hidden;"><span class="inv-name" style="font-weight:600;">${_pn.main}</span><span class="inv-sku">${p.sku||''}</span></div>${_pn.sub?`<span class="inv-name-sub">${_pn.sub}</span>`:''}`;})()} </div>${oosInfo}</div></td>
         <td style="color:var(--b6);font-weight:700;">${p.need}</td>
         <td class="dv-product">${p.vp||'--'}</td>
         <td style="text-align:left;padding-left:8px;">${makeAssignBtn(p,isOos,assigned,ops)}</td>
