@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-10 02:00:00 -->
+<!-- CACHE BUST: 2026-04-10 05:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -3181,7 +3181,7 @@ if('serviceWorker' in navigator){
 <script>
 const SUPABASE_URL='https://ndaqlamzlaucigvnhgfu.supabase.co';
 const SUPABASE_ANON_KEY='sb_publishable_wO6XM4pC2CcaISQ8OlbkfQ_liqKJbi_';
-const GCAL_CLIENT_ID='618368859945-nsqok0t0aleg609dp89pftu478fa7ba2.apps.googleusercontent.com';
+const GCAL_CLIENT_ID='630477009420-23tbe4911r0c2q6foq48tq20mi5oc2cf.apps.googleusercontent.com';
 const {createClient}=supabase;
 const sb=createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{
   auth:{
@@ -4053,12 +4053,7 @@ async function init(){
   const _ed=document.getElementById('entry-date');if(_ed){_ed.value=_startDate;_ed.max=localToday();}
   updateDateDisplay();
   const now=new Date();
-  // Init payout date range to this month
-  const _pfrom=fmtDateStr(new Date(now.getFullYear(),now.getMonth(),1));
-  const _pto=localToday();
-  applyPayoutDates(_pfrom,_pto);
-  // Mark This Month chip active
-  setTimeout(()=>{ const _tc=document.querySelector('.payout-preset-chip:nth-child(4)');if(_tc)_tc.classList.add('active'); },100);
+  // Payouts start with no selection — user picks a preset or date range
   applyTheme(SETTINGS.theme||'ocean');populateOperatorDropdowns();buildSettingsUI();loadDay();renderHistory();renderHistAlloc();initUndoListeners();renderInventory();renderInvSnapPicker();renderPayoutSnapshots();renderPaymentRegister();renderDashboardWidgets();
   // ── ONE-TIME PAY PERIOD MIGRATION ──
   if(!SETTINGS._payPeriodMigrated2026v2){setTimeout(function(){migratePayPeriods2026();},1000);}
@@ -5574,79 +5569,84 @@ function gcalConnect(){
 function gcalRequestToken(cb){
   const clientId=GCAL_CLIENT_ID||SETTINGS.gcal&&SETTINGS.gcal.clientId;
   if(!clientId){cb(null);return;}
-  // Check existing valid token
-  if(SETTINGS.gcal.token&&SETTINGS.gcal.tokenExpiry&&Date.now()<SETTINGS.gcal.tokenExpiry-60000){cb(SETTINGS.gcal.token);return;}
-  const scope=encodeURIComponent('https://www.googleapis.com/auth/calendar.readonly');
-  const redirectUri=encodeURIComponent(window.location.origin+'/app.html');
-  const state=Math.random().toString(36).slice(2);
-  const loginHint=SETTINGS.gcal&&SETTINGS.gcal.email?'&login_hint='+encodeURIComponent(SETTINGS.gcal.email):'';
 
-  // First try silent re-auth (prompt=none) in a hidden iframe-style popup
-  // If the user has an active Google session this will resolve without any UI
-  var silentUrl='https://accounts.google.com/o/oauth2/v2/auth?client_id='+clientId
-    +'&redirect_uri='+redirectUri+'&response_type=token&scope='+scope
-    +'&state='+state+'&prompt=none'+loginHint;
-  var silentWin=window.open(silentUrl,'gcal_silent','width=1,height=1,left=-1000,top=-1000');
-  var silentTimer=setInterval(function(){
-    try{
-      if(!silentWin||silentWin.closed){
-        clearInterval(silentTimer);
-        _gcalTokenPromptFull(clientId,scope,redirectUri,loginHint,cb);
-        return;
+  // 1. In-memory token still valid — use it immediately
+  if(SETTINGS.gcal.token&&SETTINGS.gcal.tokenExpiry&&Date.now()<SETTINGS.gcal.tokenExpiry-60000){
+    cb(SETTINGS.gcal.token);return;
+  }
+
+  // 2. Try server-side refresh (uses stored refresh token — no UI)
+  sb.functions.invoke('gcal-refresh',{body:{location_id:LOCATION_ID}})
+    .then(function(res){
+      const d=res.data;
+      if(d&&d.access_token){
+        SETTINGS.gcal.token=d.access_token;
+        SETTINGS.gcal.tokenExpiry=Date.now()+(d.expires_in||3600)*1000;
+        cb(d.access_token);
+      } else {
+        // No refresh token stored yet — need one-time consent
+        _gcalTokenPromptFull(clientId,cb);
       }
-      var hash=silentWin.location.hash;
-      if(hash&&hash.includes('access_token')){
-        clearInterval(silentTimer);silentWin.close();
-        var params=new URLSearchParams(hash.slice(1));
-        var token=params.get('access_token');
-        var expiresIn=parseInt(params.get('expires_in')||'3600');
-        SETTINGS.gcal.token=token;
-        SETTINGS.gcal.tokenExpiry=Date.now()+expiresIn*1000;
-        sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID);
-        cb(token);
-      } else if(hash&&(hash.includes('error='))){
-        // Silent failed (e.g. no active session) — fall through to full prompt
-        clearInterval(silentTimer);
-        try{silentWin.close();}catch(e){}
-        _gcalTokenPromptFull(clientId,scope,redirectUri,loginHint,cb);
-      }
-    }catch(e){
-      // Cross-origin error means redirect happened but not yet to our origin — keep waiting
-    }
-  },400);
-  // Timeout silent attempt after 8 seconds
-  setTimeout(function(){
-    if(silentTimer){clearInterval(silentTimer);try{silentWin&&silentWin.close();}catch(e){}}
-    _gcalTokenPromptFull(clientId,scope,redirectUri,loginHint,cb);
-  },8000);
+    })
+    .catch(function(){
+      _gcalTokenPromptFull(clientId,cb);
+    });
 }
 
-function _gcalTokenPromptFull(clientId,scope,redirectUri,loginHint,cb){
+function _gcalTokenPromptFull(clientId,cb){
+  // One-time authorization code flow (response_type=code, access_type=offline, prompt=consent)
+  // This gets a refresh token that is stored server-side via gcal-exchange
+  const scope=encodeURIComponent('https://www.googleapis.com/auth/calendar.readonly');
+  const redirectUri=window.location.origin+'/app.html';
   const state=Math.random().toString(36).slice(2);
+  const loginHint=SETTINGS.gcal&&SETTINGS.gcal.email?'&login_hint='+encodeURIComponent(SETTINGS.gcal.email):'';
   const url='https://accounts.google.com/o/oauth2/v2/auth?client_id='+clientId
-    +'&redirect_uri='+redirectUri+'&response_type=token&scope='+scope
-    +'&state='+state+'&prompt=select_account'+loginHint;
+    +'&redirect_uri='+encodeURIComponent(redirectUri)
+    +'&response_type=code'
+    +'&scope='+scope
+    +'&state='+state
+    +'&access_type=offline'
+    +'&prompt=consent'
+    +loginHint;
   const w=window.open(url,'gcal_auth','width=500,height=600,left=200,top=100');
   var timer=setInterval(function(){
     try{
       if(!w||w.closed){clearInterval(timer);cb(null);return;}
+      var search=w.location.search;
       var hash=w.location.hash;
-      if(hash&&hash.includes('access_token')){
-        clearInterval(timer);w.close();
-        var params=new URLSearchParams(hash.slice(1));
-        var token=params.get('access_token');
-        var expiresIn=parseInt(params.get('expires_in')||'3600');
-        SETTINGS.gcal.token=token;
-        SETTINGS.gcal.tokenExpiry=Date.now()+expiresIn*1000;
-        // Capture the email so we can use login_hint on future auths
-        fetch('https://www.googleapis.com/oauth2/v1/tokeninfo?access_token='+token)
-          .then(function(r){return r.json();})
-          .then(function(info){if(info.email)SETTINGS.gcal.email=info.email;})
-          .catch(function(){})
-          .finally(function(){sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID);});
-        cb(token);
+      // Look for code= in query string after redirect back to app.html
+      if(w.location.href.includes(window.location.origin)&&(search.includes('code=')||hash.includes('code='))){
+        clearInterval(timer);
+        var params=new URLSearchParams(search.slice(1)||hash.slice(1));
+        var code=params.get('code');
+        w.close();
+        if(!code){cb(null);return;}
+        // Exchange code for tokens server-side
+        sb.functions.invoke('gcal-exchange',{body:{
+          code:code,
+          redirect_uri:redirectUri,
+          location_id:LOCATION_ID
+        }}).then(function(res){
+          const d=res.data;
+          if(d&&d.access_token){
+            SETTINGS.gcal.token=d.access_token;
+            SETTINGS.gcal.tokenExpiry=Date.now()+(d.expires_in||3600)*1000;
+            if(d.email)SETTINGS.gcal.email=d.email;
+            // Persist token metadata (NOT the refresh token — that's server-side only)
+            sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID);
+            cb(d.access_token);
+          } else {
+            showToast('Google auth failed: '+(d&&d.error||'unknown'),'error');
+            cb(null);
+          }
+        }).catch(function(e){
+          showToast('Google auth error: '+e,'error');
+          cb(null);
+        });
       }
-    }catch(e){}
+    }catch(e){
+      // Cross-origin — popup not yet redirected back, keep polling
+    }
   },500);
 }
 
