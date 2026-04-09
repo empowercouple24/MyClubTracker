@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-09 19:30:00 -->
+<!-- CACHE BUST: 2026-04-09 20:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -700,6 +700,25 @@ if('serviceWorker' in navigator){
       .cva-section { margin-bottom: 8px !important; }
       #panel-expansion h3, #panel-expansion .section-label { margin-bottom: 6px !important; }
 
+      /* ── HISTORY NAV — wrap to 2 rows on mobile ── */
+      #history-cal-nav { flex-wrap: wrap; gap: 4px; }
+      #history-cal-nav > div:first-child { flex: 1; min-width: 0; }
+      #history-cal-nav > div:last-child { flex: 0 0 100%; justify-content: flex-start; }
+      #hist-cal-label { font-size: 14px !important; }
+      .hvt-btn { font-size: 10px !important; padding: 3px 7px !important; }
+
+      /* ── ENTER TAB — Today Inventory widget: truncate label ── */
+      #dw-m-inv-label { max-width: 60px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+      /* ── INVENTORY TOOLBAR — 2 rows: filter chips top, snapshot bottom ── */
+      #inv-sticky-wrap .filter-row { flex-wrap: wrap !important; overflow-x: visible !important; }
+      #inv-sticky-wrap .filter-row > button.filter-chip { flex: 0 0 auto; }
+      #inv-sticky-wrap .filter-row > div { flex: 1 1 100%; order: 10; min-width: 0; }
+      #inv-sticky-wrap .filter-row > div label { display: inline !important; }
+      #inv-sticky-wrap #inv-clear-btn { flex: 0 0 auto; order: 5; }
+      #inv-sticky-wrap .btn-primary[onclick="saveInvSnapshot()"] { flex: 0 0 auto; order: 6; }
+      #inv-snapshot-picker { font-size: 12px !important; max-width: 100% !important; width: 100%; }
+
     }
 
     /* ── THEMES ── */
@@ -1099,7 +1118,7 @@ if('serviceWorker' in navigator){
   </div>
 
   <!-- Mobile compact widget strip (hidden on desktop, shown on mobile) -->
-  <div id="dw-mobile-strip" style="gap:6px;overflow-x:auto;padding-bottom:2px;margin-bottom:8px;">
+  <div id="dw-mobile-strip" style="gap:6px;overflow-x:auto;padding-bottom:2px;margin-bottom:8px;padding-right:12px;">
     <div style="flex:0 0 auto;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:7px 10px;display:flex;align-items:center;gap:7px;">
       <span style="font-size:15px;">🔥</span>
       <div><div style="font-size:15px;font-weight:800;color:var(--b7);line-height:1;" id="dw-m-streak">—</div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);margin-top:2px;">Streak</div></div>
