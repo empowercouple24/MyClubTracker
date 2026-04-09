@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-08 23:30:00 -->
+<!-- CACHE BUST: 2026-04-08 23:45:00 -->
 <html lang="en">
 <head>
 <script>
@@ -11105,24 +11105,24 @@ function printSummaryPDF() {
     var SEC_H    = 11;  // section label row
     var ROW_H    = 13;  // data row
 
-    // Colors — light theme
+    // Colors — light theme, high contrast
     var C = {
-      headerBg:  [53, 78, 98],    // dark blue header
-      headerFg:  [255,255,255],
-      sectionBg: [235,240,245],   // light section rows
-      sectionFg: [96, 126, 150],
-      rowAlt:    [247,250,252],   // alternate row
-      rowNorm:   [255,255,255],   // normal row
-      allocBg:   [255,248,235],   // allocation rows (warm tint)
-      text:      [53, 78, 98],    // normal text
-      textMuted: [96, 126, 150],  // muted
-      textFaint: [180,195,210],   // faint / dashes
-      green:     [45, 160, 80],   // positive green
-      amber:     [200, 120, 20],  // amber / fees
-      wkBg:      [224,232,240],   // week subtotal bg
-      monthBg:   [210,222,232],   // month total bg
-      border:    [220,228,235],   // row border
-      allocText: [120, 90, 30],   // alloc row text
+      headerBg:  [34,  56,  74],   // near-black blue header
+      headerFg:  [255,255,255],    // white text on header
+      sectionBg: [215,225,233],    // medium-grey section band
+      sectionFg: [34,  56,  74],   // dark text on section band
+      rowAlt:    [243,247,250],    // very light blue-grey alt row
+      rowNorm:   [255,255,255],    // white normal row
+      allocBg:   [255,244,220],    // warm yellow alloc rows
+      text:      [20,  35,  50],   // near-black body text
+      textMuted: [70, 100, 125],   // medium text
+      textFaint: [160,175,190],    // dashes / empty cells
+      green:     [10, 130,  55],   // dark green — readable on white
+      amber:     [175,  90,   0],  // dark amber/orange — readable on white
+      wkBg:      [200,215,228],    // blue-grey week subtotal
+      monthBg:   [34,  56,  74],   // same as header for month col
+      border:    [210,220,228],    // subtle row border
+      allocText: [100,  65,   0],  // dark brown on warm yellow
     };
 
     // ── Figure out total page height needed ──
@@ -11281,7 +11281,7 @@ function printSummaryPDF() {
         });
         // WK subtotal cell
         var wkBg  = isAlloc ? [50,75,95] : C.wkBg;
-        var wkFg  = f.color==='green' ? C.green : f.color==='amber' ? C.amber : [200,220,235];
+        var wkFg  = isAlloc ? [255,255,255] : (f.color==='green' ? C.green : f.color==='amber' ? C.amber : C.text);
         var wkTxt = wkRow.wkTotal>0 ? fmtVal(wkRow.wkTotal, f.fmt) : '\u2014';
         drawCell(cx, y, WK_W, ROW_H, wkBg, wkRow.wkTotal>0?wkFg:C.textFaint, wkTxt, true, 6, 'center');
         cx += WK_W;
@@ -11289,7 +11289,7 @@ function printSummaryPDF() {
 
       // Month total cell
       var moBg  = isAlloc ? [58,87,110] : C.monthBg;
-      var moFg  = f.color==='green' ? C.green : f.color==='amber' ? C.amber : [220,235,245];
+      var moFg  = [255,255,255];  // always white on dark month col
       var moTxt = row.monthTotal>0 ? fmtVal(row.monthTotal, f.fmt) : '\u2014';
       drawCell(cx, y, MONTH_W, ROW_H, moBg, row.monthTotal>0?moFg:C.textFaint, moTxt, true, 6.5, 'center');
 
