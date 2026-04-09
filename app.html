@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-08 22:15:00 -->
+<!-- CACHE BUST: 2026-04-08 22:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -11043,159 +11043,123 @@ function printSummaryPDF() {
     var fullW = tbl.scrollWidth;
     var fullH = tbl.scrollHeight;
 
-    // Save states
-    var savedScrollLeft    = tableWrap.scrollLeft;
-    var savedOverflow      = tableWrap.style.overflow;
-    var savedWidth         = tableWrap.style.width;
-    var savedPosition      = tableWrap.style.position;
-    var savedTop           = tableWrap.style.top;
-    var savedLeft          = tableWrap.style.left;
-    var savedZIndex        = tableWrap.style.zIndex;
+    // Cover screen with a mask so user sees nothing during capture
+    var mask = document.createElement('div');
+    mask.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#1a2a35;z-index:99998;display:flex;align-items:center;justify-content:center;';
+    mask.innerHTML = '<div style="color:rgba(255,255,255,0.5);font-family:DM Sans,sans-serif;font-size:13px;font-weight:600;letter-spacing:0.5px;">Generating PDF\u2026</div>';
+    document.body.appendChild(mask);
 
-    // Clip the BODY so the expanded element doesn't cause page reflow/scrollbars
-    var savedBodyOverflow  = document.body.style.overflow;
-    var savedBodyMaxW      = document.body.style.maxWidth;
-    document.body.style.overflow = 'hidden';
-    document.body.style.maxWidth = '100vw';
+    var savedScrollLeft = tableWrap.scrollLeft;
+    var savedOverflow   = tableWrap.style.overflow;
+    var savedWidth      = tableWrap.style.width;
+    var savedPosition   = tableWrap.style.position;
+    var savedTop        = tableWrap.style.top;
+    var savedLeft       = tableWrap.style.left;
+    var savedZIndex     = tableWrap.style.zIndex;
 
-    // Expand tableWrap off-screen to full width
     tableWrap.style.position  = 'fixed';
-    tableWrap.style.top       = '-9999px';   // way off screen — user can't see it
+    tableWrap.style.top       = '0';
     tableWrap.style.left      = '0';
     tableWrap.style.width     = fullW + 'px';
     tableWrap.style.overflow  = 'visible';
-    tableWrap.style.zIndex    = '9999';
+    tableWrap.style.zIndex    = '99997';
     tableWrap.scrollLeft      = 0;
 
     if(btn) btn.style.visibility = 'hidden';
 
-    window.html2canvas(tableWrap, {
-      scale: 3,
-      useCORS: true,
-      logging: false,
-      width:  fullW,
-      height: fullH,
-      windowWidth:  fullW,
-      windowHeight: fullH
-    }).then(function(canvas){
-      // Restore everything
-      tableWrap.style.position  = savedPosition;
-      tableWrap.style.top       = savedTop;
-      tableWrap.style.left      = savedLeft;
-      tableWrap.style.width     = savedWidth;
-      tableWrap.style.overflow  = savedOverflow;
-      tableWrap.style.zIndex    = savedZIndex;
-      tableWrap.scrollLeft      = savedScrollLeft;
-      document.body.style.overflow = savedBodyOverflow;
-      document.body.style.maxWidth = savedBodyMaxW;
-      if(btn) btn.style.visibility = 'visible';
+    setTimeout(function(){
+      window.html2canvas(tableWrap, {
+        scale: 3,
+        useCORS: true,
+        logging: false,
+        width:  fullW,
+        height: fullH,
+        windowWidth:  fullW,
+        windowHeight: fullH
+      }).then(function(canvas){
+        tableWrap.style.position = savedPosition;
+        tableWrap.style.top      = savedTop;
+        tableWrap.style.left     = savedLeft;
+        tableWrap.style.width    = savedWidth;
+        tableWrap.style.overflow = savedOverflow;
+        tableWrap.style.zIndex   = savedZIndex;
+        tableWrap.scrollLeft     = savedScrollLeft;
+        document.body.removeChild(mask);
+        if(btn) btn.style.visibility = 'visible';
 
-      var imgW = canvas.width;
-      var imgH = canvas.height;
+        var imgW = canvas.width;
+        var imgH = canvas.height;
+        var ML = 28, MR = 28, MT = 54, MB = 28;
+        var PW = 792;
+        var printW = PW - ML - MR;
+        var rendH  = (imgH / imgW) * printW;
+        var pageH  = Math.max(612, MT + rendH + MB + 20);
 
-      var ML = 28, MR = 28, MT = 54, MB = 28;
-      var PW = 792;
-      var printW = PW - ML - MR;
-      var scale  = printW / imgW;
-      var rendH  = imgH * scale;
-      var pageH  = Math.max(612, MT + rendH + MB + 20);
+        var doc = new jsPDF({orientation:'landscape', unit:'pt', format:[PW, pageH]});
 
-      var doc = new jsPDF({orientation:'landscape', unit:'pt', format:[PW, pageH]});
+        doc.setFont('helvetica','bold'); doc.setFontSize(14); doc.setTextColor(53,78,98);
+        doc.text(locName, ML, 26);
+        doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(96,126,150);
+        doc.text('Monthly Summary \u2014 ' + monthLabel, ML, 40);
+        doc.setFontSize(7.5); doc.setTextColor(143,163,179);
+        doc.text('Generated ' + dateStr + ' \u00b7 myclubtracker.com', PW-MR, 40, {align:'right'});
+        doc.setDrawColor(205,214,224); doc.setLineWidth(0.5);
+        doc.line(ML, 46, PW-MR, 46);
 
-      // Header
-      doc.setFont('helvetica','bold');
-      doc.setFontSize(14);
-      doc.setTextColor(53,78,98);
-      doc.text(locName, ML, 26);
-      doc.setFont('helvetica','normal');
-      doc.setFontSize(9);
-      doc.setTextColor(96,126,150);
-      doc.text('Monthly Summary \u2014 ' + monthLabel, ML, 40);
-      doc.setFontSize(7.5);
-      doc.setTextColor(143,163,179);
-      doc.text('Generated ' + dateStr + ' \u00b7 myclubtracker.com', PW-MR, 40, {align:'right'});
-      doc.setDrawColor(205,214,224);
-      doc.setLineWidth(0.5);
-      doc.line(ML, 46, PW-MR, 46);
+        var imgData = canvas.toDataURL('image/png');
+        doc.addImage(imgData, 'PNG', ML, MT, printW, rendH, undefined, 'FAST');
 
-      // Image
-      var imgData = canvas.toDataURL('image/png');
-      doc.addImage(imgData, 'PNG', ML, MT, printW, rendH, undefined, 'FAST');
+        var footY = MT + rendH + 10;
+        doc.setDrawColor(205,214,224); doc.setLineWidth(0.4);
+        doc.line(ML, footY, PW-MR, footY);
+        doc.setFont('helvetica','normal'); doc.setFontSize(6.5); doc.setTextColor(143,163,179);
+        doc.text('MyClubTracker \u00b7 myclubtracker.com', ML, footY + 9);
+        doc.text(locName + ' \u00b7 ' + monthLabel, PW-MR, footY + 9, {align:'right'});
 
-      // Footer
-      var footY = MT + rendH + 10;
-      doc.setDrawColor(205,214,224);
-      doc.setLineWidth(0.4);
-      doc.line(ML, footY, PW-MR, footY);
-      doc.setFont('helvetica','normal');
-      doc.setFontSize(6.5);
-      doc.setTextColor(143,163,179);
-      doc.text('MyClubTracker \u00b7 myclubtracker.com', ML, footY + 9);
-      doc.text(locName + ' \u00b7 ' + monthLabel, PW-MR, footY + 9, {align:'right'});
+        var safeName  = (locName.replace(/[^a-z0-9]/gi,'_').toLowerCase()||'club');
+        var safeMonth = (monthLabel.replace(/[^a-z0-9]/gi,'_').toLowerCase()||'summary');
+        var fileName  = safeName + '_' + safeMonth + '_summary.pdf';
+        var pdfBlob   = doc.output('blob');
 
-      // Save
-      var safeName  = (locName.replace(/[^a-z0-9]/gi,'_').toLowerCase()||'club');
-      var safeMonth = (monthLabel.replace(/[^a-z0-9]/gi,'_').toLowerCase()||'summary');
-      var fileName  = safeName + '_' + safeMonth + '_summary.pdf';
-      var pdfBlob   = doc.output('blob');
-
-      if(window.showSaveFilePicker){
-        window.showSaveFilePicker({
-          suggestedName: fileName,
-          types:[{description:'PDF Document',accept:{'application/pdf':['.pdf']}}]
-        })
-        .then(function(fh){return fh.createWritable().then(function(w){return w.write(pdfBlob).then(function(){return w.close();});});})
-        .then(function(){resetBtn();})
-        .catch(function(err){
-          if(err.name!=='AbortError'){
-            var u=URL.createObjectURL(pdfBlob);
-            var a=document.createElement('a');a.href=u;a.download=fileName;a.click();
-            setTimeout(function(){URL.revokeObjectURL(u);},2000);
-          }
+        if(window.showSaveFilePicker){
+          window.showSaveFilePicker({suggestedName:fileName,types:[{description:'PDF Document',accept:{'application/pdf':['.pdf']}}]})
+          .then(function(fh){return fh.createWritable().then(function(w){return w.write(pdfBlob).then(function(){return w.close();});});})
+          .then(function(){resetBtn();})
+          .catch(function(err){
+            if(err.name!=='AbortError'){var u=URL.createObjectURL(pdfBlob);var a=document.createElement('a');a.href=u;a.download=fileName;a.click();setTimeout(function(){URL.revokeObjectURL(u);},2000);}
+            resetBtn();
+          });
+        } else {
+          var u=URL.createObjectURL(pdfBlob);var a=document.createElement('a');a.href=u;a.download=fileName;a.click();
+          setTimeout(function(){URL.revokeObjectURL(u);},2000);
           resetBtn();
-        });
-      } else {
-        var u=URL.createObjectURL(pdfBlob);
-        var a=document.createElement('a');a.href=u;a.download=fileName;a.click();
-        setTimeout(function(){URL.revokeObjectURL(u);},2000);
+        }
+      }).catch(function(err){
+        console.error('html2canvas error:',err);
+        tableWrap.style.position = savedPosition;
+        tableWrap.style.top      = savedTop;
+        tableWrap.style.left     = savedLeft;
+        tableWrap.style.width    = savedWidth;
+        tableWrap.style.overflow = savedOverflow;
+        tableWrap.style.zIndex   = savedZIndex;
+        tableWrap.scrollLeft     = savedScrollLeft;
+        if(document.body.contains(mask)) document.body.removeChild(mask);
+        if(btn) btn.style.visibility = 'visible';
         resetBtn();
-      }
-    }).catch(function(err){
-      console.error('html2canvas error:',err);
-      tableWrap.style.position  = savedPosition;
-      tableWrap.style.top       = savedTop;
-      tableWrap.style.left      = savedLeft;
-      tableWrap.style.width     = savedWidth;
-      tableWrap.style.overflow  = savedOverflow;
-      tableWrap.style.zIndex    = savedZIndex;
-      tableWrap.scrollLeft      = savedScrollLeft;
-      document.body.style.overflow = savedBodyOverflow;
-      document.body.style.maxWidth = savedBodyMaxW;
-      if(btn) btn.style.visibility = 'visible';
-      resetBtn();
-    });
+      });
+    }, 80);
   }
 
   function loadjsPDF(cb){
     if(window.jspdf && window.jspdf.jsPDF){cb();return;}
-    var s=document.createElement('script');
-    s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-    s.onload=cb; s.onerror=resetBtn;
-    document.head.appendChild(s);
+    var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';s.onload=cb;s.onerror=resetBtn;document.head.appendChild(s);
   }
   function loadHtml2Canvas(cb){
     if(window.html2canvas){cb();return;}
-    var s=document.createElement('script');
-    s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-    s.onload=cb; s.onerror=resetBtn;
-    document.head.appendChild(s);
+    var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';s.onload=cb;s.onerror=resetBtn;document.head.appendChild(s);
   }
 
-  loadHtml2Canvas(function(){
-    loadjsPDF(function(){
-      doCapture();
-    });
-  });
+  loadHtml2Canvas(function(){ loadjsPDF(function(){ doCapture(); }); });
 }
 
 let _reconOpen = false;
