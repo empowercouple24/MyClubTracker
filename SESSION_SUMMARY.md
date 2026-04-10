@@ -1,5 +1,5 @@
 # MyClubTracker — Session Summary
-**Last updated:** April 10, 2026
+**Last updated:** April 10, 2026 (evening session)
 **Continue in a new conversation — upload this file to GitHub repo root and paste at session start**
 
 ---
@@ -67,6 +67,8 @@ At the end of every working session, Claude must:
 | Mary Nemecek | Owner, Empower | `9097fb68-963e-492e-93c2-52adea57c6b8` |
 | Mike Cripe | Org leader | `25ce3db4-dc58-4648-bf23-cc5b677ab70a` |
 
+- **Jeffrey's admin account** (`empowercouple24@gmail.com`) is now detached from Empower (`location_id = NULL`, `role = admin`). He accesses clubs via admin drill-in only.
+- **Mary** (`bestlifeever247@gmail.com`) is the Empower owner — `role = owner`, `location_id = b021a4c4-8ba3-43fa-8e78-d87c870c9e05`
 - **Private email** (`empowercouple24@gmail.com`) must never appear in app-facing code
 - **Public contact:** `support@myclubtracker.com`
 - **MN and JG** are the two primary Empower operators
@@ -80,7 +82,7 @@ At the end of every working session, Claude must:
 
 ## Known Locations
 | Name | ID |
-|------|----|
+|------|-----|
 | Empower Nutrition & Energy | `b021a4c4-8ba3-43fa-8e78-d87c870c9e05` |
 | My Town Nutrition | `d97186de-919b-4ad3-a07c-c40c3924c4c1` |
 | Westlake Nutrition | `db41d54d-c6ec-4915-b317-1f023ca7f54d` |
@@ -109,13 +111,29 @@ At the end of every working session, Claude must:
 ### DEFAULT_PRODUCTS
 - Hardcoded array in both `app.html` and `products.html`
 - 19 categories (in order): PDM, F1, Tea, Aloe, Liftoff, Add-Ins, Coffee, 24 Line, Health, Drink Mixes 4.4 oz, Drink Mixes 2 lb, Creamy Mixes, Extras, Tea Kits, Drink Mix Packets, Retail, Tablets, Other, Gram Zero Drink Mixes
+- **Gram Zero Drink Mixes** is explicitly last — appended via `DEFAULT_PRODUCTS.push(..._GRAM_ZERO)` after the main array declaration
+- **Creamy Mixes** — all 7 products: VP = 23.57, PAR = 1
 - To revert a location: `UPDATE locations SET settings = settings - 'customProducts' WHERE id = '...';`
 - To revert all: `UPDATE locations SET settings = settings - 'customProducts';`
+
+### Recent Product Changes (this session)
+- **CR7** (24 Line): SKU updated from `1445` → `416K`
+- **Drink Mix - Strawberry (30 pkt)** added to Drink Mix Packets: SKU `363K`, VP `9.30`, PAR `2`, positioned after Raspberry (362K)
+- **Gram Zero Drink Mixes** moved to last category position
 
 ### Product Push Flow
 - Admin edits global list → Save → push modal → inserts `product_updates` rows per location
 - Owner logs in → `checkPendingProductUpdates()` fires → approval modal with per-change checkboxes
 - Owner accepts → `applyProdUpdate()` merges into `DEFAULT_PRODUCTS` or `customProducts` → saves → re-renders
+- **Partial approve now supported:** unchecked items saved as new `pending` record in `product_updates`
+- **"Skip for now"** just closes the modal — record stays `pending` and reappears on next login (no longer marks as `dismissed`)
+- **Pending Updates badge** in Settings → Products shows count of pending changes; tapping opens the modal directly
+
+### products.html — Global Mode
+- `?mode=global` now **always loads fresh from `DEFAULT_PRODUCTS`** — stale sessionStorage is ignored
+- **Sort headers** on Name and SKU columns in every category — click to sort visually, only saves on Save button
+- Sort saves update `DEFAULT_PRODUCTS` order (global) or `customProducts` (club level)
+- Sort changes do **not** trigger the push prompt — only name/SKU/VP/PAR/category changes do
 
 ### Product Name Display (2-row format)
 - `parseProdName(name)` in `app.html`
@@ -124,34 +142,58 @@ At the end of every working session, Claude must:
 
 ---
 
-## Inventory Tab
-- **Go to Order button:** Visible in toolbar, full-width row on mobile (CSS order:4, width:100%)
-- Toolbar order: All | Need | Snapshot picker | ✕ Clear | 📸 Snapshot | Go to Order →
-
----
-
 ## Order Tab — Full Feature State
 
 ### Toolbar
-- **Load a saved plan** (dropdown) | **💾 Save Plan** | **✎ Rename** | **🗑** | **+ New Plan**
-- Save Plan: hidden until a plan is active; saves at any point (partial or complete); prompts for name; overwrites if already saved
-- Rename: only visible when plan has been saved to Supabase (`_orderPlanActive.id` exists)
-- Delete (🗑): same — only visible on saved plans
-- **+ New Plan:** now shows confirmation dialog if current plan has any assignments ("Starting a new plan will clear your N assignments. Continue?")
+- **Load a saved plan** (dropdown) | **💾 Save Plan** | **✎ Rename** | **🗑** | **+ New Plan** | **✕ Unload**
+- **Unload:** closes the active plan and returns to blank state without deleting the saved plan. Resets skipped and ordered state. Visible whenever a plan is active.
+- Save Plan: saves at any completion level; prompts for name; overwrites if already saved
+- Rename/Delete only visible on saved plans
+
+### Category Assign Button
+- **Fixed this session:** only shows operator name/color when 100% of assignable items in the category are assigned to the same single operator
+- Mixed, partial, or empty → shows "Assign All" with no color
+- Clicking always overrides the entire category regardless of display state
+
+### Skip Product (per row)
+- Each product row has a `—` skip button
+- Skipped rows dim with strikethrough; assign button resets to unassigned
+- Excluded from volume calculations and operator summary cards
+- Undo with ↩ button
+- Skip state is session-only (not persisted to Supabase)
+
+### Operator Summary Cards (new this session)
+- Collapsed by default below the product list — shows operator name, item count, DV total, "Mark ordered" button
+- **Tap header** to expand and see full product list: Product / SKU / Need Qty / DV columns (all read-only)
+- **Mark ordered** button always visible without expanding — one tap dims all rows in the card, flips button to "✓ Ordered"
+- **Ordered state is undoable** — tap "✓ Ordered" again to revert entire card
+- **Tap any row** inside expanded card (even when ordered/dimmed) → opens inline edit action sheet:
+  - Move to another operator (card stays ordered, totals update)
+  - Skip product entirely
+  - Cancel
+- If reassigned to an already-ordered operator: that operator stays ordered, list and DV totals update
+
+### Volume Tracker (new this session)
+- Persistent tracker above the product list showing:
+  - **Large:** remaining DV (total minus assigned)
+  - **Small lines:** X DV assigned · X DV ordered
+  - Two progress bars (green = assigned, blue = ordered)
+- Updates live on every assignment, skip, and mark-ordered action
 
 ### Assignment buttons
-- **Per-row:** Single tap cycles through operators → unassigned. Fixed: `orderAssignCycle()` now correctly reads `_orderPlanActive.assignments[sku]` for current state (was referencing undefined `current` variable)
-- **Per-category:** Each category header has an "Assign All" button on the right. Tap cycles all non-OOS items in that category to the next operator. Shows dominant operator name/color when assigned. Cycles through all operators then back to unassigned.
-- `orderAssign()` called for each item — updates row button, DV subtotal cell, summary cards, cat totals
-
-### Operator summary cards
-- Fixed: `renderOrderSummaryCards()` was missing `const opTotals={}` and `const opCounts={}` declarations — variables were undefined, silently zeroing all DV totals
-- Now correctly reflects assignments in real time
+- Per-row: single tap cycles through operators → unassigned
+- Per-category: cycles all non-OOS, non-skipped items to next operator
 
 ### Save/Archive flow
-- `saveOrderPlan()`: saves at any completion level. If plan already has an ID, updates existing record. If new, inserts and sets `_orderPlanActive.id`.
-- `archiveOrderPlan()`: still exists (triggered by "Save & Archive" bar when all items assigned) — uses same save logic
+- `saveOrderPlan()`: saves at any completion level
+- `archiveOrderPlan()`: triggered by "Save & Archive" bar when all items assigned
 - Plans stored in `inventory` table with `data._type = 'order_plan'`
+
+---
+
+## Inventory Tab
+- **Go to Order button:** Visible in toolbar, full-width row on mobile
+- Toolbar order: All | Need | Snapshot picker | ✕ Clear | 📸 Snapshot | Go to Order →
 
 ---
 
@@ -159,37 +201,24 @@ At the end of every working session, Claude must:
 
 ### Preset chips (both Operator and Hourly sections)
 Order: `This Week` | `Last Week` | `Wk Before Last` | `Last 2 Wks` | `This Month` | `Last Month` | ✕
-- `Wk Before Last` = `getSunWeekRange(2)` — the full Sun–Sat week two weeks ago, standalone
-- Chip IDs: `ppc-range-weekbeforelast` (operator), `hppc-weekbeforelast` (hourly)
-- Label-init: `initPresetChipLabels()` and `initHourlyPresetChipLabels()`
 
 ### Per-person Review & Post
-- Each operator and hourly employee card has an individual **"Review & Post"** button inline right of their dollar amount
-- Calls `openPayrollApproveForOne(payee, amount, type)` — opens payroll approve modal pre-populated for one person
-- Check number computed fresh at tap time via `getNextCheckNumForAccount()` reading live from `SETTINGS.paymentLog` — always correct sequencing
-- Bulk "Approve & Post to Register" button removed from both sections
-- `openPayrollApproveModal()` and `openHourlyApproveModal()` still exist but are not called from UI
+- Each operator and hourly employee card has an individual **"Review & Post"** button inline
+- Check number computed fresh at tap time via `getNextCheckNumForAccount()`
 
 ### Daily totals below Total Payouts card
-- Total Payouts card now expands to show each day in the selected range with its raw payout pool amount
-- Days with $0 payouts are skipped
-- Formatted as: date label on left, dollar amount on right, separated by thin border rows
+- Total Payouts card expands to show each day in selected range with payout pool amount
 
 ### Missing operator banner
-- `renderPayouts()` checks for any day in range with non-zero payouts but no operators assigned
-- If found: amber warning banner at top of results with tap-to-fix date links
-- Tapping calls `jumpToDateForOp(dateStr)` → switches to Enter tab, loads that day
+- Amber warning banner when any day in range has sales but no operators assigned
+- Tapping calls `jumpToDateForOp(dateStr)` → switches to Enter tab
 
 ### Credit Card Ledger
-- Collapsed section below Payment Register, toggled by `toggleCCLedger()`
-- Header always shows current card balance (even collapsed)
-- **Summary card:** Grand total balance (large), Products bucket, Overhead bucket — each with purchase/payment subtotals
-- **Table columns:** Date | Description | Amount (green=payment, red=purchase) | Type badge | Running Balance
-- Running balance computed chronologically over full dataset regardless of current filter
-- **Filter chips:** All / Products / Overhead / Purchases / Payments
-- **Sort:** Date ↓ (default) / Date ↑ / Amount ↓ / Amount ↑ / Description A–Z / Type
-- **Add/Edit modal:** Owner/admin only. Date, Description, Amount (positive=purchase, negative=payment), Type
-- Data in `purchases` Supabase table (run `purchases_table.sql` then `cc_import.sql`)
+- Collapsed section below Payment Register
+- Summary card: Grand total balance, Products bucket, Overhead bucket
+- Filter chips: All / Products / Overhead / Purchases / Payments
+- Sort: Date ↓ (default) / Date ↑ / Amount ↓ / Amount ↑ / Description A–Z / Type
+- Data in `purchases` Supabase table
 - 478 historical rows imported (July 2024 – April 2026, Empower location)
 
 ---
@@ -197,26 +226,38 @@ Order: `This Week` | `Last Week` | `Wk Before Last` | `Last 2 Wks` | `This Month
 ## History Tab — Full Feature State
 
 ### Unallocated Balance widget
-- Now **fully collapsed by default** — entire widget hidden behind a thin toggle row
-- Toggle row shows label "Unallocated Balance" + current balance value + chevron
-- Controlled by `_reconOuterOpen` (default false) and `toggleReconOuter()`
-- `renderReconWidget()` now shows/hides `recon-widget-outer` (not `recon-widget` directly) and updates the collapsed header balance value
-- The inner body (bank input, date picker, etc.) still requires a second tap via `toggleReconWidget()`
+- Fully collapsed by default
+- Toggle row shows label + current balance + chevron
 
 ### Daily detail modal
-- DV row added to Breakdown section between Total Sales and Tax
-- Populated from `d.dv` using `fmtVP()` — shows `--` if no DV entered for that day
+- DV row added to Breakdown section
+
+---
+
+## Profile & Settings — Changes This Session
+
+### Team Members list
+- Profile photos now load in the Team Members section of the settings modal
+- Owner and operator rows show avatar photo (or initials bubble) on the left
+- Fixed: `escAttr` not defined in `app.html` was causing "stuck on Loading" — replaced with `escHtml`
+- Wrapped in `try/catch` so errors show "Could not load team members" instead of freezing
+
+### Owner contact cache auto-sync
+- When owner saves their profile, `_ownerName`, `_ownerEmail`, `_ownerPhone` in `locations.settings` now auto-sync from their current profile data
+- Profile modal now **re-fetches location settings fresh from Supabase** every time it opens — no more stale cached contact info
+
+### Owner reassignment (done via SQL this session)
+- Jeffrey's admin account detached from Empower: `location_id = NULL`, `role = admin`
+- Mary promoted to owner: already correct in DB
+- Empower `settings._ownerName/_ownerEmail/_ownerPhone` patched via SQL to reflect Mary
 
 ---
 
 ## Google Calendar Integration — Silent Refresh
-- **Root cause was:** `refresh_token` never stored — `gcal-refresh` had nothing to use, fell back to consent popup every session
-- **Fix:** `gcal_tokens` Supabase table stores refresh token server-side (service role only, no RLS access from browser)
-- `gcal-exchange` Edge Function: stores `refresh_token` to `gcal_tokens` after code exchange, returns only `access_token` to client
-- `gcal-refresh` Edge Function: looks up `refresh_token` by `location_id`, calls Google silently for new `access_token`
-- On `invalid_grant`, deletes stale token so next request re-prompts cleanly
-- Users connected before this fix must disconnect and reconnect once to seed their token
-- Edge Function secrets required: `GCAL_CLIENT_ID`, `GCAL_CLIENT_SECRET`
+- `gcal_tokens` Supabase table stores refresh token server-side
+- `gcal-exchange` Edge Function stores `refresh_token` after code exchange
+- `gcal-refresh` Edge Function silently renews `access_token` using stored refresh token
+- Users connected before this fix must disconnect and reconnect once
 
 ### gcal_tokens table SQL
 ```sql
@@ -238,13 +279,12 @@ CREATE TABLE public.purchases (
   location_id UUID NOT NULL REFERENCES public.locations(id) ON DELETE CASCADE,
   date        DATE NOT NULL,
   description TEXT NOT NULL,
-  amount      NUMERIC(10,2) NOT NULL,  -- positive=purchase, negative=payment
+  amount      NUMERIC(10,2) NOT NULL,
   type        TEXT NOT NULL CHECK (type IN ('Products','Overhead')),
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS purchases_location_date ON public.purchases(location_id, date DESC);
 ALTER TABLE public.purchases ENABLE ROW LEVEL SECURITY;
--- RLS: owners read/write own location, admins read/write all
 ```
 
 ---
@@ -258,6 +298,7 @@ ALTER TABLE public.purchases ENABLE ROW LEVEL SECURITY;
 ## app.html Architecture Notes
 - Does NOT load `nav.js` or `nav.css` — all logic inline
 - Never apostrophes in single-quoted JS strings — use `data-*` attributes
+- **Never `escAttr()` in app.html** — that function only exists in `locations.html`. Use `escHtml()` everywhere in `app.html`
 - Always `try/catch/finally` around `init()`
 - `SETTINGS.teamMembers` unified array — guard with `|| []`
 - Edge Functions require JWT verification OFF
@@ -274,12 +315,11 @@ ALTER TABLE public.purchases ENABLE ROW LEVEL SECURITY;
 - `--safe-top: env(safe-area-inset-top, 0px)` on topnav + content-area
 - `--nav-h: 50px`, `--tab-h: 44px`
 
-### Known past syntax pitfalls
-- Broken color ternary in template strings: `'var(--text-faint))+'";>` instead of `'var(--text-faint)')+'">'` — silently kills script
-- Using undeclared variables in functions (e.g. `current`, `opTotals`) — silently zeroes values
-- Missing `function` keyword after `str_replace` eats the declaration line
-- Template literal nested backticks inside `onclick` attributes
-- `JSON.stringify()` in inline HTML attributes breaks onclick parsing
+### Order Tab State Variables
+- `_orderPlanActive` — working plan in memory `{id, assignments:{sku:opName}, saved_at}`
+- `_orderSkipped` — `{sku:true}` session-only skipped products (not persisted)
+- `_orderOrdered` — `{opName:true}` session-only ordered operators (not persisted)
+- `_orderEditState` — `{op, sku}` currently open inline edit action sheet
 
 ---
 
@@ -312,28 +352,44 @@ app_settings      — key (PK), value
 ## Pending To-Dos
 1. Location comparison filtered by org
 2. End-to-end onboarding testing with clean email
-3. Profile photos in owner's operator list view
-4. Mobile-friendly improvements sitewide (Order tab product name truncation on mobile identified)
+3. Profile photos in owner's operator list view — **code shipped, needs live testing**
+4. Mobile-friendly improvements sitewide
+5. Verify Order tab new features work end-to-end on live site (skip, unload, operator cards, volume tracker, category assign button fix)
+6. Test partial product update approval flow end-to-end (new pending record on partial save)
+7. Co-owners (low priority)
 
 ---
 
-## Completed This Session (April 9–10, 2026)
-- ✅ **Wk Before Last preset** — added to both Operator and Hourly sections on Payouts tab
-- ✅ **Google Calendar silent refresh** — `gcal_tokens` table + updated `gcal-exchange` and `gcal-refresh` Edge Functions; refresh token stored server-side only
-- ✅ **Credit Card Ledger** — collapsed section on Payouts tab below Payment Register; summary card, filter/sort, running balance, add/edit/delete (owner only); 478 historical rows imported
-- ✅ **Missing operator banner** — amber warning in operator payout results when any day in range has sales but no operators assigned; tap links jump to Enter tab
-- ✅ **Per-person Review & Post** — individual button per operator/employee card; check number sequenced live at tap time; bulk buttons removed
-- ✅ **App load fix** — broken color ternary in hourly employee card (`var(--text-faint))+'";>`) was killing script block on load
-- ✅ **Unallocated Balance collapsed by default** — outer wrapper toggle added; `_reconOuterOpen` state; balance shown in collapsed header
-- ✅ **History modal DV** — DV row added to daily detail breakdown popup
-- ✅ **Order tab assign buttons fixed** — `orderAssignCycle()` was referencing undefined `current`; fixed to read from `_orderPlanActive.assignments[sku]`
-- ✅ **Order tab operator DV cards fixed** — `renderOrderSummaryCards()` was missing local `opTotals`/`opCounts` declarations; cards now update correctly on assignment
-- ✅ **Payouts daily totals** — Total Payouts card now shows day-by-day payout pool amounts for the selected range
-- ✅ **+ New Plan confirmation guard** — warns before clearing assignments; shows count of affected assignments
-- ✅ **💾 Save Plan button** — saves at any completion level; overwrites existing or creates new; Rename/Delete only visible on saved plans
-- ✅ **Category Assign All button** — each category header has a cycle button; assigns all non-OOS items in category to next operator; same cycle logic as per-row
-- ✅ **Go to Order button restored** — was missing from inventory toolbar HTML; restored as full-width row on mobile
-- ✅ **SESSION_SUMMARY.md** — added to repo root; updated each session
+## Completed This Session (April 10, 2026 — evening)
+
+### Profile & Team Members
+- ✅ **Profile photos in Team Members list** — `loadTeamMembers()` now fetches `avatar_url`; renders photo circle or initials bubble per member
+- ✅ **Fixed "stuck on Loading" bug** — `escAttr` not defined in `app.html` was crashing `renderMember()`; replaced with `escHtml`; wrapped in `try/catch`
+- ✅ **Owner contact cache auto-sync** — saving profile now writes `_ownerName/_ownerEmail/_ownerPhone` into `locations.settings`
+- ✅ **Profile modal re-fetches settings fresh** — no more stale cached owner contact info; `openProfileModal()` now fetches `settings + address` from Supabase on every open
+- ✅ **Owner reassignment** — Jeffrey detached from Empower via SQL; Mary confirmed as owner; Empower settings patched
+
+### Product System
+- ✅ **CR7 SKU** updated `1445` → `416K` in both `app.html` and `products.html`
+- ✅ **Drink Mix - Strawberry (30 pkt)** added: SKU `363K`, VP `9.30`, PAR `2`, after Raspberry in Drink Mix Packets
+- ✅ **Gram Zero Drink Mixes** moved to last category in both files
+- ✅ **Creamy Mixes VP** updated 0.00 → **23.57** across all 7 products in both files
+- ✅ **Creamy Mixes PAR** updated 2 → **1** across all 7 products in both files
+- ✅ **Global mode always loads fresh** — `products.html?mode=global` now ignores stale sessionStorage
+- ✅ **Sort headers** — Name and SKU column headers clickable in every category; visual-only until Save; no push prompt on sort-only saves
+
+### Product Update Flow
+- ✅ **Partial approve saves remainder** — unchecked items inserted as new `pending` `product_updates` record
+- ✅ **Skip for now fixed** — no longer marks record as `dismissed`; stays `pending` and reappears on next login
+- ✅ **Pending Updates badge** — amber button in Settings → Products with count; opens modal on tap
+
+### Order Tab
+- ✅ **Category assign button fix** — only shows operator name when 100% of items assigned to same single operator
+- ✅ **Unload plan** — `✕ Unload` button in toolbar; clears active plan without deleting saved plan
+- ✅ **Skip product** — `—` button per row; skips from order, dims row, undo with ↩; excluded from all calculations
+- ✅ **Operator summary cards** — collapsed by default; expand to show Product/SKU/Need/DV; Mark ordered button; inline row edit with reassign/skip; stays ordered after reassign with updated totals
+- ✅ **Operator cards apostrophe fix** — product names with apostrophes (Cookies n Cream etc.) were breaking inline onclick strings and silently dropping all cards; fixed using `data-op`/`data-sku`/`data-name` attributes in both `renderOrderBody` and `orderRebuildOpCards`
+- ✅ **Volume tracker** — remaining DV + assigned DV + ordered DV with dual progress bars; updates live
 
 ---
 
@@ -355,6 +411,7 @@ app_settings      — key (PK), value
 - Always `try/catch/finally` around `init()`
 - Never apostrophes in single-quoted JS strings
 - Never `JSON.stringify()` in inline HTML attributes
+- **Never use `escAttr()` in `app.html`** — use `escHtml()` instead
 - **Always run `node --check` on app.html JS before delivering** — no exceptions
 - Always update `CACHE BUST` timestamp before delivering `app.html`
 - `app.html` does not load `nav.js` or `nav.css`
