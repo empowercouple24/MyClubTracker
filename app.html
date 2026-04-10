@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-10 03:00:00 -->
+<!-- CACHE BUST: 2026-04-10 04:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -1469,8 +1469,16 @@ if('serviceWorker' in navigator){
     <!-- STICKY HEADER: recon banner + month nav always visible -->
     <div id="hist-sticky-top" style="position:sticky;top:0;z-index:30;background:var(--bg);padding-bottom:6px;box-shadow:0 4px 8px -2px rgba(53,78,98,0.07)">
 
-    <!-- Bank Reconciliation Widget — banner always visible, body expands -->
-    <div class="recon-widget" id="recon-widget" style="display:none;margin-bottom:4px;">
+    <!-- Bank Reconciliation Widget — collapsed by default, tap header to expand -->
+    <div id="recon-widget-outer" style="display:none;margin-bottom:4px;">
+    <div onclick="toggleReconOuter()" style="display:flex;align-items:center;justify-content:space-between;padding:7px 12px;cursor:pointer;border-radius:var(--radius-sm);background:var(--b1);">
+      <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);">Unallocated Balance</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span id="recon-outer-val" style="font-size:13px;font-weight:700;color:var(--text-muted);"></span>
+        <span id="recon-outer-chev" style="font-size:11px;color:var(--text-faint);">&#9660;</span>
+      </div>
+    </div>
+    <div id="recon-widget" style="display:none;margin-bottom:0;">
       <!-- HEADER — always visible, click to expand/collapse -->
       <div class="recon-banner" onclick="toggleReconWidget()" style="align-items:center;">
         <div class="recon-banner-left" style="display:flex;flex-direction:column;justify-content:center;">
@@ -1569,6 +1577,7 @@ if('serviceWorker' in navigator){
         </div>
       </div><!-- /recon-body -->
     </div><!-- /recon-widget -->
+    </div><!-- /recon-widget-outer -->
 
     <div id="history-cal-nav" style="display:flex;align-items:center;gap:5px;padding:6px 0 4px;flex-wrap:nowrap;">
       <button class="btn btn-ghost" id="hist-prev-btn" onclick="histCalShift(-1)" style="padding:5px 10px;font-size:16px;flex-shrink:0;">&#8592;</button>
@@ -3105,6 +3114,7 @@ if('serviceWorker' in navigator){
       <div class="card" style="margin:0 0 10px;">
         <div class="detail-row"><span class="detail-row-label">Card Deposits</span><span class="detail-row-val" id="df-cardDeposits"></span></div>
         <div class="detail-row"><span class="detail-row-label">Total Sales</span><span class="detail-row-val green" id="df-totalSales"></span></div>
+        <div class="detail-row"><span class="detail-row-label">DV</span><span class="detail-row-val" id="df-dv"></span></div>
         <div class="detail-row"><span class="detail-row-label">Tax</span><span class="detail-row-val" id="df-tax"></span></div>
         <div class="detail-row"><span class="detail-row-label">Overhead</span><span class="detail-row-val" id="df-overhead"></span></div>
         <div class="detail-row"><span class="detail-row-label">Donation</span><span class="detail-row-val" id="df-donation"></span></div>
@@ -8092,6 +8102,7 @@ function openDetail(date){
 
   document.getElementById('df-cardDeposits').textContent = fmt$(cardDep);
   document.getElementById('df-totalSales').textContent   = fmt$(totalS);
+  document.getElementById('df-dv').textContent           = d.dv ? fmtVP(parseFloat(d.dv)) : '--';
   document.getElementById('df-tax').textContent          = tax!==null ? fmt$(tax) : '--';
   document.getElementById('df-overhead').textContent     = ohFinal!==null ? fmt$(ohFinal) : '--';
   document.getElementById('df-donation').textContent     = (don&&don>0) ? fmt$(don) : '--';
@@ -9264,11 +9275,9 @@ function renderOrderBody(){
 function orderAssignCycle(sku,btn){
   if(!_orderPlanActive)return;
   const ops=getOperatorMembers().map(function(m){ return m.name; });
+  const current=_orderPlanActive.assignments[sku]||'';
   const idx=ops.indexOf(current);
-  const next=ops[(idx+1)%ops.length];
-  // If we've cycled back to first op after being on last op, go to unassigned first
-  const newAssign=(idx===ops.length-1)?'':(idx===-1?next:next);
-  const finalAssign=(idx===ops.length-1)?'':next;
+  const finalAssign=(idx===ops.length-1)?'':ops[(idx+1)%ops.length];
   orderAssign(sku,finalAssign,btn);
 }
 
@@ -9581,9 +9590,17 @@ function renderPayouts(){
     ${missingOpBanner}
     <div class="section-label">Summary - ${fromFmt} &#8211; ${toFmt}</div>
     ${opCards}
-    <div class="card" style="margin-bottom:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;">
-      <span style="font-weight:700;font-size:13px;color:var(--text);">Total Payouts</span>
-      <span style="font-family:Outfit,sans-serif;font-size:16px;font-weight:800;color:var(--g6);">${fmt$(grand)}</span>
+    <div class="card" style="margin-bottom:10px;padding:0;">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--border-light);">
+        <span style="font-weight:700;font-size:13px;color:var(--text);">Total Payouts</span>
+        <span style="font-family:Outfit,sans-serif;font-size:16px;font-weight:800;color:var(--g6);">${fmt$(grand)}</span>
+      </div>
+      ${fl.map(d=>{
+        const py=d.data?.payouts||0;
+        if(!py)return'';
+        const lbl=new Date(d.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+        return`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 14px;border-bottom:1px solid var(--border-light);"><span style="font-size:12px;color:var(--text-muted);">${lbl}</span><span style="font-family:Outfit,sans-serif;font-size:13px;font-weight:700;color:var(--g5);">${fmt$(py)}</span></div>`;
+      }).join('')}
     </div>
     <div style="display:flex;gap:8px;margin-bottom:12px;">
       <button onclick="clearPayouts()" style="font-size:12px;font-weight:600;padding:10px 14px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--b0);color:var(--r5);cursor:pointer;font-family:DM Sans,sans-serif;">Clear</button>
@@ -13208,6 +13225,16 @@ function printSummaryPDF() {
 }
 
 let _reconOpen = false;
+let _reconOuterOpen = false;
+
+function toggleReconOuter() {
+  _reconOuterOpen = !_reconOuterOpen;
+  const widget = document.getElementById('recon-widget');
+  const chev   = document.getElementById('recon-outer-chev');
+  if (widget) widget.style.display = _reconOuterOpen ? 'block' : 'none';
+  if (chev)   chev.textContent = _reconOuterOpen ? '▲' : '▼';
+  if (_reconOuterOpen) renderReconWidget();
+}
 
 function calcReconTotals() {
   // Unallocated balance = what should be sitting in your bank account.
@@ -13308,7 +13335,12 @@ function renderReconWidget() {
   const bankVal = parseFloat((document.getElementById('recon-bank-input')?.value||'').replace(/[$,]/g,''))||0;
   const pendingVal = parseFloat((document.getElementById('recon-pending-input')?.value||'').replace(/[$,]/g,''))||0;
   const hasData = totals.unalloc !== 0 || totals.unallocDays.length > 0 || bankVal > 0 || pendingVal > 0 || totals.cardDeposits > 0;
-  if (widget) widget.style.display = hasData ? 'block' : 'none';
+  const outerWidget = document.getElementById('recon-widget-outer');
+  if (outerWidget) outerWidget.style.display = hasData ? 'block' : 'none';
+  // Update the collapsed header balance value
+  const outerVal = document.getElementById('recon-outer-val');
+  if (outerVal) outerVal.textContent = fmt$(totals.unalloc);
+  if (widget) widget.style.display = _reconOuterOpen ? 'block' : 'none';
   const valEl = document.getElementById('recon-unalloc-val');
   if (valEl) valEl.textContent = fmt$(totals.unalloc);
   const cardEl = document.getElementById('recon-card-val');
