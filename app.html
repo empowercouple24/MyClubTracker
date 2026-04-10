@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-10 19:00:00 -->
+<!-- CACHE BUST: 2026-04-10 19:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -3719,6 +3719,10 @@ async function saveProfileAndSettings(){
     // Keep legacy operators array in sync for any server-side or admin reads
     SETTINGS.operators = getOperatorMembers().map(function(m){ return {name:m.name,visible:m.visible!==false,isOwner:m.role==='Owner',aliases:m.aliases||'',color:m.color||null}; });
     // opDays are toggled live into SETTINGS.opDays directly -- no read needed here
+    // Keep owner contact cache in sync with whoever is saving as owner
+    SETTINGS._ownerName  = [firstName,lastName].filter(Boolean).join(' ')||dispName||SETTINGS._ownerName||'';
+    SETTINGS._ownerEmail = CURRENT_SESSION.user.email||SETTINGS._ownerEmail||'';
+    SETTINGS._ownerPhone = phone||SETTINGS._ownerPhone||'';
     const empCode=document.getElementById('s-emp-code')?.value.trim();
     if(empCode)SETTINGS.employeeInviteCode=empCode;
     const{error:se}=await sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID);
