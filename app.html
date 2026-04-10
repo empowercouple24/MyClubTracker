@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-10 20:00:00 -->
+<!-- CACHE BUST: 2026-04-10 21:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -447,6 +447,11 @@ if('serviceWorker' in navigator){
     .order-archive-msg{font-size:13px;font-weight:600;color:var(--g6);flex:1;}
     .order-row-assigned td{opacity:1;}
     .order-row-assigned .inv-name{color:var(--text);font-weight:600;}
+    .order-row-skipped td{opacity:0.35;}
+    .order-row-skipped .inv-name{text-decoration:line-through;}
+    .order-skip-btn{font-family:DM Sans,sans-serif;font-size:13px;width:26px;height:26px;border-radius:5px;border:1px solid var(--border-light);background:none;color:var(--text-faint);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;}
+    .order-skip-btn:hover{background:var(--r0);border-color:var(--r3);color:var(--r5);}
+    .order-skip-btn.skipped{background:var(--r0);border-color:var(--r3);color:var(--r5);}
     .op-assign-btn{font-family:DM Sans,sans-serif;font-size:12px;font-weight:700;border:1.5px solid var(--border);border-radius:20px;padding:5px 12px;background:var(--surface);color:var(--text-muted);cursor:pointer;white-space:nowrap;transition:all 0.15s;width:100%;text-align:center;}
     .op-assign-btn.assigned{background:var(--b7);color:white;border-color:var(--b7);}
     .op-assign-btn.oos-btn{background:var(--r0,#fee2e2);color:var(--r5,#ef4444);border-color:var(--r3,#fca5a5);cursor:default;}
@@ -1890,6 +1895,28 @@ if('serviceWorker' in navigator){
     </div>
     <div style="max-width:900px;margin:0 auto;padding:6px 12px 0;">
       <div id="order-summary-card-wrap"></div>
+      <div id="order-vol-tracker" style="display:none;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:6px;display:none;">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div>
+            <div id="order-vol-remaining" style="font-size:22px;font-weight:700;color:var(--text);line-height:1;font-family:Outfit,sans-serif;">-- DV</div>
+            <div style="font-size:10px;color:var(--text-faint);margin-top:2px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">remaining</div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:4px;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:var(--text-faint);min-width:48px;">Assigned</div>
+              <div style="flex:1;height:4px;background:var(--border-light);border-radius:2px;overflow:hidden;"><div id="order-vol-bar-assigned" style="height:100%;border-radius:2px;background:var(--g5);transition:width 0.3s;width:0%;"></div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:var(--text-faint);min-width:48px;">Ordered</div>
+              <div style="flex:1;height:4px;background:var(--border-light);border-radius:2px;overflow:hidden;"><div id="order-vol-bar-ordered" style="height:100%;border-radius:2px;background:var(--b6);transition:width 0.3s;width:0%;"></div></div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end;">
+            <div style="font-size:11px;color:var(--text-muted);"><span id="order-vol-assigned-num" style="font-weight:600;color:var(--text);">0</span> DV assigned</div>
+            <div style="font-size:11px;color:var(--text-muted);"><span id="order-vol-ordered-num" style="font-weight:600;color:var(--text);">0</span> DV ordered</div>
+          </div>
+        </div>
+      </div>
       <div class="order-toolbar">
         <select id="order-plan-picker" style="font-family:DM Sans,sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 10px;background:var(--surface);color:var(--text);outline:none;flex:1;" onchange="loadOrderPlan(this.value)">
           <option value="">— No saved plans —</option>
@@ -1898,6 +1925,7 @@ if('serviceWorker' in navigator){
         <button class="btn btn-ghost" id="order-rename-btn" onclick="openOrderRename()" style="padding:5px 10px;font-size:12px;flex-shrink:0;display:none;">✎ Rename</button>
         <button class="btn btn-ghost" id="order-delete-btn" onclick="orderDeleteConfirm()" style="padding:5px 10px;font-size:12px;flex-shrink:0;display:none;color:var(--danger,#dc2626);">🗑</button>
         <button class="btn btn-ghost" onclick="startNewOrderPlan()" style="flex-shrink:0;">+ New Plan</button>
+        <button class="btn btn-ghost" id="order-unload-btn" onclick="unloadOrderPlan()" style="flex-shrink:0;display:none;color:var(--text-faint);font-size:12px;">&#10005; Unload</button>
       </div>
     </div>
   </div>
@@ -9162,6 +9190,8 @@ async function deleteSnap(snapId){
 // ── ORDER TAB ──
 var ORDER_PLANS=[];
 var _orderPlanActive=null; // {id, name, assignments:{sku:opName}, saved_at} — working plan in memory
+var _orderSkipped={}; // {sku:true} — skipped products for this session
+var _orderOrdered={}; // {opName:true} — operators marked as ordered
 
 function goToOrderTab(){
   if(!_orderPlanActive){
@@ -9205,38 +9235,57 @@ function renderOrderPlanPicker(){
 }
 
 function startNewOrderPlan(){
-  // Guard: if there are existing assignments, confirm before wiping
   const existingCount = _orderPlanActive ? Object.keys(_orderPlanActive.assignments||{}).length : 0;
   if(existingCount > 0){
     if(!confirm('Starting a new plan will clear your ' + existingCount + ' current assignment' + (existingCount!==1?'s':'') + '. Continue?')) return;
   }
   _orderPlanActive={id:null,assignments:{},saved_at:new Date().toISOString()};
+  _orderSkipped={};_orderOrdered={};
   const picker=document.getElementById('order-plan-picker');
   if(picker)picker.value='';
   const renameBtn=document.getElementById('order-rename-btn');
   const deleteBtn=document.getElementById('order-delete-btn');
+  const unloadBtn=document.getElementById('order-unload-btn');
   if(renameBtn)renameBtn.style.display='inline-flex';
   if(deleteBtn)deleteBtn.style.display='none';
+  if(unloadBtn)unloadBtn.style.display='inline-flex';
   renderOrderBody();
+  updateOrderToolbar();
+}
+
+function unloadOrderPlan(){
+  _orderPlanActive=null;_orderSkipped={};_orderOrdered={};
+  const picker=document.getElementById('order-plan-picker');
+  if(picker)picker.value='';
+  const unloadBtn=document.getElementById('order-unload-btn');
+  if(unloadBtn)unloadBtn.style.display='none';
+  document.getElementById('order-body').innerHTML='<div class="empty-state">Start a new order plan or load a saved one above.</div>';
+  document.getElementById('order-vol-tracker').style.display='none';
+  setText('order-total-dvneed','--');setText('order-total-orderable','--');setText('order-oos-note','');
   updateOrderToolbar();
 }
 
 function loadOrderPlan(id){
   const renameBtn=document.getElementById('order-rename-btn');
   const deleteBtn=document.getElementById('order-delete-btn');
+  const unloadBtn=document.getElementById('order-unload-btn');
   if(!id){
-    _orderPlanActive=null;
+    _orderPlanActive=null;_orderSkipped={};_orderOrdered={};
     if(renameBtn)renameBtn.style.display='none';
     if(deleteBtn)deleteBtn.style.display='none';
+    if(unloadBtn)unloadBtn.style.display='none';
     document.getElementById('order-body').innerHTML='<div class="empty-state">Start a new order plan or load a saved one above.</div>';
+    document.getElementById('order-vol-tracker').style.display='none';
     setText('order-total-dvneed','--');setText('order-total-orderable','--');setText('order-oos-note','');
     return;
   }
   const plan=ORDER_PLANS.find(p=>p.id===id);
   if(!plan)return;
   _orderPlanActive={id:plan.id,assignments:{...plan.data?.assignments||{}},saved_at:plan.saved_at};
+  _orderSkipped={};_orderOrdered={};
   if(renameBtn)renameBtn.style.display='inline-flex';
   if(deleteBtn)deleteBtn.style.display='inline-flex';
+  if(unloadBtn)unloadBtn.style.display='inline-flex';
   renderOrderBody();
   updateOrderToolbar();
 }
@@ -9317,41 +9366,98 @@ function renderOrderBody(){
   needItems.forEach(p=>{if(!cats[p.cat])cats[p.cat]=[];cats[p.cat].push(p);});
   Object.entries(cats).forEach(([cat,items])=>{
     const catSlug=cat.replace(/[^a-z0-9]/gi,'_');
-    // Dominant operator for this category
-    const _cac={};
-    items.forEach(p=>{const a=_orderPlanActive.assignments[p.sku];if(a&&!invOos[p.sku])_cac[a]=(_cac[a]||0)+1;});
-    const _domOp=Object.entries(_cac).sort((a,b)=>b[1]-a[1])[0]?.[0]||'';
+    // Category assign button: only show operator name if ALL non-OOS items assigned to same single operator
+    const assignableItems=items.filter(p=>!invOos[p.sku]&&!_orderSkipped[p.sku]);
+    const assignedOps=assignableItems.map(p=>_orderPlanActive.assignments[p.sku]).filter(Boolean);
+    const uniqueOps=[...new Set(assignedOps)];
+    const allSameOp=assignableItems.length>0&&uniqueOps.length===1&&assignedOps.length===assignableItems.length;
+    const _domOp=allSameOp?uniqueOps[0]:'';
     const _cbCol=_domOp?getOpColor(_domOp):null;
     const _cbTxt=_domOp?opTextColor(_cbCol):'';
-    const _cbStyle=_domOp?`background:${_cbCol};border-color:${_cbCol};color:${_cbTxt};`:'';
-    html+=`<div class="inv-cat-header" style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span>${cat}</span><button class="op-assign-btn${_domOp?' assigned':''}" onclick="orderAssignCategory('${catSlug}',this)" style="width:auto;min-width:90px;padding:4px 12px;${_cbStyle}">${_domOp||'Assign All'}</button></div>
-    <table class="inv-table"><thead><tr>
-      <th style="text-align:left;">Product</th>
-      <th>Need<span class="th-sub">Qty</span></th>
-      <th>DV<span class="th-sub">Product</span></th>
-      <th style="text-align:left;padding-left:8px;">Assign<span class="th-sub">Operator</span></th>
-      <th>DV<span class="th-sub">Subtotal</span></th>
-    </tr></thead><tbody>`;
+    const _cbStyle=_domOp?'background:'+_cbCol+';border-color:'+_cbCol+';color:'+_cbTxt+';':'';
+    const _cbLabel=_domOp||'Assign All';
+    html+='<div class="inv-cat-header" style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span>'+cat+'</span><button class="op-assign-btn'+(_domOp?' assigned':'')+'" onclick="orderAssignCategory(\''+catSlug+'\',this)" style="width:auto;min-width:90px;padding:4px 12px;'+_cbStyle+'">'+_cbLabel+'</button></div>';
+    html+='<table class="inv-table"><thead><tr><th style="text-align:left;">Product</th><th>Need<span class="th-sub">Qty</span></th><th>DV<span class="th-sub">Product</span></th><th style="text-align:left;padding-left:8px;">Assign<span class="th-sub">Operator</span></th><th>DV<span class="th-sub">Subtotal</span></th><th style="width:28px;"></th></tr></thead><tbody>';
     items.forEach(p=>{
       const isOos=!!invOos[p.sku];
+      const isSkipped=!!_orderSkipped[p.sku];
       const assigned=_orderPlanActive.assignments[p.sku]||'';
-      const rowClass=(isOos?'inv-row-oos':(assigned?'order-row-assigned':''));
-      const dvSub=(!isOos&&assigned)?(p.vp||0)*p.need:null;
+      const rowClass=isSkipped?'order-row-skipped':(isOos?'inv-row-oos':(assigned?'order-row-assigned':''));
+      const dvSub=(!isOos&&!isSkipped&&assigned)?(p.vp||0)*p.need:null;
       const dvSubStr=dvSub!=null?fmtVP(dvSub):'--';
-      const oosInfo=isOos&&invOos[p.sku].expectedDate?`<span class="oos-badge">OOS - ${new Date(invOos[p.sku].expectedDate+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>`:(isOos?`<span class="oos-badge">OOS</span>`:'');
-      html+=`<tr class="${rowClass}" id="order-row-${p.sku}">
-        <td><div class="inv-name-cell" style="display:flex;align-items:center;gap:7px;"><input type="checkbox" class="oos-check" tabindex="-1" title="Mark out of stock" ${isOos?'checked':''} onchange="toggleOos('${p.sku}','${escHtml(p.name)}',this)"/><div style="display:flex;flex-direction:column;overflow:hidden;min-width:0;">${(()=>{const _pn=parseProdName(p.name);return `<div style="display:flex;align-items:baseline;gap:8px;overflow:hidden;"><span class="inv-name" style="font-weight:600;">${_pn.main}</span><span class="inv-sku">${p.sku||''}</span></div>${_pn.sub?`<span class="inv-name-sub">${_pn.sub}</span>`:''}`;})()} </div>${oosInfo}</div></td>
-        <td style="color:var(--b6);font-weight:700;">${p.need}</td>
-        <td class="dv-product">${p.vp!=null&&p.vp!==''?fmtVP(p.vp):'--'}</td>
-        <td style="text-align:left;padding-left:8px;">${makeAssignBtn(p,isOos,assigned,ops)}</td>
-        <td id="order-dvsub-${p.sku}" class="dv-subtotal">${dvSubStr}</td>
-      </tr>`;
+      const oosInfo=isOos&&invOos[p.sku].expectedDate?'<span class="oos-badge">OOS - '+new Date(invOos[p.sku].expectedDate+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})+'</span>':(isOos?'<span class="oos-badge">OOS</span>':'');
+      const skipBtnHtml=isOos?'':(isSkipped
+        ?'<td><button class="order-skip-btn skipped" onclick="orderSkipToggle(\''+p.sku+'\')" title="Undo skip" style="background:var(--r0);border-color:var(--r3);color:var(--r5);">&#8617;</button></td>'
+        :'<td><button class="order-skip-btn" onclick="orderSkipToggle(\''+p.sku+'\')" title="Skip — don\'t order today">&#8212;</button></td>');
+      const _pn=parseProdName(p.name);
+      html+='<tr class="'+rowClass+'" id="order-row-'+p.sku+'"'+(isSkipped?' style="opacity:0.35;text-decoration:line-through;"':'')+'>'+
+        '<td><div class="inv-name-cell" style="display:flex;align-items:center;gap:7px;"><input type="checkbox" class="oos-check" tabindex="-1" title="Mark out of stock" '+(isOos?'checked':'')+' onchange="toggleOos(\''+p.sku+'\',\''+escHtml(p.name)+'\',this)"/><div style="display:flex;flex-direction:column;overflow:hidden;min-width:0;"><div style="display:flex;align-items:baseline;gap:8px;overflow:hidden;"><span class="inv-name" style="font-weight:600;">'+_pn.main+'</span><span class="inv-sku">'+escHtml(p.sku||'')+'</span></div>'+(_pn.sub?'<span class="inv-name-sub">'+_pn.sub+'</span>':'')+'</div>'+oosInfo+'</div></td>'+
+        '<td style="color:var(--b6);font-weight:700;">'+p.need+'</td>'+
+        '<td class="dv-product">'+(p.vp!=null&&p.vp!==''?fmtVP(p.vp):'--')+'</td>'+
+        '<td style="text-align:left;padding-left:8px;">'+makeAssignBtn(p,isOos,assigned,ops)+'</td>'+
+        '<td id="order-dvsub-'+p.sku+'" class="dv-subtotal">'+dvSubStr+'</td>'+
+        skipBtnHtml+
+        '</tr>';
     });
-    html+=`<tr class="inv-cat-subtotal"><td style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">${cat} Total</td><td></td><td></td><td></td><td id="order-cat-dv-${catSlug}" class="dv-subtotal" style="text-align:right;"></td></tr>`;
+    html+='<tr class="inv-cat-subtotal"><td style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">'+cat+' Total</td><td></td><td></td><td></td><td id="order-cat-dv-'+catSlug+'" class="dv-subtotal" style="text-align:right;"></td><td></td></tr>';
     html+='</tbody></table>';
   });
+
+  // Operator summary cards
+  html+='<div style="margin-top:16px;" id="order-op-cards-wrap">';
+  if(ops.length){
+    html+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:6px;padding:0 2px;">Operator Summary</div>';
+    ops.forEach(function(op){
+      const opItems=needItems.filter(function(p){return _orderPlanActive.assignments[p.sku]===op&&!invOos[p.sku]&&!_orderSkipped[p.sku];});
+      const opDv=opItems.reduce(function(s,p){return s+(p.vp||0)*p.need;},0);
+      const isOrdered=!!_orderOrdered[op];
+      const col=getOpColor(op);
+      const initials=op.split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
+      html+='<div class="order-op-card'+(isOrdered?' order-op-card-ordered':'')+'" id="order-opcard-'+op.replace(/[^a-z0-9]/gi,'_')+'" style="margin-bottom:8px;border-radius:10px;border:1px solid '+(isOrdered?'var(--b4)':'var(--border-light)')+';background:var(--surface);overflow:hidden;">'+
+        '<div class="order-op-card-head" onclick="orderToggleOpCard(\''+op.replace(/[^a-z0-9]/gi,'_')+'\')" style="display:flex;align-items:center;padding:9px 12px;gap:9px;cursor:pointer;">'+
+        '<div style="width:30px;height:30px;border-radius:50%;background:'+col+'33;color:'+col+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">'+initials+'</div>'+
+        '<div style="flex:1;min-width:0;">'+
+        '<div style="font-size:13px;font-weight:600;color:var(--text);">'+escHtml(op)+'</div>'+
+        '<div id="order-opmeta-'+op.replace(/[^a-z0-9]/gi,'_')+'" style="font-size:11px;color:'+(isOrdered?'var(--b6)':'var(--text-faint)')+';">'+opItems.length+' items &middot; '+fmtVP(opDv)+' DV'+(isOrdered?' &mdash; ordered':' &mdash; tap to review')+'</div>'+
+        '</div>'+
+        '<button class="btn btn-primary" id="order-opmark-'+op.replace(/[^a-z0-9]/gi,'_')+'" onclick="orderToggleOrdered(event,\''+op+'\')" style="font-size:11px;padding:4px 11px;flex-shrink:0;'+(isOrdered?'background:var(--b1);border-color:var(--b4);color:var(--b7);':'')+'">'+
+        (isOrdered?'&#10003; Ordered':'Mark ordered')+
+        '</button>'+
+        '<span id="order-opchev-'+op.replace(/[^a-z0-9]/gi,'_')+'" style="font-size:10px;color:var(--text-faint);margin-left:2px;transition:transform 0.2s;display:inline-block;">&#9660;</span>'+
+        '</div>'+
+        '<div id="order-opbody-'+op.replace(/[^a-z0-9]/gi,'_')+'" style="max-height:0;overflow:hidden;transition:max-height 0.25s ease;border-top:0 solid var(--border-light);">'+
+        '<div style="display:flex;align-items:center;padding:4px 10px;gap:8px;background:var(--b0);border-bottom:1px solid var(--border-light);">'+
+        '<div style="width:7px;flex-shrink:0;"></div>'+
+        '<div style="flex:1;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-faint);">Product</div>'+
+        '<div style="min-width:36px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-faint);">SKU</div>'+
+        '<div style="min-width:26px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-faint);text-align:center;">Need</div>'+
+        '<div style="min-width:30px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-faint);text-align:right;">DV</div>'+
+        '<div style="width:16px;"></div>'+
+        '</div>';
+      opItems.forEach(function(p){
+        const opKey=op.replace(/[^a-z0-9]/gi,'_');
+        html+='<div class="order-oprow'+(isOrdered?' order-oprow-ordered':'')+'" id="order-oprow-'+opKey+'-'+p.sku+'" onclick="orderOpenRowEdit(event,\''+op+'\',\''+p.sku+'\',\''+escHtml(p.name)+'\')" style="display:flex;align-items:center;padding:6px 10px;gap:8px;border-bottom:1px solid var(--border-light);cursor:pointer;'+(isOrdered?'opacity:0.4;':'')+'">'+
+          '<div style="width:7px;height:7px;border-radius:50%;background:'+col+';flex-shrink:0;"></div>'+
+          '<div style="flex:1;font-size:12px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escHtml(p.name)+'</div>'+
+          '<div style="min-width:36px;font-size:11px;color:var(--text-faint);">'+escHtml(p.sku||'')+'</div>'+
+          '<div style="min-width:26px;font-size:11px;font-weight:600;color:var(--text);text-align:center;">'+p.need+'</div>'+
+          '<div style="min-width:30px;font-size:11px;color:var(--text-faint);text-align:right;">'+(p.vp?fmtVP(p.vp):'--')+'</div>'+
+          '<div style="width:16px;font-size:10px;color:var(--text-faint);opacity:0.5;">&#9998;</div>'+
+          '</div>';
+      });
+      // Edit action sheet placeholder
+      html+='<div id="order-opedit-'+op.replace(/[^a-z0-9]/gi,'_')+'" style="display:none;border-top:1px solid var(--border-light);padding:10px 12px;background:var(--b0);">'+
+        '<div id="order-opedit-title-'+op.replace(/[^a-z0-9]/gi,'_')+'" style="font-size:11px;font-weight:600;color:var(--text-faint);margin-bottom:8px;"></div>'+
+        '<div id="order-opedit-btns-'+op.replace(/[^a-z0-9]/gi,'_')+'" style="display:flex;gap:6px;flex-wrap:wrap;"></div>'+
+        '</div>';
+      html+='</div></div>';
+    });
+  }
+  html+='</div>';
+
   document.getElementById('order-body').innerHTML=html;
-  // Recalc cat totals
+  document.getElementById('order-vol-tracker').style.display='block';
+  orderUpdateVolumeTracker();
   orderRecalcCatTotals(cats);
 }
 
@@ -9444,6 +9550,8 @@ function orderAssign(sku,opName,btnEl){
   }
   // Recompute summary chips
   renderOrderSummaryCards();
+  orderRebuildOpCards();
+  orderUpdateVolumeTracker();
   // Recalc archive bar visibility
   const body=document.getElementById('order-body');
   const existingBar=body.querySelector('.order-archive-bar');
@@ -9497,6 +9605,210 @@ function renderOrderSummaryCards(){
     const chip=unassignedEl.closest('.order-op-chip-unassigned');
     if(chip)chip.style.display=rem>0?'':'none';
   }
+}
+
+function orderSkipToggle(sku){
+  if(_orderSkipped[sku]){
+    delete _orderSkipped[sku];
+  } else {
+    _orderSkipped[sku]=true;
+    delete _orderPlanActive.assignments[sku];
+    const btn=document.querySelector('#order-row-'+sku+' .op-assign-btn');
+    if(btn){btn.textContent='-- Assign --';btn.className='op-assign-btn';btn.style.background='';btn.style.borderColor='';btn.style.color='';}
+    const dvCell=document.getElementById('order-dvsub-'+sku);
+    if(dvCell)dvCell.textContent='--';
+  }
+  renderOrderBody();
+}
+
+function orderToggleOpCard(opKey){
+  const body=document.getElementById('order-opbody-'+opKey);
+  const chev=document.getElementById('order-opchev-'+opKey);
+  if(!body)return;
+  const isOpen=body.style.maxHeight&&body.style.maxHeight!=='0px'&&body.style.maxHeight!=='0';
+  if(isOpen){
+    body.style.maxHeight='0';
+    body.style.borderTopWidth='0';
+    if(chev)chev.style.transform='';
+  } else {
+    body.style.maxHeight=body.scrollHeight+200+'px';
+    body.style.borderTopWidth='1px';
+    if(chev)chev.style.transform='rotate(180deg)';
+  }
+}
+
+function orderToggleOrdered(e,op){
+  e.stopPropagation();
+  const opKey=op.replace(/[^a-z0-9]/gi,'_');
+  _orderOrdered[op]=!_orderOrdered[op];
+  const isOrdered=_orderOrdered[op];
+  const card=document.getElementById('order-opcard-'+opKey);
+  if(card){card.style.borderColor=isOrdered?'var(--b4)':'var(--border-light)';}
+  const btn=document.getElementById('order-opmark-'+opKey);
+  if(btn){btn.textContent=isOrdered?'&#10003; Ordered':'Mark ordered';btn.style.background=isOrdered?'var(--b1)':'';btn.style.borderColor=isOrdered?'var(--b4)':'';btn.style.color=isOrdered?'var(--b7)':'';}
+  const meta=document.getElementById('order-opmeta-'+opKey);
+  if(meta){meta.style.color=isOrdered?'var(--b6)':'var(--text-faint)';}
+  document.querySelectorAll('#order-opbody-'+opKey+' .order-oprow').forEach(function(r){
+    r.style.opacity=isOrdered?'0.4':'1';
+  });
+  orderUpdateVolumeTracker();
+  orderUpdateOpMeta(op);
+}
+
+var _orderEditState={op:null,sku:null};
+function orderOpenRowEdit(e,op,sku,name){
+  e.stopPropagation();
+  const opKey=op.replace(/[^a-z0-9]/gi,'_');
+  const editDiv=document.getElementById('order-opedit-'+opKey);
+  if(!editDiv)return;
+  // Toggle closed if same row
+  if(_orderEditState.op===op&&_orderEditState.sku===sku){
+    editDiv.style.display='none';
+    _orderEditState={op:null,sku:null};
+    orderToggleOpCard(opKey);
+    return;
+  }
+  // Close any open edit
+  if(_orderEditState.op){
+    const prevKey=_orderEditState.op.replace(/[^a-z0-9]/gi,'_');
+    const prev=document.getElementById('order-opedit-'+prevKey);
+    if(prev)prev.style.display='none';
+  }
+  _orderEditState={op,sku};
+  const title=document.getElementById('order-opedit-title-'+opKey);
+  if(title)title.textContent='Edit: '+name;
+  const btnsDiv=document.getElementById('order-opedit-btns-'+opKey);
+  if(btnsDiv){
+    const ops=getOperatorMembers().map(function(m){return m.name;}).filter(function(o){return o!==op;});
+    let btnsHtml='';
+    ops.forEach(function(o){
+      btnsHtml+='<button class="btn btn-ghost" style="font-size:11px;padding:4px 11px;" onclick="orderReassignFromCard(\''+op+'\',\''+sku+'\',\''+o+'\')">Move to '+escHtml(o)+'</button>';
+    });
+    btnsHtml+='<button class="btn btn-ghost" style="font-size:11px;padding:4px 11px;color:var(--r5);" onclick="orderSkipFromCard(\''+op+'\',\''+sku+'\')">Skip product</button>';
+    btnsHtml+='<button class="btn btn-ghost" style="font-size:11px;padding:4px 11px;color:var(--text-faint);" onclick="orderCloseRowEdit(\''+op+'\')">Cancel</button>';
+    btnsDiv.innerHTML=btnsHtml;
+  }
+  editDiv.style.display='block';
+  // Expand card if not already open
+  const body=document.getElementById('order-opbody-'+opKey);
+  if(body&&(body.style.maxHeight==='0px'||body.style.maxHeight==='0'||!body.style.maxHeight)){
+    orderToggleOpCard(opKey);
+  } else if(body){
+    body.style.maxHeight=body.scrollHeight+200+'px';
+  }
+}
+
+function orderCloseRowEdit(op){
+  const opKey=op.replace(/[^a-z0-9]/gi,'_');
+  const editDiv=document.getElementById('order-opedit-'+opKey);
+  if(editDiv)editDiv.style.display='none';
+  _orderEditState={op:null,sku:null};
+}
+
+function orderReassignFromCard(fromOp,sku,toOp){
+  _orderPlanActive.assignments[sku]=toOp;
+  // Update the product row assign button
+  const rowBtn=document.querySelector('#order-row-'+sku+' .op-assign-btn');
+  if(rowBtn){
+    const col=getOpColor(toOp);const txt=opTextColor(col);
+    rowBtn.textContent=toOp;rowBtn.className='op-assign-btn assigned';
+    rowBtn.style.background=col;rowBtn.style.borderColor=col;rowBtn.style.color=txt;
+  }
+  const row=document.getElementById('order-row-'+sku);
+  if(row)row.className='order-row-assigned';
+  orderCloseRowEdit(fromOp);
+  renderOrderSummaryCards();
+  orderRebuildOpCards();
+  orderUpdateVolumeTracker();
+  showToast('Moved to '+toOp,'success');
+}
+
+function orderSkipFromCard(op,sku){
+  orderCloseRowEdit(op);
+  _orderSkipped[sku]=true;
+  delete _orderPlanActive.assignments[sku];
+  const row=document.getElementById('order-row-'+sku);
+  if(row){row.style.opacity='0.35';row.style.textDecoration='line-through';}
+  const rowBtn=document.querySelector('#order-row-'+sku+' .op-assign-btn');
+  if(rowBtn){rowBtn.textContent='-- Assign --';rowBtn.className='op-assign-btn';rowBtn.style.background='';rowBtn.style.borderColor='';rowBtn.style.color='';}
+  orderRebuildOpCards();
+  orderUpdateVolumeTracker();
+  renderOrderSummaryCards();
+}
+
+function orderRebuildOpCards(){
+  // Rebuild just the op cards section without full re-render
+  const wrap=document.getElementById('order-op-cards-wrap');
+  if(!wrap||!_orderPlanActive)return;
+  const ops=getOperatorMembers().map(function(m){return m.name;});
+  const needItems=[];
+  PRODUCTS.forEach(function(p){const haveRaw=invHave[p[2]];if(haveRaw==null)return;const need=Math.max(0,(p[4]||0)-(haveRaw||0));if(need>=1)needItems.push({cat:p[0],name:p[1],sku:p[2],vp:p[3],par:p[4],need,have:haveRaw||0});});
+  ops.forEach(function(op){
+    const opKey=op.replace(/[^a-z0-9]/gi,'_');
+    const opItems=needItems.filter(function(p){return _orderPlanActive.assignments[p.sku]===op&&!invOos[p.sku]&&!_orderSkipped[p.sku];});
+    const opDv=opItems.reduce(function(s,p){return s+(p.vp||0)*p.need;},0);
+    orderUpdateOpMeta(op);
+    // Rebuild body rows
+    const body=document.getElementById('order-opbody-'+opKey);
+    if(!body)return;
+    const wasOpen=body.style.maxHeight&&body.style.maxHeight!=='0px'&&body.style.maxHeight!=='0';
+    const colHeadHtml='<div style="display:flex;align-items:center;padding:4px 10px;gap:8px;background:var(--b0);border-bottom:1px solid var(--border-light);"><div style="width:7px;flex-shrink:0;"></div><div style="flex:1;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-faint);">Product</div><div style="min-width:36px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-faint);">SKU</div><div style="min-width:26px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-faint);text-align:center;">Need</div><div style="min-width:30px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-faint);text-align:right;">DV</div><div style="width:16px;"></div></div>';
+    const col=getOpColor(op);
+    const isOrdered=!!_orderOrdered[op];
+    let rowsHtml=colHeadHtml;
+    opItems.forEach(function(p){
+      rowsHtml+='<div class="order-oprow'+(isOrdered?' order-oprow-ordered':'')+'" id="order-oprow-'+opKey+'-'+p.sku+'" onclick="orderOpenRowEdit(event,\''+op+'\',\''+p.sku+'\',\''+escHtml(p.name)+'\')" style="display:flex;align-items:center;padding:6px 10px;gap:8px;border-bottom:1px solid var(--border-light);cursor:pointer;'+(isOrdered?'opacity:0.4;':'')+'">'+
+        '<div style="width:7px;height:7px;border-radius:50%;background:'+col+';flex-shrink:0;"></div>'+
+        '<div style="flex:1;font-size:12px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escHtml(p.name)+'</div>'+
+        '<div style="min-width:36px;font-size:11px;color:var(--text-faint);">'+escHtml(p.sku||'')+'</div>'+
+        '<div style="min-width:26px;font-size:11px;font-weight:600;color:var(--text);text-align:center;">'+p.need+'</div>'+
+        '<div style="min-width:30px;font-size:11px;color:var(--text-faint);text-align:right;">'+(p.vp?fmtVP(p.vp):'--')+'</div>'+
+        '<div style="width:16px;font-size:10px;color:var(--text-faint);opacity:0.5;">&#9998;</div>'+
+        '</div>';
+    });
+    // Edit sheet
+    rowsHtml+='<div id="order-opedit-'+opKey+'" style="display:none;border-top:1px solid var(--border-light);padding:10px 12px;background:var(--b0);">'+
+      '<div id="order-opedit-title-'+opKey+'" style="font-size:11px;font-weight:600;color:var(--text-faint);margin-bottom:8px;"></div>'+
+      '<div id="order-opedit-btns-'+opKey+'" style="display:flex;gap:6px;flex-wrap:wrap;"></div></div>';
+    body.innerHTML=rowsHtml;
+    if(wasOpen){body.style.maxHeight=body.scrollHeight+200+'px';}
+  });
+}
+
+function orderUpdateOpMeta(op){
+  const opKey=op.replace(/[^a-z0-9]/gi,'_');
+  const meta=document.getElementById('order-opmeta-'+opKey);
+  if(!meta)return;
+  const needItems=[];
+  PRODUCTS.forEach(function(p){const haveRaw=invHave[p[2]];if(haveRaw==null)return;const need=Math.max(0,(p[4]||0)-(haveRaw||0));if(need>=1)needItems.push({sku:p[2],vp:p[3],need});});
+  const opItems=needItems.filter(function(p){return _orderPlanActive.assignments[p.sku]===op&&!invOos[p.sku]&&!_orderSkipped[p.sku];});
+  const opDv=opItems.reduce(function(s,p){return s+(p.vp||0)*p.need;},0);
+  const isOrdered=!!_orderOrdered[op];
+  meta.textContent=opItems.length+' items \u00b7 '+fmtVP(opDv)+' DV'+(isOrdered?' \u2014 ordered':' \u2014 tap to review');
+  meta.style.color=isOrdered?'var(--b6)':'var(--text-faint)';
+}
+
+function orderUpdateVolumeTracker(){
+  if(!_orderPlanActive)return;
+  const tracker=document.getElementById('order-vol-tracker');
+  if(!tracker)return;
+  const needItems=[];
+  PRODUCTS.forEach(function(p){const haveRaw=invHave[p[2]];if(haveRaw==null)return;const need=Math.max(0,(p[4]||0)-(haveRaw||0));if(need>=1&&!invOos[p[2]]&&!_orderSkipped[p[2]])needItems.push({sku:p[2],vp:p[3],need});});
+  const totalDv=needItems.reduce(function(s,p){return s+(p.vp||0)*p.need;},0);
+  const assignedDv=needItems.filter(function(p){return !!_orderPlanActive.assignments[p.sku];}).reduce(function(s,p){return s+(p.vp||0)*p.need;},0);
+  const orderedDv=needItems.filter(function(p){return _orderOrdered[_orderPlanActive.assignments[p.sku]];}).reduce(function(s,p){return s+(p.vp||0)*p.need;},0);
+  const remainingDv=totalDv-assignedDv;
+  const remEl=document.getElementById('order-vol-remaining');
+  const assEl=document.getElementById('order-vol-assigned-num');
+  const ordEl=document.getElementById('order-vol-ordered-num');
+  const barAss=document.getElementById('order-vol-bar-assigned');
+  const barOrd=document.getElementById('order-vol-bar-ordered');
+  if(remEl)remEl.textContent=fmtVP(remainingDv)+' DV';
+  if(assEl)assEl.textContent=fmtVP(assignedDv);
+  if(ordEl)ordEl.textContent=fmtVP(orderedDv);
+  if(barAss)barAss.style.width=totalDv>0?Math.round(assignedDv/totalDv*100)+'%':'0%';
+  if(barOrd)barOrd.style.width=totalDv>0?Math.round(orderedDv/totalDv*100)+'%':'0%';
+  tracker.style.display='block';
 }
 
 function orderRecalcCatTotals(cats){
@@ -9553,9 +9865,11 @@ function updateOrderToolbar(){
   const saveBtn=document.getElementById('order-save-btn');
   const renameBtn=document.getElementById('order-rename-btn');
   const deleteBtn=document.getElementById('order-delete-btn');
+  const unloadBtn=document.getElementById('order-unload-btn');
   if(saveBtn)saveBtn.style.display=isActive?'inline-flex':'none';
   if(renameBtn)renameBtn.style.display=isSaved?'inline-flex':'none';
   if(deleteBtn)deleteBtn.style.display=isSaved?'inline-flex':'none';
+  if(unloadBtn)unloadBtn.style.display=isActive?'inline-flex':'none';
 }
 
 async function archiveOrderPlan(){
