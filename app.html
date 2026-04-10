@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-10 01:00:00 -->
+<!-- CACHE BUST: 2026-04-10 02:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -1916,6 +1916,7 @@ if('serviceWorker' in navigator){
         <div class="payout-preset-row" style="flex-wrap:wrap;gap:4px;">
           <div class="payout-preset-chip" onclick="setPayoutPreset('thisweek',this)"><span class="ppc-name">This Week</span><span class="ppc-range" id="ppc-range-thisweek"></span></div>
           <div class="payout-preset-chip" onclick="setPayoutPreset('lastweek',this)"><span class="ppc-name">Last Week</span><span class="ppc-range" id="ppc-range-lastweek"></span></div>
+          <div class="payout-preset-chip" onclick="setPayoutPreset('weekbeforelast',this)"><span class="ppc-name">Wk Before Last</span><span class="ppc-range" id="ppc-range-weekbeforelast"></span></div>
           <div class="payout-preset-chip" onclick="setPayoutPreset('last2weeks',this)"><span class="ppc-name">Last 2 Wks</span><span class="ppc-range" id="ppc-range-last2weeks"></span></div>
           <div class="payout-preset-chip" onclick="setPayoutPreset('thismonth',this)"><span class="ppc-name">This Month</span><span class="ppc-range" id="ppc-range-thismonth"></span></div>
           <div class="payout-preset-chip" onclick="setPayoutPreset('lastmonth',this)"><span class="ppc-name">Last Month</span><span class="ppc-range" id="ppc-range-lastmonth"></span></div>
@@ -1946,6 +1947,7 @@ if('serviceWorker' in navigator){
         <div class="payout-preset-row" id="hourly-preset-row" style="flex-wrap:wrap;gap:4px;">
           <div class="payout-preset-chip" onclick="setHourlyPreset('thisweek',this)"><span class="ppc-name">This Week</span><span class="ppc-range" id="hppc-thisweek"></span></div>
           <div class="payout-preset-chip" onclick="setHourlyPreset('lastweek',this)"><span class="ppc-name">Last Week</span><span class="ppc-range" id="hppc-lastweek"></span></div>
+          <div class="payout-preset-chip" onclick="setHourlyPreset('weekbeforelast',this)"><span class="ppc-name">Wk Before Last</span><span class="ppc-range" id="hppc-weekbeforelast"></span></div>
           <div class="payout-preset-chip" onclick="setHourlyPreset('last2weeks',this)"><span class="ppc-name">Last 2 Wks</span><span class="ppc-range" id="hppc-last2weeks"></span></div>
           <div class="payout-preset-chip" onclick="setHourlyPreset('thismonth',this)"><span class="ppc-name">This Month</span><span class="ppc-range" id="hppc-thismonth"></span></div>
           <div class="payout-preset-chip" onclick="setHourlyPreset('lastmonth',this)"><span class="ppc-name">Last Month</span><span class="ppc-range" id="hppc-lastmonth"></span></div>
@@ -12103,6 +12105,9 @@ function setPayoutPreset(preset, btn) {
   } else if (preset === 'lastweek') {
     const r = getSunWeekRange(1);
     from = r.from; to = r.to;
+  } else if (preset === 'weekbeforelast') {
+    const r = getSunWeekRange(2);
+    from = r.from; to = r.to;
   } else if (preset === 'last2weeks') {
     const r1 = getSunWeekRange(2); // two weeks ago Sun
     const r2 = getSunWeekRange(1); // last complete week Sat
@@ -12136,6 +12141,8 @@ function setHourlyPreset(preset, btn) {
     const r = getSunWeekRange(0); from = r.from; to = r.to;
   } else if (preset === 'lastweek') {
     const r = getSunWeekRange(1); from = r.from; to = r.to;
+  } else if (preset === 'weekbeforelast') {
+    const r = getSunWeekRange(2); from = r.from; to = r.to;
   } else if (preset === 'last2weeks') {
     from = getSunWeekRange(2).from; to = getSunWeekRange(1).to;
   } else if (preset === 'lastmonth') {
@@ -12194,6 +12201,7 @@ function initHourlyPresetChipLabels() {
   const el = (id,txt) => { const e=document.getElementById(id); if(e) e.textContent=txt; };
   el('hppc-thisweek',  r(tw.from,tw.to));
   el('hppc-lastweek',  r(lw.from,lw.to));
+  el('hppc-weekbeforelast', r(l2.from,l2.to));
   el('hppc-last2weeks',r(l2.from,lw.to));
   el('hppc-thismonth', r(tmf,localToday()));
   el('hppc-lastmonth', r(lmf,lmt));
@@ -12218,6 +12226,7 @@ function initPresetChipLabels() {
   const el = (id, txt) => { const e = document.getElementById(id); if(e) e.textContent = txt; };
   el('ppc-range-thisweek',  r(tw.from, tw.to));
   el('ppc-range-lastweek',  r(lw.from, lw.to));
+  el('ppc-range-weekbeforelast', r(l2.from, l2.to));
   el('ppc-range-last2weeks',r(l2.from, l2end.to));
   el('ppc-range-thismonth', r(tm_from, tm_to));
   el('ppc-range-lastmonth', r(lm_from, lm_to));
