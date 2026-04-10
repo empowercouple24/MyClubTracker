@@ -66,6 +66,7 @@ if(location.protocol==='http:'&&location.hostname!=='localhost'){
     /* PRODUCT TABLE */
     .prod-table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border-light);border-top:none;border-radius:0 0 var(--radius-sm) var(--radius-sm);overflow:hidden;table-layout:fixed;}
     .prod-table th{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);background:var(--b0);padding:5px 8px;border-bottom:1px solid var(--border-light);text-align:left;vertical-align:middle;}
+    .prod-table th.sortable:hover{color:var(--b7);background:var(--b1);}
     .prod-table th.r{text-align:right}
     .prod-table th.c{text-align:center}
     .prod-table td{padding:5px 8px;border-bottom:1px solid var(--border-light);vertical-align:middle;font-size:13px;height:36px;}
@@ -271,7 +272,7 @@ const DEFAULT_PRODUCTS=[
   ["Add-Ins","Beverage Mix - Peach Mango","3121",20.63,4],["Add-Ins","H3O","2745",32.95,5],["Add-Ins","Fiber - Unflavored","2865",25.25,1],["Add-Ins","Fiber - Apple","2864",25.25,1],
   ["Add-Ins","Fiber - Tropical Twist","066K",27.67,1],["Coffee","Prolessa Duo (30 day)","1076",99.22,2],["Coffee","Iced Coffee - Mocha","011K",33.61,3],["Coffee","Iced Coffee - House Blend","012K",33.61,4],
   ["24 Line","Rebuild Strength - Chocolate","302K",48.68,1],["24 Line","Rebuild Strength - Vanilla","304K",48.68,1],["24 Line","Rebuild Strength - Strawberry","305K",48.68,1],["24 Line","Enhanced Protein Powder","300K",48.68,1],
-  ["24 Line","CR7","1445",27.39,1],["24 Line","Creatine","386K",15.4,2],["Health","Probiotic","1829",22.5,1],["Health","Fat Release","163K",40.32,1],
+  ["24 Line","CR7","416K",27.39,1],["24 Line","Creatine","386K",15.4,2],["Health","Probiotic","1829",22.5,1],["Health","Fat Release","163K",40.32,1],
   ["Health","Immunity Essentials","047K",31.68,2],["Health","Best Defense - Orange Boost","1502",10.95,3],["Health","Best Defense - Watermelon Lime","328K",12.76,3],["Health","Best Defense - Honey Lemon Ginger","352K",12.76,3],
   ["Drink Mixes 4.4 oz","Blackberry (4.4 oz)","176M",6.0,2],["Drink Mixes 4.4 oz","Blueberry (4.4 oz)","179M",6.0,2],["Drink Mixes 4.4 oz","Blue Raspberry (4.4 oz)","178M",6.0,3],["Drink Mixes 4.4 oz","Cherry Limeade (4.4 oz)","181M",6.0,1],
   ["Drink Mixes 4.4 oz","Coconut (4.4 oz)","182M",6.0,2],["Drink Mixes 4.4 oz","Cranberry (4.4 oz)","185M",6.0,1],["Drink Mixes 4.4 oz","Cucumber Lime (4.4 oz)","183M",6.0,1],["Drink Mixes 4.4 oz","Dragonfruit (4.4 oz)","187M",6.0,1],
@@ -288,7 +289,7 @@ const DEFAULT_PRODUCTS=[
   ["Tea Kits","Raspberry Tea (30 packets)","320K",21.95,8],["Tea Kits","Peach (30 packets)","321K",21.95,8],["Tea Kits","Lemon (30 packets)","322K",21.95,8],["Tea Kits","Sweet Ginger (30 packets)","240K",21.95,2],
   ["Tea Kits","NRG Tea - PF Hibiscus (30 pkt)","412K",10.34,2],["Tea Kits","NRG Tea - Natural (30 pkt)","324K",8.58,2],["Tea Kits","Aloe - Mandarin (30 packets)","339K",30.58,2],["Tea Kits","Aloe - Mango (30 packets)","340K",30.58,2],
   ["Tea Kits","Aloe - Cranberry (30 packets)","341K",30.58,2],["Tea Kits","Collagen - Straw Lem (30 pkt)","323K",42.41,12],["Tea Kits","Collagen - Unflavored (30 pkt)","457K",42.41,1],["Drink Mix Packets","Drink Mix - Limeade (30 pkt)","359K",9.3,2],
-  ["Drink Mix Packets","Drink Mix - Pineapple (30 pkt)","360K",9.3,2],["Drink Mix Packets","Drink Mix - Rainbow Candy (30 pkt)","361K",9.3,2],["Drink Mix Packets","Drink Mix - Raspberry (30 pkt)","362K",9.3,2],["Drink Mix Packets","Drink Mix - Watermelon (30 pkt)","364K",9.3,2],
+  ["Drink Mix Packets","Drink Mix - Pineapple (30 pkt)","360K",9.3,2],["Drink Mix Packets","Drink Mix - Rainbow Candy (30 pkt)","361K",9.3,2],["Drink Mix Packets","Drink Mix - Raspberry (30 pkt)","362K",9.3,2],["Drink Mix Packets","Drink Mix - Strawberry (30 pkt)","363K",9.3,2],["Drink Mix Packets","Drink Mix - Watermelon (30 pkt)","364K",9.3,2],
   ["Drink Mix Packets","Drink Mix - Blue Blast (30 pkt)","365K",9.3,2],["Drink Mix Packets","Drink Mix - Cherry (30 pkt)","366K",9.3,2],["Drink Mix Packets","Drink Mix - Coconut (30 pkt)","367K",9.3,2],["Drink Mix Packets","Drink Mix - Green Apple (30 pkt)","368K",9.3,2],
   ["Retail","Tea - Lemon (1.8 oz)","0255",21.95,1],["Retail","Tea - Raspberry (1.8 oz)","0256",21.95,1],["Retail","Tea - Peach (1.8 oz)","0257",21.95,1],["Retail","Tea - Original (1.8 oz)","0105",21.95,1],
   ["Retail","Aloe - Mandarin (pint)","2631",27.45,1],["Retail","Aloe - Mango (pint)","1065",27.45,1],["Retail","Aloe - Cranberry (pint)","1189",27.45,1],["Retail","Aloe - Grape (pint)","1610R",27.45,1],
@@ -302,12 +303,18 @@ const DEFAULT_PRODUCTS=[
   ["Other","Baked Goods Mix","2185",44.28,2],["Other","Instant Soup","129K",29.37,1],["Other","Select Formula 1","1626",39.66,1],["Other","Select PDM","1627",47.47,1],
   ["Other","Protein Bars - Lemon","0366",22.0,1],["Other","Protein Bars - Vanilla Almond","0364",22.0,1],["Other","BCAA - Green Apple","298K",52.36,1],["Other","Prepare - Tropical Mango","301K",80.41,1],
   ["Other","Prepare - Watermelon","299K",80.41,1],["Other","Formula 1 Sport - Vanilla","1412",45.76,1],["Other","Pina Colada","3141",36.03,1],["Other","Cafe Latte","2775",36.03,1],
-  ["Other","Wild Berry","3108",36.03,1],["Other","Iced Coffee - Macchiato","216K",35.26,1],["Gram Zero Drink Mixes","Sour Blue Raspberry","",0,2],["Gram Zero Drink Mixes","Sour Dark Cherry","",0,2],
+  ["Other","Wild Berry","3108",36.03,1],["Other","Iced Coffee - Macchiato","216K",35.26,1]];
+
+const _GRAM_ZERO=[
+  ["Gram Zero Drink Mixes","Sour Blue Raspberry","",0,2],["Gram Zero Drink Mixes","Sour Dark Cherry","",0,2],
   ["Gram Zero Drink Mixes","Sour Green Apple","",0,2],["Gram Zero Drink Mixes","Sour Orange","",0,2],["Gram Zero Drink Mixes","Sour Purple Grape","",0,2],["Gram Zero Drink Mixes","Sour Strawberry","",0,2],
   ["Gram Zero Drink Mixes","Sour Watermelon","",0,2],["Gram Zero Drink Mixes","White Grape","",0,2]];
+DEFAULT_PRODUCTS.push(..._GRAM_ZERO);
 
 
 let LOCATION_ID=null,IS_ADMIN=false,IS_GLOBAL=false,SETTINGS={},products=[],unsaved=false,dragSrcIdx=null,dragSrcCat=null;
+// Per-category sort state: { catName: 'name'|'sku'|null, dir: 1|-1 }
+let catSortState={};
 
 async function init(){
   const{data:{session}}=await sb.auth.getSession();
@@ -361,6 +368,34 @@ function buildCatFilter(){
 }
 
 // ── RENDER ──
+function sortIcon(cat, field){
+  const s=catSortState[cat];
+  if(!s||s.field!==field) return '<span style="opacity:0.3;font-size:9px;margin-left:3px;">⇅</span>';
+  return s.dir===1 ? '<span style="font-size:9px;margin-left:3px;">↑</span>' : '<span style="font-size:9px;margin-left:3px;">↓</span>';
+}
+
+function sortCategory(cat, field){
+  const s=catSortState[cat]||{field:null,dir:1};
+  const newDir=(s.field===field)? s.dir*-1 : 1;
+  catSortState[cat]={field,dir:newDir};
+  // Find first index of this category in products
+  const firstIdx=products.findIndex(p=>p[0]===cat);
+  if(firstIdx===-1){renderAll();return;}
+  // Extract all items for this category, sort them
+  const catItems=products.filter(p=>p[0]===cat);
+  catItems.sort(function(a,b){
+    const va=field==='name'?a[1].toLowerCase():a[2].toLowerCase();
+    const vb=field==='name'?b[1].toLowerCase():b[2].toLowerCase();
+    return va<vb?-newDir:va>vb?newDir:0;
+  });
+  // Remove all cat items from products, splice sorted ones back at firstIdx
+  const rest=products.filter(p=>p[0]!==cat);
+  rest.splice(firstIdx,0,...catItems);
+  products=rest;
+  markUnsaved();
+  renderAll();
+}
+
 function renderAll(){
   const q=document.getElementById('search-input').value.trim().toLowerCase();
   const catF=document.getElementById('cat-filter').value;
@@ -388,8 +423,8 @@ function renderAll(){
       <table class="prod-table">
         <thead><tr>
           <th style="width:18px;"></th>
-          <th>Name</th>
-          <th style="width:65px;">SKU</th>
+          <th style="cursor:pointer;user-select:none;" class="sortable" onclick="sortCategory('${escHtml(cat)}','name')" title="Sort by name">Name ${sortIcon(cat,'name')}</th>
+          <th style="width:65px;cursor:pointer;user-select:none;" class="sortable" onclick="sortCategory('${escHtml(cat)}','sku')" title="Sort by SKU">SKU ${sortIcon(cat,'sku')}</th>
           <th class="r" style="width:62px;">VP</th>
           <th class="c" style="width:44px;">PAR</th>
           <th style="width:30px;"></th>
