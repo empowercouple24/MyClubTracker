@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-10 22:00:00 -->
+<!-- CACHE BUST: 2026-04-10 23:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -9283,6 +9283,19 @@ function loadOrderPlan(id){
   if(!plan)return;
   _orderPlanActive={id:plan.id,assignments:{...plan.data?.assignments||{}},saved_at:plan.saved_at};
   _orderSkipped={};_orderOrdered={};
+  // Restore invHave from saved plan items so renderOrderBody can build the need list
+  // even when no inventory snapshot is currently loaded
+  const savedItems=plan.data?.items||[];
+  if(savedItems.length){
+    savedItems.forEach(function(item){
+      if(item.sku==null)return;
+      const have=(item.par||0)-(item.need||0);
+      // Only restore if this sku isn't already entered in the current session
+      if(invHave[item.sku]==null){
+        invHave[item.sku]=Math.max(0,have);
+      }
+    });
+  }
   if(renameBtn)renameBtn.style.display='inline-flex';
   if(deleteBtn)deleteBtn.style.display='inline-flex';
   if(unloadBtn)unloadBtn.style.display='inline-flex';
@@ -9840,8 +9853,8 @@ async function saveOrderPlan(){
   if(name===null)return;
   const planName=name.trim()||existingName;
   const needItems=[];
-  PRODUCTS.forEach(p=>{const haveRaw=invHave[p[2]];const haveEntered=haveRaw!=null;const have=haveRaw||0;const need=Math.max(0,(p[4]||0)-have);if(haveEntered&&need>=1)needItems.push({sku:p[2],name:p[1],vp:p[3],need});});
-  const payload={name:planName,assignments:{..._orderPlanActive.assignments},items:needItems.map(p=>({sku:p.sku,name:p.name,need:p.need,vp:p.vp,assignedTo:_orderPlanActive.assignments[p.sku]||null}))};
+  PRODUCTS.forEach(p=>{const haveRaw=invHave[p[2]];const haveEntered=haveRaw!=null;const have=haveRaw||0;const need=Math.max(0,(p[4]||0)-have);if(haveEntered&&need>=1)needItems.push({cat:p[0],sku:p[2],name:p[1],vp:p[3],par:p[4],need});});
+  const payload={name:planName,assignments:{..._orderPlanActive.assignments},items:needItems.map(p=>({cat:p.cat,sku:p.sku,name:p.name,need:p.need,vp:p.vp,par:p.par,assignedTo:_orderPlanActive.assignments[p.sku]||null}))};
   if(_orderPlanActive.id){
     // Update existing saved plan
     const{error}=await sb.from('inventory').update({data:{...payload,_type:'order_plan'}}).eq('id',_orderPlanActive.id);
@@ -9885,8 +9898,8 @@ async function archiveOrderPlan(){
   if(name===null)return; // cancelled
   const planName=name.trim()||defaultName;
   const needItems=[];
-  PRODUCTS.forEach(p=>{const haveRaw=invHave[p[2]];const haveEntered=haveRaw!=null;const have=haveRaw||0;const need=Math.max(0,(p[4]||0)-have);if(haveEntered&&need>=1)needItems.push({sku:p[2],name:p[1],vp:p[3],need});});
-  const payload={name:planName,assignments:{..._orderPlanActive.assignments},items:needItems.map(p=>({sku:p.sku,name:p.name,need:p.need,vp:p.vp,assignedTo:_orderPlanActive.assignments[p.sku]||null}))};
+  PRODUCTS.forEach(p=>{const haveRaw=invHave[p[2]];const haveEntered=haveRaw!=null;const have=haveRaw||0;const need=Math.max(0,(p[4]||0)-have);if(haveEntered&&need>=1)needItems.push({cat:p[0],sku:p[2],name:p[1],vp:p[3],par:p[4],need});});
+  const payload={name:planName,assignments:{..._orderPlanActive.assignments},items:needItems.map(p=>({cat:p.cat,sku:p.sku,name:p.name,need:p.need,vp:p.vp,par:p.par,assignedTo:_orderPlanActive.assignments[p.sku]||null}))};
   const{data:np,error}=await sb.from('inventory').insert({location_id:LOCATION_ID,data:{...payload,_type:'order_plan'}}).select().single();
   if(error){showToast('Save failed: '+error.message,'error');return;}
   ORDER_PLANS.unshift(np);
