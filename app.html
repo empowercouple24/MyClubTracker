@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-10 05:00:00 -->
+<!-- CACHE BUST: 2026-04-10 06:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -1894,9 +1894,10 @@ if('serviceWorker' in navigator){
         <select id="order-plan-picker" style="font-family:DM Sans,sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 10px;background:var(--surface);color:var(--text);outline:none;flex:1;" onchange="loadOrderPlan(this.value)">
           <option value="">— No saved plans —</option>
         </select>
+        <button class="btn btn-primary" id="order-save-btn" onclick="saveOrderPlan()" style="flex-shrink:0;display:none;">💾 Save Plan</button>
         <button class="btn btn-ghost" id="order-rename-btn" onclick="openOrderRename()" style="padding:5px 10px;font-size:12px;flex-shrink:0;display:none;">✎ Rename</button>
         <button class="btn btn-ghost" id="order-delete-btn" onclick="orderDeleteConfirm()" style="padding:5px 10px;font-size:12px;flex-shrink:0;display:none;color:var(--danger,#dc2626);">🗑</button>
-        <button class="btn btn-primary" onclick="startNewOrderPlan()" style="flex-shrink:0;">+ New Plan</button>
+        <button class="btn btn-ghost" onclick="startNewOrderPlan()" style="flex-shrink:0;">+ New Plan</button>
       </div>
     </div>
   </div>
@@ -9132,11 +9133,19 @@ function renderOrderPlanPicker(){
   const hasActive=!!_orderPlanActive;
   const renameBtn=document.getElementById('order-rename-btn');
   const deleteBtn=document.getElementById('order-delete-btn');
-  if(renameBtn)renameBtn.style.display=hasActive?'inline-flex':'none';
-  if(deleteBtn)deleteBtn.style.display=hasActive?'inline-flex':'none';
+  const isSaved=!!(_orderPlanActive&&_orderPlanActive.id);
+  const saveBtn=document.getElementById('order-save-btn');
+  if(saveBtn)saveBtn.style.display=hasActive?'inline-flex':'none';
+  if(renameBtn)renameBtn.style.display=isSaved?'inline-flex':'none';
+  if(deleteBtn)deleteBtn.style.display=isSaved?'inline-flex':'none';
 }
 
 function startNewOrderPlan(){
+  // Guard: if there are existing assignments, confirm before wiping
+  const existingCount = _orderPlanActive ? Object.keys(_orderPlanActive.assignments||{}).length : 0;
+  if(existingCount > 0){
+    if(!confirm('Starting a new plan will clear your ' + existingCount + ' current assignment' + (existingCount!==1?'s':'') + '. Continue?')) return;
+  }
   _orderPlanActive={id:null,assignments:{},saved_at:new Date().toISOString()};
   const picker=document.getElementById('order-plan-picker');
   if(picker)picker.value='';
@@ -9145,6 +9154,7 @@ function startNewOrderPlan(){
   if(renameBtn)renameBtn.style.display='inline-flex';
   if(deleteBtn)deleteBtn.style.display='none';
   renderOrderBody();
+  updateOrderToolbar();
 }
 
 function loadOrderPlan(id){
@@ -9164,6 +9174,7 @@ function loadOrderPlan(id){
   if(renameBtn)renameBtn.style.display='inline-flex';
   if(deleteBtn)deleteBtn.style.display='inline-flex';
   renderOrderBody();
+  updateOrderToolbar();
 }
 
 function renderOrderBody(){
@@ -9242,7 +9253,14 @@ function renderOrderBody(){
   needItems.forEach(p=>{if(!cats[p.cat])cats[p.cat]=[];cats[p.cat].push(p);});
   Object.entries(cats).forEach(([cat,items])=>{
     const catSlug=cat.replace(/[^a-z0-9]/gi,'_');
-    html+=`<div class="inv-cat-header">${cat}</div>
+    // Dominant operator for this category
+    const _cac={};
+    items.forEach(p=>{const a=_orderPlanActive.assignments[p.sku];if(a&&!invOos[p.sku])_cac[a]=(_cac[a]||0)+1;});
+    const _domOp=Object.entries(_cac).sort((a,b)=>b[1]-a[1])[0]?.[0]||'';
+    const _cbCol=_domOp?getOpColor(_domOp):null;
+    const _cbTxt=_domOp?opTextColor(_cbCol):'';
+    const _cbStyle=_domOp?`background:${_cbCol};border-color:${_cbCol};color:${_cbTxt};`:'';
+    html+=`<div class="inv-cat-header" style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span>${cat}</span><button class="op-assign-btn${_domOp?' assigned':''}" onclick="orderAssignCategory('${catSlug}',this)" style="width:auto;min-width:90px;padding:4px 12px;${_cbStyle}">${_domOp||'Assign All'}</button></div>
     <table class="inv-table"><thead><tr>
       <th style="text-align:left;">Product</th>
       <th>Need<span class="th-sub">Qty</span></th>
@@ -9281,6 +9299,58 @@ function orderAssignCycle(sku,btn){
   const finalAssign=(idx===ops.length-1)?'':ops[(idx+1)%ops.length];
   orderAssign(sku,finalAssign,btn);
 }
+
+function orderAssignCategory(catSlug, btn){
+  if(!_orderPlanActive) return;
+  const ops = getOperatorMembers().map(m => m.name);
+  if(!ops.length) return;
+  // Find all need items in this category
+  const catItems = [];
+  PRODUCTS.forEach(p => {
+    const slug = p[0].replace(/[^a-z0-9]/gi,'_');
+    if(slug !== catSlug) return;
+    const haveRaw = invHave[p[2]];
+    if(haveRaw == null) return;
+    const need = Math.max(0,(p[4]||0)-(haveRaw||0));
+    if(need < 1) return;
+    if(invOos[p[2]]) return; // skip OOS
+    catItems.push({sku:p[2], vp:p[3], need});
+  });
+  if(!catItems.length) return;
+  // Determine current dominant operator for this category
+  const counts = {};
+  catItems.forEach(p => {
+    const a = _orderPlanActive.assignments[p.sku];
+    if(a) counts[a] = (counts[a]||0) + 1;
+  });
+  const current = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0]?.[0] || '';
+  const idx = ops.indexOf(current);
+  const next = idx === ops.length-1 ? '' : ops[idx+1] || ops[0];
+  // Assign all items in category to next operator
+  catItems.forEach(p => {
+    const rowBtn = document.querySelector(`#order-row-${p.sku} .op-assign-btn`);
+    orderAssign(p.sku, next, rowBtn);
+  });
+  // Update the category button appearance
+  if(btn){
+    if(next){
+      const col = getOpColor(next);
+      const txt = opTextColor(col);
+      btn.textContent = next;
+      btn.className = 'op-assign-btn assigned';
+      btn.style.background = col;
+      btn.style.borderColor = col;
+      btn.style.color = txt;
+    } else {
+      btn.textContent = 'Assign All';
+      btn.className = 'op-assign-btn';
+      btn.style.background = '';
+      btn.style.borderColor = '';
+      btn.style.color = '';
+    }
+  }
+}
+
 
 function orderAssign(sku,opName,btnEl){
   if(!_orderPlanActive)return;
@@ -9376,6 +9446,52 @@ function orderRecalcCatTotals(cats){
     const el=document.getElementById('order-cat-dv-'+catSlug);
     if(el)el.textContent=catDv>0?fmtVP(catDv):'--';
   });
+}
+
+async function saveOrderPlan(){
+  if(!_orderPlanActive)return;
+  const assignCount=Object.keys(_orderPlanActive.assignments||{}).length;
+  if(!assignCount){showToast('Nothing to save — assign at least one product first','');return;}
+  const defaultName=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+' order';
+  const existingName=_orderPlanActive.id?ORDER_PLANS.find(p=>p.id===_orderPlanActive.id)?.data?.name||defaultName:defaultName;
+  const name=window.prompt('Name this order plan:',existingName);
+  if(name===null)return;
+  const planName=name.trim()||existingName;
+  const needItems=[];
+  PRODUCTS.forEach(p=>{const haveRaw=invHave[p[2]];const haveEntered=haveRaw!=null;const have=haveRaw||0;const need=Math.max(0,(p[4]||0)-have);if(haveEntered&&need>=1)needItems.push({sku:p[2],name:p[1],vp:p[3],need});});
+  const payload={name:planName,assignments:{..._orderPlanActive.assignments},items:needItems.map(p=>({sku:p.sku,name:p.name,need:p.need,vp:p.vp,assignedTo:_orderPlanActive.assignments[p.sku]||null}))};
+  if(_orderPlanActive.id){
+    // Update existing saved plan
+    const{error}=await sb.from('inventory').update({data:{...payload,_type:'order_plan'}}).eq('id',_orderPlanActive.id);
+    if(error){showToast('Save failed: '+error.message,'error');return;}
+    const existing=ORDER_PLANS.find(p=>p.id===_orderPlanActive.id);
+    if(existing)existing.data={...payload,_type:'order_plan'};
+    showToast(`Saved "${planName}"  ok`,'success');
+  } else {
+    // New save
+    const{data:np,error}=await sb.from('inventory').insert({location_id:LOCATION_ID,data:{...payload,_type:'order_plan'}}).select().single();
+    if(error){showToast('Save failed: '+error.message,'error');return;}
+    ORDER_PLANS.unshift(np);
+    _orderPlanActive.id=np.id;
+    showToast(`Saved "${planName}" ok`,'success');
+  }
+  renderOrderPlanPicker();
+  const picker=document.getElementById('order-plan-picker');
+  if(picker)picker.value=_orderPlanActive.id;
+  updateOrderToolbar();
+  const bar=document.querySelector('.order-archive-bar');
+  if(bar)bar.remove();
+}
+
+function updateOrderToolbar(){
+  const isSaved=!!(_orderPlanActive&&_orderPlanActive.id);
+  const isActive=!!_orderPlanActive;
+  const saveBtn=document.getElementById('order-save-btn');
+  const renameBtn=document.getElementById('order-rename-btn');
+  const deleteBtn=document.getElementById('order-delete-btn');
+  if(saveBtn)saveBtn.style.display=isActive?'inline-flex':'none';
+  if(renameBtn)renameBtn.style.display=isSaved?'inline-flex':'none';
+  if(deleteBtn)deleteBtn.style.display=isSaved?'inline-flex':'none';
 }
 
 async function archiveOrderPlan(){
