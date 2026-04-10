@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-10 04:30:00 -->
+<!-- CACHE BUST: 2026-04-10 05:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -9337,6 +9337,8 @@ function renderOrderSummaryCards(){
   const needItems=[];
   PRODUCTS.forEach(p=>{const haveRaw=invHave[p[2]];const haveEntered=haveRaw!=null;const have=haveRaw||0;const need=Math.max(0,(p[4]||0)-have);if(haveEntered&&need>=1)needItems.push({sku:p[2],vp:p[3],need});});
   const ops=getOperatorMembers().map(function(m){ return m.name; });
+  const opTotals={};
+  const opCounts={};
   ops.forEach(o=>{opTotals[o]=0;opCounts[o]=0;});
   needItems.forEach(p=>{
     const assigned=_orderPlanActive.assignments[p.sku];
