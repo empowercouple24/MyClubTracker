@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-10 17:15:00 -->
+<!-- CACHE BUST: 2026-04-10 17:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -3591,73 +3591,80 @@ async function openProfileModal(){
 
 async function loadTeamMembers(){
   document.getElementById('prof-role-section').style.display='block';
-  const{data:members}=await sb.from('users')
-    .select('id,display_name,first_name,last_name,email,role,avatar_url')
-    .eq('location_id',LOCATION_ID)
-    .neq('id',CURRENT_SESSION.user.id);
   const list=document.getElementById('prof-team-list');
-  if(!members||!members.length){
-    list.innerHTML='<div style="font-size:13px;color:var(--text-faint);">No other team members yet.</div>';
-    return;
+  try{
+    const{data:members,error:qErr}=await sb.from('users')
+      .select('id,display_name,first_name,last_name,email,role,avatar_url')
+      .eq('location_id',LOCATION_ID)
+      .neq('id',CURRENT_SESSION.user.id);
+    if(qErr) throw qErr;
+    if(!members||!members.length){
+      list.innerHTML='<div style="font-size:13px;color:var(--text-faint);">No other team members yet.</div>';
+      return;
+    }
+    // Lock owners AND admins — neither can be removed or role-changed
+    const primaryOwners=members.filter(m=>m.role==='owner'||m.role==='admin');
+    const employees=members.filter(m=>m.role!=='owner'&&m.role!=='admin');
+
+    const makeAvatar=(m,bg,fg)=>{
+      const first=(m.first_name||m.display_name||m.email||'?')[0]||'?';
+      const second=m.last_name?m.last_name[0]:'';
+      const initials=(first+second).toUpperCase();
+      const bgC=bg||'var(--b1)'; const fgC=fg||'var(--b7)';
+      if(m.avatar_url){
+        return '<div style="width:36px;height:36px;border-radius:50%;overflow:hidden;flex-shrink:0;"><img src="'+escHtml(m.avatar_url)+'" alt="" style="width:100%;height:100%;object-fit:cover;display:block;"/></div>';
+      }
+      return '<div style="width:36px;height:36px;border-radius:50%;background:'+bgC+';color:'+fgC+';display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;">'+escHtml(initials)+'</div>';
+    };
+
+    const renderPrimaryOwner=(m,badge)=>{
+      const name=[m.first_name,m.last_name].filter(Boolean).join(' ')||m.display_name||m.email;
+      const av=makeAvatar(m,'var(--g1,#dcfce7)','var(--g6,#16a34a)');
+      return'<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-light);opacity:0.82;">'
+        +av
+        +'<div style="min-width:0;flex:1;">'
+        +'<div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escHtml(name)+'</div>'
+        +'<div style="font-size:11px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escHtml(m.email)+'</div>'
+        +'</div>'
+        +'<span style="font-size:11px;font-weight:700;background:var(--g0,#f0fdf4);color:var(--g5);border:1px solid var(--g2,#bbf7d0);border-radius:6px;padding:3px 10px;flex-shrink:0;">'+escHtml(badge||'Owner')+'</span>'
+        +'</div>';
+    };
+
+    const renderMember=(m)=>{
+      const name=[m.first_name,m.last_name].filter(Boolean).join(' ')||m.display_name||m.email;
+      const av=makeAvatar(m,'var(--b1)','var(--b7)');
+      const selOwner=m.role==='owner'?'selected':'';
+      const selEmp=m.role==='employee'?'selected':'';
+      return'<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-light);">'
+        +av
+        +'<div style="min-width:0;flex:1;">'
+        +'<div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escHtml(name)+'</div>'
+        +'<div style="font-size:11px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escHtml(m.email)+'</div>'
+        +'</div>'
+        +'<div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">'
+        +'<select data-uid="'+m.id+'" onchange="changeTeamRole(this.dataset.uid,this.value,this)" style="font-family:DM Sans,sans-serif;font-size:12px;font-weight:600;padding:3px 6px;border-radius:5px;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;outline:none;">'
+        +'<option value="owner" '+selOwner+'>Owner</option>'
+        +'<option value="employee" '+selEmp+'>Operator</option>'
+        +'</select>'
+        +'<button data-uid="'+m.id+'" data-name="'+escHtml(name)+'" onclick="confirmRemoveUser(this.dataset.uid,this.dataset.name)" title="Remove operator" style="background:none;border:1px solid var(--border);border-radius:5px;padding:3px 7px;cursor:pointer;font-size:13px;color:var(--r5);line-height:1;" onmouseover="this.style.background=\'var(--r0)\'" onmouseout="this.style.background=\'none\'">&#10005;</button>'
+        +'</div>'
+        +'</div>';
+    };
+
+    let html='';
+    if(primaryOwners.length){
+      html+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--g5);margin-bottom:2px;margin-top:4px;">Owner'+(primaryOwners.length>1?'s':'')+'</div>';
+      html+=primaryOwners.map(m=>renderPrimaryOwner(m,m.role==='admin'?'Admin':'Primary Owner')).join('');
+    }
+    if(employees.length){
+      html+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:2px;margin-top:10px;">Operators</div>';
+      html+=employees.map(m=>renderMember(m)).join('');
+    }
+    list.innerHTML=html;
+  }catch(e){
+    list.innerHTML='<div style="font-size:13px;color:var(--r5);">Could not load team members.</div>';
+    console.error('loadTeamMembers error:',e);
   }
-  // Lock owners AND admins — neither can be removed or role-changed
-  const primaryOwners=members.filter(m=>m.role==='owner'||m.role==='admin');
-  const otherOwners=[];
-  const employees=members.filter(m=>m.role!=='owner'&&m.role!=='admin');
-
-  const makeAvatar=(m,bg='var(--b1)',fg='var(--b7)')=>{
-    const initials=((m.first_name||m.display_name||m.email||'?')[0]+(m.last_name?m.last_name[0]:'')).toUpperCase();
-    return m.avatar_url
-      ? `<div style="width:36px;height:36px;border-radius:50%;overflow:hidden;flex-shrink:0;"><img src="${escHtml(m.avatar_url)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;"/></div>`
-      : `<div style="width:36px;height:36px;border-radius:50%;background:${bg};color:${fg};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;">${escHtml(initials)}</div>`;
-  };
-
-  const renderPrimaryOwner=(m,badge='Primary Owner')=>{
-    const name=[m.first_name,m.last_name].filter(Boolean).join(' ')||m.display_name||m.email;
-    const av=makeAvatar(m,'var(--g1,#dcfce7)','var(--g6,#16a34a)');
-    return`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-light);opacity:0.82;">
-      ${av}
-      <div style="min-width:0;flex:1;">
-        <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(name)}</div>
-        <div style="font-size:11px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(m.email)}</div>
-      </div>
-      <span style="font-size:11px;font-weight:700;background:var(--g0,#f0fdf4);color:var(--g5);border:1px solid var(--g2,#bbf7d0);border-radius:6px;padding:3px 10px;flex-shrink:0;">${escHtml(badge)}</span>
-    </div>`;
-  };
-
-  const renderMember=(m,isOwner)=>{
-    const name=[m.first_name,m.last_name].filter(Boolean).join(' ')||m.display_name||m.email;
-    const roleColor=isOwner?'var(--g5)':'var(--text-muted)';
-    const av=makeAvatar(m,'var(--b1)','var(--b7)');
-    return`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-light);">
-      ${av}
-      <div style="min-width:0;flex:1;">
-        <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(name)}</div>
-        <div style="font-size:11px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(m.email)}</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-        <select data-uid="${m.id}" onchange="changeTeamRole(this.dataset.uid,this.value,this)" style="font-family:DM Sans,sans-serif;font-size:12px;font-weight:600;padding:3px 6px;border-radius:5px;border:1px solid var(--border);background:var(--surface);color:${roleColor};cursor:pointer;outline:none;">
-          <option value="owner"    ${m.role==='owner'   ?'selected':''}>Owner</option>
-          <option value="employee" ${m.role==='employee'?'selected':''}>Operator</option>
-        </select>
-        <button data-uid="${m.id}" data-name="${escAttr(name)}" onclick="confirmRemoveUser(this.dataset.uid,this.dataset.name)" title="Remove operator" style="background:none;border:1px solid var(--border);border-radius:5px;padding:3px 7px;cursor:pointer;font-size:13px;color:var(--r5);line-height:1;" onmouseover="this.style.background='var(--r0)'" onmouseout="this.style.background='none'">&#10005;</button>
-      </div>
-    </div>`;
-  };
-
-  let html='';
-  if(primaryOwners.length){
-    html+=`<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--g5);margin-bottom:2px;margin-top:4px;">Owner${primaryOwners.length>1?'s':''}</div>`;
-    html+=primaryOwners.map(m=>{
-      const badge=m.role==='admin'?'Admin':'Primary Owner';
-      return renderPrimaryOwner(m,badge);
-    }).join('');
-  }
-  if(employees.length){
-    html+=`<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:2px;margin-top:10px;">Operators</div>`;
-    html+=employees.map(m=>renderMember(m,false)).join('');
-  }
-  list.innerHTML=html;
 }
 async function changeTeamRole(userId,newRole,selectEl){
   const{error}=await sb.from('users').update({role:newRole}).eq('id',userId);
