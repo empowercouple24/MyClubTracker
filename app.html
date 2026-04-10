@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-10 23:30:00 -->
+<!-- CACHE BUST: 2026-04-11 00:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -428,7 +428,8 @@ if('serviceWorker' in navigator){
     #panel-order .inv-table th:nth-child(2){width:72px}
     #panel-order .inv-table th:nth-child(3){width:76px}
     #panel-order .inv-table th:nth-child(4){width:150px}
-    #panel-order .inv-table th:nth-child(5){width:88px}
+    #panel-order .inv-table th:nth-child(5){width:76px}
+    #panel-order .inv-table th:nth-child(6){width:36px}
     .order-summary-card{background:linear-gradient(135deg,var(--b8),var(--b6));border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;color:white;display:flex;flex-wrap:wrap;gap:10px;align-items:stretch;}
     .order-op-chip{flex:1;min-width:120px;background:rgba(255,255,255,0.14);border-radius:8px;padding:10px 14px;}
     .order-op-chip-name{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:rgba(255,255,255,0.85);margin-bottom:3px;}
@@ -9390,7 +9391,7 @@ function renderOrderBody(){
     const _cbStyle=_domOp?'background:'+_cbCol+';border-color:'+_cbCol+';color:'+_cbTxt+';':'';
     const _cbLabel=_domOp||'Assign All';
     html+='<div class="inv-cat-header" style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span>'+cat+'</span><button class="op-assign-btn'+(_domOp?' assigned':'')+'" onclick="orderAssignCategory(\''+catSlug+'\',this)" style="width:auto;min-width:90px;padding:4px 12px;'+_cbStyle+'">'+_cbLabel+'</button></div>';
-    html+='<table class="inv-table"><thead><tr><th style="text-align:left;">Product</th><th>Need<span class="th-sub">Qty</span></th><th>DV<span class="th-sub">Product</span></th><th style="text-align:left;padding-left:8px;">Assign<span class="th-sub">Operator</span></th><th>DV<span class="th-sub">Subtotal</span></th><th style="width:28px;"></th></tr></thead><tbody>';
+    html+='<table class="inv-table"><thead><tr><th style="text-align:left;">Product</th><th>Need<span class="th-sub">Qty</span></th><th>DV<span class="th-sub">Product</span></th><th style="text-align:left;padding-left:8px;">Assign<span class="th-sub">Operator</span></th><th>DV<span class="th-sub">Subtotal</span></th><th style="width:36px;"></th></tr></thead><tbody>';
     items.forEach(p=>{
       const isOos=!!invOos[p.sku];
       const isSkipped=!!_orderSkipped[p.sku];
@@ -9647,7 +9648,7 @@ function orderToggleOpCard(opKey){
     body.style.borderTopWidth='0';
     if(chev)chev.style.transform='';
   } else {
-    body.style.maxHeight=body.scrollHeight+200+'px';
+    body.style.maxHeight='2000px';
     body.style.borderTopWidth='1px';
     if(chev)chev.style.transform='rotate(180deg)';
   }
@@ -9710,7 +9711,7 @@ function orderOpenRowEdit(e,op,sku,name){
   if(body&&(body.style.maxHeight==='0px'||body.style.maxHeight==='0'||!body.style.maxHeight)){
     orderToggleOpCard(opKey);
   } else if(body){
-    body.style.maxHeight=body.scrollHeight+200+'px';
+    body.style.maxHeight='2000px';
   }
 }
 
@@ -9790,7 +9791,7 @@ function orderRebuildOpCards(){
       '<div id="order-opedit-title-'+opKey+'" style="font-size:11px;font-weight:600;color:var(--text-faint);margin-bottom:8px;"></div>'+
       '<div id="order-opedit-btns-'+opKey+'" style="display:flex;gap:6px;flex-wrap:wrap;"></div></div>';
     body.innerHTML=rowsHtml;
-    if(wasOpen){body.style.maxHeight=body.scrollHeight+200+'px';}
+    if(wasOpen){body.style.maxHeight='2000px';}
   });
 }
 
