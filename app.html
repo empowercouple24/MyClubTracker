@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-10 18:00:00 -->
+<!-- CACHE BUST: 2026-04-10 19:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -2958,7 +2958,7 @@ if('serviceWorker' in navigator){
       <button onclick="dismissProdUpdate()" style="font-size:11px;color:var(--text-faint);background:none;border:none;cursor:pointer;padding:4px;flex-shrink:0;">Dismiss</button>
     </div>
     <div style="font-size:12px;color:var(--text-muted);padding:10px 16px;background:var(--b0);border-bottom:1px solid var(--border-light);line-height:1.5;">
-      Review each change below. Toggle off any you do not want to apply, then tap Accept.
+      Review each change below. Uncheck any you want to decide later — they'll be saved and you can review them anytime from Settings → Products.
     </div>
     <div style="overflow-y:auto;flex:1;" id="prod-update-rows"></div>
     <div style="flex-shrink:0;padding:12px 16px;border-top:1px solid var(--border-light);display:flex;gap:8px;">
@@ -3341,6 +3341,12 @@ if('serviceWorker' in navigator){
       <div class="settings-group">
         <div class="settings-group-title">Products</div>
         <button class="btn btn-ghost btn-full" onclick="openProductsEditor()" style="justify-content:space-between;padding:10px 12px;font-size:13px;"><span>Edit Products List</span><span style="color:var(--text-faint);font-size:11px;" id="s-prod-count"></span></button>
+        <div id="s-prod-updates-row" style="display:none;margin-top:6px;">
+          <button class="btn btn-ghost btn-full" onclick="closeProfileModal();setTimeout(function(){checkPendingProductUpdates(true);},200)" style="justify-content:space-between;padding:10px 12px;font-size:13px;border:1px solid var(--a2,#fcd34d);background:var(--a0);">
+            <span style="color:var(--a7);">&#9889; Pending Product Updates</span>
+            <span id="s-prod-updates-count" style="font-size:11px;font-weight:700;background:var(--a2,#fcd34d);color:var(--a7);padding:2px 8px;border-radius:20px;"></span>
+          </button>
+        </div>
       </div>
       <!-- Location Contact Info -->
       <div id="prof-loc-contact" style="display:none;">
@@ -6195,7 +6201,7 @@ function gcalShiftsModalBg(e){if(e.target===document.getElementById('gcal-shifts
 // ── PRODUCT UPDATE REVIEW ──
 var _pendingProdUpdate = null;
 
-async function checkPendingProductUpdates(){
+async function checkPendingProductUpdates(force){
   if(!LOCATION_ID) return;
   const{data,error} = await sb.from('product_updates')
     .select('id,changes,pushed_at,created_at')
@@ -6205,7 +6211,19 @@ async function checkPendingProductUpdates(){
     .limit(1)
     .maybeSingle();
   if(error){console.warn('[prodUpdate] query error:',error.message);return;}
+  // Update badge in settings
+  const badgeRow=document.getElementById('s-prod-updates-row');
+  const badgeCount=document.getElementById('s-prod-updates-count');
+  if(data && data.changes && data.changes.length){
+    const n=data.changes.length;
+    if(badgeRow) badgeRow.style.display='block';
+    if(badgeCount) badgeCount.textContent=n+' change'+(n>1?'s':'');
+  } else {
+    if(badgeRow) badgeRow.style.display='none';
+  }
   if(!data) return;
+  // Auto-show on login, or force-show when triggered from settings
+  if(!force && _pendingProdUpdate) return;
   _pendingProdUpdate = data;
   openProdUpdateModal(data);
 }
@@ -6320,12 +6338,32 @@ async function applyProdUpdate(){
   const{error} = await sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID);
   if(error){showToast('Apply failed: '+error.message,'error');return;}
 
-  // Mark update as reviewed
+  // Mark current update as reviewed
   await sb.from('product_updates').update({status:'reviewed',reviewed_at:new Date().toISOString()}).eq('id',_pendingProdUpdate.id);
+
+  // Save any unchecked changes back as a new pending record so they resurface later
+  const skipped = changes.filter(function(_,i){return accepted.indexOf(i)===-1;});
+  if(skipped.length){
+    await sb.from('product_updates').insert({
+      location_id: LOCATION_ID,
+      changes: skipped,
+      status: 'pending',
+      pushed_at: _pendingProdUpdate.pushed_at || _pendingProdUpdate.created_at
+    });
+  }
 
   document.getElementById('prod-update-modal').style.display='none';
   _pendingProdUpdate = null;
-  showToast(accepted.length+' product change'+(accepted.length>1?'s':'')+' applied','success');
+  // Update badge
+  const badgeRow=document.getElementById('s-prod-updates-row');
+  const badgeCount=document.getElementById('s-prod-updates-count');
+  if(skipped.length){
+    if(badgeRow) badgeRow.style.display='block';
+    if(badgeCount) badgeCount.textContent=skipped.length+' change'+(skipped.length>1?'s':'');
+  } else {
+    if(badgeRow) badgeRow.style.display='none';
+  }
+  showToast(accepted.length+' product change'+(accepted.length>1?'s':'')+' applied'+(skipped.length?' · '+skipped.length+' saved for later':''),'success');
   // Re-render all product-dependent views
   renderInventory();
   renderOrderTab();
@@ -6333,10 +6371,8 @@ async function applyProdUpdate(){
 }
 
 async function dismissProdUpdate(){
-  if(_pendingProdUpdate){
-    await sb.from('product_updates').update({status:'dismissed',reviewed_at:new Date().toISOString()}).eq('id',_pendingProdUpdate.id);
-    _pendingProdUpdate = null;
-  }
+  // Just close — do NOT mark as dismissed or reviewed
+  // Record stays pending so it reappears on next login
   const modal = document.getElementById('prod-update-modal');
   if(modal) modal.style.display='none';
 }
