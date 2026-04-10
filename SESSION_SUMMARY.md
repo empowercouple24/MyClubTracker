@@ -1,5 +1,5 @@
 # MyClubTracker — Session Summary
-**Last updated:** April 10, 2026 (evening session)
+**Last updated:** April 11, 2026 (overnight session)
 **Continue in a new conversation — upload this file to GitHub repo root and paste at session start**
 
 ---
@@ -67,7 +67,7 @@ At the end of every working session, Claude must:
 | Mary Nemecek | Owner, Empower | `9097fb68-963e-492e-93c2-52adea57c6b8` |
 | Mike Cripe | Org leader | `25ce3db4-dc58-4648-bf23-cc5b677ab70a` |
 
-- **Jeffrey's admin account** (`empowercouple24@gmail.com`) is now detached from Empower (`location_id = NULL`, `role = admin`). He accesses clubs via admin drill-in only.
+- **Jeffrey's admin account** (`empowercouple24@gmail.com`) is detached from Empower (`location_id = NULL`, `role = admin`). He accesses clubs via admin drill-in only.
 - **Mary** (`bestlifeever247@gmail.com`) is the Empower owner — `role = owner`, `location_id = b021a4c4-8ba3-43fa-8e78-d87c870c9e05`
 - **Private email** (`empowercouple24@gmail.com`) must never appear in app-facing code
 - **Public contact:** `support@myclubtracker.com`
@@ -116,7 +116,7 @@ At the end of every working session, Claude must:
 - To revert a location: `UPDATE locations SET settings = settings - 'customProducts' WHERE id = '...';`
 - To revert all: `UPDATE locations SET settings = settings - 'customProducts';`
 
-### Recent Product Changes (this session)
+### Recent Product Changes
 - **CR7** (24 Line): SKU updated from `1445` → `416K`
 - **Drink Mix - Strawberry (30 pkt)** added to Drink Mix Packets: SKU `363K`, VP `9.30`, PAR `2`, positioned after Raspberry (362K)
 - **Gram Zero Drink Mixes** moved to last category position
@@ -126,14 +126,13 @@ At the end of every working session, Claude must:
 - Owner logs in → `checkPendingProductUpdates()` fires → approval modal with per-change checkboxes
 - Owner accepts → `applyProdUpdate()` merges into `DEFAULT_PRODUCTS` or `customProducts` → saves → re-renders
 - **Partial approve now supported:** unchecked items saved as new `pending` record in `product_updates`
-- **"Skip for now"** just closes the modal — record stays `pending` and reappears on next login (no longer marks as `dismissed`)
+- **"Skip for now"** just closes the modal — record stays `pending` and reappears on next login
 - **Pending Updates badge** in Settings → Products shows count of pending changes; tapping opens the modal directly
 
 ### products.html — Global Mode
-- `?mode=global` now **always loads fresh from `DEFAULT_PRODUCTS`** — stale sessionStorage is ignored
+- `?mode=global` always loads fresh from `DEFAULT_PRODUCTS` — stale sessionStorage is ignored
 - **Sort headers** on Name and SKU columns in every category — click to sort visually, only saves on Save button
-- Sort saves update `DEFAULT_PRODUCTS` order (global) or `customProducts` (club level)
-- Sort changes do **not** trigger the push prompt — only name/SKU/VP/PAR/category changes do
+- Sort changes do **not** trigger the push prompt
 
 ### Product Name Display (2-row format)
 - `parseProdName(name)` in `app.html`
@@ -146,48 +145,54 @@ At the end of every working session, Claude must:
 
 ### Toolbar
 - **Load a saved plan** (dropdown) | **💾 Save Plan** | **✎ Rename** | **🗑** | **+ New Plan** | **✕ Unload**
-- **Unload:** closes the active plan and returns to blank state without deleting the saved plan. Resets skipped and ordered state. Visible whenever a plan is active.
-- Save Plan: saves at any completion level; prompts for name; overwrites if already saved
-- Rename/Delete only visible on saved plans
+- **Unload:** closes the active plan and returns to blank state without deleting the saved plan
+- **Save Plan (on unsaved plan):** prompts for name → inserts new record
+- **Save Plan (on already-saved plan):** confirm dialog — OK = overwrite existing, Cancel = prompts for new name → saves as independent copy
+- **Rename:** renames the existing plan in place (does NOT create a copy)
+
+### Saved Plan Data Structure
+Each saved plan in `inventory` table (`data._type = 'order_plan'`) includes:
+- `name` — plan label
+- `assignments` — `{sku: opName}` map
+- `skipped` — `[sku, sku, ...]` array of skipped SKUs ← persisted as of this session
+- `items` — `[{cat, sku, name, need, vp, par, assignedTo}]` — full snapshot for self-contained reload
+- `_type: 'order_plan'`
+
+### Loading a Saved Plan (loadOrderPlan)
+- Restores `_orderPlanActive.assignments` from saved data
+- Restores `_orderSkipped` from saved `skipped` array
+- Restores `invHave` from saved `items` (using `have = par - need`) so plan renders without requiring a live inventory snapshot
 
 ### Category Assign Button
-- **Fixed this session:** only shows operator name/color when 100% of assignable items in the category are assigned to the same single operator
+- Only shows operator name/color when 100% of assignable items in the category are assigned to the same single operator
 - Mixed, partial, or empty → shows "Assign All" with no color
-- Clicking always overrides the entire category regardless of display state
 
 ### Skip Product (per row)
-- Each product row has a `—` skip button
-- Skipped rows dim with strikethrough; assign button resets to unassigned
+- `—` button per row; skipped rows dim with strikethrough
 - Excluded from volume calculations and operator summary cards
 - Undo with ↩ button
-- Skip state is session-only (not persisted to Supabase)
+- **Skip state IS now persisted** to saved plans via `skipped` array
 
-### Operator Summary Cards (new this session)
-- Collapsed by default below the product list — shows operator name, item count, DV total, "Mark ordered" button
-- **Tap header** to expand and see full product list: Product / SKU / Need Qty / DV columns (all read-only)
-- **Mark ordered** button always visible without expanding — one tap dims all rows in the card, flips button to "✓ Ordered"
-- **Ordered state is undoable** — tap "✓ Ordered" again to revert entire card
-- **Tap any row** inside expanded card (even when ordered/dimmed) → opens inline edit action sheet:
-  - Move to another operator (card stays ordered, totals update)
-  - Skip product entirely
-  - Cancel
-- If reassigned to an already-ordered operator: that operator stays ordered, list and DV totals update
+### Operator Summary Cards
+- Collapsed by default below product list
+- **Tap header** to expand/collapse — uses `max-height: 2000px` (not scrollHeight — scrollHeight returns 0 on hidden elements)
+- Expand shows: Product / SKU / Need Qty / DV columns (read-only)
+- **Mark ordered** button always visible — dims all rows, flips to "✓ Ordered"
+- Ordered state is undoable
+- Tap any row inside expanded card → inline edit action sheet (reassign or skip)
 
-### Volume Tracker (new this session)
-- Persistent tracker above the product list showing:
-  - **Large:** remaining DV (total minus assigned)
-  - **Small lines:** X DV assigned · X DV ordered
-  - Two progress bars (green = assigned, blue = ordered)
+### Volume Tracker
+- Persistent tracker above product list: remaining DV, assigned DV, ordered DV
+- Dual progress bars (green = assigned, blue = ordered)
 - Updates live on every assignment, skip, and mark-ordered action
 
-### Assignment buttons
-- Per-row: single tap cycles through operators → unassigned
-- Per-category: cycles all non-OOS, non-skipped items to next operator
-
 ### Save/Archive flow
-- `saveOrderPlan()`: saves at any completion level
-- `archiveOrderPlan()`: triggered by "Save & Archive" bar when all items assigned
+- `saveOrderPlan()` — saves at any completion level (see toolbar notes above)
+- `archiveOrderPlan()` — triggered by "Save & Archive" bar when all items assigned; always inserts new record
 - Plans stored in `inventory` table with `data._type = 'order_plan'`
+
+### Order Table Column Widths
+- Product (auto) | Need 72px | DV 76px | Assign 150px | DV Subtotal 76px | Skip 36px
 
 ---
 
@@ -211,7 +216,6 @@ Order: `This Week` | `Last Week` | `Wk Before Last` | `Last 2 Wks` | `This Month
 
 ### Missing operator banner
 - Amber warning banner when any day in range has sales but no operators assigned
-- Tapping calls `jumpToDateForOp(dateStr)` → switches to Enter tab
 
 ### Credit Card Ledger
 - Collapsed section below Payment Register
@@ -227,29 +231,25 @@ Order: `This Week` | `Last Week` | `Wk Before Last` | `Last 2 Wks` | `This Month
 
 ### Unallocated Balance widget
 - Fully collapsed by default
-- Toggle row shows label + current balance + chevron
 
 ### Daily detail modal
 - DV row added to Breakdown section
 
 ---
 
-## Profile & Settings — Changes This Session
+## Profile & Settings
 
 ### Team Members list
-- Profile photos now load in the Team Members section of the settings modal
+- Profile photos load in Team Members section of settings modal
 - Owner and operator rows show avatar photo (or initials bubble) on the left
-- Fixed: `escAttr` not defined in `app.html` was causing "stuck on Loading" — replaced with `escHtml`
-- Wrapped in `try/catch` so errors show "Could not load team members" instead of freezing
 
 ### Owner contact cache auto-sync
-- When owner saves their profile, `_ownerName`, `_ownerEmail`, `_ownerPhone` in `locations.settings` now auto-sync from their current profile data
-- Profile modal now **re-fetches location settings fresh from Supabase** every time it opens — no more stale cached contact info
+- Saving profile writes `_ownerName/_ownerEmail/_ownerPhone` into `locations.settings`
+- Profile modal re-fetches location settings fresh from Supabase every time it opens
 
-### Owner reassignment (done via SQL this session)
+### Owner reassignment (done via SQL)
 - Jeffrey's admin account detached from Empower: `location_id = NULL`, `role = admin`
-- Mary promoted to owner: already correct in DB
-- Empower `settings._ownerName/_ownerEmail/_ownerPhone` patched via SQL to reflect Mary
+- Mary is confirmed Empower owner
 
 ---
 
@@ -309,6 +309,7 @@ ALTER TABLE public.purchases ENABLE ROW LEVEL SECURITY;
 - `saveSettings()` does not exist — use `sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID)`
 - Direct fetch to Resend from browser blocked by CORS — must route through Edge Function
 - **Always run `node --check` on the JS before delivering** — prevents blank-screen bugs
+- **max-height CSS accordion pattern:** always use a fixed large value (`2000px`) not `scrollHeight` — `scrollHeight` returns 0 on `overflow:hidden` elements
 
 ### CSS Variables / Theme
 - Blues: `--b0`–`--b9` | Greens: `--g0`–`--g6` | Reds: `--r3`–`--r5` | Ambers: `--a0`–`--a6`
@@ -317,7 +318,7 @@ ALTER TABLE public.purchases ENABLE ROW LEVEL SECURITY;
 
 ### Order Tab State Variables
 - `_orderPlanActive` — working plan in memory `{id, assignments:{sku:opName}, saved_at}`
-- `_orderSkipped` — `{sku:true}` session-only skipped products (not persisted)
+- `_orderSkipped` — `{sku:true}` — persisted to saved plans via `skipped` array
 - `_orderOrdered` — `{opName:true}` session-only ordered operators (not persisted)
 - `_orderEditState` — `{op, sku}` currently open inline edit action sheet
 
@@ -325,7 +326,7 @@ ALTER TABLE public.purchases ENABLE ROW LEVEL SECURITY;
 
 ## Supabase Edge Functions (all JWT verification OFF)
 | Function | Purpose |
-|----------|---------|
+|----------|---------| 
 | `send-org-invite` | Send org leader invite email |
 | `complete-onboarding` | Complete org onboarding |
 | `gcal-exchange` | OAuth code → tokens; stores refresh_token server-side |
@@ -352,50 +353,29 @@ app_settings      — key (PK), value
 ## Pending To-Dos
 1. Location comparison filtered by org
 2. End-to-end onboarding testing with clean email
-3. Profile photos in owner's operator list view — **code shipped, needs live testing**
+3. Profile photos in owner's operator list view — code shipped, needs live testing
 4. Mobile-friendly improvements sitewide
-5. Verify Order tab new features work end-to-end on live site (skip, unload, operator cards, volume tracker, category assign button fix)
-6. Test partial product update approval flow end-to-end (new pending record on partial save)
+5. Verify Order tab fixes work end-to-end on live site (plan load, skip persist, operator card expand, save-as-copy flow)
+6. Test partial product update approval flow end-to-end
 7. Co-owners (low priority)
 
 ---
 
-## Completed This Session (April 10, 2026 — evening)
+## Completed This Session (April 11, 2026 — overnight)
 
-### Profile & Team Members
-- ✅ **Profile photos in Team Members list** — `loadTeamMembers()` now fetches `avatar_url`; renders photo circle or initials bubble per member
-- ✅ **Fixed "stuck on Loading" bug** — `escAttr` not defined in `app.html` was crashing `renderMember()`; replaced with `escHtml`; wrapped in `try/catch`
-- ✅ **Owner contact cache auto-sync** — saving profile now writes `_ownerName/_ownerEmail/_ownerPhone` into `locations.settings`
-- ✅ **Profile modal re-fetches settings fresh** — no more stale cached owner contact info; `openProfileModal()` now fetches `settings + address` from Supabase on every open
-- ✅ **Owner reassignment** — Jeffrey detached from Empower via SQL; Mary confirmed as owner; Empower settings patched
-
-### Product System
-- ✅ **CR7 SKU** updated `1445` → `416K` in both `app.html` and `products.html`
-- ✅ **Drink Mix - Strawberry (30 pkt)** added: SKU `363K`, VP `9.30`, PAR `2`, after Raspberry in Drink Mix Packets
-- ✅ **Gram Zero Drink Mixes** moved to last category in both files
-- ✅ **Creamy Mixes VP** updated 0.00 → **23.57** across all 7 products in both files
-- ✅ **Creamy Mixes PAR** updated 2 → **1** across all 7 products in both files
-- ✅ **Global mode always loads fresh** — `products.html?mode=global` now ignores stale sessionStorage
-- ✅ **Sort headers** — Name and SKU column headers clickable in every category; visual-only until Save; no push prompt on sort-only saves
-
-### Product Update Flow
-- ✅ **Partial approve saves remainder** — unchecked items inserted as new `pending` `product_updates` record
-- ✅ **Skip for now fixed** — no longer marks record as `dismissed`; stays `pending` and reappears on next login
-- ✅ **Pending Updates badge** — amber button in Settings → Products with count; opens modal on tap
-
-### Order Tab
-- ✅ **Category assign button fix** — only shows operator name when 100% of items assigned to same single operator
-- ✅ **Unload plan** — `✕ Unload` button in toolbar; clears active plan without deleting saved plan
-- ✅ **Skip product** — `—` button per row; skips from order, dims row, undo with ↩; excluded from all calculations
-- ✅ **Operator summary cards** — collapsed by default; expand to show Product/SKU/Need/DV; Mark ordered button; inline row edit with reassign/skip; stays ordered after reassign with updated totals
-- ✅ **Operator cards apostrophe fix** — product names with apostrophes (Cookies n Cream etc.) were breaking inline onclick strings and silently dropping all cards; fixed using `data-op`/`data-sku`/`data-name` attributes in both `renderOrderBody` and `orderRebuildOpCards`
-- ✅ **Volume tracker** — remaining DV + assigned DV + ordered DV with dual progress bars; updates live
+### Order Tab — Bug Fixes
+- ✅ **Saved plan not loading** — `renderOrderBody` depends on `invHave` which is empty in a fresh session; fixed by having `loadOrderPlan` reconstruct `invHave` from saved plan's `items` array (`have = par - need`). Items now save `cat` and `par` fields for accurate restore.
+- ✅ **Skip button clipping** — DV Subtotal column narrowed from 88px → 76px; skip column widened from 28px → 36px. Net table width unchanged.
+- ✅ **Operator cards not expandable** — `orderToggleOpCard` used `body.scrollHeight` which returns 0 on `overflow:hidden` elements; replaced with fixed `max-height: 2000px`. Same fix applied in `orderRebuildOpCards` and `orderOpenRowEdit`.
+- ✅ **Skipped state not persisting** — `_orderSkipped` now serialized as `skipped: [sku, ...]` array in all save payloads (`saveOrderPlan`, `archiveOrderPlan`); restored into `_orderSkipped` on `loadOrderPlan`.
+- ✅ **Can't save more than 1 plan** — `saveOrderPlan` on an already-saved plan now shows confirm dialog: OK = overwrite, Cancel = prompts for new name and inserts a fresh independent record.
+- ✅ **Rename creating confusion** — Rename remains rename-only (correct). The "branch to new plan" workflow is now handled by Save Plan → Cancel → new name. Behavior is now clearly separated.
 
 ---
 
 ## Key Terminology
 | Term | Meaning |
-|------|---------|
+|------|---------| 
 | DV | Daily Volume |
 | VP | Value Points |
 | PAR | Reorder threshold |
@@ -417,5 +397,6 @@ app_settings      — key (PK), value
 - `app.html` does not load `nav.js` or `nav.css`
 - `saveSettings()` does not exist
 - Template literal nested quotes silently kill script blocks
+- **max-height accordion: always use `2000px`, never `scrollHeight`** — scrollHeight is 0 on hidden elements
 - When chaining file edits across a session, always build on the latest working file — never the original ZIP
 - **Always output an updated `SESSION_SUMMARY.md` at end of session**

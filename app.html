@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-11 00:00:00 -->
+<!-- CACHE BUST: 2026-04-11 00:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -9284,6 +9284,9 @@ function loadOrderPlan(id){
   if(!plan)return;
   _orderPlanActive={id:plan.id,assignments:{...plan.data?.assignments||{}},saved_at:plan.saved_at};
   _orderSkipped={};_orderOrdered={};
+  // Restore skipped state from saved plan
+  const savedSkipped=plan.data?.skipped||[];
+  savedSkipped.forEach(function(sku){_orderSkipped[sku]=true;});
   // Restore invHave from saved plan items so renderOrderBody can build the need list
   // even when no inventory snapshot is currently loaded
   const savedItems=plan.data?.items||[];
@@ -9855,21 +9858,37 @@ async function saveOrderPlan(){
   const planName=name.trim()||existingName;
   const needItems=[];
   PRODUCTS.forEach(p=>{const haveRaw=invHave[p[2]];const haveEntered=haveRaw!=null;const have=haveRaw||0;const need=Math.max(0,(p[4]||0)-have);if(haveEntered&&need>=1)needItems.push({cat:p[0],sku:p[2],name:p[1],vp:p[3],par:p[4],need});});
-  const payload={name:planName,assignments:{..._orderPlanActive.assignments},items:needItems.map(p=>({cat:p.cat,sku:p.sku,name:p.name,need:p.need,vp:p.vp,par:p.par,assignedTo:_orderPlanActive.assignments[p.sku]||null}))};
+  const skippedArr=Object.keys(_orderSkipped).filter(function(s){return _orderSkipped[s];});
+  const payload={name:planName,assignments:{..._orderPlanActive.assignments},skipped:skippedArr,items:needItems.map(p=>({cat:p.cat,sku:p.sku,name:p.name,need:p.need,vp:p.vp,par:p.par,assignedTo:_orderPlanActive.assignments[p.sku]||null}))};
   if(_orderPlanActive.id){
-    // Update existing saved plan
-    const{error}=await sb.from('inventory').update({data:{...payload,_type:'order_plan'}}).eq('id',_orderPlanActive.id);
-    if(error){showToast('Save failed: '+error.message,'error');return;}
-    const existing=ORDER_PLANS.find(p=>p.id===_orderPlanActive.id);
-    if(existing)existing.data={...payload,_type:'order_plan'};
-    showToast(`Saved "${planName}"  ok`,'success');
+    // Already saved — ask: overwrite or save as new copy?
+    const choice=window.confirm('Update the existing plan "'+planName+'"?\n\nOK = update existing  |  Cancel = save as a new copy');
+    if(choice){
+      // Overwrite
+      const{error}=await sb.from('inventory').update({data:{...payload,_type:'order_plan'}}).eq('id',_orderPlanActive.id);
+      if(error){showToast('Save failed: '+error.message,'error');return;}
+      const existing=ORDER_PLANS.find(p=>p.id===_orderPlanActive.id);
+      if(existing)existing.data={...payload,_type:'order_plan'};
+      showToast('Updated "'+planName+'" ok','success');
+    } else {
+      // Save as new copy — detach from old ID so it inserts fresh
+      const newName=window.prompt('Name for the new copy:',planName+' (copy)');
+      if(newName===null)return;
+      const copyName=newName.trim()||planName+' (copy)';
+      const copyPayload={...payload,name:copyName};
+      const{data:np,error}=await sb.from('inventory').insert({location_id:LOCATION_ID,data:{...copyPayload,_type:'order_plan'}}).select().single();
+      if(error){showToast('Save failed: '+error.message,'error');return;}
+      ORDER_PLANS.unshift(np);
+      _orderPlanActive.id=np.id;
+      showToast('Saved new plan "'+copyName+'" ok','success');
+    }
   } else {
     // New save
     const{data:np,error}=await sb.from('inventory').insert({location_id:LOCATION_ID,data:{...payload,_type:'order_plan'}}).select().single();
     if(error){showToast('Save failed: '+error.message,'error');return;}
     ORDER_PLANS.unshift(np);
     _orderPlanActive.id=np.id;
-    showToast(`Saved "${planName}" ok`,'success');
+    showToast('Saved "'+planName+'" ok','success');
   }
   renderOrderPlanPicker();
   const picker=document.getElementById('order-plan-picker');
@@ -9900,7 +9919,8 @@ async function archiveOrderPlan(){
   const planName=name.trim()||defaultName;
   const needItems=[];
   PRODUCTS.forEach(p=>{const haveRaw=invHave[p[2]];const haveEntered=haveRaw!=null;const have=haveRaw||0;const need=Math.max(0,(p[4]||0)-have);if(haveEntered&&need>=1)needItems.push({cat:p[0],sku:p[2],name:p[1],vp:p[3],par:p[4],need});});
-  const payload={name:planName,assignments:{..._orderPlanActive.assignments},items:needItems.map(p=>({cat:p.cat,sku:p.sku,name:p.name,need:p.need,vp:p.vp,par:p.par,assignedTo:_orderPlanActive.assignments[p.sku]||null}))};
+  const skippedArr=Object.keys(_orderSkipped).filter(function(s){return _orderSkipped[s];});
+  const payload={name:planName,assignments:{..._orderPlanActive.assignments},skipped:skippedArr,items:needItems.map(p=>({cat:p.cat,sku:p.sku,name:p.name,need:p.need,vp:p.vp,par:p.par,assignedTo:_orderPlanActive.assignments[p.sku]||null}))};
   const{data:np,error}=await sb.from('inventory').insert({location_id:LOCATION_ID,data:{...payload,_type:'order_plan'}}).select().single();
   if(error){showToast('Save failed: '+error.message,'error');return;}
   ORDER_PLANS.unshift(np);
