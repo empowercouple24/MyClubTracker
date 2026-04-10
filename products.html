@@ -326,8 +326,7 @@ async function init(){
   if(IS_GLOBAL){
     // Global master list edit mode — load from sessionStorage (passed from admin-settings)
     document.getElementById('nav-title').textContent='Global Default Products';
-    const stored=sessionStorage.getItem('globalProductsEdit');
-    products=stored?JSON.parse(stored):DEFAULT_PRODUCTS.map(p=>[...p]);
+    products=DEFAULT_PRODUCTS.map(p=>[...p]);
     buildCatFilter();renderAll();
     document.getElementById('loading-overlay').classList.add('hidden');
     // Save starts disabled — activated when change detected
