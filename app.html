@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-10 19:30:00 -->
+<!-- CACHE BUST: 2026-04-10 20:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -3513,11 +3513,12 @@ async function openProfileModal(){
       // Show owner sections, hide employee club info
       document.getElementById('prof-owner-sections').style.display='block';
       document.getElementById('prof-emp-club').style.display='none';
-      // Club address
-      const addrEl=document.getElementById('s-club-address');
-      if(addrEl){
-        const{data:loc}=await sb.from('locations').select('address').eq('id',LOCATION_ID).single();
-        addrEl.textContent=loc?.address||'—';
+      // Re-fetch location settings fresh so contact info reflects latest DB state
+      const{data:freshLoc}=await sb.from('locations').select('address,settings').eq('id',LOCATION_ID).single();
+      if(freshLoc){
+        if(freshLoc.settings) Object.assign(SETTINGS, freshLoc.settings);
+        const addrEl=document.getElementById('s-club-address');
+        if(addrEl) addrEl.textContent=freshLoc.address||'—';
       }
       // Build settings UI inside the unified modal
       buildSettingsUI();
