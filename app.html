@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-11 14:00:00 -->
+<!-- CACHE BUST: 2026-04-11 15:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -2198,13 +2198,14 @@ if('serviceWorker' in navigator){
       </div>
       <div class="preg-sheet-field">
         <span class="preg-sheet-label">Description</span>
-        <input type="text" id="cc-f-desc" class="preg-sheet-input" placeholder="e.g. HERBALIFE - INTERNET" style="text-align:right;"/>
+        <input type="text" id="cc-f-desc" class="preg-sheet-input" placeholder="e.g. HERBALIFE - INTERNET" style="text-align:right;" list="cc-desc-suggestions" autocomplete="off" oninput="updateCCDescSuggestions(this.value)"/>
+        <datalist id="cc-desc-suggestions"></datalist>
       </div>
       <div class="preg-sheet-field">
         <span class="preg-sheet-label">Amount</span>
         <div style="display:flex;align-items:center;gap:4px;flex:1;justify-content:flex-end;">
           <span style="font-size:13px;font-weight:600;color:var(--text-muted);">$</span>
-          <input type="text" inputmode="decimal" id="cc-f-amount" class="preg-sheet-input bank-input" placeholder="0.00 (negative = payment)" style="width:110px;"/>
+          <input type="text" inputmode="decimal" id="cc-f-amount" class="preg-sheet-input bank-input" placeholder="0.00 (negative = payment)" style="width:110px;" onpaste="handleCCAmountPaste(event)"/>
         </div>
       </div>
       <div class="preg-sheet-field">
@@ -9498,6 +9499,8 @@ function loadOrderPlan(id){
   if(deleteBtn)deleteBtn.style.display='inline-flex';
   if(unloadBtn)unloadBtn.style.display='inline-flex';
   renderOrderBody();
+  renderOrderSummaryCards();
+  orderUpdateVolumeTracker();
   updateOrderToolbar();
 }
 
@@ -9806,7 +9809,14 @@ function orderAssign(sku,opName,btnEl){
 function renderOrderSummaryCards(){
   if(!_orderPlanActive)return;
   const needItems=[];
-  PRODUCTS.forEach(p=>{const haveRaw=invHave[p[2]];const haveEntered=haveRaw!=null;const have=haveRaw||0;const need=Math.max(0,(p[4]||0)-have);if(haveEntered&&need>=1)needItems.push({sku:p[2],vp:p[3],need});});
+  PRODUCTS.forEach(p=>{
+    const sku=p[2];
+    const haveRaw=invHave[sku];
+    const have=haveRaw||0;
+    const need=(_planNeedOverride[sku]!=null)?_planNeedOverride[sku]:Math.max(0,(p[4]||0)-have);
+    const include=(_planNeedOverride[sku]!=null)?need>=1:(haveRaw!=null&&need>=1);
+    if(include)needItems.push({sku,vp:p[3],need});
+  });
   const ops=getOperatorMembers().map(function(m){ return m.name; });
   const opTotals={};
   const opCounts={};
@@ -10025,7 +10035,13 @@ function orderUpdateVolumeTracker(){
   const tracker=document.getElementById('order-vol-tracker');
   if(!tracker)return;
   const needItems=[];
-  PRODUCTS.forEach(function(p){const haveRaw=invHave[p[2]];if(haveRaw==null)return;const need=Math.max(0,(p[4]||0)-(haveRaw||0));if(need>=1&&!invOos[p[2]]&&!_orderSkipped[p[2]])needItems.push({sku:p[2],vp:p[3],need});});
+  PRODUCTS.forEach(function(p){
+    const sku=p[2];
+    const haveRaw=invHave[sku];
+    const need=(_planNeedOverride[sku]!=null)?_planNeedOverride[sku]:Math.max(0,(p[4]||0)-(haveRaw||0));
+    const include=(_planNeedOverride[sku]!=null)?need>=1:(haveRaw!=null&&need>=1);
+    if(include&&!invOos[sku]&&!_orderSkipped[sku])needItems.push({sku,vp:p[3],need});
+  });
   const totalDv=needItems.reduce(function(s,p){return s+(p.vp||0)*p.need;},0);
   const assignedDv=needItems.filter(function(p){return !!_orderPlanActive.assignments[p.sku];}).reduce(function(s,p){return s+(p.vp||0)*p.need;},0);
   const orderedDv=needItems.filter(function(p){return _orderOrdered[_orderPlanActive.assignments[p.sku]];}).reduce(function(s,p){return s+(p.vp||0)*p.need;},0);
@@ -10070,26 +10086,22 @@ async function saveOrderPlan(){
   const skippedArr=Object.keys(_orderSkipped).filter(function(s){return _orderSkipped[s];});
   const payload={name:planName,assignments:{..._orderPlanActive.assignments},skipped:skippedArr,items:needItems.map(p=>({cat:p.cat,sku:p.sku,name:p.name,need:p.need,vp:p.vp,par:p.par,assignedTo:_orderPlanActive.assignments[p.sku]||null}))};
   if(_orderPlanActive.id){
-    // Already saved — ask: overwrite or save as new copy?
-    const choice=window.confirm('Update the existing plan "'+planName+'"?\n\nOK = update existing  |  Cancel = save as a new copy');
-    if(choice){
-      // Overwrite
+    const isSameName=planName===existingName;
+    if(isSameName){
+      // Same name — confirm overwrite
+      if(!window.confirm('Overwrite "'+planName+'" with your current changes?'))return;
       const{error}=await sb.from('inventory').update({data:{...payload,_type:'order_plan'}}).eq('id',_orderPlanActive.id);
       if(error){showToast('Save failed: '+error.message,'error');return;}
       const existing=ORDER_PLANS.find(p=>p.id===_orderPlanActive.id);
       if(existing)existing.data={...payload,_type:'order_plan'};
       showToast('Updated "'+planName+'" ok','success');
     } else {
-      // Save as new copy — detach from old ID so it inserts fresh
-      const newName=window.prompt('Name for the new copy:',planName+' (copy)');
-      if(newName===null)return;
-      const copyName=newName.trim()||planName+' (copy)';
-      const copyPayload={...payload,name:copyName};
-      const{data:np,error}=await sb.from('inventory').insert({location_id:LOCATION_ID,data:{...copyPayload,_type:'order_plan'}}).select().single();
+      // Different name — auto save as new plan, no prompt
+      const{data:np,error}=await sb.from('inventory').insert({location_id:LOCATION_ID,data:{...payload,_type:'order_plan'}}).select().single();
       if(error){showToast('Save failed: '+error.message,'error');return;}
       ORDER_PLANS.unshift(np);
       _orderPlanActive.id=np.id;
-      showToast('Saved new plan "'+copyName+'" ok','success');
+      showToast('Saved new plan "'+planName+'" ok','success');
     }
   } else {
     // New save
@@ -10392,9 +10404,6 @@ function renderPayouts(){
         const lbl=new Date(d.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
         return`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 14px;border-bottom:1px solid var(--border-light);"><span style="font-size:12px;color:var(--text-muted);">${lbl}</span><span style="font-family:Outfit,sans-serif;font-size:13px;font-weight:700;color:var(--g5);">${fmt$(py)}</span></div>`;
       }).join('')}
-    </div>
-    <div style="display:flex;gap:8px;margin-bottom:12px;">
-      <button onclick="clearPayouts()" style="font-size:12px;font-weight:600;padding:10px 14px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--b0);color:var(--r5);cursor:pointer;font-family:DM Sans,sans-serif;">Clear</button>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;padding:2px 0 4px;" onclick="toggleDailyBreakdown(this)">
       <div class="section-label" style="margin:0;">Daily Breakdown</div>
@@ -11337,7 +11346,7 @@ function renderPaymentRegister() {
     </tr>`;
   }).join('');
 
-  const showMoreRow = hasMore ? `<tr><td colspan="7" style="text-align:center;padding:10px 0;"><button onclick="pregShowMore()" style="font-family:DM Sans,sans-serif;font-size:12px;font-weight:700;color:var(--b6);background:var(--b0);border:1px solid var(--b3);border-radius:20px;padding:6px 20px;cursor:pointer;">Show ${sorted.length - visibleCount} more</button></td></tr>` : '';
+  const showMoreRow = hasMore ? `<tr><td colspan="7" style="text-align:center;padding:10px 0;"><button onclick="pregShowMore()" style="font-family:DM Sans,sans-serif;font-size:12px;font-weight:700;color:var(--b6);background:var(--b0);border:1px solid var(--b3);border-radius:20px;padding:6px 20px;cursor:pointer;">Show 20 more</button></td></tr>` : '';
 
   const entryLabel = hasMore
     ? `Showing ${visibleCount} of ${sorted.length} entries`
@@ -11830,7 +11839,7 @@ function renderCCLedger() {
   }).join('');
 
   const showMoreRow = hasMore
-    ? `<tr><td colspan="6" style="text-align:center;padding:10px 0;"><button onclick="ccShowMore()" style="font-family:DM Sans,sans-serif;font-size:12px;font-weight:700;color:var(--b6);background:var(--b0);border:1px solid var(--b3);border-radius:20px;padding:6px 20px;cursor:pointer;">Show ${rows.length - visibleCount} more</button></td></tr>`
+    ? `<tr><td colspan="6" style="text-align:center;padding:10px 0;"><button onclick="ccShowMore()" style="font-family:DM Sans,sans-serif;font-size:12px;font-weight:700;color:var(--b6);background:var(--b0);border:1px solid var(--b3);border-radius:20px;padding:6px 20px;cursor:pointer;">Show 20 more</button></td></tr>`
     : '';
 
   const entryLabel = hasMore
@@ -11887,6 +11896,36 @@ function closeCCModal() {
 }
 function closeCCModalOnBg(e) {
   if (e.target === document.getElementById('cc-modal-overlay')) closeCCModal();
+}
+
+function updateCCDescSuggestions(val) {
+  const dl = document.getElementById('cc-desc-suggestions');
+  if (!dl) return;
+  if (!val || val.length < 2) { dl.innerHTML = ''; return; }
+  const lower = val.toLowerCase();
+  // Collect unique descriptions from existing entries matching the typed value
+  const seen = new Set();
+  const matches = _ccData
+    .map(function(r){ return r.description || ''; })
+    .filter(function(d){ return d && d.toLowerCase().includes(lower) && d.toLowerCase() !== lower; })
+    .filter(function(d){ if(seen.has(d)) return false; seen.add(d); return true; })
+    .slice(0, 8);
+  dl.innerHTML = matches.map(function(d){
+    return '<option value="'+escHtml(d)+'"></option>';
+  }).join('');
+}
+
+function handleCCAmountPaste(e) {
+  e.preventDefault();
+  const raw = (e.clipboardData || window.clipboardData).getData('text');
+  // Strip $ signs, commas, spaces — keep digits, dot, leading minus
+  const cleaned = raw.replace(/[$,\s]/g,'').trim();
+  const num = parseFloat(cleaned);
+  if (!isNaN(num)) {
+    e.target.value = num.toFixed(2);
+  } else {
+    e.target.value = cleaned;
+  }
 }
 
 async function saveCCEntry() {
