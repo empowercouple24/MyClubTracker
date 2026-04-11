@@ -9396,6 +9396,7 @@ var _orderPlanActive=null;
 var _planNeedOverride={}; // {sku:need} — from saved plan items, overrides invHave-computed need // {id, name, assignments:{sku:opName}, saved_at} — working plan in memory
 var _orderSkipped={}; // {sku:true} — skipped products for this session
 var _orderOrdered={}; // {opName:true} — operators marked as ordered
+var _orderDirty=false; // true when unsaved changes exist on a loaded saved plan
 
 function goToOrderTab(){
   if(_orderPlanActive && _orderPlanActive.id){
@@ -9497,8 +9498,17 @@ function loadOrderPlan(id){
   const renameBtn=document.getElementById('order-rename-btn');
   const deleteBtn=document.getElementById('order-delete-btn');
   const unloadBtn=document.getElementById('order-unload-btn');
+  // Warn if switching away from a dirty saved plan
+  if(id && _orderPlanActive && _orderPlanActive.id && _orderPlanActive.id!==id && _orderDirty){
+    const curName=ORDER_PLANS.find(p=>p.id===_orderPlanActive.id)?.data?.name||'current plan';
+    if(!window.confirm('You have unsaved changes to "'+curName+'".\n\nOK = discard changes and load new plan\nCancel = stay on current plan')){
+      const picker=document.getElementById('order-plan-picker');
+      if(picker)picker.value=_orderPlanActive.id;
+      return;
+    }
+  }
   if(!id){
-    _orderPlanActive=null;_orderSkipped={};_orderOrdered={};
+    _orderPlanActive=null;_orderSkipped={};_orderOrdered={};_orderDirty=false;
     if(renameBtn)renameBtn.style.display='none';
     if(deleteBtn)deleteBtn.style.display='none';
     if(unloadBtn)unloadBtn.style.display='none';
@@ -9510,7 +9520,7 @@ function loadOrderPlan(id){
   const plan=ORDER_PLANS.find(p=>p.id===id);
   if(!plan)return;
   _orderPlanActive={id:plan.id,assignments:{...plan.data?.assignments||{}},saved_at:plan.saved_at};
-  _orderSkipped={};_orderOrdered={};
+  _orderSkipped={};_orderOrdered={};_orderDirty=false;
   // Restore skipped state from saved plan
   const savedSkipped=plan.data?.skipped||[];
   savedSkipped.forEach(function(sku){_orderSkipped[sku]=true;});
@@ -9520,9 +9530,7 @@ function loadOrderPlan(id){
   if(savedItems.length){
     savedItems.forEach(function(item){
       if(item.sku==null)return;
-      // Always store exact saved need — used directly in renderOrderBody
       _planNeedOverride[item.sku]=item.need||0;
-      // Also restore invHave so inventory tab isn't blank (use par-need when par known)
       if(invHave[item.sku]==null){
         const have=item.par!=null?(item.par-(item.need||0)):null;
         if(have!=null)invHave[item.sku]=Math.max(0,have);
@@ -9795,6 +9803,7 @@ function orderAssignCategory(catSlug, btn){
 
 function orderAssign(sku,opName,btnEl){
   if(!_orderPlanActive)return;
+  if(_orderPlanActive.id) _orderDirty=true;
   if(opName){
     _orderPlanActive.assignments[sku]=opName;
   } else {
@@ -9888,6 +9897,8 @@ function renderOrderSummaryCards(){
 }
 
 function orderSkipToggle(skipKey){
+  if(!_orderPlanActive)return;
+  if(_orderPlanActive.id) _orderDirty=true;
   if(_orderSkipped[skipKey]){
     delete _orderSkipped[skipKey];
   } else {
@@ -9904,6 +9915,7 @@ function orderSkipToggle(skipKey){
 
 function orderSkipAllCategory(catSlug){
   if(!_orderPlanActive) return;
+  if(_orderPlanActive.id) _orderDirty=true;
   // Collect all items in this category
   const catItems=[];
   PRODUCTS.forEach(function(p){
@@ -10195,6 +10207,7 @@ async function saveOrderPlan(){
   renderOrderPlanPicker();
   const picker=document.getElementById('order-plan-picker');
   if(picker)picker.value=_orderPlanActive.id;
+  _orderDirty=false;
   updateOrderToolbar();
   const bar=document.querySelector('.order-archive-bar');
   if(bar)bar.remove();
