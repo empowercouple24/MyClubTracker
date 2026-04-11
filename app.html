@@ -447,6 +447,8 @@ if('serviceWorker' in navigator){
     .order-archive-msg{font-size:13px;font-weight:600;color:var(--g6);flex:1;}
     .order-row-assigned td{opacity:1;}
     .order-row-assigned .inv-name{color:var(--text);font-weight:600;}
+    .order-row-ordered td{opacity:0.45;}
+    .order-row-ordered .inv-name{color:var(--text);}
     .order-row-skipped td{opacity:0.35;}
     .order-row-skipped .inv-name{text-decoration:line-through;}
     .order-skip-btn{font-family:DM Sans,sans-serif;font-size:13px;width:26px;height:26px;border-radius:5px;border:1px solid var(--border-light);background:none;color:var(--text-faint);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;}
@@ -9675,7 +9677,7 @@ function renderOrderBody(){
       const _skipKey=p.sku||p.name;
       const isSkipped=!!_orderSkipped[_skipKey];
       const assigned=_orderPlanActive.assignments[p.sku||p.name]||'';
-      const rowClass=isSkipped?'order-row-skipped':(isOos?'inv-row-oos':(assigned?'order-row-assigned':''));
+      const rowClass=isSkipped?'order-row-skipped':(isOos?'inv-row-oos':(assigned&&_orderOrdered[assigned]?'order-row-ordered':(assigned?'order-row-assigned':'')));
       const dvSub=(!isOos&&!isSkipped&&assigned)?(p.vp||0)*p.need:null;
       const dvSubStr=dvSub!=null?fmtVP(dvSub):'--';
       const oosInfo=isOos&&invOos[p.sku].expectedDate?'<span class="oos-badge">OOS - '+new Date(invOos[p.sku].expectedDate+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})+'</span>':(isOos?'<span class="oos-badge">OOS</span>':'');
@@ -10001,20 +10003,58 @@ function renderOrderMarkSection(){
     const opDv=opItems.reduce(function(s,p){return s+(p.vp||0)*p.need;},0);
     const isOrdered=!!_orderOrdered[op];
     const isLast=idx===eligibleOps.length-1;
-    html+='<div style="display:flex;align-items:center;gap:10px;padding:6px 0;'+(isLast?'':'border-bottom:1px solid var(--border-light);"')+'" id="order-mark-row-'+opKey+'">'+
-      '<div style="width:28px;height:28px;border-radius:50%;background:'+col+'33;color:'+col+';display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;">'+initials+'</div>'+
-      '<div style="flex:1;min-width:0;">'+
-        '<div style="font-size:13px;font-weight:600;color:var(--text);">'+escHtml(op)+'</div>'+
-        '<div id="order-mark-meta-'+opKey+'" style="font-size:11px;color:'+(isOrdered?'var(--b6)':'var(--text-faint)')+';">'+opItems.length+' items &middot; '+fmtVP(opDv)+' DV'+(isOrdered?' &mdash; ordered':'')+'</div>'+
+    // Expandable product list rows
+    const prodRows=opItems.map(function(p){
+      return '<div style="display:grid;grid-template-columns:1fr 56px 44px 64px;gap:4px;padding:5px 0;border-bottom:1px solid var(--border-light);align-items:center;">'+
+        '<div style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+
+          '<span style="font-size:12px;font-weight:600;color:var(--text);">'+escHtml(p.name)+'</span>'+
+          (p.sku?'<span style="font-size:11px;color:var(--text-faint);margin-left:6px;">'+escHtml(p.sku)+'</span>':'')+
+        '</div>'+
+        '<div style="font-size:12px;font-weight:600;color:var(--b6);text-align:center;">'+p.need+'</div>'+
+        '<div style="font-size:11px;color:var(--text-faint);text-align:right;">'+fmtVP(p.vp)+'</div>'+
+        '<div style="font-size:12px;font-weight:600;color:var(--text);text-align:right;">'+fmtVP((p.vp||0)*p.need)+'</div>'+
+      '</div>';
+    }).join('');
+    const prodHeader='<div style="display:grid;grid-template-columns:1fr 56px 44px 64px;gap:4px;padding:3px 0 4px;border-bottom:1px solid var(--border-light);margin-bottom:0;">'+
+      '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-faint);">Product</div>'+
+      '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-faint);text-align:center;">Need</div>'+
+      '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-faint);text-align:right;">VP</div>'+
+      '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-faint);text-align:right;">DV Sub</div>'+
+    '</div>';
+    html+='<div style="'+(isLast?'':'border-bottom:1px solid var(--border-light);')+'" id="order-mark-row-'+opKey+'">'+
+      // Header row — click to expand/collapse
+      '<div style="display:flex;align-items:center;gap:10px;padding:6px 0;cursor:pointer;" data-opkey="'+opKey+'" onclick="toggleMarkSection(this.dataset.opkey)">'+
+        '<div style="width:28px;height:28px;border-radius:50%;background:'+col+'33;color:'+col+';display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;">'+initials+'</div>'+
+        '<div style="flex:1;min-width:0;">'+
+          '<div style="font-size:13px;font-weight:600;color:var(--text);">'+escHtml(op)+'</div>'+
+          '<div id="order-mark-meta-'+opKey+'" style="font-size:11px;color:'+(isOrdered?'var(--b6)':'var(--text-faint)')+';">'+opItems.length+' items &middot; '+fmtVP(opDv)+' DV'+(isOrdered?' &mdash; ordered':'')+'</div>'+
+        '</div>'+
+        '<span id="order-mark-chev-'+opKey+'" style="font-size:10px;color:var(--text-faint);transition:transform 0.2s;display:inline-block;margin-right:6px;">&#9660;</span>'+
+        '<button id="order-opmark-'+opKey+'" data-op="'+escHtml(op)+'" onclick="event.stopPropagation();orderToggleOrdered(event,this.dataset.op)" style="font-size:11px;padding:4px 11px;border-radius:var(--radius-sm);border:1px solid '+(isOrdered?'var(--b4)':'var(--border)')+';background:'+(isOrdered?'var(--b1)':'var(--surface)')+';color:'+(isOrdered?'var(--b7)':'var(--text-muted)')+';cursor:pointer;font-family:DM Sans,sans-serif;font-weight:600;flex-shrink:0;">'+
+          (isOrdered?'&#10003; Ordered':'Mark ordered')+
+        '</button>'+
       '</div>'+
-      '<button id="order-opmark-'+opKey+'" data-op="'+escHtml(op)+'" onclick="orderToggleOrdered(event,this.dataset.op)" style="font-size:11px;padding:4px 11px;border-radius:var(--radius-sm);border:1px solid '+(isOrdered?'var(--b4)':'var(--border)')+';background:'+(isOrdered?'var(--b1)':'var(--surface)')+';color:'+(isOrdered?'var(--b7)':'var(--text-muted)')+';cursor:pointer;font-family:DM Sans,sans-serif;font-weight:600;flex-shrink:0;">'+
-        (isOrdered?'&#10003; Ordered':'Mark ordered')+
-      '</button>'+
+      // Expandable product list
+      '<div id="order-mark-body-'+opKey+'" style="max-height:0;overflow:hidden;transition:max-height 0.25s ease;">'+
+        '<div style="padding:4px 0 8px;">'+
+          prodHeader+prodRows+
+        '</div>'+
+      '</div>'+
     '</div>';
   });
   html+='</div>';
   wrap.innerHTML=html;
 }
+
+function toggleMarkSection(opKey){
+  const body=document.getElementById('order-mark-body-'+opKey);
+  const chev=document.getElementById('order-mark-chev-'+opKey);
+  if(!body)return;
+  const isOpen=body.style.maxHeight&&body.style.maxHeight!=='0px'&&body.style.maxHeight!=='0';
+  body.style.maxHeight=isOpen?'0':'2000px';
+  if(chev)chev.style.transform=isOpen?'':'rotate(180deg)';
+}
+
 
 function orderToggleOrdered(e,op){
   e.stopPropagation();
@@ -10040,6 +10080,27 @@ function orderToggleOrdered(e,op){
   if(meta){meta.style.color=isOrdered?'var(--b6)':'var(--text-faint)';}
   document.querySelectorAll('#order-opbody-'+opKey+' .order-oprow').forEach(function(r){
     r.style.opacity=isOrdered?'0.4':'1';
+  });
+  // Dim main product table rows assigned to this operator
+  const needItems=[];
+  PRODUCTS.forEach(function(p){
+    const sku=p[2];
+    const haveRaw=invHave[sku];
+    const need=(_planNeedOverride[sku]!=null)?_planNeedOverride[sku]:Math.max(0,(p[4]||0)-(haveRaw||0));
+    const include=(_planNeedOverride[sku]!=null)?need>=1:(haveRaw!=null&&need>=1);
+    if(include)needItems.push({sku,name:p[1]});
+  });
+  needItems.forEach(function(p){
+    if(_orderPlanActive.assignments[p.sku||p.name]!==op)return;
+    const row=document.getElementById('order-row-'+p.sku);
+    if(!row)return;
+    if(isOrdered){
+      row.classList.add('order-row-ordered');
+      row.classList.remove('order-row-assigned');
+    } else {
+      row.classList.remove('order-row-ordered');
+      row.classList.add('order-row-assigned');
+    }
   });
   orderUpdateVolumeTracker();
   orderUpdateOpMeta(op);
