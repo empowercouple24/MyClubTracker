@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-11 15:00:00 -->
+<!-- CACHE BUST: 2026-04-11 16:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -2166,6 +2166,16 @@ if('serviceWorker' in navigator){
             <option value="desc_asc">Description A–Z</option>
             <option value="type_asc">Type</option>
           </select>
+        </div>
+        <!-- CC Search -->
+        <div style="padding:6px 12px;border-bottom:1px solid var(--border-light);position:relative;">
+          <input type="text" id="cc-search-input" placeholder="Search descriptions…" autocomplete="off"
+            oninput="handleCCSearch(this.value)"
+            onfocus="showCCSearchDropdown()"
+            onkeydown="navCCSearchDropdown(event)"
+            style="width:100%;font-family:DM Sans,sans-serif;font-size:13px;padding:6px 30px 6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--b0);color:var(--text);outline:none;box-sizing:border-box;"/>
+          <span id="cc-search-clear" onclick="clearCCSearch()" style="display:none;position:absolute;right:20px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:14px;color:var(--text-faint);">✕</span>
+          <div id="cc-search-dropdown" style="display:none;position:absolute;left:12px;right:12px;top:100%;z-index:200;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);box-shadow:0 4px 16px rgba(0,0,0,0.12);max-height:220px;overflow-y:auto;"></div>
         </div>
         <!-- Table -->
         <div style="overflow-x:auto;width:100%;">
@@ -9981,7 +9991,13 @@ function orderRebuildOpCards(){
   if(!wrap||!_orderPlanActive)return;
   const ops=getOperatorMembers().map(function(m){return m.name;});
   const needItems=[];
-  PRODUCTS.forEach(function(p){const haveRaw=invHave[p[2]];if(haveRaw==null)return;const need=Math.max(0,(p[4]||0)-(haveRaw||0));if(need>=1)needItems.push({cat:p[0],name:p[1],sku:p[2],vp:p[3],par:p[4],need,have:haveRaw||0});});
+  PRODUCTS.forEach(function(p){
+    const sku=p[2];
+    const haveRaw=invHave[sku];
+    const need=(_planNeedOverride[sku]!=null)?_planNeedOverride[sku]:Math.max(0,(p[4]||0)-(haveRaw||0));
+    const include=(_planNeedOverride[sku]!=null)?need>=1:(haveRaw!=null&&need>=1);
+    if(include)needItems.push({cat:p[0],name:p[1],sku,vp:p[3],par:p[4],need,have:haveRaw||0});
+  });
   ops.forEach(function(op){
     const opKey=op.replace(/[^a-z0-9]/gi,'_');
     const opItems=needItems.filter(function(p){return _orderPlanActive.assignments[p.sku]===op&&!invOos[p.sku]&&!_orderSkipped[p.sku];});
@@ -10022,7 +10038,13 @@ function orderUpdateOpMeta(op){
   const meta=document.getElementById('order-opmeta-'+opKey);
   if(!meta)return;
   const needItems=[];
-  PRODUCTS.forEach(function(p){const haveRaw=invHave[p[2]];if(haveRaw==null)return;const need=Math.max(0,(p[4]||0)-(haveRaw||0));if(need>=1)needItems.push({sku:p[2],vp:p[3],need});});
+  PRODUCTS.forEach(function(p){
+    const sku=p[2];
+    const haveRaw=invHave[sku];
+    const need=(_planNeedOverride[sku]!=null)?_planNeedOverride[sku]:Math.max(0,(p[4]||0)-(haveRaw||0));
+    const include=(_planNeedOverride[sku]!=null)?need>=1:(haveRaw!=null&&need>=1);
+    if(include)needItems.push({sku,vp:p[3],need});
+  });
   const opItems=needItems.filter(function(p){return _orderPlanActive.assignments[p.sku]===op&&!invOos[p.sku]&&!_orderSkipped[p.sku];});
   const opDv=opItems.reduce(function(s,p){return s+(p.vp||0)*p.need;},0);
   const isOrdered=!!_orderOrdered[op];
@@ -11220,7 +11242,7 @@ function getPayeeList() {
 }
 
 let _pregSortCol = 'date', _pregSortDir = -1; // newest first by default
-let _pregRowLimit = 20; // rows shown before "Show more"
+let _pregRowLimit = 10; // rows shown before "Show more"
 
 function renderPaymentRegister() {
   const el = document.getElementById('preg-list');
@@ -11346,7 +11368,7 @@ function renderPaymentRegister() {
     </tr>`;
   }).join('');
 
-  const showMoreRow = hasMore ? `<tr><td colspan="7" style="text-align:center;padding:10px 0;"><button onclick="pregShowMore()" style="font-family:DM Sans,sans-serif;font-size:12px;font-weight:700;color:var(--b6);background:var(--b0);border:1px solid var(--b3);border-radius:20px;padding:6px 20px;cursor:pointer;">Show 20 more</button></td></tr>` : '';
+  const showMoreRow = hasMore ? `<tr><td colspan="7" style="text-align:center;padding:10px 0;"><span style="font-size:11px;color:var(--text-faint);margin-right:10px;">Showing ${visibleCount} of ${sorted.length}</span><button onclick="pregShowMore()" style="font-family:DM Sans,sans-serif;font-size:12px;font-weight:700;color:var(--b6);background:var(--b0);border:1px solid var(--b3);border-radius:20px;padding:6px 16px;cursor:pointer;margin-right:6px;">Show 10 more</button><button onclick="pregResetRows()" style="font-family:DM Sans,sans-serif;font-size:11px;font-weight:600;color:var(--text-faint);background:none;border:1px solid var(--border);border-radius:20px;padding:6px 12px;cursor:pointer;">Reset</button></td></tr>` : '';
 
   const entryLabel = hasMore
     ? `Showing ${visibleCount} of ${sorted.length} entries`
@@ -11622,7 +11644,12 @@ async function deletePregEntry(id) {
 }
 
 function pregShowMore() {
-  _pregRowLimit += 20;
+  _pregRowLimit += 10;
+  renderPaymentRegister();
+}
+
+function pregResetRows() {
+  _pregRowLimit = 10;
   renderPaymentRegister();
 }
 
@@ -11644,6 +11671,8 @@ let _ccFilter = 'all';     // all | products | overhead | purchases | payments
 let _ccSort   = 'date_desc';
 let _ccOpen   = false;
 let _ccRowLimit = 20;      // rows shown before "Show more"
+let _ccSearchQuery = '';   // text search filter
+let _ccSearchIdx = -1;     // keyboard nav index in dropdown
 let _pregOpen = false; // Payment Register collapsed by default
 
 async function loadCCLedger() {
@@ -11717,6 +11746,13 @@ function ccShowMore() {
 function setCCFilter(f, btn) {
   _ccFilter = f;
   _ccRowLimit = 20;
+  _ccSearchQuery = '';
+  _ccSearchIdx = -1;
+  const inp = document.getElementById('cc-search-input');
+  if (inp) inp.value = '';
+  const clearBtn = document.getElementById('cc-search-clear');
+  if (clearBtn) clearBtn.style.display = 'none';
+  hideCCSearchDropdown();
   document.querySelectorAll('.cc-fchip').forEach(c => c.classList.remove('active'));
   if (btn) btn.classList.add('active');
   renderCCLedger();
@@ -11771,6 +11807,12 @@ function renderCCLedger() {
   else if (_ccFilter==='overhead')  rows = rows.filter(r=>r.type==='Overhead');
   else if (_ccFilter==='purchases') rows = rows.filter(r=>(parseFloat(r.amount)||0)>0);
   else if (_ccFilter==='payments')  rows = rows.filter(r=>(parseFloat(r.amount)||0)<0);
+
+  // ── Search filter ──
+  if (_ccSearchQuery) {
+    const q = _ccSearchQuery.toLowerCase();
+    rows = rows.filter(r => (r.description||'').toLowerCase().includes(q));
+  }
 
   // ── Sort ──
   rows.sort((a,b) => {
@@ -11918,15 +11960,120 @@ function updateCCDescSuggestions(val) {
 function handleCCAmountPaste(e) {
   e.preventDefault();
   const raw = (e.clipboardData || window.clipboardData).getData('text');
-  // Strip $ signs, commas, spaces — keep digits, dot, leading minus
+  // Strip $, commas, spaces — keep digits, dot, leading minus
   const cleaned = raw.replace(/[$,\s]/g,'').trim();
   const num = parseFloat(cleaned);
   if (!isNaN(num)) {
-    e.target.value = num.toFixed(2);
+    const formatted = num.toFixed(2);
+    e.target.value = formatted;
+    // Seed _buf so _bankInputBlur doesn't wipe the value
+    e.target._buf = String(Math.round(Math.abs(num) * 100));
+    if (num < 0) e.target._buf = '-' + e.target._buf;
   } else {
     e.target.value = cleaned;
   }
 }
+
+// ── CC Ledger search ──────────────────────────────────────────────────────────
+function handleCCSearch(val) {
+  _ccSearchQuery = val.trim();
+  _ccSearchIdx = -1;
+  _ccRowLimit = 20;
+  const clearBtn = document.getElementById('cc-search-clear');
+  if (clearBtn) clearBtn.style.display = _ccSearchQuery ? 'block' : 'none';
+  renderCCLedger();
+  if (_ccSearchQuery.length >= 1) {
+    buildCCSearchDropdown(_ccSearchQuery);
+  } else {
+    hideCCSearchDropdown();
+  }
+}
+
+function buildCCSearchDropdown(q) {
+  const dd = document.getElementById('cc-search-dropdown');
+  if (!dd) return;
+  const lower = q.toLowerCase();
+  // Unique descriptions matching query, up to 8
+  const seen = new Set();
+  const matches = _ccData
+    .filter(function(r){ return (r.description||'').toLowerCase().includes(lower); })
+    .filter(function(r){ const d = r.description||''; if(seen.has(d)) return false; seen.add(d); return true; })
+    .slice(0, 8);
+  if (!matches.length) { hideCCSearchDropdown(); return; }
+  dd.innerHTML = matches.map(function(r, i){
+    const desc = escHtml(r.description||'');
+    const amt = (parseFloat(r.amount)||0);
+    const fmtA = (amt<0?'-':'')+'$'+Math.abs(amt).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+    return '<div class="cc-search-result" data-id="'+escHtml(r.id)+'" data-idx="'+i+'" onclick="selectCCSearchResult(\''+escHtml(r.id)+'\')" style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border-light);font-size:13px;gap:12px;">'
+      + '<span style="color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">'+desc+'</span>'
+      + '<span style="font-size:12px;color:var(--text-faint);flex-shrink:0;">'+fmtA+'</span>'
+      + '</div>';
+  }).join('');
+  dd.style.display = 'block';
+  _ccSearchIdx = -1;
+}
+
+function showCCSearchDropdown() {
+  const q = (document.getElementById('cc-search-input')||{}).value||'';
+  if (q.trim().length >= 1) buildCCSearchDropdown(q.trim());
+}
+
+function hideCCSearchDropdown() {
+  const dd = document.getElementById('cc-search-dropdown');
+  if (dd) dd.style.display = 'none';
+  _ccSearchIdx = -1;
+}
+
+function navCCSearchDropdown(e) {
+  const dd = document.getElementById('cc-search-dropdown');
+  if (!dd || dd.style.display === 'none') return;
+  const items = dd.querySelectorAll('.cc-search-result');
+  if (!items.length) return;
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    _ccSearchIdx = Math.min(_ccSearchIdx + 1, items.length - 1);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    _ccSearchIdx = Math.max(_ccSearchIdx - 1, 0);
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (_ccSearchIdx >= 0 && items[_ccSearchIdx]) {
+      selectCCSearchResult(items[_ccSearchIdx].dataset.id);
+    }
+    return;
+  } else if (e.key === 'Escape') {
+    hideCCSearchDropdown();
+    return;
+  }
+  items.forEach(function(el, i){
+    el.style.background = i === _ccSearchIdx ? 'var(--b1)' : '';
+  });
+}
+
+function selectCCSearchResult(id) {
+  hideCCSearchDropdown();
+  // Open that entry's edit modal
+  openCCModal(id);
+}
+
+function clearCCSearch() {
+  const inp = document.getElementById('cc-search-input');
+  if (inp) inp.value = '';
+  _ccSearchQuery = '';
+  _ccSearchIdx = -1;
+  _ccRowLimit = 20;
+  const clearBtn = document.getElementById('cc-search-clear');
+  if (clearBtn) clearBtn.style.display = 'none';
+  hideCCSearchDropdown();
+  renderCCLedger();
+}
+
+// Close CC search dropdown when clicking outside
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#cc-search-input') && !e.target.closest('#cc-search-dropdown')) {
+    hideCCSearchDropdown();
+  }
+});
 
 async function saveCCEntry() {
   const id    = document.getElementById('cc-f-id').value.trim();
@@ -13415,7 +13562,12 @@ function renderPregPayeeChips(payees) {
   const chipHtml = payees.map(p => {
     const active = _pregPayeeFilter.has(p);
     const display = firstNameOnly(p);
-    return `<div class="preg-fchip${active?' active':''}" style="font-size:11px;padding:3px 9px;cursor:pointer;" data-payee="${escHtml(p)}" title="${escHtml(p)}">${escHtml(display)}</div>`;
+    // Look up team member color for this payee name
+    const member = (SETTINGS.teamMembers || getTeamMembers()).find(function(m){ return m.name === p; });
+    const col = member ? (member.color || getOpColor(p)) : getOpColor(p);
+    const txtCol = opTextColor(col);
+    const activeStyle = active ? `background:${col};color:${txtCol};border-color:${col};` : `border-color:${col};color:${col};background:${col}18;`;
+    return `<div class="preg-fchip${active?' active':''}" style="font-size:11px;padding:3px 9px;cursor:pointer;${activeStyle}" data-payee="${escHtml(p)}" title="${escHtml(p)}">${escHtml(display)}</div>`;
   }).join('');
   wrap.innerHTML = `<span style="font-size:11px;font-weight:600;color:var(--text-faint);white-space:nowrap;flex-shrink:0;">Payees:</span>${chipHtml}`;
   wrap.querySelectorAll('.preg-fchip[data-payee]').forEach(function(chip) {
