@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-10 18:00:00 -->
+<!-- CACHE BUST: 2026-04-11 12:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -3329,34 +3329,15 @@ if('serviceWorker' in navigator){
         <div class="settings-row"><label>Merchandise Rate</label><select id="s-merchrate"></select></div>
         <div class="settings-row"><label>DV △ Rate</label><select id="s-dvdelta"></select></div>
       </div>
-      <!-- ── UNIFIED TEAM & PAY SECTION ── -->
-      <div class="settings-group">
+      <!-- ── CLUB TEAM (unified) ── -->
+      <div class="settings-group" id="prof-role-section">
         <div class="settings-group-title" style="display:flex;align-items:center;justify-content:space-between;">
           Club Team
-          <span style="font-size:10px;font-weight:400;color:var(--text-faint);text-transform:none;letter-spacing:0;">Name · Alias · Color · Role · Rate</span>
+          <button class="btn btn-ghost" onclick="addTeamMember()" style="font-size:11px;padding:3px 10px;">+ Add</button>
         </div>
-        <div id="s-team-members"></div>
-        <button class="btn btn-ghost" onclick="addTeamMember()" style="margin-top:8px;font-size:12px;width:100%;">+ Add Team Member</button>
-      </div>
-      <!-- Pay Accounts -->
-      <div class="settings-group">
-        <div class="settings-group-title">Pay Accounts</div>
-        <div id="s-pay-accounts"></div>
-        <button class="btn btn-ghost" onclick="addPayAccount()" style="margin-top:8px;font-size:12px;width:100%;">+ Add Account</button>
-      </div>
-      <!-- Register Filter Payees -->
-      <div class="settings-group">
-        <div class="settings-group-title">Register Filter Chips</div>
-        <div style="font-size:11px;color:var(--text-faint);margin-bottom:8px;">Choose who appears as quick-filter chips on the Payment Register.</div>
-        <div id="s-preg-chip-payees"></div>
-      </div>
-      <!-- Team Members -->
-      <div class="settings-group" id="prof-role-section">
-        <div class="settings-group-title">Team Members</div>
-        <div id="prof-team-list" style="font-size:13px;color:var(--text-muted);padding:8px 0;">Loading…</div>
-        <!-- Invite by email — owners only -->
-        <div style="margin-top:10px;border-top:1px solid var(--border-light);padding-top:10px;" id="s-employee-section">
-          <!-- Employee code display -->
+        <div id="s-team-members" style="display:flex;flex-direction:column;gap:8px;margin-top:4px;"></div>
+        <!-- Invite / code block -->
+        <div style="margin-top:12px;border-top:1px solid var(--border-light);padding-top:12px;" id="s-employee-section">
           <div style="margin-bottom:10px;">
             <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:6px;">Operator Invite Code</div>
             <div style="display:flex;gap:8px;align-items:center;">
@@ -3380,6 +3361,18 @@ if('serviceWorker' in navigator){
             <div id="emp-invite-msg" style="display:none;font-size:12px;font-weight:600;margin-top:6px;padding:6px 10px;border-radius:6px;"></div>
           </div>
         </div>
+      </div>
+      <!-- Pay Accounts -->
+      <div class="settings-group">
+        <div class="settings-group-title">Pay Accounts</div>
+        <div id="s-pay-accounts"></div>
+        <button class="btn btn-ghost" onclick="addPayAccount()" style="margin-top:8px;font-size:12px;width:100%;">+ Add Account</button>
+      </div>
+      <!-- Register Filter Payees -->
+      <div class="settings-group">
+        <div class="settings-group-title">Register Filter Chips</div>
+        <div style="font-size:11px;color:var(--text-faint);margin-bottom:8px;">Choose who appears as quick-filter chips on the Payment Register.</div>
+        <div id="s-preg-chip-payees"></div>
       </div>
       <!-- Products -->
       <div class="settings-group">
@@ -3566,7 +3559,9 @@ async function openProfileModal(){
       }
       // Build settings UI inside the unified modal
       buildSettingsUI();
-      loadTeamMembers();
+      // Fetch all location users once for team card display, then build unified team UI
+      await loadLocationUsersForTeam();
+      buildTeamMembersUI();
       // Location contact info
       const sc=SETTINGS.secondContact;
       const lcEl=document.getElementById('prof-loc-contact');
@@ -3645,99 +3640,66 @@ async function openProfileModal(){
   }
 }
 
-async function loadTeamMembers(){
-  document.getElementById('prof-role-section').style.display='block';
-  const list=document.getElementById('prof-team-list');
+// ── Location users cache for team cards ──────────────────────────────────────
+var _locationUsers = []; // [{id,display_name,first_name,last_name,email,role,avatar_url}]
+
+async function loadLocationUsersForTeam(){
   try{
-    const{data:members,error:qErr}=await sb.from('users')
+    const{data,error}=await sb.from('users')
       .select('id,display_name,first_name,last_name,email,role,avatar_url')
-      .eq('location_id',LOCATION_ID)
-      .neq('id',CURRENT_SESSION.user.id);
-    if(qErr) throw qErr;
-    if(!members||!members.length){
-      list.innerHTML='<div style="font-size:13px;color:var(--text-faint);">No other team members yet.</div>';
-      return;
-    }
-    // Lock owners AND admins — neither can be removed or role-changed
-    const primaryOwners=members.filter(m=>m.role==='owner'||m.role==='admin');
-    const employees=members.filter(m=>m.role!=='owner'&&m.role!=='admin');
-
-    const makeAvatar=(m,bg,fg)=>{
-      const first=(m.first_name||m.display_name||m.email||'?')[0]||'?';
-      const second=m.last_name?m.last_name[0]:'';
-      const initials=(first+second).toUpperCase();
-      const bgC=bg||'var(--b1)'; const fgC=fg||'var(--b7)';
-      if(m.avatar_url){
-        return '<div style="width:36px;height:36px;border-radius:50%;overflow:hidden;flex-shrink:0;"><img src="'+escHtml(m.avatar_url)+'" alt="" style="width:100%;height:100%;object-fit:cover;display:block;"/></div>';
-      }
-      return '<div style="width:36px;height:36px;border-radius:50%;background:'+bgC+';color:'+fgC+';display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;">'+escHtml(initials)+'</div>';
-    };
-
-    const renderPrimaryOwner=(m,badge)=>{
-      const name=[m.first_name,m.last_name].filter(Boolean).join(' ')||m.display_name||m.email;
-      const av=makeAvatar(m,'var(--g1,#dcfce7)','var(--g6,#16a34a)');
-      return'<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-light);opacity:0.82;">'
-        +av
-        +'<div style="min-width:0;flex:1;">'
-        +'<div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escHtml(name)+'</div>'
-        +'<div style="font-size:11px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escHtml(m.email)+'</div>'
-        +'</div>'
-        +'<span style="font-size:11px;font-weight:700;background:var(--g0,#f0fdf4);color:var(--g5);border:1px solid var(--g2,#bbf7d0);border-radius:6px;padding:3px 10px;flex-shrink:0;">'+escHtml(badge||'Owner')+'</span>'
-        +'</div>';
-    };
-
-    const renderMember=(m)=>{
-      const name=[m.first_name,m.last_name].filter(Boolean).join(' ')||m.display_name||m.email;
-      const av=makeAvatar(m,'var(--b1)','var(--b7)');
-      const selOwner=m.role==='owner'?'selected':'';
-      const selEmp=m.role==='employee'?'selected':'';
-      return'<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-light);">'
-        +av
-        +'<div style="min-width:0;flex:1;">'
-        +'<div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escHtml(name)+'</div>'
-        +'<div style="font-size:11px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escHtml(m.email)+'</div>'
-        +'</div>'
-        +'<div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">'
-        +'<select data-uid="'+m.id+'" onchange="changeTeamRole(this.dataset.uid,this.value,this)" style="font-family:DM Sans,sans-serif;font-size:12px;font-weight:600;padding:3px 6px;border-radius:5px;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;outline:none;">'
-        +'<option value="owner" '+selOwner+'>Owner</option>'
-        +'<option value="employee" '+selEmp+'>Operator</option>'
-        +'</select>'
-        +'<button data-uid="'+m.id+'" data-name="'+escHtml(name)+'" onclick="confirmRemoveUser(this.dataset.uid,this.dataset.name)" title="Remove operator" style="background:none;border:1px solid var(--border);border-radius:5px;padding:3px 7px;cursor:pointer;font-size:13px;color:var(--r5);line-height:1;" onmouseover="this.style.background=\'var(--r0)\'" onmouseout="this.style.background=\'none\'">&#10005;</button>'
-        +'</div>'
-        +'</div>';
-    };
-
-    let html='';
-    if(primaryOwners.length){
-      html+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--g5);margin-bottom:2px;margin-top:4px;">Owner'+(primaryOwners.length>1?'s':'')+'</div>';
-      html+=primaryOwners.map(m=>renderPrimaryOwner(m,m.role==='admin'?'Admin':'Primary Owner')).join('');
-    }
-    if(employees.length){
-      html+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:2px;margin-top:10px;">Operators</div>';
-      html+=employees.map(m=>renderMember(m)).join('');
-    }
-    list.innerHTML=html;
+      .eq('location_id',LOCATION_ID);
+    if(!error && data) _locationUsers = data;
   }catch(e){
-    list.innerHTML='<div style="font-size:13px;color:var(--r5);">Could not load team members.</div>';
-    console.error('loadTeamMembers error:',e);
+    console.error('loadLocationUsersForTeam error:',e);
   }
 }
-async function changeTeamRole(userId,newRole,selectEl){
+
+function getLocationUserById(userId){
+  return _locationUsers.find(function(u){ return u.id === userId; }) || null;
+}
+
+// Users who have signed up but aren't yet linked to any team member slot
+function getUnlinkedLocationUsers(){
+  var linked = (SETTINGS.teamMembers || getTeamMembers())
+    .map(function(m){ return m.userId; })
+    .filter(Boolean);
+  // Exclude the current owner (they manage this, not themselves)
+  return _locationUsers.filter(function(u){
+    return u.id !== CURRENT_SESSION.user.id && !linked.includes(u.id);
+  });
+}
+
+async function changeTeamRole(userId,newRole){
   const{error}=await sb.from('users').update({role:newRole}).eq('id',userId);
-  if(error){showToast('Role change failed: '+error.message,'error');await loadTeamMembers();return;}
-  showToast(`Role updated to ${newRole} ok`,'success');
+  if(error){showToast('Role change failed: '+error.message,'error');return;}
+  showToast('Role updated ok','success');
+  // Refresh user cache
+  await loadLocationUsersForTeam();
+  buildTeamMembersUI();
 }
 
 function confirmRemoveUser(userId,name){
-  if(!confirm(`Remove ${name} from this location?\n\nThey will lose access immediately and will need a new invite code to rejoin.`))return;
+  if(!confirm('Remove '+name+' from this location?\n\nThey will lose access immediately and will need a new invite code to rejoin.'))return;
   removeUser(userId,name);
 }
 
 async function removeUser(userId,name){
   const{error}=await sb.rpc('remove_user_from_location',{target_user_id:userId});
   if(error){showToast('Remove failed: '+error.message,'error');return;}
-  showToast(`${name} removed`,'success');
-  await loadTeamMembers();
+  // Also unlink from any team member slot
+  if(SETTINGS.teamMembers){
+    SETTINGS.teamMembers.forEach(function(m){ if(m.userId===userId) m.userId=null; });
+  }
+  showToast(name+' removed','success');
+  await loadLocationUsersForTeam();
+  buildTeamMembersUI();
+}
+
+function linkTeamMemberToUser(i, userId){
+  if(!SETTINGS.teamMembers) SETTINGS.teamMembers = getTeamMembers();
+  if(!SETTINGS.teamMembers[i]) return;
+  SETTINGS.teamMembers[i].userId = userId || null;
+  buildTeamMembersUI();
 }
 
 async function saveProfile(){await saveProfileAndSettings();}
@@ -7549,56 +7511,133 @@ function getOwnerMember() {
   return getTeamMembers().find(function(m){ return m.role==='Owner' && m.name; }) || null;
 }
 
-// ── TEAM UI ──────────────────────────────────────────────────────────────────
+// ── TEAM UI (unified card style) ─────────────────────────────────────────────
 function buildTeamMembersUI() {
   const el = document.getElementById('s-team-members');
   if (!el) return;
-  const members = getTeamMembers();
+  if (!SETTINGS.teamMembers) SETTINGS.teamMembers = getTeamMembers();
+  const members = SETTINGS.teamMembers;
   if (!members.length) {
-    el.innerHTML = '<div style="font-size:12px;color:var(--text-faint);padding:6px 0;">No team members yet.</div>';
+    el.innerHTML = '<div style="font-size:12px;color:var(--text-faint);padding:6px 0;">No team members yet. Add one below.</div>';
     return;
   }
-  el.innerHTML = members.map(function(m, i) {
-    const color = getOpColor(m.name);
-    const isHourly = m.role === 'Hourly';
-    const isActive = m.visible !== false;
-    const rateDisplay = isHourly ? 'flex' : 'none';
-    const activeBorder = isActive ? 'var(--g5)' : 'var(--border)';
-    const activeBg = isActive ? 'var(--g0)' : 'var(--b0)';
-    const activeColor = isActive ? 'var(--g6)' : 'var(--text-faint)';
-    const activeLabel = isActive ? 'Active' : 'Inactive';
-    const swatchesHtml = _swatchColors.map(function(c){
-      return '<div class="op-color-swatch' + (c===color?' op-color-selected':'') + '" style="background:'+c+';" onclick="pickTeamMemberColor('+i+',\''+c+'\')"></div>';
+
+  // Sort: Owner first, then alphabetical by name
+  var sorted = members.map(function(m, i){ return {m:m, i:i}; }).sort(function(a, b){
+    var aIsOwner = a.m.role === 'Owner' ? 0 : 1;
+    var bIsOwner = b.m.role === 'Owner' ? 0 : 1;
+    if (aIsOwner !== bIsOwner) return aIsOwner - bIsOwner;
+    return (a.m.name||'').localeCompare(b.m.name||'');
+  });
+
+  el.innerHTML = sorted.map(function(entry){
+    var m = entry.m;
+    var i = entry.i; // original index for data-tmi
+    var color = m.color || getOpColor(m.name);
+    var isHourly = m.role === 'Hourly';
+    var isOwner  = m.role === 'Owner';
+    var isActive = m.visible !== false;
+
+    // Linked user lookup
+    var linked = m.userId ? getLocationUserById(m.userId) : null;
+
+    // Avatar: photo if linked+has avatar, else initials from name
+    var avatarHtml;
+    var initials = ((m.name||'?')[0]||'?').toUpperCase();
+    if (linked && linked.avatar_url) {
+      avatarHtml = '<div style="width:44px;height:44px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid var(--border-light);">'
+        + '<img src="'+escHtml(linked.avatar_url)+'" alt="" style="width:100%;height:100%;object-fit:cover;display:block;"/>'
+        + '</div>';
+    } else {
+      var bg = isOwner ? 'var(--g1,#dcfce7)' : 'var(--b1)';
+      var fg = isOwner ? 'var(--g6,#16a34a)' : 'var(--b7)';
+      avatarHtml = '<div style="width:44px;height:44px;border-radius:50%;background:'+bg+';color:'+fg+';display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;flex-shrink:0;border:2px solid var(--border-light);">'+escHtml(initials)+'</div>';
+    }
+
+    // Color dot + picker
+    var swatchesHtml = _swatchColors.map(function(c){
+      return '<div class="op-color-swatch'+(c===color?' op-color-selected':'')+'" style="background:'+c+';" onclick="pickTeamMemberColor('+i+',\''+c+'\')"></div>';
     }).join('');
-    return '<div class="tm-row" data-tmi="'+i+'" style="display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:1px solid var(--border-light);flex-wrap:nowrap;">'
-      // color swatch trigger
-      + '<div style="position:relative;flex-shrink:0;">'
-      +   '<div id="tm-color-trigger-'+i+'" class="op-color-trigger" style="background:'+color+';width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid var(--border);" onclick="toggleTmColorPop('+i+')" title="Pick color"></div>'
-      +   '<div id="tm-color-pop-'+i+'" class="op-color-pop" style="min-width:160px;">'
-      +     '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:8px;">Color</div>'
-      +     '<div class="op-color-grid">'+swatchesHtml+'</div>'
+    var colorDotHtml = '<div style="position:relative;flex-shrink:0;">'
+      + '<div id="tm-color-trigger-'+i+'" class="op-color-trigger" style="background:'+color+';width:22px;height:22px;" onclick="toggleTmColorPop('+i+')" title="Pick color"></div>'
+      + '<div id="tm-color-pop-'+i+'" class="op-color-pop">'
+      +   '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:8px;">Color</div>'
+      +   '<div class="op-color-grid">'+swatchesHtml+'</div>'
+      + '</div>'
+      + '</div>';
+
+    // Linked user line — email if linked, dropdown if not
+    var linkedHtml;
+    if (linked) {
+      var linkedName = [linked.first_name, linked.last_name].filter(Boolean).join(' ') || linked.display_name || linked.email;
+      // Owner/admin cards: read-only, no remove
+      var isLockedRole = linked.role === 'owner' || linked.role === 'admin';
+      linkedHtml = '<div style="display:flex;align-items:center;gap:4px;margin-top:3px;flex-wrap:wrap;">'
+        + '<span style="font-size:11px;color:var(--text-faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px;" title="'+escHtml(linked.email)+'">'+escHtml(linked.email)+'</span>'
+        + (isLockedRole
+            ? '<span style="font-size:10px;font-weight:700;background:var(--g0,#f0fdf4);color:var(--g5);border:1px solid var(--g2,#bbf7d0);border-radius:4px;padding:1px 6px;flex-shrink:0;">Owner</span>'
+            : '<button type="button" data-uid="'+m.userId+'" data-tmname="'+escHtml(m.name)+'" onclick="confirmRemoveUser(this.dataset.uid,this.dataset.tmname)" style="font-size:10px;color:var(--r5);background:none;border:none;cursor:pointer;padding:0;flex-shrink:0;" title="Remove from location">Remove</button>')
+        + '</div>';
+    } else {
+      // Build options from unlinked location users + already-linked user for this slot (none)
+      var unlinked = getUnlinkedLocationUsers();
+      var opts = '<option value="">Link to account…</option>'
+        + unlinked.map(function(u){
+          var uName = [u.first_name,u.last_name].filter(Boolean).join(' ') || u.display_name || u.email;
+          return '<option value="'+escHtml(u.id)+'">'+escHtml(uName)+' ('+escHtml(u.email)+')</option>';
+        }).join('');
+      linkedHtml = '<div style="margin-top:3px;">'
+        + '<select data-tmi="'+i+'" onchange="linkTeamMemberToUser(this.dataset.tmi,this.value||null);this.value=\'\';" style="font-family:DM Sans,sans-serif;font-size:11px;padding:3px 5px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--b0);color:var(--text-faint);outline:none;max-width:200px;cursor:pointer;">'+opts+'</select>'
+        + '<span style="font-size:10px;color:var(--text-faint);margin-left:5px;">Not signed up yet</span>'
+        + '</div>';
+    }
+
+    // Right-side controls
+    var activeBtn = '';
+    var rateHtml  = '';
+    if (isHourly) {
+      rateHtml = '<div style="display:flex;align-items:center;gap:3px;flex-shrink:0;">'
+        + '<span style="font-size:12px;color:var(--text-muted);">$</span>'
+        + '<input type="number" min="0" max="999" step="0.50" placeholder="0.00" data-tmi="'+i+'" data-tmf="hourlyRate" value="'+(m.hourlyRate||'')+'" onchange="updateTeamMember(this)" style="width:54px;font-family:DM Sans,sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 4px;outline:none;text-align:right;background:var(--b0);color:var(--text);" tabindex="-1"/>'
+        + '<span style="font-size:11px;color:var(--text-faint);">/hr</span>'
+        + '</div>';
+    } else if (!isOwner) {
+      var activeBorder = isActive ? 'var(--g5)' : 'var(--border)';
+      var activeBg     = isActive ? 'var(--g0)' : 'var(--b0)';
+      var activeColor  = isActive ? 'var(--g6)' : 'var(--text-faint)';
+      activeBtn = '<button type="button" onclick="toggleTeamMemberActive('+i+')" tabindex="-1" style="flex-shrink:0;font-size:11px;font-weight:700;padding:4px 8px;border-radius:var(--radius-sm);border:1px solid '+activeBorder+';background:'+activeBg+';color:'+activeColor+';cursor:pointer;white-space:nowrap;">'+(isActive?'Active':'Inactive')+'</button>';
+    }
+
+    var removeBtn = isOwner ? '' : '<button type="button" onclick="removeTeamMember('+i+')" tabindex="-1" title="Remove slot" style="flex-shrink:0;background:none;border:1px solid var(--border);border-radius:5px;padding:4px 8px;cursor:pointer;font-size:13px;color:var(--r5);line-height:1;">&#10005;</button>';
+
+    // Role dropdown
+    var roleSelect = '<select data-tmi="'+i+'" onchange="changeTeamMemberRole(this)" tabindex="-1" style="flex-shrink:0;font-family:DM Sans,sans-serif;font-size:12px;padding:4px 5px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);color:var(--text);outline:none;cursor:pointer;">'
+      + '<option'+(m.role==='Owner'?' selected':'')+'>Owner</option>'
+      + '<option'+(m.role==='Operator'?' selected':'')+'>Operator</option>'
+      + '<option'+(m.role==='Hourly'?' selected':'')+'>Hourly</option>'
+      + '</select>';
+
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;border:1px solid var(--border-light);background:var(--surface);">'
+      // Avatar
+      + avatarHtml
+      // Color dot
+      + colorDotHtml
+      // Name / alias / linked email block
+      + '<div style="flex:1;min-width:0;">'
+      +   '<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">'
+      +     '<input type="text" data-tmi="'+i+'" data-tmf="name" value="'+escHtml(m.name||'')+'" placeholder="Full name" onchange="updateTeamMember(this)" onkeydown="tmTabToAlias(event,'+i+')" style="flex:1;min-width:80px;font-family:DM Sans,sans-serif;font-size:13px;font-weight:600;border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 7px;outline:none;background:var(--b0);color:var(--text);" tabindex="-1"/>'
+      +     '<input type="text" data-tmi="'+i+'" data-tmf="alias" value="'+escHtml(m.alias||'')+'" placeholder="Alias" onchange="updateTeamMember(this)" onkeydown="tmTabFromAlias(event,'+i+')" style="width:64px;flex-shrink:0;font-family:DM Sans,sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 5px;outline:none;background:var(--b0);color:var(--text);text-align:center;" title="Short name for Enter tab. Full name used for payouts." tabindex="-1"/>'
+      +   '</div>'
+      +   linkedHtml
+      + '</div>'
+      // Role / active / rate / remove
+      + '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;">'
+      +   roleSelect
+      +   '<div style="display:flex;align-items:center;gap:5px;">'
+      +     (isHourly ? rateHtml : activeBtn)
+      +     removeBtn
       +   '</div>'
       + '</div>'
-      // name — Tab moves to alias on same row
-      + '<input type="text" data-tmi="'+i+'" data-tmf="name" value="'+escHtml(m.name||'')+'" placeholder="Full name" onchange="updateTeamMember(this)" onkeydown="tmTabToAlias(event,'+i+')" style="flex:1.4;min-width:0;font-family:DM Sans,sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 7px;outline:none;background:var(--b0);color:var(--text);" tabindex="-1"/>'
-      // alias — Tab moves to next row name (or rate if hourly)
-      + '<input type="text" data-tmi="'+i+'" data-tmf="alias" value="'+escHtml(m.alias||'')+'" placeholder="Alias" onchange="updateTeamMember(this)" onkeydown="tmTabFromAlias(event,'+i+')" style="width:72px;flex-shrink:0;font-family:DM Sans,sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 5px;outline:none;background:var(--b0);color:var(--text);text-align:center;" title="Short name shown in Enter tab dropdown. Full name used for payouts." tabindex="-1"/>'
-      // role chooser — excluded from tab order
-      + '<select data-tmi="'+i+'" onchange="changeTeamMemberRole(this)" tabindex="-1" style="flex-shrink:0;font-family:DM Sans,sans-serif;font-size:12px;padding:5px 5px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);color:var(--text);outline:none;cursor:pointer;">'
-      +   '<option'+(m.role==='Owner'?' selected':'')+'>Owner</option>'
-      +   '<option'+(m.role==='Operator'?' selected':'')+'>Operator</option>'
-      +   '<option'+(m.role==='Hourly'?' selected':'')+'>Hourly</option>'
-      + '</select>'
-      // hourly rate — only shown when role=Hourly
-      + '<div class="tm-rate-wrap" style="display:'+rateDisplay+';align-items:center;gap:3px;flex-shrink:0;">'
-      +   '<span style="font-size:12px;color:var(--text-muted);">$</span>'
-      +   '<input type="number" min="0" max="999" step="0.50" placeholder="0.00" data-tmi="'+i+'" data-tmf="hourlyRate" value="'+(m.hourlyRate||'')+'" onchange="updateTeamMember(this)" onkeydown="tmTabFromRate(event,'+i+')" style="width:56px;font-family:DM Sans,sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 4px;outline:none;text-align:right;background:var(--b0);color:var(--text);" tabindex="-1"/>'
-      +   '<span style="font-size:11px;color:var(--text-faint);">/hr</span>'
-      + '</div>'
-      // active/inactive toggle — excluded from tab order
-      + '<button type="button" onclick="toggleTeamMemberActive('+i+')" data-tmi="'+i+'" tabindex="-1" style="display:'+(isHourly?'none':'inline-flex')+';flex-shrink:0;font-size:11px;font-weight:700;padding:4px 7px;border-radius:var(--radius-sm);border:1px solid '+activeBorder+';background:'+activeBg+';color:'+activeColor+';cursor:pointer;white-space:nowrap;">'+activeLabel+'</button>'
-      // remove — excluded from tab order
-      + '<button type="button" onclick="removeTeamMember('+i+')" tabindex="-1" style="flex-shrink:0;background:none;border:1px solid var(--border);border-radius:5px;padding:3px 7px;cursor:pointer;font-size:13px;color:var(--r5);line-height:1;">&#10005;</button>'
       + '</div>';
   }).join('');
 }
@@ -7647,7 +7686,7 @@ function tmTabFromRate(e, i) {
 
 function addTeamMember() {
   if (!SETTINGS.teamMembers) SETTINGS.teamMembers = getTeamMembers();
-  SETTINGS.teamMembers.push({ name: '', alias: '', color: null, role: 'Operator', hourlyRate: 0, visible: true });
+  SETTINGS.teamMembers.push({ name: '', alias: '', color: null, role: 'Operator', hourlyRate: 0, visible: true, userId: null });
   buildTeamMembersUI();
 }
 
