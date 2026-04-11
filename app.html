@@ -9486,6 +9486,10 @@ function unloadOrderPlan(){
   document.getElementById('order-body').innerHTML='<div class="empty-state">Start a new order plan or load a saved one above.</div>';
   document.getElementById('order-vol-tracker').style.display='none';
   setText('order-total-dvneed','--');setText('order-total-orderable','--');setText('order-oos-note','');
+  setText('order-total-items','--');setText('order-total-assigned','--');
+  // Clear operator summary chips
+  const summaryWrap=document.getElementById('order-summary-card-wrap');
+  if(summaryWrap)summaryWrap.innerHTML='';
   updateOrderToolbar();
 }
 
