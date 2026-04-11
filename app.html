@@ -7566,12 +7566,12 @@ function buildTeamMembersUI() {
       +     '<div class="op-color-grid">'+swatchesHtml+'</div>'
       +   '</div>'
       + '</div>'
-      // name
-      + '<input type="text" data-tmi="'+i+'" data-tmf="name" value="'+escHtml(m.name||'')+'" placeholder="Name" onchange="updateTeamMember(this)" style="flex:1.4;min-width:0;font-family:DM Sans,sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 7px;outline:none;background:var(--b0);color:var(--text);"/>'
-      // alias
-      + '<input type="text" data-tmi="'+i+'" data-tmf="alias" value="'+escHtml(m.alias||'')+'" placeholder="Dropdown alias" onchange="updateTeamMember(this)" style="width:80px;flex-shrink:0;font-family:DM Sans,sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 5px;outline:none;background:var(--b0);color:var(--text);text-align:center;" title="Short name shown in Enter tab dropdown (e.g. MN). Full name used for payouts."/>'
-      // role chooser
-      + '<select data-tmi="'+i+'" onchange="changeTeamMemberRole(this)" style="flex-shrink:0;font-family:DM Sans,sans-serif;font-size:12px;padding:5px 5px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);color:var(--text);outline:none;cursor:pointer;">'
+      // name — Tab moves to alias on same row
+      + '<input type="text" data-tmi="'+i+'" data-tmf="name" value="'+escHtml(m.name||'')+'" placeholder="Full name" onchange="updateTeamMember(this)" onkeydown="tmTabToAlias(event,'+i+')" style="flex:1.4;min-width:0;font-family:DM Sans,sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 7px;outline:none;background:var(--b0);color:var(--text);" tabindex="-1"/>'
+      // alias — Tab moves to next row name (or rate if hourly)
+      + '<input type="text" data-tmi="'+i+'" data-tmf="alias" value="'+escHtml(m.alias||'')+'" placeholder="Alias" onchange="updateTeamMember(this)" onkeydown="tmTabFromAlias(event,'+i+')" style="width:72px;flex-shrink:0;font-family:DM Sans,sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 5px;outline:none;background:var(--b0);color:var(--text);text-align:center;" title="Short name shown in Enter tab dropdown. Full name used for payouts." tabindex="-1"/>'
+      // role chooser — excluded from tab order
+      + '<select data-tmi="'+i+'" onchange="changeTeamMemberRole(this)" tabindex="-1" style="flex-shrink:0;font-family:DM Sans,sans-serif;font-size:12px;padding:5px 5px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);color:var(--text);outline:none;cursor:pointer;">'
       +   '<option'+(m.role==='Owner'?' selected':'')+'>Owner</option>'
       +   '<option'+(m.role==='Operator'?' selected':'')+'>Operator</option>'
       +   '<option'+(m.role==='Hourly'?' selected':'')+'>Hourly</option>'
@@ -7579,16 +7579,58 @@ function buildTeamMembersUI() {
       // hourly rate — only shown when role=Hourly
       + '<div class="tm-rate-wrap" style="display:'+rateDisplay+';align-items:center;gap:3px;flex-shrink:0;">'
       +   '<span style="font-size:12px;color:var(--text-muted);">$</span>'
-      +   '<input type="number" min="0" max="999" step="0.50" placeholder="0.00" data-tmi="'+i+'" data-tmf="hourlyRate" value="'+(m.hourlyRate||'')+'" onchange="updateTeamMember(this)" style="width:56px;font-family:DM Sans,sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 4px;outline:none;text-align:right;background:var(--b0);color:var(--text);" />'
+      +   '<input type="number" min="0" max="999" step="0.50" placeholder="0.00" data-tmi="'+i+'" data-tmf="hourlyRate" value="'+(m.hourlyRate||'')+'" onchange="updateTeamMember(this)" onkeydown="tmTabFromRate(event,'+i+')" style="width:56px;font-family:DM Sans,sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 4px;outline:none;text-align:right;background:var(--b0);color:var(--text);" tabindex="-1"/>'
       +   '<span style="font-size:11px;color:var(--text-faint);">/hr</span>'
       + '</div>'
-      // active/inactive toggle — not shown for hourly
-      + '<button type="button" onclick="toggleTeamMemberActive('+i+')" data-tmi="'+i+'" style="display:'+(isHourly?'none':'inline-flex')+';flex-shrink:0;font-size:11px;font-weight:700;padding:4px 7px;border-radius:var(--radius-sm);border:1px solid '+activeBorder+';background:'+activeBg+';color:'+activeColor+';cursor:pointer;white-space:nowrap;">'+activeLabel+'</button>'
-      // remove
-      + '<button type="button" onclick="removeTeamMember('+i+')" style="flex-shrink:0;background:none;border:1px solid var(--border);border-radius:5px;padding:3px 7px;cursor:pointer;font-size:13px;color:var(--r5);line-height:1;">&#10005;</button>'
+      // active/inactive toggle — excluded from tab order
+      + '<button type="button" onclick="toggleTeamMemberActive('+i+')" data-tmi="'+i+'" tabindex="-1" style="display:'+(isHourly?'none':'inline-flex')+';flex-shrink:0;font-size:11px;font-weight:700;padding:4px 7px;border-radius:var(--radius-sm);border:1px solid '+activeBorder+';background:'+activeBg+';color:'+activeColor+';cursor:pointer;white-space:nowrap;">'+activeLabel+'</button>'
+      // remove — excluded from tab order
+      + '<button type="button" onclick="removeTeamMember('+i+')" tabindex="-1" style="flex-shrink:0;background:none;border:1px solid var(--border);border-radius:5px;padding:3px 7px;cursor:pointer;font-size:13px;color:var(--r5);line-height:1;">&#10005;</button>'
       + '</div>';
   }).join('');
 }
+
+// ── Team member keyboard tab navigation ──────────────────────────────────────
+// Name field → Tab → Alias (non-hourly) or Rate (hourly)
+function tmTabToAlias(e, i) {
+  if (e.key !== 'Tab' || e.shiftKey) return;
+  var members = SETTINGS.teamMembers || getTeamMembers();
+  var m = members[i];
+  if (m && m.role === 'Hourly') {
+    // Hourly: name → rate
+    var rateEl = document.querySelector('[data-tmi="'+i+'"][data-tmf="hourlyRate"]');
+    if (!rateEl) return;
+    e.preventDefault();
+    rateEl.focus();
+  } else {
+    // Operator/Owner: name → alias
+    var aliasEl = document.querySelector('[data-tmi="'+i+'"][data-tmf="alias"]');
+    if (!aliasEl) return;
+    e.preventDefault();
+    aliasEl.focus();
+  }
+}
+// Alias field → Tab → next row name
+function tmTabFromAlias(e, i) {
+  if (e.key !== 'Tab' || e.shiftKey) return;
+  var members = SETTINGS.teamMembers || getTeamMembers();
+  var next = i + 1;
+  if (next >= members.length) return; // last row — let browser handle
+  e.preventDefault();
+  var nextEl = document.querySelector('[data-tmi="'+next+'"][data-tmf="name"]');
+  if (nextEl) nextEl.focus();
+}
+// Hourly rate field → Tab → next row name
+function tmTabFromRate(e, i) {
+  if (e.key !== 'Tab' || e.shiftKey) return;
+  var members = SETTINGS.teamMembers || getTeamMembers();
+  var next = i + 1;
+  if (next >= members.length) return;
+  e.preventDefault();
+  var nextEl = document.querySelector('[data-tmi="'+next+'"][data-tmf="name"]');
+  if (nextEl) nextEl.focus();
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 function addTeamMember() {
   if (!SETTINGS.teamMembers) SETTINGS.teamMembers = getTeamMembers();
