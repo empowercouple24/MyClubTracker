@@ -1933,6 +1933,7 @@ if('serviceWorker' in navigator){
           </div>
         </div>
       </div>
+      <div id="order-mark-ordered-wrap" style="display:none;margin-bottom:6px;"></div>
       <div class="order-toolbar">
         <select id="order-plan-picker" style="font-family:DM Sans,sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 10px;background:var(--surface);color:var(--text);outline:none;flex:1;" onchange="loadOrderPlan(this.value)">
           <option value="">— No saved plans —</option>
@@ -9502,6 +9503,9 @@ function unloadOrderPlan(){
   // Clear operator summary chips
   const summaryWrap=document.getElementById('order-summary-card-wrap');
   if(summaryWrap)summaryWrap.innerHTML='';
+  // Clear mark as ordered section
+  const markWrap=document.getElementById('order-mark-ordered-wrap');
+  if(markWrap){markWrap.style.display='none';markWrap.innerHTML='';}
   updateOrderToolbar();
 }
 
@@ -9554,6 +9558,7 @@ function loadOrderPlan(id){
   renderOrderBody();
   renderOrderSummaryCards();
   orderUpdateVolumeTracker();
+  renderOrderMarkSection();
   updateOrderToolbar();
 }
 
@@ -9707,9 +9712,6 @@ function renderOrderBody(){
         '<div style="font-size:13px;font-weight:600;color:var(--text);">'+escHtml(op)+'</div>'+
         '<div id="order-opmeta-'+op.replace(/[^a-z0-9]/gi,'_')+'" style="font-size:11px;color:'+(isOrdered?'var(--b6)':'var(--text-faint)')+';">'+opItems.length+' items &middot; '+fmtVP(opDv)+' DV'+(isOrdered?' &mdash; ordered':' &mdash; tap to review')+'</div>'+
         '</div>'+
-        '<button class="btn btn-primary" id="order-opmark-'+op.replace(/[^a-z0-9]/gi,'_')+'" onclick="orderToggleOrdered(event,\''+op+'\')" style="font-size:11px;padding:4px 11px;flex-shrink:0;'+(isOrdered?'background:var(--b1);border-color:var(--b4);color:var(--b7);':'')+'">'+
-        (isOrdered?'&#10003; Ordered':'Mark ordered')+
-        '</button>'+
         '<span id="order-opchev-'+op.replace(/[^a-z0-9]/gi,'_')+'" style="font-size:10px;color:var(--text-faint);margin-left:2px;transition:transform 0.2s;display:inline-block;">&#9660;</span>'+
         '</div>'+
         '<div id="order-opbody-'+op.replace(/[^a-z0-9]/gi,'_')+'" style="max-height:0;overflow:hidden;transition:max-height 0.25s ease;border-top:0 solid var(--border-light);">'+
@@ -9749,6 +9751,7 @@ function renderOrderBody(){
   document.getElementById('order-vol-tracker').style.display='block';
   orderUpdateVolumeTracker();
   orderRecalcCatTotals(cats);
+  renderOrderMarkSection();
 }
 
 function orderAssignCycle(sku,btn){
@@ -9866,6 +9869,7 @@ function orderAssign(sku,opName,btnEl){
   const cats={};
   PRODUCTS.forEach(p=>{const haveRaw=invHave[p[2]];const haveEntered=haveRaw!=null;const have=haveRaw||0;const need=Math.max(0,(p[4]||0)-have);if(haveEntered&&need>=1){if(!cats[p[0]])cats[p[0]]=[];cats[p[0]].push({cat:p[0],sku:p[2],vp:p[3],need});}});
   orderRecalcCatTotals(cats);
+  renderOrderMarkSection();
 }
 
 function renderOrderSummaryCards(){
@@ -9969,15 +9973,69 @@ function orderToggleOpCard(opKey){
   }
 }
 
+function renderOrderMarkSection(){
+  const wrap=document.getElementById('order-mark-ordered-wrap');
+  if(!wrap||!_orderPlanActive){if(wrap){wrap.style.display='none';wrap.innerHTML='';}return;}
+  const ops=getOperatorMembers().map(function(m){return m.name;});
+  const needItems=[];
+  PRODUCTS.forEach(function(p){
+    const sku=p[2];
+    const haveRaw=invHave[sku];
+    const need=(_planNeedOverride[sku]!=null)?_planNeedOverride[sku]:Math.max(0,(p[4]||0)-(haveRaw||0));
+    const include=(_planNeedOverride[sku]!=null)?need>=1:(haveRaw!=null&&need>=1);
+    if(include)needItems.push({sku,name:p[1],vp:p[3],need});
+  });
+  const eligibleOps=ops.filter(function(op){
+    const opItems=needItems.filter(function(p){return _orderPlanActive.assignments[p.sku||p.name]===op&&!invOos[p.sku]&&!_orderSkipped[p.sku||p.name];});
+    return opItems.length>=1||opItems.reduce(function(s,p){return s+(p.vp||0)*p.need;},0)>0;
+  });
+  if(!eligibleOps.length){wrap.style.display='none';wrap.innerHTML='';return;}
+  wrap.style.display='block';
+  let html='<div style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:8px 12px;">';
+  html+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:6px;">Mark as Ordered</div>';
+  eligibleOps.forEach(function(op,idx){
+    const opKey=op.replace(/[^a-z0-9]/gi,'_');
+    const col=getOpColor(op);
+    const initials=op.split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
+    const opItems=needItems.filter(function(p){return _orderPlanActive.assignments[p.sku||p.name]===op&&!invOos[p.sku]&&!_orderSkipped[p.sku||p.name];});
+    const opDv=opItems.reduce(function(s,p){return s+(p.vp||0)*p.need;},0);
+    const isOrdered=!!_orderOrdered[op];
+    const isLast=idx===eligibleOps.length-1;
+    html+='<div style="display:flex;align-items:center;gap:10px;padding:6px 0;'+(isLast?'':'border-bottom:1px solid var(--border-light);"')+'" id="order-mark-row-'+opKey+'">'+
+      '<div style="width:28px;height:28px;border-radius:50%;background:'+col+'33;color:'+col+';display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;">'+initials+'</div>'+
+      '<div style="flex:1;min-width:0;">'+
+        '<div style="font-size:13px;font-weight:600;color:var(--text);">'+escHtml(op)+'</div>'+
+        '<div id="order-mark-meta-'+opKey+'" style="font-size:11px;color:'+(isOrdered?'var(--b6)':'var(--text-faint)')+';">'+opItems.length+' items &middot; '+fmtVP(opDv)+' DV'+(isOrdered?' &mdash; ordered':'')+'</div>'+
+      '</div>'+
+      '<button id="order-opmark-'+opKey+'" data-op="'+escHtml(op)+'" onclick="orderToggleOrdered(event,this.dataset.op)" style="font-size:11px;padding:4px 11px;border-radius:var(--radius-sm);border:1px solid '+(isOrdered?'var(--b4)':'var(--border)')+';background:'+(isOrdered?'var(--b1)':'var(--surface)')+';color:'+(isOrdered?'var(--b7)':'var(--text-muted)')+';cursor:pointer;font-family:DM Sans,sans-serif;font-weight:600;flex-shrink:0;">'+
+        (isOrdered?'&#10003; Ordered':'Mark ordered')+
+      '</button>'+
+    '</div>';
+  });
+  html+='</div>';
+  wrap.innerHTML=html;
+}
+
 function orderToggleOrdered(e,op){
   e.stopPropagation();
   const opKey=op.replace(/[^a-z0-9]/gi,'_');
   _orderOrdered[op]=!_orderOrdered[op];
   const isOrdered=_orderOrdered[op];
+  // Update card visual state
   const card=document.getElementById('order-opcard-'+opKey);
   if(card){card.style.borderColor=isOrdered?'var(--b4)':'var(--border-light)';}
+  // Update mark section button
   const btn=document.getElementById('order-opmark-'+opKey);
-  if(btn){btn.textContent=isOrdered?'&#10003; Ordered':'Mark ordered';btn.style.background=isOrdered?'var(--b1)':'';btn.style.borderColor=isOrdered?'var(--b4)':'';btn.style.color=isOrdered?'var(--b7)':'';}
+  if(btn){
+    btn.innerHTML=isOrdered?'&#10003; Ordered':'Mark ordered';
+    btn.style.background=isOrdered?'var(--b1)':'var(--surface)';
+    btn.style.borderColor=isOrdered?'var(--b4)':'var(--border)';
+    btn.style.color=isOrdered?'var(--b7)':'var(--text-muted)';
+  }
+  // Update mark section meta
+  const markMeta=document.getElementById('order-mark-meta-'+opKey);
+  if(markMeta)markMeta.style.color=isOrdered?'var(--b6)':'var(--text-faint)';
+  // Update card meta
   const meta=document.getElementById('order-opmeta-'+opKey);
   if(meta){meta.style.color=isOrdered?'var(--b6)':'var(--text-faint)';}
   document.querySelectorAll('#order-opbody-'+opKey+' .order-oprow').forEach(function(r){
