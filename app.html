@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-11 00:30:00 -->
+<!-- CACHE BUST: 2026-04-11 01:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -2016,9 +2016,17 @@ if('serviceWorker' in navigator){
   <div style="max-width:960px;margin:0 auto;padding:0 12px;">
 
     <!-- Operator payouts results -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0 2px;cursor:pointer;user-select:none;" onclick="togglePayoutsSection()" id="payouts-section-hdr">
+      <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.7px;color:var(--b7);">Operator Payouts</div>
+      <span style="font-size:11px;color:var(--text-faint);" id="payouts-section-chev">&#9660;</span>
+    </div>
     <div id="payouts-body"></div>
 
-    <!-- Hourly results (no longer needs its own header card — moved to sticky top) -->
+    <!-- Hourly results -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0 2px;cursor:pointer;user-select:none;" onclick="toggleHourlySection()" id="hourly-section-hdr">
+      <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.7px;color:var(--g6);">Hourly Employees</div>
+      <span style="font-size:11px;color:var(--text-faint);" id="hourly-section-chev">&#9660;</span>
+    </div>
     <div id="hourly-payout-section">
       <div id="unified-hourly-body"></div>
     </div>
@@ -2082,10 +2090,14 @@ if('serviceWorker' in navigator){
   <!-- PAYMENT REGISTER -->
   <div style="background:var(--bg);">
   <div style="max-width:960px;margin:0 auto;width:100%;padding:0 12px 20px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0 6px;flex-shrink:0;">
-      <span class="section-label" style="margin:0;">Payment Register</span>
-      <button class="btn btn-primary" onclick="openPregSheet()" style="font-size:12px;padding:4px 12px;">+ Add Payment</button>
+    <div class="cc-section-header" onclick="togglePaymentRegister()" style="cursor:pointer;">
+      <span class="cc-section-title">Payment Register</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button class="btn btn-primary" onclick="event.stopPropagation();openPregSheet()" style="font-size:12px;padding:4px 12px;">+ Add Payment</button>
+        <span class="cc-chevron open" id="preg-chevron">&#9660;</span>
+      </div>
     </div>
+    <div id="preg-body" style="display:block;">
     <div class="card" style="margin-bottom:0;">
       <!-- Filter chips -->
       <div style="flex-shrink:0;">
@@ -2117,6 +2129,8 @@ if('serviceWorker' in navigator){
         <button onclick="clearPregFilter()" id="preg-clear-filter-btn" style="display:none;font-size:11px;font-weight:600;color:var(--r5);background:none;border:none;cursor:pointer;">Clear filter</button>
       </div>
     </div>
+  </div><!-- /preg-inner-card -->
+  </div><!-- /preg-body -->
   </div>
   </div><!-- /register -->
 
@@ -2142,6 +2156,7 @@ if('serviceWorker' in navigator){
           <div class="cc-fchip" onclick="setCCFilter('purchases',this)">Purchases</div>
           <div class="cc-fchip" onclick="setCCFilter('payments',this)">Payments</div>
           <span class="cc-sort-label">Sort:</span>
+          <button class="btn btn-primary" onclick="openCCModal()" id="cc-add-btn" style="font-size:12px;padding:4px 12px;display:none;margin-left:auto;flex-shrink:0;">+ Add Entry</button>
           <select class="cc-sort-sel" id="cc-sort-sel" onchange="setCCSort(this.value)">
             <option value="date_desc">Date ↓ (newest)</option>
             <option value="date_asc">Date ↑ (oldest)</option>
@@ -2158,7 +2173,7 @@ if('serviceWorker' in navigator){
         <!-- Footer -->
         <div class="cc-footer-bar">
           <span class="cc-footer-total" id="cc-footer-total"></span>
-          <button class="btn btn-primary" onclick="openCCModal()" style="font-size:12px;padding:4px 12px;" id="cc-add-btn" style="display:none;">+ Add Entry</button>
+
         </div>
       </div>
     </div>
@@ -10088,7 +10103,21 @@ function renderPayouts(){
     </div>`;
   }
 
-  // Build operator cards identical to hourly layout
+  // Build operator cards
+  // Fix 4: compute "This Week" per-operator totals for running balance when viewing past weeks
+  const twRange = getSunWeekRange(0);
+  const twDays = ALL_DAYS.filter(function(d){return d.date>=twRange.from&&d.date<=twRange.to;});
+  const twByOp = {};
+  twDays.forEach(function(d){
+    var data=d.data||{};
+    var ops=[data.op1,data.op2,data.op3,data.op4].filter(Boolean);
+    if(!ops.length||!data.payouts)return;
+    var share=data.payouts/ops.length;
+    ops.forEach(function(op){twByOp[op]=(twByOp[op]||0)+share;});
+  });
+  // Only show running balance if selected range does NOT overlap this week
+  const showThisWeek = to < twRange.from;
+
   const members=getTeamMembers();
   const opCards=Object.entries(ot).map(function([o,total]){
     var member=members.find(function(m){return m.name===o;})||{};
@@ -10105,8 +10134,39 @@ function renderPayouts(){
         +'<div style="font-size:12px;font-weight:700;color:var(--g6);flex-shrink:0;">'+fmt$(s.amt)+'</div>'
         +'</div>';
     }).join('');
-    var safePayee = o.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    return '<div class="card" style="margin-bottom:10px;padding:12px 14px;">'
+    var safePayee = o.replace(/\\/g,'\\').replace(/'/g,"\'");
+    // Fix 5: posted indicator
+    var postKey = o+'|'+from+'|'+to;
+    var isPosted = !!_postedOps[postKey];
+    // Fix 4: this-week running balance row
+    var twAmt = twByOp[o]||0;
+    var runningTotal = total + twAmt;
+    var runningBalHtml = '';
+    if(showThisWeek){
+      runningBalHtml = '<div style="margin-top:8px;padding:8px 10px;background:var(--b0);border-radius:6px;border:1px solid var(--border-light);">'
+        +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:4px;">Running Bank Balance</div>'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">'
+        +'<span style="font-size:12px;color:var(--text-muted);">This range</span>'
+        +'<span style="font-size:12px;font-weight:600;color:var(--g6);">'+fmt$(total)+'</span>'
+        +'</div>'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'
+        +'<span style="font-size:12px;color:var(--text-muted);">+ This week so far</span>'
+        +'<span style="font-size:12px;font-weight:600;color:var(--b6);">'+fmt$(twAmt)+'</span>'
+        +'</div>'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border-light);padding-top:4px;">'
+        +'<span style="font-size:12px;font-weight:700;color:var(--text);">Est. balance</span>'
+        +'<span style="font-family:Outfit,sans-serif;font-size:15px;font-weight:800;color:var(--b7);">'+fmt$(runningTotal)+'</span>'
+        +'</div>'
+        +'</div>';
+    }
+    var amtArea = isPosted
+      ? '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">'
+          +'<div style="font-family:Outfit,sans-serif;font-size:16px;font-weight:800;color:var(--text-faint);">'+fmt$(total)+'</div>'
+          +'<div style="font-size:10px;font-weight:700;color:var(--g5);background:var(--g0);border:1px solid var(--g3);border-radius:4px;padding:1px 7px;white-space:nowrap;">&#10003; Posted</div>'
+          +'</div>'
+      : '<div style="font-family:Outfit,sans-serif;font-size:16px;font-weight:800;color:var(--g6);">'+fmt$(total)+'</div>'
+        +'<button onclick="openPayrollApproveForOne(\''+safePayee+'\','+total.toFixed(2)+',\'operator\')" style="font-size:11px;font-weight:700;padding:5px 10px;border-radius:6px;border:1.5px solid var(--g4);background:var(--g0);color:var(--g5);cursor:pointer;font-family:DM Sans,sans-serif;white-space:nowrap;">Review &amp; Post</button>';
+    return '<div class="card" style="margin-bottom:10px;padding:12px 14px;'+(isPosted?'opacity:0.7;':'')+'" id="op-card-'+o.replace(/[^a-z0-9]/gi,'_')+'">'
       +'<div style="display:flex;align-items:center;gap:10px;">'
       +'<div style="width:34px;height:34px;border-radius:50%;background:'+color+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;">'+initials+'</div>'
       +'<div style="flex:1;">'
@@ -10114,11 +10174,11 @@ function renderPayouts(){
       +'<div style="font-size:11px;color:var(--text-muted);margin-top:1px;">'+escHtml(lastPaidStr)+'</div>'
       +'</div>'
       +'<div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">'
-      +'<div style="font-family:Outfit,sans-serif;font-size:16px;font-weight:800;color:var(--g6);">'+fmt$(total)+'</div>'
-      +'<button onclick="openPayrollApproveForOne(\''+safePayee+'\','+total.toFixed(2)+',\'operator\')" style="font-size:11px;font-weight:700;padding:5px 10px;border-radius:6px;border:1.5px solid var(--g4);background:var(--g0);color:var(--g5);cursor:pointer;font-family:DM Sans,sans-serif;white-space:nowrap;">Review &amp; Post</button>'
+      +amtArea
       +(shifts.length?'<span onclick="togglePaySection(\''+shiftId+'\')" style="font-size:11px;color:var(--text-faint);cursor:pointer;" id="'+shiftId+'-chev">▶</span>':'')
       +'</div>'
       +'</div>'
+      +runningBalHtml
       +(shifts.length?'<div id="'+shiftId+'" style="display:none;border-top:1px solid var(--border-light);padding-top:4px;margin-top:10px;">'+shiftRows+'</div>':'')
       +'</div>';
   }).join('')||'<div style="font-size:12px;color:var(--text-faint);padding:8px 0;">No operators found in this range.</div>';
@@ -10295,6 +10355,9 @@ function renderHourlyPayrollInline() {
 var _payrollPending = []; // [{payee, amount, type, color}]
 var _payrollFrom = '';
 var _payrollTo   = '';
+var _postedOps = {}; // {opKey: true} — ops posted this session, keyed by 'payee|from|to'
+var _payoutsOpen = true;  // Operator payouts section open
+var _hourlyOpen  = true;  // Hourly payouts section open
 
 function openPayrollApproveModal(){
   const from = document.getElementById('payout-from')?.value;
@@ -10481,7 +10544,14 @@ async function postPayrollToRegister(){
   const{error}=await sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID);
   if(error){showToast('Post failed: '+error.message,'error');return;}
   closePayrollApproveModal();
+  // Mark each posted payee as done for this session
+  _payrollPending.forEach(function(p){
+    const key = p.payee+'|'+_payrollFrom+'|'+_payrollTo;
+    _postedOps[key] = true;
+  });
   renderPaymentRegister();
+  renderPayouts();
+  renderUnifiedPayouts();
   showToast(_payrollPending.length+' payment'+(_payrollPending.length>1?'s':'')+' posted to register','success');
 }
 
@@ -11331,6 +11401,7 @@ let _ccData = [];          // full dataset from Supabase
 let _ccFilter = 'all';     // all | products | overhead | purchases | payments
 let _ccSort   = 'date_desc';
 let _ccOpen   = false;
+let _pregOpen = true; // Payment Register open by default
 
 async function loadCCLedger() {
   // Show add button only for owner/admin
@@ -11360,6 +11431,30 @@ function updateCCHeaderBalance() {
   const bal = _ccData.reduce((s,r) => s + (parseFloat(r.amount)||0), 0);
   el.textContent = 'Balance: ' + fmt$(Math.abs(bal));
   el.style.color = bal > 0 ? 'var(--r4)' : (bal < 0 ? 'var(--g5)' : 'var(--text-faint)');
+}
+
+function togglePayoutsSection(){
+  _payoutsOpen=!_payoutsOpen;
+  var body=document.getElementById('payouts-body');
+  var chev=document.getElementById('payouts-section-chev');
+  if(body)body.style.display=_payoutsOpen?'block':'none';
+  if(chev)chev.style.transform=_payoutsOpen?'':'rotate(-90deg)';
+}
+
+function toggleHourlySection(){
+  _hourlyOpen=!_hourlyOpen;
+  var body=document.getElementById('hourly-payout-section');
+  var chev=document.getElementById('hourly-section-chev');
+  if(body)body.style.display=_hourlyOpen?'block':'none';
+  if(chev)chev.style.transform=_hourlyOpen?'':'rotate(-90deg)';
+}
+
+function togglePaymentRegister() {
+  _pregOpen = !_pregOpen;
+  const body = document.getElementById('preg-body');
+  const chev = document.getElementById('preg-chevron');
+  if (body) body.style.display = _pregOpen ? 'block' : 'none';
+  if (chev) { if (_pregOpen) chev.classList.add('open'); else chev.classList.remove('open'); }
 }
 
 function toggleCCLedger() {
@@ -11549,7 +11644,7 @@ async function saveCCEntry() {
 
   if (!date)   { showToast('Date is required','error'); return; }
   if (!desc)   { showToast('Description is required','error'); return; }
-  const amount = parseFloat(amtRaw);
+  const amount = parseFloat(amtRaw.replace(/,/g,''));
   if (isNaN(amount)) { showToast('Enter a valid amount','error'); return; }
   if (!type)   { showToast('Type is required','error'); return; }
 
