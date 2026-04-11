@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-11 12:00:00 -->
+<!-- CACHE BUST: 2026-04-11 13:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -3699,6 +3699,15 @@ function linkTeamMemberToUser(i, userId){
   if(!SETTINGS.teamMembers) SETTINGS.teamMembers = getTeamMembers();
   if(!SETTINGS.teamMembers[i]) return;
   SETTINGS.teamMembers[i].userId = userId || null;
+  buildTeamMembersUI();
+}
+
+function unlinkTeamMember(i){
+  if(!SETTINGS.teamMembers) SETTINGS.teamMembers = getTeamMembers();
+  if(!SETTINGS.teamMembers[i]) return;
+  var name = SETTINGS.teamMembers[i].name || 'this member';
+  if(!confirm('Unlink ' + name + ' from their account?\n\nThey keep location access. You can re-link them at any time.')) return;
+  SETTINGS.teamMembers[i].userId = null;
   buildTeamMembersUI();
 }
 
@@ -7522,11 +7531,11 @@ function buildTeamMembersUI() {
     return;
   }
 
-  // Sort: Owner first, then alphabetical by name
+  // Sort: Owner first, then Operators alphabetically, then Hourly alphabetically
   var sorted = members.map(function(m, i){ return {m:m, i:i}; }).sort(function(a, b){
-    var aIsOwner = a.m.role === 'Owner' ? 0 : 1;
-    var bIsOwner = b.m.role === 'Owner' ? 0 : 1;
-    if (aIsOwner !== bIsOwner) return aIsOwner - bIsOwner;
+    var roleRank = function(r){ return r==='Owner'?0:r==='Operator'?1:2; };
+    var ar = roleRank(a.m.role), br = roleRank(b.m.role);
+    if (ar !== br) return ar - br;
     return (a.m.name||'').localeCompare(b.m.name||'');
   });
 
@@ -7576,7 +7585,7 @@ function buildTeamMembersUI() {
         + '<span style="font-size:11px;color:var(--text-faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px;" title="'+escHtml(linked.email)+'">'+escHtml(linked.email)+'</span>'
         + (isLockedRole
             ? '<span style="font-size:10px;font-weight:700;background:var(--g0,#f0fdf4);color:var(--g5);border:1px solid var(--g2,#bbf7d0);border-radius:4px;padding:1px 6px;flex-shrink:0;">Owner</span>'
-            : '<button type="button" data-uid="'+m.userId+'" data-tmname="'+escHtml(m.name)+'" onclick="confirmRemoveUser(this.dataset.uid,this.dataset.tmname)" style="font-size:10px;color:var(--r5);background:none;border:none;cursor:pointer;padding:0;flex-shrink:0;" title="Remove from location">Remove</button>')
+            : '<button type="button" data-tmi="'+i+'" onclick="unlinkTeamMember(this.dataset.tmi)" style="font-size:10px;color:var(--text-faint);background:none;border:none;cursor:pointer;padding:0;flex-shrink:0;" title="Unlink account from this slot">Unlink</button>')
         + '</div>';
     } else {
       // Build options from unlinked location users + already-linked user for this slot (none)
