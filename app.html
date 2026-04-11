@@ -802,16 +802,20 @@ if('serviceWorker' in navigator){
     .preg-period-input{font-family:DM Sans,sans-serif;font-size:13px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 7px;outline:none;width:115px;text-align:center;}
 
     /* ── PAYOUT DATE RANGE PICKER ── */
-    .payout-preset-row{display:flex;gap:6px;flex-wrap:wrap;padding:10px 12px;border-bottom:1px solid var(--border-light);}
-    .payout-preset-chip{display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 16px;min-width:88px;border-radius:24px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;white-space:nowrap;transition:background 0.12s,border-color 0.12s,box-shadow 0.12s;box-shadow:0 1px 3px rgba(53,78,98,0.06);}
-    .payout-preset-chip:hover{background:var(--b1);border-color:var(--b4);box-shadow:0 2px 6px rgba(53,78,98,0.10);}
-    .payout-preset-chip.active{background:var(--b7);border-color:var(--b7);box-shadow:0 2px 8px rgba(30,58,95,0.18);}
-    .payout-preset-chip.reset-chip{min-width:44px;padding:7px 12px;}
+    .payout-preset-row{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;padding:10px 12px 10px;}
+    .payout-preset-chip{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:5px 4px;border-radius:6px;border:none;border-top:3px solid var(--border-light);background:var(--b0);cursor:pointer;transition:background 0.12s,border-top-color 0.12s;}
+    .payout-preset-chip:hover{background:var(--b1);border-top-color:var(--b4);}
+    .payout-preset-chip.active{background:var(--b1);border-top-color:var(--b6);}
+    .payout-preset-chip.reset-chip{border-top-color:var(--r3);background:#fff5f5;}
     .payout-preset-chip.reset-chip .ppc-name{color:var(--r5);}
-    .ppc-name{font-size:12px;font-weight:700;color:var(--text-muted);}
-    .ppc-range{font-size:10px;color:var(--text-faint);letter-spacing:0.1px;}
-    .payout-preset-chip.active .ppc-name{color:white;}
-    .payout-preset-chip.active .ppc-range{color:rgba(255,255,255,0.78);}
+    .ppc-name{font-size:10px;font-weight:700;color:var(--text-muted);}
+    .ppc-range{font-size:9px;color:var(--text-faint);letter-spacing:0.1px;}
+    .payout-preset-chip.active .ppc-name{color:var(--b7);}
+    .payout-preset-chip.active .ppc-range{color:var(--b6);}
+    .payout-preset-chip.hourly-chip.active{background:var(--g0);border-top-color:var(--g5);}
+    .payout-preset-chip.hourly-chip.active .ppc-name{color:var(--g6);}
+    .payout-preset-chip.hourly-chip.active .ppc-range{color:var(--g5);}
+    .payout-preset-chip.hourly-chip:hover{background:var(--g0);border-top-color:var(--g4);}
     .payout-range-bar{display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;background:var(--b0);border-bottom:1px solid var(--border-light);}
     .payout-range-bar:hover{background:var(--b1);}
     .payout-range-val{font-size:13px;font-weight:600;color:var(--text);}
@@ -1951,7 +1955,7 @@ if('serviceWorker' in navigator){
     <!-- ═══ OPERATOR PAYOUTS — collapsible (presets + results together) ═══ -->
     <div style="background:#fff;border-radius:var(--radius);border:1px solid var(--border-light);margin-bottom:10px;margin-top:10px;">
       <div onclick="togglePayoutsSection()" id="payouts-section-hdr"
-        style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;cursor:pointer;user-select:none;">
+        style="display:flex;align-items:center;justify-content:space-between;padding:15px 12px;cursor:pointer;user-select:none;">
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.7px;color:var(--b6);">Operator Payouts</div>
         <span style="font-size:11px;color:var(--text-faint);transition:transform 0.2s;" id="payouts-section-chev">&#9660;</span>
       </div>
@@ -1975,7 +1979,7 @@ if('serviceWorker' in navigator){
               <span class="payout-range-val" id="payout-range-to-lbl" style="font-size:11px;">—</span>
             </div>
             <span style="font-size:10px;color:var(--b5);flex-shrink:0;">&#9998;</span>
-            <button class="btn btn-primary" style="font-size:11px;padding:4px 10px;margin-left:4px;" onclick="event.stopPropagation();renderUnifiedPayouts();">Load</button>
+            <button class="btn btn-primary" style="font-size:11px;padding:4px 10px;margin-left:4px;" onclick="event.stopPropagation();renderUnifiedPayouts();" style="min-width:120px;">Load</button>
             <button id="gcal-payout-btn" onclick="event.stopPropagation();gcalLoadPayoutShifts();" style="display:none !important;visibility:hidden;font-size:11px;padding:4px 9px;margin-left:0;border-radius:var(--radius-sm);border:1px solid var(--b5);background:var(--b1);color:var(--b7);font-family:DM Sans,sans-serif;font-weight:700;cursor:pointer;white-space:nowrap;">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
               Shifts
@@ -1991,15 +1995,15 @@ if('serviceWorker' in navigator){
     <!-- ═══ HOURLY EMPLOYEES — collapsible (presets + results together) ═══ -->
     <div style="background:#fff;border-radius:var(--radius);border:1px solid var(--border-light);margin-bottom:10px;">
       <div onclick="toggleHourlySection()" id="hourly-section-hdr"
-        style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;cursor:pointer;user-select:none;">
+        style="display:flex;align-items:center;justify-content:space-between;padding:15px 12px;cursor:pointer;user-select:none;">
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.7px;color:var(--g6);">Hourly Employees</div>
         <span style="font-size:11px;color:var(--text-faint);transition:transform 0.2s;" id="hourly-section-chev">&#9660;</span>
       </div>
       <div id="hourly-payout-section">
         <div style="padding:0 12px 10px;border-top:1px solid var(--border-light);">
           <div class="payout-preset-row" id="hourly-preset-row" style="flex-wrap:wrap;gap:4px;padding-top:10px;">
-            <div class="payout-preset-chip" onclick="setHourlyPreset('thisweek',this)"><span class="ppc-name">This Week</span><span class="ppc-range" id="hppc-thisweek"></span></div>
-            <div class="payout-preset-chip" onclick="setHourlyPreset('lastweek',this)"><span class="ppc-name">Last Week</span><span class="ppc-range" id="hppc-lastweek"></span></div>
+            <div class="payout-preset-chip hourly-chip" onclick="setHourlyPreset('thisweek',this)"><span class="ppc-name">This Week</span><span class="ppc-range" id="hppc-thisweek"></span></div>
+            <div class="payout-preset-chip hourly-chip" onclick="setHourlyPreset('lastweek',this)"><span class="ppc-name">Last Week</span><span class="ppc-range" id="hppc-lastweek"></span></div>
             <div class="payout-preset-chip" onclick="setHourlyPreset('weekbeforelast',this)"><span class="ppc-name">Wk Before Last</span><span class="ppc-range" id="hppc-weekbeforelast"></span></div>
             <div class="payout-preset-chip" onclick="setHourlyPreset('last2weeks',this)"><span class="ppc-name">Last 2 Wks</span><span class="ppc-range" id="hppc-last2weeks"></span></div>
             <div class="payout-preset-chip" onclick="setHourlyPreset('thismonth',this)"><span class="ppc-name">This Month</span><span class="ppc-range" id="hppc-thismonth"></span></div>
@@ -2015,7 +2019,7 @@ if('serviceWorker' in navigator){
               <span class="payout-range-val" id="hourly-range-to-lbl" style="font-size:11px;">—</span>
             </div>
             <span style="font-size:10px;color:var(--b5);flex-shrink:0;">&#9998;</span>
-            <button class="btn btn-primary" style="font-size:11px;padding:4px 10px;margin-left:4px;" onclick="event.stopPropagation();renderHourlyPayrollInline();">Load</button>
+            <button class="btn btn-primary" style="font-size:11px;padding:4px 10px;margin-left:4px;" onclick="event.stopPropagation();renderHourlyPayrollInline();" style="min-width:120px;">Load</button>
           </div>
           <input type="hidden" id="hourly-payout-from"/>
           <input type="hidden" id="hourly-payout-to"/>
@@ -2049,7 +2053,7 @@ if('serviceWorker' in navigator){
   <!-- PAYMENT REGISTER -->
   <div style="max-width:960px;margin:0 auto;padding:0 12px 10px;">
     <div style="background:#fff;border-radius:var(--radius);border:1px solid var(--border-light);">
-      <div onclick="togglePaymentRegister()" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;cursor:pointer;user-select:none;">
+      <div onclick="togglePaymentRegister()" style="display:flex;align-items:center;justify-content:space-between;padding:15px 12px;cursor:pointer;user-select:none;">
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.7px;color:var(--b6);">Payment Register</div>
         <div style="display:flex;align-items:center;gap:8px;">
           <button class="btn btn-primary" onclick="event.stopPropagation();openPregSheet()" style="font-size:12px;padding:4px 12px;">+ Add Payment</button>
@@ -2125,7 +2129,7 @@ if('serviceWorker' in navigator){
   <!-- CREDIT CARD LEDGER — inside panel-payouts -->
   <div style="max-width:960px;margin:0 auto;padding:0 12px 20px;">
     <div style="background:#fff;border-radius:var(--radius);border:1px solid var(--border-light);">
-      <div onclick="toggleCCLedger()" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;cursor:pointer;user-select:none;">
+      <div onclick="toggleCCLedger()" style="display:flex;align-items:center;justify-content:space-between;padding:15px 12px;cursor:pointer;user-select:none;">
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.7px;color:var(--b6);">Credit Card Ledger</div>
         <div style="display:flex;align-items:center;gap:8px;">
           <span id="cc-header-balance" style="font-family:Outfit,sans-serif;font-size:13px;font-weight:700;color:var(--text-faint);"></span>
@@ -12898,7 +12902,7 @@ function fmtDateLbl(str) {
 }
 
 function setPayoutPreset(preset, btn) {
-  document.querySelectorAll('.payout-preset-chip').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.payout-preset-chip:not(.hourly-chip)').forEach(c => c.classList.remove('active'));
   if (btn) btn.classList.add('active');
   const today = new Date();
   let from, to;
@@ -13050,7 +13054,7 @@ function applyPayoutDates(from, to) {
 }
 
 function resetPayouts() {
-  document.querySelectorAll('.payout-preset-chip').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.payout-preset-chip:not(.hourly-chip)').forEach(c => c.classList.remove('active'));
   applyPayoutDates('', '');
   clearPayouts();
 }
@@ -13185,7 +13189,7 @@ function applyCalPicker() {
     _calPickerCallback = null;
   } else {
     applyPayoutDates(_calPickerStart, _calPickerEnd);
-    document.querySelectorAll('.payout-preset-chip').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.payout-preset-chip:not(.hourly-chip)').forEach(c => c.classList.remove('active'));
     renderPayouts();
   }
   closeCalPicker();
