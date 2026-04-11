@@ -2120,7 +2120,6 @@ if('serviceWorker' in navigator){
     </div>
   </div><!-- /preg-inner-card -->
   </div><!-- /preg-body -->
-  </div>
   </div><!-- /register -->
 
   <!-- CREDIT CARD LEDGER — inside panel-payouts -->
@@ -3750,7 +3749,7 @@ async function saveProfileAndSettings(){
     // Collect teamMembers live from DOM (names/rates/roles updated live, just collect and persist)
     SETTINGS.teamMembers = collectTeamMembersFromDOM();
     // Keep legacy operators array in sync for any server-side or admin reads
-    SETTINGS.operators = getOperatorMembers().map(function(m){ return {name:m.name,visible:m.visible!==false,isOwner:m.role==='Owner',aliases:m.aliases||'',color:m.color||null}; });
+    SETTINGS.operators = getOperatorMembers().map(function(m){ return {name:m.name,visible:m.visible!==false,isOwner:m.role==='Owner',alias:m.alias||'',color:m.color||null}; });
     // opDays are toggled live into SETTINGS.opDays directly -- no read needed here
     // Keep owner contact cache in sync with whoever is saving as owner
     SETTINGS._ownerName  = [firstName,lastName].filter(Boolean).join(' ')||dispName||SETTINGS._ownerName||'';
@@ -6134,7 +6133,10 @@ function gcalShowShiftsModal(matched,unmatched,mode){
       +'Unmatched events · assign an operator</div>';
     unmatched.forEach(function(u,i){
       var ops=getOperatorMembers();
-      var opOpts='<option value="">-- skip --</option>'+ops.map(function(o){return '<option value="'+o.name+'">'+o.name+'</option>';}).join('');
+      var opOpts='<option value="">-- skip --</option>'+ops.map(function(o){
+        var label=(o.alias&&o.alias.trim())?o.alias.trim():o.name;
+        return '<option value="'+o.name+'">'+label+'</option>';
+      }).join('');
       var dateStr=u.date?new Date(u.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})+' · ':'';
       var hrs=gcalEventHours(u.ev);
       html+='<div style="padding:8px 10px;border-radius:var(--radius-sm);background:#fef7e8;border:1px solid var(--a2);margin-bottom:6px;">'
@@ -6786,48 +6788,72 @@ function fmtVP(n){if(n===null||n===undefined||isNaN(n))return'--';return Number(
 // ── BANKING-STYLE DOLLAR INPUT ─────────────────────────────────────────────
 // Accepts natural typing: 112086 or 1120.86 both produce 1120.86
 // Digits push right-to-left past an implied decimal (2 places).
-// Attach via: initBankInput(el) or the CSS class 'bank-input' at DOMContentLoaded.
-function _bankInputKeydown(e){
-  var el=e.target;
-  // Allow: backspace, delete, tab, escape, enter, arrows, home, end
-  if([8,9,13,27,37,38,39,40,46,35,36].indexOf(e.keyCode)>-1)return;
-  // Allow Ctrl/Cmd+A/C/V/X
-  if((e.ctrlKey||e.metaKey)&&[65,67,86,88].indexOf(e.keyCode)>-1)return;
-  // Block non-digits (allow one dot for direct decimal entry)
-  if(e.key==='.'&&el.value.indexOf('.')===-1)return; // allow first dot
-  if(!/[0-9]/.test(e.key))e.preventDefault();
-}
-function _bankInputInput(e){
-  var el=e.target;
-  var raw=el.value.replace(/[^0-9.]/g,'');
-  // If user typed a dot, let them type decimal directly
-  if(raw.indexOf('.')>-1){
-    var parts=raw.split('.');
-    var intPart=parts[0].replace(/^0+/,'')||'0';
-    var decPart=(parts[1]||'').substring(0,2);
-    el.value=intPart+'.'+decPart;
-    return;
-  }
-  // Pure digits — push-from-right through implied decimal
-  var digits=raw.replace(/\D/g,'');
-  if(!digits){el.value='';return;}
-  var cents=parseInt(digits,10);
+// ── BANKING-STYLE DOLLAR INPUT ─────────────────────────────────────────────
+// Digits push right-to-left past an implied decimal (2 places).
+// Type 112086 → 1120.86. Or type 1120.86 directly — both work.
+// Uses a per-element digit buffer (_buf) so display value is never re-parsed.
+function _bankRender(el){
+  var cents=parseInt(el._buf||'0',10)||0;
   var dollars=Math.floor(cents/100);
   var pennies=cents%100;
   el.value=dollars+'.'+String(pennies).padStart(2,'0');
 }
+function _bankInputKeydown(e){
+  var el=e.target;
+  var k=e.key;
+  // Backspace — remove last digit from buffer
+  if(e.keyCode===8){
+    e.preventDefault();
+    el._buf=(el._buf||'').slice(0,-1);
+    if(!el._buf){el.value='';return;}
+    _bankRender(el);
+    // fire oninput manually so recalc triggers
+    el.dispatchEvent(new Event('input',{bubbles:true}));
+    return;
+  }
+  // Allow: tab, escape, enter, arrows, home, end, delete
+  if([9,13,27,37,38,39,40,46,35,36].indexOf(e.keyCode)>-1)return;
+  // Allow Ctrl/Cmd+A/C/V/X/Z
+  if((e.ctrlKey||e.metaKey)&&[65,67,86,88,90].indexOf(e.keyCode)>-1)return;
+  // Digit keys — add to buffer
+  if(/^[0-9]$/.test(k)){
+    e.preventDefault();
+    var buf=(el._buf||'').replace(/^0+/,'')+k;
+    // Cap at 10 digits total (max $99,999,999.99)
+    if(buf.length>10)return;
+    el._buf=buf;
+    _bankRender(el);
+    el.dispatchEvent(new Event('input',{bubbles:true}));
+    return;
+  }
+  // Block everything else (including dots — push-only mode)
+  e.preventDefault();
+}
+function _bankInputFocus(e){
+  // On focus: if field has a value, seed the buffer from it
+  var el=e.target;
+  if(el.value&&!el._buf){
+    var n=parseFloat(el.value.replace(/,/g,''));
+    if(!isNaN(n)){
+      el._buf=String(Math.round(n*100));
+    }
+  }
+}
 function _bankInputBlur(e){
   var el=e.target;
-  if(!el.value)return;
-  var n=parseFloat(el.value.replace(/,/g,''));
-  if(!isNaN(n))el.value=n.toFixed(2);
-  else el.value='';
+  if(!el._buf||!el._buf.replace(/^0+/,'')){
+    el.value='';
+    el._buf='';
+    return;
+  }
+  _bankRender(el);
 }
 function initBankInput(el){
   if(!el||el._bankInit)return;
   el._bankInit=true;
+  el._buf='';
   el.addEventListener('keydown',_bankInputKeydown);
-  el.addEventListener('input',_bankInputInput);
+  el.addEventListener('focus',_bankInputFocus);
   el.addEventListener('blur',_bankInputBlur);
 }
 function initAllBankInputs(){
@@ -7477,7 +7503,7 @@ function getTeamMembers() {
     if (!op.name) return;
     result.push({
       name: op.name,
-      aliases: op.aliases || '',
+      alias: op.alias || op.aliases || '',
       color: op.color || null,
       role: op.isOwner ? 'Owner' : 'Operator',
       hourlyRate: 0,
@@ -7488,7 +7514,7 @@ function getTeamMembers() {
     if (!emp.name) return;
     result.push({
       name: emp.name,
-      aliases: emp.aliases || '',
+      alias: emp.alias || emp.aliases || '',
       color: emp.color || null,
       role: 'Hourly',
       hourlyRate: emp.hourlyRate || 0,
@@ -7543,7 +7569,7 @@ function buildTeamMembersUI() {
       // name
       + '<input type="text" data-tmi="'+i+'" data-tmf="name" value="'+escHtml(m.name||'')+'" placeholder="Name" onchange="updateTeamMember(this)" style="flex:1.4;min-width:0;font-family:DM Sans,sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 7px;outline:none;background:var(--b0);color:var(--text);"/>'
       // alias
-      + '<input type="text" data-tmi="'+i+'" data-tmf="aliases" value="'+escHtml(m.aliases||'')+'" placeholder="Alias" onchange="updateTeamMember(this)" style="width:58px;flex-shrink:0;font-family:DM Sans,sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 5px;outline:none;background:var(--b0);color:var(--text);text-align:center;" title="Aliases e.g. MN, comma-separated"/>'
+      + '<input type="text" data-tmi="'+i+'" data-tmf="alias" value="'+escHtml(m.alias||'')+'" placeholder="Dropdown alias" onchange="updateTeamMember(this)" style="width:80px;flex-shrink:0;font-family:DM Sans,sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 5px;outline:none;background:var(--b0);color:var(--text);text-align:center;" title="Short name shown in Enter tab dropdown (e.g. MN). Full name used for payouts."/>'
       // role chooser
       + '<select data-tmi="'+i+'" onchange="changeTeamMemberRole(this)" style="flex-shrink:0;font-family:DM Sans,sans-serif;font-size:12px;padding:5px 5px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);color:var(--text);outline:none;cursor:pointer;">'
       +   '<option'+(m.role==='Owner'?' selected':'')+'>Owner</option>'
@@ -7566,7 +7592,7 @@ function buildTeamMembersUI() {
 
 function addTeamMember() {
   if (!SETTINGS.teamMembers) SETTINGS.teamMembers = getTeamMembers();
-  SETTINGS.teamMembers.push({ name: '', aliases: '', color: null, role: 'Operator', hourlyRate: 0, visible: true });
+  SETTINGS.teamMembers.push({ name: '', alias: '', color: null, role: 'Operator', hourlyRate: 0, visible: true });
   buildTeamMembersUI();
 }
 
@@ -9438,7 +9464,9 @@ function renderOrderBody(){
   // One-click assign buttons — cycle through ops on each tap
   const makeAssignBtn=(p,isOos,assigned,ops)=>{
     if(isOos)return`<button class="op-assign-btn oos-btn" disabled>OOS</button>`;
-    const label=assigned||'-- Assign --';
+    var displayName=assigned;
+    if(assigned){var _m=getTeamMembers().find(function(m){return m.name===assigned;});if(_m&&_m.alias&&_m.alias.trim())displayName=_m.alias.trim();}
+    const label=displayName||'-- Assign --';
     const col=assigned?getOpColor(assigned):null;
     const txtCol=col?opTextColor(col):'';
     const style=col?`background:${col};border-color:${col};color:${txtCol};`:'';
@@ -9597,7 +9625,8 @@ function orderAssignCategory(catSlug, btn){
     if(next){
       const col = getOpColor(next);
       const txt = opTextColor(col);
-      btn.textContent = next;
+      var _catLabel=next;var _catM=getTeamMembers().find(function(m){return m.name===next;});if(_catM&&_catM.alias&&_catM.alias.trim())_catLabel=_catM.alias.trim();
+      btn.textContent = _catLabel;
       btn.className = 'op-assign-btn assigned';
       btn.style.background = col;
       btn.style.borderColor = col;
@@ -9620,9 +9649,11 @@ function orderAssign(sku,opName,btnEl){
   } else {
     delete _orderPlanActive.assignments[sku];
   }
-  // Update button
+  // Update button — show alias if set
   if(btnEl){
-    btnEl.textContent=opName||'-- Assign --';
+    var _btnLabel=opName||'-- Assign --';
+    if(opName){var _bm=getTeamMembers().find(function(m){return m.name===opName;});if(_bm&&_bm.alias&&_bm.alias.trim())_btnLabel=_bm.alias.trim();}
+    btnEl.textContent=_btnLabel;
     btnEl.className='op-assign-btn'+(opName?' assigned':'');
     if(opName){const col=getOpColor(opName);const txtCol=opTextColor(col);btnEl.style.background=col;btnEl.style.borderColor=col;btnEl.style.color=txtCol;}
     else{btnEl.style.background='';btnEl.style.borderColor='';btnEl.style.color='';}
@@ -10475,6 +10506,29 @@ function openPayrollApproveForOne(payee, amount, type) {
     ? (document.getElementById('hourly-payout-to')?.value   || document.getElementById('payout-to')?.value)
     : document.getElementById('payout-to')?.value;
   if (!from || !to) { showToast('Load a date range first','error'); return; }
+
+  // ── Unallocated day guard (operator payouts only) ──────────────────────────
+  if (type === 'operator') {
+    const rangeDays = ALL_DAYS.filter(function(d){ return d.date >= from && d.date <= to; });
+    const unallocDays = rangeDays.filter(function(d){
+      const data = d.data || {};
+      if (data.closedDay) return false;           // closed days are fine
+      const py = data.payouts || 0;
+      if (!py) return false;                       // no payout = nothing to allocate
+      const ops = [data.op1, data.op2, data.op3, data.op4].filter(Boolean);
+      return ops.length === 0;                     // payout $ but no operators assigned
+    });
+    if (unallocDays.length) {
+      const dayLabels = unallocDays.map(function(d){
+        return new Date(d.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+      });
+      const preview = dayLabels.slice(0,5).join(', ') + (dayLabels.length > 5 ? ' +' + (dayLabels.length-5) + ' more' : '');
+      showToast('Cannot post — ' + unallocDays.length + ' day' + (unallocDays.length>1?'s have':' has') + ' unallocated payout: ' + preview, 'error', 6000);
+      return;
+    }
+  }
+  // ─────────────────────────────────────────────────────────────────────────────
+
   _payrollFrom = from;
   _payrollTo   = to;
   _payrollPending = [{ payee, amount: parseFloat(amount), type, color: getOpColor(payee) }];
@@ -14337,7 +14391,20 @@ function resetDayFields() {
   showToast('Fields cleared', 'success');
 }
 
-function resolveAlias(n){for(const m of getTeamMembers()){if(!m.name)continue;const a=(m.aliases||'').split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);if(m.name.toLowerCase()===n.toLowerCase())return m.name;if(a.includes(n.toLowerCase()))return m.name;}return n;}
+function resolveAlias(n){
+  var nl = n.toLowerCase();
+  for(var _i=0;_i<getTeamMembers().length;_i++){
+    var m=getTeamMembers()[_i];
+    if(!m.name)continue;
+    if(m.name.toLowerCase()===nl)return m.name;
+    // Check new single alias field
+    if(m.alias&&m.alias.trim().toLowerCase()===nl)return m.name;
+    // Legacy: comma-separated aliases
+    var legacyAliases=(m.aliases||'').split(',').map(function(x){return x.trim().toLowerCase();}).filter(Boolean);
+    if(legacyAliases.includes(nl))return m.name;
+  }
+  return n;
+}
 
 function buildPregChipPayeesUI() {
   const el = document.getElementById('s-preg-chip-payees');
@@ -14485,7 +14552,10 @@ function populateOperatorDropdowns(){
   if(container){
     var html = '';
     for(var i=1; i<=nRows; i++){
-      const opOpts = blank + ops.map(function(o){ return '<option value="'+escHtml(o.name)+'">'+escHtml(o.name)+'</option>'; }).join('');
+      const opOpts = blank + ops.map(function(o){
+        var label = (o.alias && o.alias.trim()) ? o.alias.trim() : o.name;
+        return '<option value="'+escHtml(o.name)+'">'+escHtml(label)+'</option>';
+      }).join('');
       html += '<div style="display:grid;grid-template-columns:1fr 90px 90px;gap:8px;padding:4px 10px;align-items:center;border-top:1px solid var(--border-light);">'
         + '<select class="field-input" id="f-op'+i+'" onchange="recalc(true)" style="margin:0;">'+opOpts+'</select>'
         + '<select id="f-op'+i+'-hrs" onchange="recalc(true)" style="font-family:DM Sans,sans-serif;font-size:13px;padding:5px 6px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--b0);color:var(--text);text-align:center;">'+hrsOpts+'</select>'
@@ -14567,7 +14637,7 @@ document.addEventListener('click',function(e){
   if(overlay&&e.target===overlay)closeLocSwitcher();
 });
 let toastTimer;
-function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(type?' '+type:'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2400);}
+function showToast(msg,type='',dur=2400){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(type?' '+type:'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),dur);}
 function recalcInvCatTop(){
   var stickyWrap=document.getElementById('inv-sticky-wrap');
   var wrapH=stickyWrap?stickyWrap.offsetHeight:110;
