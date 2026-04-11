@@ -1120,7 +1120,7 @@ if('serviceWorker' in navigator){
   <button class="tab amber"  onclick="switchTab('inv')"       id="tab-inv"       data-short="Inventory">Inventory</button>
   <button class="tab green"  onclick="switchTab('order')"     id="tab-order"     data-short="Order">Order</button>
   <div class="tab-divider" id="tab-divider-payouts"></div>
-  <button class="tab"        onclick="switchTab('payouts')"   id="tab-payouts"   data-short="Payouts">Payouts</button>
+  <button class="tab"        onclick="switchTab('payouts')"   id="tab-payouts"   data-short="Finances">Finances</button>
   <div class="tab-divider" id="tab-divider-2"></div>
   <button class="tab green"  onclick="switchTab('expansion')" id="tab-expansion" data-short="Expansion">Expansion</button>
 </div>
@@ -1949,7 +1949,7 @@ if('serviceWorker' in navigator){
   <div style="max-width:960px;margin:0 auto;padding:0 12px;">
 
     <!-- ═══ OPERATOR PAYOUTS — collapsible (presets + results together) ═══ -->
-    <div style="background:var(--bg);border-radius:var(--radius);border:1px solid var(--border-light);margin-bottom:10px;margin-top:10px;">
+    <div style="background:#fff;border-radius:var(--radius);border:1px solid var(--border-light);margin-bottom:10px;margin-top:10px;">
       <div onclick="togglePayoutsSection()" id="payouts-section-hdr"
         style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;cursor:pointer;user-select:none;">
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.7px;color:var(--b6);">Operator Payouts</div>
@@ -1989,7 +1989,7 @@ if('serviceWorker' in navigator){
     </div>
 
     <!-- ═══ HOURLY EMPLOYEES — collapsible (presets + results together) ═══ -->
-    <div style="background:var(--bg);border-radius:var(--radius);border:1px solid var(--border-light);margin-bottom:10px;">
+    <div style="background:#fff;border-radius:var(--radius);border:1px solid var(--border-light);margin-bottom:10px;">
       <div onclick="toggleHourlySection()" id="hourly-section-hdr"
         style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;cursor:pointer;user-select:none;">
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.7px;color:var(--g6);">Hourly Employees</div>
@@ -2047,17 +2047,17 @@ if('serviceWorker' in navigator){
   </div><!-- /scrolling results -->
 
   <!-- PAYMENT REGISTER -->
-  <div style="background:var(--bg);">
-  <div style="max-width:960px;margin:0 auto;width:100%;padding:0 12px 20px;">
-    <div class="cc-section-header" onclick="togglePaymentRegister()" style="cursor:pointer;">
-      <span class="cc-section-title">Payment Register</span>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <button class="btn btn-primary" onclick="event.stopPropagation();openPregSheet()" style="font-size:12px;padding:4px 12px;">+ Add Payment</button>
-        <span class="cc-chevron open" id="preg-chevron">&#9660;</span>
+  <div style="max-width:960px;margin:0 auto;padding:0 12px 10px;">
+    <div style="background:#fff;border-radius:var(--radius);border:1px solid var(--border-light);">
+      <div onclick="togglePaymentRegister()" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;cursor:pointer;user-select:none;">
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.7px;color:var(--b6);">Payment Register</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button class="btn btn-primary" onclick="event.stopPropagation();openPregSheet()" style="font-size:12px;padding:4px 12px;">+ Add Payment</button>
+          <span style="font-size:11px;color:var(--text-faint);transition:transform 0.2s;" id="preg-chevron">&#9660;</span>
+        </div>
       </div>
-    </div>
-    <div id="preg-body" style="display:block;">
-    <div class="card" style="margin-bottom:0;">
+      <div id="preg-body" style="display:none;">
+      <div style="border-top:1px solid var(--border-light);">
       <!-- Payee Lookup — embedded at top of Payment Register -->
       <div style="padding:10px 12px 10px;border-bottom:1px solid var(--border-light);">
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:8px;">Payee Lookup</div>
@@ -2117,23 +2117,23 @@ if('serviceWorker' in navigator){
         <span class="preg-footer-total" id="preg-footer-total"></span>
         <button onclick="clearPregFilter()" id="preg-clear-filter-btn" style="display:none;font-size:11px;font-weight:600;color:var(--r5);background:none;border:none;cursor:pointer;">Clear filter</button>
       </div>
+      </div>
+      </div><!-- /preg-body -->
     </div>
-  </div><!-- /preg-inner-card -->
-  </div><!-- /preg-body -->
   </div><!-- /register -->
 
   <!-- CREDIT CARD LEDGER — inside panel-payouts -->
-  <div style="background:var(--bg);">
-  <div style="max-width:960px;margin:0 auto;width:100%;padding:0 12px 28px;">
-    <div class="cc-section-header" onclick="toggleCCLedger()">
-      <span class="cc-section-title">Credit Card Ledger</span>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span id="cc-header-balance" style="font-family:Outfit,sans-serif;font-size:13px;font-weight:700;color:var(--text-faint);"></span>
-        <span class="cc-chevron" id="cc-chevron">&#9660;</span>
+  <div style="max-width:960px;margin:0 auto;padding:0 12px 20px;">
+    <div style="background:#fff;border-radius:var(--radius);border:1px solid var(--border-light);">
+      <div onclick="toggleCCLedger()" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;cursor:pointer;user-select:none;">
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.7px;color:var(--b6);">Credit Card Ledger</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span id="cc-header-balance" style="font-family:Outfit,sans-serif;font-size:13px;font-weight:700;color:var(--text-faint);"></span>
+          <span style="font-size:11px;color:var(--text-faint);transition:transform 0.2s;" id="cc-chevron">&#9660;</span>
+        </div>
       </div>
-    </div>
-    <div id="cc-ledger-body" style="display:none;">
-      <div class="card" style="margin-bottom:0;">
+      <div id="cc-ledger-body" style="display:none;">
+      <div style="border-top:1px solid var(--border-light);">
         <!-- Summary card -->
         <div class="cc-summary-card" id="cc-summary-card"></div>
         <!-- Controls: filter + sort -->
@@ -2162,9 +2162,9 @@ if('serviceWorker' in navigator){
         <div class="cc-footer-bar">
           <span class="cc-footer-total" id="cc-footer-total"></span>
         </div>
-      </div>
+        </div>
+      </div><!-- /cc-ledger-body -->
     </div>
-  </div>
   </div><!-- /cc-ledger -->
 
 </div><!-- /panel-payouts -->
@@ -11553,7 +11553,7 @@ let _ccData = [];          // full dataset from Supabase
 let _ccFilter = 'all';     // all | products | overhead | purchases | payments
 let _ccSort   = 'date_desc';
 let _ccOpen   = false;
-let _pregOpen = true; // Payment Register open by default
+let _pregOpen = false; // Payment Register collapsed by default
 
 async function loadCCLedger() {
   // Show add button only for owner/admin
@@ -11606,7 +11606,7 @@ function togglePaymentRegister() {
   const body = document.getElementById('preg-body');
   const chev = document.getElementById('preg-chevron');
   if (body) body.style.display = _pregOpen ? 'block' : 'none';
-  if (chev) { if (_pregOpen) chev.classList.add('open'); else chev.classList.remove('open'); }
+  if (chev) chev.style.transform = _pregOpen ? '' : 'rotate(-90deg)';
 }
 
 function toggleCCLedger() {
@@ -11614,7 +11614,7 @@ function toggleCCLedger() {
   const body = document.getElementById('cc-ledger-body');
   const chev = document.getElementById('cc-chevron');
   if (body) body.style.display = _ccOpen ? 'block' : 'none';
-  if (chev) { if (_ccOpen) chev.classList.add('open'); else chev.classList.remove('open'); }
+  if (chev) chev.style.transform = _ccOpen ? '' : 'rotate(-90deg)';
   if (_ccOpen) renderCCLedger();
 }
 
