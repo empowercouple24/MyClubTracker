@@ -1979,7 +1979,7 @@ if('serviceWorker' in navigator){
               <span class="payout-range-val" id="payout-range-to-lbl" style="font-size:11px;">—</span>
             </div>
             <span style="font-size:10px;color:var(--b5);flex-shrink:0;">&#9998;</span>
-            <button class="btn btn-primary" style="font-size:11px;padding:4px 10px;margin-left:4px;" onclick="event.stopPropagation();renderUnifiedPayouts();" style="min-width:120px;">Load</button>
+            <button class="btn btn-primary" style="font-size:11px;padding:4px 10px;margin-left:4px;min-width:120px;" onclick="event.stopPropagation();renderUnifiedPayouts();">Load</button>
             <button id="gcal-payout-btn" onclick="event.stopPropagation();gcalLoadPayoutShifts();" style="display:none !important;visibility:hidden;font-size:11px;padding:4px 9px;margin-left:0;border-radius:var(--radius-sm);border:1px solid var(--b5);background:var(--b1);color:var(--b7);font-family:DM Sans,sans-serif;font-weight:700;cursor:pointer;white-space:nowrap;">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
               Shifts
@@ -2019,7 +2019,7 @@ if('serviceWorker' in navigator){
               <span class="payout-range-val" id="hourly-range-to-lbl" style="font-size:11px;">—</span>
             </div>
             <span style="font-size:10px;color:var(--b5);flex-shrink:0;">&#9998;</span>
-            <button class="btn btn-primary" style="font-size:11px;padding:4px 10px;margin-left:4px;" onclick="event.stopPropagation();renderHourlyPayrollInline();" style="min-width:120px;">Load</button>
+            <button class="btn btn-primary" style="font-size:11px;padding:4px 10px;margin-left:4px;min-width:120px;" onclick="event.stopPropagation();renderHourlyPayrollInline();">Load</button>
           </div>
           <input type="hidden" id="hourly-payout-from"/>
           <input type="hidden" id="hourly-payout-to"/>
@@ -13061,7 +13061,7 @@ function resetPayouts() {
 
 function clearPayouts() {
   const el = document.getElementById('payouts-body');
-  if (el) el.innerHTML = '<div class="empty-state">Select a date range and tap Load.</div>';
+  if (el) el.innerHTML = '';
   const hEl = document.getElementById('unified-hourly-body');
   if (hEl) hEl.innerHTML = '';
   const snapWrap = document.getElementById('payout-snapshot-wrap');
