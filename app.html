@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-11 16:00:00 -->
+<!-- CACHE BUST: 2026-04-11 16:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -9397,10 +9397,61 @@ var _planNeedOverride={}; // {sku:need} — from saved plan items, overrides inv
 var _orderSkipped={}; // {sku:true} — skipped products for this session
 var _orderOrdered={}; // {opName:true} — operators marked as ordered
 
-function goToOrderTab(){
-  if(!_orderPlanActive){
-    _orderPlanActive={id:null,assignments:{},saved_at:new Date().toISOString()};
+async function goToOrderTab(){
+  if(_orderPlanActive && _orderPlanActive.id){
+    // A saved plan is loaded — ask to overwrite or save as new
+    const planName = ORDER_PLANS.find(p=>p.id===_orderPlanActive.id)?.data?.name || 'current plan';
+    const choice = window.confirm(
+      'A saved plan "'+planName+'" is loaded.\n\n'+
+      'OK = overwrite it with current inventory\n'+
+      'Cancel = save as a new plan first'
+    );
+    if(choice===true){
+      await _goToOrderSaveOverwrite(planName);
+    } else {
+      const newName = window.prompt('Name for the new saved plan:', planName+' (copy)');
+      if(newName===null) return;
+      await _goToOrderSaveAsNew(newName.trim()||planName+' (copy)');
+    }
+  } else if(_orderPlanActive && Object.keys(_orderPlanActive.assignments||{}).length > 0){
+    if(!window.confirm('You have an unsaved plan with assignments.\n\nOK = discard and start fresh\nCancel = go back')) return;
+    _goToOrderStartFresh();
+  } else {
+    _goToOrderStartFresh();
   }
+}
+
+async function _goToOrderSaveOverwrite(planName){
+  if(!_orderPlanActive||!_orderPlanActive.id) return;
+  const needItems=[];
+  PRODUCTS.forEach(p=>{const haveRaw=invHave[p[2]];if(haveRaw==null)return;const need=Math.max(0,(p[4]||0)-(haveRaw||0));if(need>=1)needItems.push({cat:p[0],sku:p[2],name:p[1],vp:p[3],par:p[4],need});});
+  const skippedArr=Object.keys(_orderSkipped).filter(s=>_orderSkipped[s]);
+  const payload={name:planName,assignments:{..._orderPlanActive.assignments},skipped:skippedArr,items:needItems.map(p=>({cat:p.cat,sku:p.sku,name:p.name,need:p.need,vp:p.vp,par:p.par,assignedTo:_orderPlanActive.assignments[p.sku]||null})),_type:'order_plan'};
+  const{error}=await sb.from('inventory').update({data:payload}).eq('id',_orderPlanActive.id);
+  if(error){showToast('Save failed: '+error.message,'error');return;}
+  const existing=ORDER_PLANS.find(p=>p.id===_orderPlanActive.id);
+  if(existing)existing.data=payload;
+  showToast('Plan overwritten ok','success');
+  _goToOrderStartFresh();
+}
+
+async function _goToOrderSaveAsNew(copyName){
+  const needItems=[];
+  PRODUCTS.forEach(p=>{const haveRaw=invHave[p[2]];if(haveRaw==null)return;const need=Math.max(0,(p[4]||0)-(haveRaw||0));if(need>=1)needItems.push({cat:p[0],sku:p[2],name:p[1],vp:p[3],par:p[4],need});});
+  const skippedArr=Object.keys(_orderSkipped).filter(s=>_orderSkipped[s]);
+  const payload={name:copyName,assignments:{..._orderPlanActive.assignments||{}},skipped:skippedArr,items:needItems.map(p=>({cat:p.cat,sku:p.sku,name:p.name,need:p.need,vp:p.vp,par:p.par,assignedTo:(_orderPlanActive.assignments||{})[p.sku]||null})),_type:'order_plan'};
+  const{data:np,error}=await sb.from('inventory').insert({location_id:LOCATION_ID,data:payload}).select().single();
+  if(error){showToast('Save failed: '+error.message,'error');return;}
+  ORDER_PLANS.unshift(np);
+  showToast('Saved "'+copyName+'" ok','success');
+  _goToOrderStartFresh();
+}
+
+function _goToOrderStartFresh(){
+  _orderPlanActive={id:null,assignments:{},saved_at:new Date().toISOString()};
+  _orderSkipped={};_orderOrdered={};_planNeedOverride={};
+  const picker=document.getElementById('order-plan-picker');
+  if(picker)picker.value='';
   switchTab('order');
 }
 
