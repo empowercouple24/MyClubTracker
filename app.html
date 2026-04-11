@@ -14839,10 +14839,24 @@ function togglePregChipPayee(name, checked) {
 
 function getPregChipPayees() {
   // Return curated list if configured, otherwise fall back to all payees
-  if (SETTINGS.pregChipPayees && SETTINGS.pregChipPayees.length > 0) {
-    return SETTINGS.pregChipPayees;
-  }
-  return getPayeeList();
+  const raw = (SETTINGS.pregChipPayees && SETTINGS.pregChipPayees.length > 0)
+    ? SETTINGS.pregChipPayees
+    : getPayeeList();
+  // Sort: Owner first, then Operator, then Hourly, then any unrecognised names last
+  // Within each group sort alphabetically
+  const roleRank = function(name) {
+    const m = (SETTINGS.teamMembers || getTeamMembers()).find(function(tm){ return tm.name === name; });
+    if (!m) return 99;
+    if (m.role === 'Owner')    return 0;
+    if (m.role === 'Operator') return 1;
+    if (m.role === 'Hourly')   return 2;
+    return 99;
+  };
+  return raw.slice().sort(function(a, b){
+    const ra = roleRank(a), rb = roleRank(b);
+    if (ra !== rb) return ra - rb;
+    return a.localeCompare(b);
+  });
 }
 
 function firstNameOnly(fullName) {
