@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-11 13:30:00 -->
+<!-- CACHE BUST: 2026-04-11 14:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -3663,9 +3663,8 @@ function getUnlinkedLocationUsers(){
   var linked = (SETTINGS.teamMembers || getTeamMembers())
     .map(function(m){ return m.userId; })
     .filter(Boolean);
-  // Exclude the current owner (they manage this, not themselves)
   return _locationUsers.filter(function(u){
-    return u.id !== CURRENT_SESSION.user.id && !linked.includes(u.id);
+    return !linked.includes(u.id);
   });
 }
 
@@ -7588,16 +7587,19 @@ function buildTeamMembersUI() {
             : '<button type="button" data-tmi="'+i+'" onclick="unlinkTeamMember(this.dataset.tmi)" style="font-size:10px;color:var(--text-faint);background:none;border:none;cursor:pointer;padding:0;flex-shrink:0;" title="Unlink account from this slot">Unlink</button>')
         + '</div>';
     } else {
-      // Build options from unlinked location users + already-linked user for this slot (none)
+      // Build options from unlinked location users
       var unlinked = getUnlinkedLocationUsers();
       var opts = '<option value="">Link to account…</option>'
         + unlinked.map(function(u){
           var uName = [u.first_name,u.last_name].filter(Boolean).join(' ') || u.display_name || u.email;
           return '<option value="'+escHtml(u.id)+'">'+escHtml(uName)+' ('+escHtml(u.email)+')</option>';
         }).join('');
-      linkedHtml = '<div style="margin-top:3px;">'
+      var notYetLabel = unlinked.length === 0
+        ? '<span style="font-size:10px;color:var(--text-faint);margin-left:2px;">Not signed up yet</span>'
+        : '';
+      linkedHtml = '<div style="margin-top:3px;display:flex;align-items:center;gap:4px;">'
         + '<select data-tmi="'+i+'" onchange="linkTeamMemberToUser(this.dataset.tmi,this.value||null);this.value=\'\';" style="font-family:DM Sans,sans-serif;font-size:11px;padding:3px 5px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--b0);color:var(--text-faint);outline:none;max-width:200px;cursor:pointer;">'+opts+'</select>'
-        + '<span style="font-size:10px;color:var(--text-faint);margin-left:5px;">Not signed up yet</span>'
+        + notYetLabel
         + '</div>';
     }
 
