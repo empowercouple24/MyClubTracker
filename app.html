@@ -9636,13 +9636,14 @@ function renderOrderBody(){
     const _cbCol=_domOp?getOpColor(_domOp):null;
     const _cbTxt=_domOp?opTextColor(_cbCol):'';
     const _cbStyle=_domOp?'background:'+_cbCol+';border-color:'+_cbCol+';color:'+_cbTxt+';':'';
-    const _cbLabel=_domOp||'Assign All';
+    const _cbLabelRaw=_domOp||'Assign All';
+    const _cbMember=_domOp?getTeamMembers().find(function(m){return m.name===_domOp;}):null;
+    const _cbLabel=(_cbMember&&_cbMember.alias&&_cbMember.alias.trim())?_cbMember.alias.trim():_cbLabelRaw;
     // Skip All button
     const allSkipped=items.every(p=>invOos[p.sku]||!!_orderSkipped[p.sku||p.name]);
     const skipAllBtn=allSkipped
-      ?'<button class="order-skip-btn skipped" onclick="orderSkipAllCategory(\''+catSlug+'\')" title="Undo skip all" style="background:var(--r0);border-color:var(--r3);color:var(--r5);">&#8617;</button>'
-      :'<button class="order-skip-btn" onclick="orderSkipAllCategory(\''+catSlug+'\')" title="Skip all in category">&#8212;</button>';
-    html+='<div class="inv-cat-header" style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span>'+cat+'</span><div style="display:flex;align-items:center;gap:6px;"><button class="op-assign-btn'+(_domOp?' assigned':'')+'" onclick="orderAssignCategory(\''+catSlug+'\',this)" style="width:auto;min-width:90px;padding:4px 12px;'+_cbStyle+'">'+_cbLabel+'</button>'+skipAllBtn+'</div></div>';
+      ?'<button class="order-skip-btn skipped" onclick="orderSkipAllCategory(\''+catSlug+'\')" title="Undo skip all" style="background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.4);color:#fff;">&#8617;</button>'
+      :'<button class="order-skip-btn" onclick="orderSkipAllCategory(\''+catSlug+'\')" title="Skip all in category" style="background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.4);color:#fff;">&#8212;</button>';
     html+='<table class="inv-table"><thead><tr><th style="text-align:left;">Product</th><th>Need<span class="th-sub">Qty</span></th><th>DV<span class="th-sub">Product</span></th><th style="text-align:left;padding-left:8px;">Assign<span class="th-sub">Operator</span></th><th>DV<span class="th-sub">Subtotal</span></th><th style="width:36px;"></th></tr></thead><tbody>';
     items.forEach(p=>{
       const isOos=!!invOos[p.sku];
