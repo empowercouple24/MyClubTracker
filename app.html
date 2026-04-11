@@ -7241,6 +7241,10 @@ async function saveDay(){
   if(IS_ADMIN_VIEW) data._adminEdit=new Date().toISOString(); // stamp when admin last edited
   data._savedAt=new Date().toISOString(); // timestamp for draft comparison
   const ex=ALL_DAYS.find(d=>d.date===date);let error;
+  // Preserve existing transfers (allocation state) — never wipe cash deposit or other confirmed allocations on re-save
+  if(ex&&ex.data&&ex.data.transfers&&Object.keys(ex.data.transfers).length){
+    data.transfers=ex.data.transfers;
+  }
   if(ex){const{error:e}=await sb.from('days').update({data}).eq('id',ex.id);error=e;if(!e)ex.data=data;}
   else{const{data:nr,error:e}=await sb.from('days').insert({location_id:LOCATION_ID,date,data}).select().single();error=e;if(!e&&nr)ALL_DAYS.unshift(nr);}
   if(error){showToast('Save failed: '+error.message,'error');return;}
