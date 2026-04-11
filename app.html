@@ -9628,8 +9628,8 @@ function renderOrderBody(){
   Object.entries(cats).forEach(([cat,items])=>{
     const catSlug=cat.replace(/[^a-z0-9]/gi,'_');
     // Category assign button: only show operator name if ALL non-OOS items assigned to same single operator
-    const assignableItems=items.filter(p=>!invOos[p.sku]&&!_orderSkipped[p.sku]);
-    const assignedOps=assignableItems.map(p=>_orderPlanActive.assignments[p.sku]).filter(Boolean);
+    const assignableItems=items.filter(p=>!invOos[p.sku]&&!_orderSkipped[p.sku||p.name]);
+    const assignedOps=assignableItems.map(p=>_orderPlanActive.assignments[p.sku||p.name]).filter(Boolean);
     const uniqueOps=[...new Set(assignedOps)];
     const allSameOp=assignableItems.length>0&&uniqueOps.length===1&&assignedOps.length===assignableItems.length;
     const _domOp=allSameOp?uniqueOps[0]:'';
@@ -9637,19 +9637,25 @@ function renderOrderBody(){
     const _cbTxt=_domOp?opTextColor(_cbCol):'';
     const _cbStyle=_domOp?'background:'+_cbCol+';border-color:'+_cbCol+';color:'+_cbTxt+';':'';
     const _cbLabel=_domOp||'Assign All';
-    html+='<div class="inv-cat-header" style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span>'+cat+'</span><button class="op-assign-btn'+(_domOp?' assigned':'')+'" onclick="orderAssignCategory(\''+catSlug+'\',this)" style="width:auto;min-width:90px;padding:4px 12px;'+_cbStyle+'">'+_cbLabel+'</button></div>';
+    // Skip All button
+    const allSkipped=items.every(p=>invOos[p.sku]||!!_orderSkipped[p.sku||p.name]);
+    const skipAllBtn=allSkipped
+      ?'<button class="order-skip-btn skipped" onclick="orderSkipAllCategory(\''+catSlug+'\')" title="Undo skip all" style="background:var(--r0);border-color:var(--r3);color:var(--r5);">&#8617;</button>'
+      :'<button class="order-skip-btn" onclick="orderSkipAllCategory(\''+catSlug+'\')" title="Skip all in category">&#8212;</button>';
+    html+='<div class="inv-cat-header" style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span>'+cat+'</span><div style="display:flex;align-items:center;gap:6px;"><button class="op-assign-btn'+(_domOp?' assigned':'')+'" onclick="orderAssignCategory(\''+catSlug+'\',this)" style="width:auto;min-width:90px;padding:4px 12px;'+_cbStyle+'">'+_cbLabel+'</button>'+skipAllBtn+'</div></div>';
     html+='<table class="inv-table"><thead><tr><th style="text-align:left;">Product</th><th>Need<span class="th-sub">Qty</span></th><th>DV<span class="th-sub">Product</span></th><th style="text-align:left;padding-left:8px;">Assign<span class="th-sub">Operator</span></th><th>DV<span class="th-sub">Subtotal</span></th><th style="width:36px;"></th></tr></thead><tbody>';
     items.forEach(p=>{
       const isOos=!!invOos[p.sku];
-      const isSkipped=!!_orderSkipped[p.sku];
-      const assigned=_orderPlanActive.assignments[p.sku]||'';
+      const _skipKey=p.sku||p.name;
+      const isSkipped=!!_orderSkipped[_skipKey];
+      const assigned=_orderPlanActive.assignments[p.sku||p.name]||'';
       const rowClass=isSkipped?'order-row-skipped':(isOos?'inv-row-oos':(assigned?'order-row-assigned':''));
       const dvSub=(!isOos&&!isSkipped&&assigned)?(p.vp||0)*p.need:null;
       const dvSubStr=dvSub!=null?fmtVP(dvSub):'--';
       const oosInfo=isOos&&invOos[p.sku].expectedDate?'<span class="oos-badge">OOS - '+new Date(invOos[p.sku].expectedDate+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})+'</span>':(isOos?'<span class="oos-badge">OOS</span>':'');
       const skipBtnHtml=isOos?'':(isSkipped
-        ?'<td><button class="order-skip-btn skipped" onclick="orderSkipToggle(\''+p.sku+'\')" title="Undo skip" style="background:var(--r0);border-color:var(--r3);color:var(--r5);">&#8617;</button></td>'
-        :'<td><button class="order-skip-btn" onclick="orderSkipToggle(\''+p.sku+'\')" title="Skip — don\'t order today">&#8212;</button></td>');
+        ?'<td><button class="order-skip-btn skipped" onclick="orderSkipToggle(\''+_skipKey+'\')" title="Undo skip" style="background:var(--r0);border-color:var(--r3);color:var(--r5);">&#8617;</button></td>'
+        :'<td><button class="order-skip-btn" onclick="orderSkipToggle(\''+_skipKey+'\')" title="Skip — don\'t order today">&#8212;</button></td>');
       const _pn=parseProdName(p.name);
       html+='<tr class="'+rowClass+'" id="order-row-'+p.sku+'"'+(isSkipped?' style="opacity:0.35;text-decoration:line-through;"':'')+'>'+
         '<td><div class="inv-name-cell" style="display:flex;align-items:center;gap:7px;"><input type="checkbox" class="oos-check" tabindex="-1" title="Mark out of stock" '+(isOos?'checked':'')+' onchange="toggleOos(\''+p.sku+'\',\''+escHtml(p.name)+'\',this)"/><div style="display:flex;flex-direction:column;overflow:hidden;min-width:0;"><div style="display:flex;align-items:baseline;gap:8px;overflow:hidden;"><span class="inv-name" style="font-weight:600;">'+_pn.main+'</span><span class="inv-sku">'+escHtml(p.sku||'')+'</span></div>'+(_pn.sub?'<span class="inv-name-sub">'+_pn.sub+'</span>':'')+'</div>'+oosInfo+'</div></td>'+
@@ -9668,7 +9674,7 @@ function renderOrderBody(){
   html+='<div style="margin-top:16px;" id="order-op-cards-wrap">';
   if(ops.length){
     ops.forEach(function(op){
-      const opItems=needItems.filter(function(p){return _orderPlanActive.assignments[p.sku]===op&&!invOos[p.sku]&&!_orderSkipped[p.sku];});
+      const opItems=needItems.filter(function(p){return _orderPlanActive.assignments[p.sku]===op&&!invOos[p.sku]&&!_orderSkipped[p.sku||p.name];});
       const opDv=opItems.reduce(function(s,p){return s+(p.vp||0)*p.need;},0);
       const isOrdered=!!_orderOrdered[op];
       const col=getOpColor(op);
@@ -9880,17 +9886,45 @@ function renderOrderSummaryCards(){
   }
 }
 
-function orderSkipToggle(sku){
-  if(_orderSkipped[sku]){
-    delete _orderSkipped[sku];
+function orderSkipToggle(skipKey){
+  if(_orderSkipped[skipKey]){
+    delete _orderSkipped[skipKey];
   } else {
-    _orderSkipped[sku]=true;
-    delete _orderPlanActive.assignments[sku];
-    const btn=document.querySelector('#order-row-'+sku+' .op-assign-btn');
+    _orderSkipped[skipKey]=true;
+    // Also clear assignment using the same key
+    delete _orderPlanActive.assignments[skipKey];
+    const btn=document.querySelector('#order-row-'+skipKey+' .op-assign-btn');
     if(btn){btn.textContent='-- Assign --';btn.className='op-assign-btn';btn.style.background='';btn.style.borderColor='';btn.style.color='';}
-    const dvCell=document.getElementById('order-dvsub-'+sku);
+    const dvCell=document.getElementById('order-dvsub-'+skipKey);
     if(dvCell)dvCell.textContent='--';
   }
+  renderOrderBody();
+}
+
+function orderSkipAllCategory(catSlug){
+  if(!_orderPlanActive) return;
+  // Collect all items in this category
+  const catItems=[];
+  PRODUCTS.forEach(function(p){
+    const slug=p[0].replace(/[^a-z0-9]/gi,'_');
+    if(slug!==catSlug) return;
+    const skipKey=p[2]||p[1];
+    const haveRaw=invHave[p[2]];
+    const need=(_planNeedOverride[p[2]]!=null)?_planNeedOverride[p[2]]:Math.max(0,(p[4]||0)-(haveRaw||0));
+    const include=(_planNeedOverride[p[2]]!=null)?need>=1:(haveRaw!=null&&need>=1);
+    if(include&&!invOos[p[2]])catItems.push(skipKey);
+  });
+  if(!catItems.length) return;
+  // If all already skipped — undo all; otherwise skip all
+  const allSkipped=catItems.every(function(k){return !!_orderSkipped[k];});
+  catItems.forEach(function(k){
+    if(allSkipped){
+      delete _orderSkipped[k];
+    } else {
+      _orderSkipped[k]=true;
+      delete _orderPlanActive.assignments[k];
+    }
+  });
   renderOrderBody();
 }
 
@@ -10024,7 +10058,7 @@ function orderRebuildOpCards(){
   });
   ops.forEach(function(op){
     const opKey=op.replace(/[^a-z0-9]/gi,'_');
-    const opItems=needItems.filter(function(p){return _orderPlanActive.assignments[p.sku]===op&&!invOos[p.sku]&&!_orderSkipped[p.sku];});
+    const opItems=needItems.filter(function(p){return _orderPlanActive.assignments[p.sku||p.name]===op&&!invOos[p.sku]&&!_orderSkipped[p.sku||p.name];});
     const opDv=opItems.reduce(function(s,p){return s+(p.vp||0)*p.need;},0);
     orderUpdateOpMeta(op);
     // Rebuild body rows
@@ -10069,7 +10103,7 @@ function orderUpdateOpMeta(op){
     const include=(_planNeedOverride[sku]!=null)?need>=1:(haveRaw!=null&&need>=1);
     if(include)needItems.push({sku,vp:p[3],need});
   });
-  const opItems=needItems.filter(function(p){return _orderPlanActive.assignments[p.sku]===op&&!invOos[p.sku]&&!_orderSkipped[p.sku];});
+  const opItems=needItems.filter(function(p){return _orderPlanActive.assignments[p.sku||p.name]===op&&!invOos[p.sku]&&!_orderSkipped[p.sku||p.name];});
   const opDv=opItems.reduce(function(s,p){return s+(p.vp||0)*p.need;},0);
   const isOrdered=!!_orderOrdered[op];
   meta.textContent=opItems.length+' items \u00b7 '+fmtVP(opDv)+' DV'+(isOrdered?' \u2014 ordered':' \u2014 tap to review');
@@ -10086,7 +10120,7 @@ function orderUpdateVolumeTracker(){
     const haveRaw=invHave[sku];
     const need=(_planNeedOverride[sku]!=null)?_planNeedOverride[sku]:Math.max(0,(p[4]||0)-(haveRaw||0));
     const include=(_planNeedOverride[sku]!=null)?need>=1:(haveRaw!=null&&need>=1);
-    if(include&&!invOos[sku]&&!_orderSkipped[sku])needItems.push({sku,vp:p[3],need});
+    if(include&&!invOos[sku]&&!_orderSkipped[sku||p[1]])needItems.push({sku,name:p[1],vp:p[3],need});
   });
   const totalDv=needItems.reduce(function(s,p){return s+(p.vp||0)*p.need;},0);
   const assignedDv=needItems.filter(function(p){return !!_orderPlanActive.assignments[p.sku];}).reduce(function(s,p){return s+(p.vp||0)*p.need;},0);
