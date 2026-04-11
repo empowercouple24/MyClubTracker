@@ -9610,11 +9610,12 @@ function renderOrderBody(){
       opCounts[assigned]++;
     }
   });
-  const totalAssigned=needItems.filter(p=>_orderPlanActive.assignments[p.sku]&&!invOos[p.sku]).length;
-  const totalOrderable=needItems.filter(p=>!invOos[p.sku]).length;
+  const totalAssigned=needItems.filter(p=>_orderPlanActive.assignments[p.sku||p.name]&&!invOos[p.sku]&&!_orderSkipped[p.sku||p.name]).length;
+  const totalOrderable=needItems.filter(p=>!invOos[p.sku]&&!_orderSkipped[p.sku||p.name]).length;
   const allAssigned=totalAssigned>=totalOrderable&&totalOrderable>0;
-  // Update header widgets
-  setText('order-total-items',needItems.length.toString());
+  // Update header widgets — Items to Order excludes skipped
+  const totalItems=needItems.filter(p=>!_orderSkipped[p.sku||p.name]).length;
+  setText('order-total-items',totalItems.toString());
   setText('order-total-assigned',totalAssigned+'/'+totalOrderable);
   const assignedNoteEl=document.getElementById('order-assigned-note');
   if(assignedNoteEl)assignedNoteEl.textContent=allAssigned?'all assigned':(totalOrderable-totalAssigned)+' remaining';
@@ -9890,11 +9891,11 @@ function renderOrderSummaryCards(){
   const opCounts={};
   ops.forEach(o=>{opTotals[o]=0;opCounts[o]=0;});
   needItems.forEach(p=>{
-    const assigned=_orderPlanActive.assignments[p.sku];
-    if(assigned&&opTotals[assigned]!==undefined&&!invOos[p.sku]){opTotals[assigned]+=(p.vp||0)*p.need;opCounts[assigned]++;}
+    const assigned=_orderPlanActive.assignments[p.sku||p.name];
+    if(assigned&&opTotals[assigned]!==undefined&&!invOos[p.sku]&&!_orderSkipped[p.sku||p.name]){opTotals[assigned]+=(p.vp||0)*p.need;opCounts[assigned]++;}
   });
-  const totalOrderable=needItems.filter(p=>!invOos[p.sku]).length;
-  const totalAssigned=needItems.filter(p=>_orderPlanActive.assignments[p.sku]&&!invOos[p.sku]).length;
+  const totalOrderable=needItems.filter(p=>!invOos[p.sku]&&!_orderSkipped[p.sku||p.name]).length;
+  const totalAssigned=needItems.filter(p=>_orderPlanActive.assignments[p.sku||p.name]&&!invOos[p.sku]&&!_orderSkipped[p.sku||p.name]).length;
   // Update chip values in place
   ops.forEach((o,i)=>{
     const dvEl=document.getElementById('order-chip-dv-'+i);
