@@ -1,5 +1,5 @@
 # MyClubTracker — Session Summary
-**Last updated:** April 11, 2026 (overnight session continued)
+**Last updated:** April 11, 2026 (overnight session)
 **Continue in a new conversation — upload this file to GitHub repo root and paste at session start**
 
 ---
@@ -38,7 +38,7 @@ At the end of every working session, Claude must:
 
 ## Active Files (repo root)
 | File | Purpose |
-|------|---------|
+|------|---------| 
 | `app.html` | Main club app — all owner/operator functionality |
 | `index.html` | Login / Register / Request to Join |
 | `admin.html` | Super-admin dashboard |
@@ -53,6 +53,9 @@ At the end of every working session, Claude must:
 | `oauth-callback.html` | Google OAuth redirect handler |
 | `manifest.json` | PWA manifest (icons `?v=2` cache-busted) |
 | `sw.js` | Service worker |
+| `favicon.ico` | Favicon — green bolt (rebuilt this session) |
+| `icon-16.png` | 16×16 bolt favicon PNG |
+| `icon-32.png` | 32×32 bolt favicon PNG |
 | `icon-72.png` through `icon-512.png` | PWA icons — green bolt, all 9 sizes |
 | `SESSION_SUMMARY.md` | This file — always keep at repo root |
 
@@ -67,8 +70,8 @@ At the end of every working session, Claude must:
 | Mary Nemecek | Owner, Empower | `9097fb68-963e-492e-93c2-52adea57c6b8` |
 | Mike Cripe | Org leader | `25ce3db4-dc58-4648-bf23-cc5b677ab70a` |
 
-- **Jeffrey's admin account** (`empowercouple24@gmail.com`) is detached from Empower (`location_id = NULL`, `role = admin`). Accesses clubs via admin drill-in only.
-- **Mary** (`bestlifeever247@gmail.com`) is the Empower owner — `role = owner`, `location_id = b021a4c4-8ba3-43fa-8e78-d87c870c9e05`
+- **Testing is done as Mary** (`bestlifeever247@gmail.com`) at owner level — not as Jeffrey admin
+- **Jeffrey's admin account** (`empowercouple24@gmail.com`) is detached from Empower
 - **Private email** (`empowercouple24@gmail.com`) must never appear in app-facing code
 - **Public contact:** `support@myclubtracker.com`
 - **MN and JG** are the two primary Empower operators
@@ -93,141 +96,89 @@ At the end of every working session, Claude must:
 ## Tab Order by Role (app.html)
 - **Owner/Admin:** Enter → History → *(divider)* → Inventory → Order → *(divider)* → Payouts → *(divider)* → Expansion
 - **Operator:** Inventory → Order → Enter → History → Expansion *(Payouts hidden, lands on Inventory at login)*
-- Operator tab reorder done at runtime via JS `appendChild` — HTML source stays in owner order
-- Nav logo tap: operators → Inventory, owners → Enter
 
 ---
 
-## Logo & Branding
-- **Nav logo:** Green bolt SVG inline, `viewBox="0 0 52 80"`, 36×36px white tile, 8px border radius
-- **PWA icons:** All 9 sizes (72–512px), green bolt, white bg, 18% safe-zone padding
-- **manifest.json:** All icon `src` paths have `?v=2` cache-bust. Future updates: bump to `?v=3`
+## Pending To-Dos
+1. Location comparison filtered by org
+2. End-to-end onboarding testing with clean email
+3. Mobile-friendly improvements sitewide
+4. Co-owners (low priority)
+5. Test partial product update approval flow end-to-end
 
 ---
 
-## Product System
+## Completed This Session (April 11, 2026)
 
-### DEFAULT_PRODUCTS
-- Hardcoded array in both `app.html` and `products.html`
-- 19 categories (in order): PDM, F1, Tea, Aloe, Liftoff, Add-Ins, Coffee, 24 Line, Health, Drink Mixes 4.4 oz, Drink Mixes 2 lb, Creamy Mixes, Extras, Tea Kits, Drink Mix Packets, Retail, Tablets, Other, Gram Zero Drink Mixes
-- **Gram Zero Drink Mixes** is explicitly last — appended via `DEFAULT_PRODUCTS.push(..._GRAM_ZERO)`
-- **Creamy Mixes** — all 7 products: VP = 23.57, PAR = 1
-- To revert a location: `UPDATE locations SET settings = settings - 'customProducts' WHERE id = '...';`
+### Club Team Section (Settings → Profile)
+- ✅ **Unified Club Team section** — merged "Club Team" config list and "Team Members" Supabase list into one card-style section
+- ✅ **Card layout** — each member: 44px avatar (photo if linked, else initials) · color dot · name/alias inputs · linked email or "Link to account" dropdown · role dropdown · active/inactive or hourly rate · unlink button
+- ✅ **userId linking** — `SETTINGS.teamMembers` entries now carry `userId` field; owner links slots to Supabase accounts via dropdown; unlink button (non-destructive, keeps location access)
+- ✅ **Sort order** — Owner → Operators A–Z → Hourly A–Z
+- ✅ **`getUnlinkedLocationUsers`** — no longer excludes current user (Mary can link herself to her own slot)
+- ✅ **Unlink replaces Remove** — "Unlink" button clears userId only; destructive remove is no longer on cards
+- ✅ **"Not signed up yet"** label only shows when dropdown is empty
 
-### Recent Product Changes
-- **CR7** (24 Line): SKU `416K`
-- **Drink Mix - Strawberry (30 pkt)**: SKU `363K`, VP `9.30`, PAR `2`
-- **Gram Zero Drink Mixes** moved to last category
+### Order Tab — Major Fixes
+- ✅ **Loaded plan volume tracker** — `loadOrderPlan` now calls `renderOrderSummaryCards()` and `orderUpdateVolumeTracker()` immediately after render
+- ✅ **DV Need showing PAR** — `renderOrderSummaryCards`, `orderUpdateVolumeTracker`, `orderRebuildOpCards`, `orderUpdateOpMeta` all use `_planNeedOverride` first
+- ✅ **Operator card DV** — `orderRebuildOpCards` and `orderUpdateOpMeta` now use `_planNeedOverride`
+- ✅ **Save plan prompt reworked** — same name = overwrite confirm; different name = auto save as new (no extra prompt)
+- ✅ **Assign All button alias** — category header Assign All now shows operator alias on load (not full name)
+- ✅ **Unsaved changes warning** — `_orderDirty` flag tracks changes to a saved plan; switching to a different plan prompts "You have unsaved changes"
+- ✅ **Go to Order flow** — if saved plan loaded: prompt sends user to Order tab to save first; if unsaved plan with assignments: confirm discard
+- ✅ **Unload button** clears operator chips, header widgets, and mark-as-ordered section
+- ✅ **Category header restored** — was accidentally dropped; category name + Assign All + Skip All buttons all back
+- ✅ **Skip All button** — white `—` button per category header; toggles all/none skipped for that category
+- ✅ **Gram Zero skip bug** — all Gram Zero products had empty SKU `""` causing shared skip key; fixed with `sku||name` key throughout
+- ✅ **Skipped items excluded from counts** — Items to Order, Assigned X/Y, Unassigned chip, operator chip counts all exclude skipped rows
 
-### Product Push Flow
-- Admin edits global list → Save → push modal → inserts `product_updates` rows per location
-- Owner logs in → `checkPendingProductUpdates()` fires → approval modal
-- **Partial approve** now supported; **"Skip for now"** stays pending
-- **Pending Updates badge** in Settings → Products
-
----
-
-## Order Tab — Full Feature State
-
-### Sticky Header Layout (top → bottom)
-1. **Order Planning card** — `inv-header` block containing:
-   - Title: "Order Planning"
-   - Data widgets (4 across): Total DV Need | Orderable DV | Items to Order | Assigned (X/Y)
-   - **Operator DV summary chips** (`order-summary-card-wrap`) — colored chips per operator showing their assigned DV and product count; Unassigned chip when items remain
-2. **Volume tracker** (`order-vol-tracker`) — remaining DV + assigned/ordered progress bars; shown only when plan active
-3. **Toolbar** — plan picker dropdown | Save Plan | Rename | Delete | + New Plan | Unload
-
-### Toolbar
-- **Save Plan (unsaved):** prompts name → inserts new record
-- **Save Plan (already saved):** confirm — OK = overwrite, Cancel = save as new copy with new name
-- **Rename:** renames in place only
-
-### Saved Plan Data Structure (`inventory` table, `data._type='order_plan'`)
-- `name`, `assignments` `{sku:opName}`, `skipped` `[sku,...]`
-- `items` `[{cat,sku,name,need,vp,par,assignedTo}]` — full snapshot; `need` and `par` both required for accurate DV restore
-
-### Loading a Saved Plan — _planNeedOverride
-- `loadOrderPlan` populates `_planNeedOverride={sku:need}` directly from `plan.data.items`
-- `renderOrderBody` checks `_planNeedOverride[sku]` first — if present, uses it verbatim instead of recomputing `par - invHave`
-- This fixes the DV-shows-PAR bug: old plans without `par` field had `have` reconstruct to 0, making `need = par` (full PAR quantity). Now need is always taken directly from the saved value.
-- `_planNeedOverride` cleared on: new plan, unload, start new plan
-
-### Operator Summary Chips (top of page)
-- Live-updated via `renderOrderSummaryCards()` on every assignment change
-- Shows per-operator: name, DV total (VP × need, not VP × PAR), product count
-- Unassigned chip shows remaining item count
-- Chips use operator color with `cc` alpha overlay
-
-### Operator Detail Cards (bottom of product list)
-- Collapsible per-card via `orderToggleOpCard` — uses `max-height:2000px`
-- Shows Product / SKU / Need / DV columns
-- Mark ordered button; inline row edit (reassign/skip)
-- "Operator Summary" section label removed (chips at top serve that role)
-
-### Skip Product
-- `—` button per row; `_orderSkipped` persisted via `skipped[]` array in saved plan
-
-### Volume Tracker
-- Remaining/assigned/ordered DV with dual progress bars; updates live
-
-### Order Table Column Widths
-- Product (auto) | Need 72px | DV 76px | Assign 150px | DV Subtotal 76px | Skip 36px
-
-### State Variables
-- `_orderPlanActive` — `{id, assignments:{sku:opName}, saved_at}`
-- `_orderSkipped` — `{sku:true}` — persisted in saved plan
-- `_orderOrdered` — `{opName:true}` — session-only
-- `_planNeedOverride` — `{sku:need}` — from loaded plan, cleared on unload/new plan
-- `ORDER_PLANS` — array of plan rows from DB
-
----
-
-## Payouts Tab — Full Feature State
-
-### Section Structure (top → bottom)
-1. **Sticky top:** Operator preset chips + date range | Hourly preset chips + date range
-2. **Operator Payouts** — collapsible (`togglePayoutsSection`, `_payoutsOpen=true`)
-3. **Hourly Employees** — collapsible (`toggleHourlySection`, `_hourlyOpen=true`)
-4. Snapshot save / saved snapshots
-5. Payee Lookup
-6. **Payment Register** — collapsible (`togglePaymentRegister`, `_pregOpen=true`)
-7. **Credit Card Ledger** — collapsible (`toggleCCLedger`, `_ccOpen=false`)
-
-### Operator Cards — per-card features
-- **Posted indicator:** After Review & Post, card dims to 0.7 opacity; amount grey; "✓ Posted" badge. State in `_postedOps {'payee|from|to': true}`, session-only.
-- **Running Bank Balance:** When `to < thisWeekSunday`, shows "This range + This week so far = Est. balance" per operator.
+### Order Tab — Mark as Ordered (redesigned)
+- ✅ **Moved above toolbar** — "Mark as Ordered" section now sits between vol tracker and toolbar (non-sticky)
+- ✅ **Gated** — only operators with ≥1 assigned item or DV > 0 appear
+- ✅ **Expandable product list** — each operator row has ▼ chevron; tap to expand/collapse list of product name, SKU, need qty, VP, DV subtotal
+- ✅ **Product row dimming** — `.order-row-ordered` CSS (opacity 0.45) applied live when operator marked ordered; rows stay editable
+- ✅ **Mark ordered button removed from card heads** — cards now just show avatar + name + meta + chevron
 
 ### Payment Register
-- Collapsible, open by default; "+ Add Payment" in header
+- ✅ **Show more → 10 increments** — was 20; now shows 10 at a time with Reset button
+- ✅ **Payee chips colored** — each chip uses that team member's assigned color from SETTINGS
+- ✅ **Payee chip sort order** — Owner → Operator → Hourly, alphabetical within each group
 
-### Credit Card Ledger
-- "+ Add Entry" at top in controls row
-- Amount strips commas: `parseFloat(amtRaw.replace(/,/g,''))`
-- Filter: All / Products / Overhead / Purchases / Payments
-- Sort: Date ↓ / ↑ / Amount ↓ / ↑ / Description A–Z / Type
+### CC Ledger
+- ✅ **Amount paste fix** — pasting `326.61`, `1,044.55`, `$1,044.55` all work; `_buf` seeded correctly so bank input blur doesn't wipe the value
+- ✅ **Description autocomplete** — datalist suggestions from existing entries as you type
+- ✅ **Search bar** — filters ledger in real time; dropdown of up to 8 matching descriptions; click or Enter opens edit modal; arrow key navigation; ✕ clear button
 
-### State Variables (Payouts)
-- `_postedOps` — session-only posted tracking
-- `_payoutsOpen`, `_hourlyOpen`, `_pregOpen` — section collapse state (all default true)
-- `_ccOpen` — CC ledger (default false)
+### Finances / Payouts Tab
+- ✅ **Clear button removed** — standalone Clear above Daily Breakdown removed (redundant)
+- ✅ **Show more text** — CC Ledger and Payment Register both say "Show 20 more" / "Show 10 more" consistently
+
+### Enter Tab
+- ✅ **Allocation preservation on re-save** — `saveDay()` now preserves `data.transfers` from existing record; cash deposited / confirmed allocations survive entry edits
+
+### Inventory Snapshot
+- ✅ **Hourly employees in pills** — `getHourlyMembers()` now included alongside operators
+- ✅ **Initials auto-fill, read-only** — selecting a pill fills initials field and makes it read-only; clicking field directly clears chip selection and restores editability
+- ✅ **Snapshot name prefilled** — opens with "Inventory Count - [today's date]"; field focused + selected for easy overwrite
+
+### Favicon
+- ✅ **favicon.ico rebuilt** — from uploaded `MyClubTracker_Logo_Bolt.png` (1080×1080); resized to 16/32/48px and packed as ICO
+- ✅ **icon-16.png and icon-32.png** — rebuilt from same source
+- ✅ **Cache-bust strings** — `?v=3` added to all favicon `<link>` tags in app.html
 
 ---
 
-## History Tab
-- Unallocated Balance widget collapsed by default
-- DV row in daily detail modal
+## Order Tab Architecture Notes (updated)
 
----
+### Mark as Ordered Section
+- `renderOrderMarkSection()` — builds the section; called from `renderOrderBody`, `loadOrderPlan`, `orderAssign`, `unloadOrderPlan`
+- `toggleMarkSection(opKey)` — expand/collapse product list per operator row
+- `_orderDirty` — set true on any `orderAssign`, `orderSkipToggle`, `orderSkipAllCategory` when plan has a saved ID; reset on load/unload/save
 
-## Profile & Settings
-- Profile photos in Team Members list
-- Owner contact cache auto-syncs on profile save
-- Profile modal re-fetches settings fresh on open
-
----
-
-## Google Calendar Integration
-- Silent refresh via `gcal-refresh` Edge Function + `gcal_tokens` table
+### Skip Key
+- All `_orderSkipped` reads/writes use `sku || name` as key to handle Gram Zero products (empty SKU)
+- This applies in: `orderSkipToggle`, `orderSkipAllCategory`, `renderOrderBody`, `renderOrderSummaryCards`, `orderRebuildOpCards`, `orderUpdateOpMeta`, `orderUpdateVolumeTracker`
 
 ---
 
@@ -245,86 +196,13 @@ At the end of every working session, Claude must:
 - **max-height accordion: always use `2000px`, never `scrollHeight`**
 - **Amount parsing: always `parseFloat(val.replace(/,/g,''))` — never bare `parseFloat`**
 - **DV calculation: always `vp * need` (need qty from invHave or _planNeedOverride), never `vp * par`**
-
-### CSS Variables / Theme
-- Blues: `--b0`–`--b9` | Greens: `--g0`–`--g6` | Reds: `--r3`–`--r5` | Ambers: `--a0`–`--a6`
-
----
-
-## Supabase Edge Functions (all JWT verification OFF)
-| Function | Purpose |
-|----------|---------| 
-| `send-org-invite` | Send org leader invite email |
-| `complete-onboarding` | Complete org onboarding |
-| `gcal-exchange` | OAuth code → tokens |
-| `gcal-refresh` | Silent access token renewal |
-
----
-
-## Database Schema
-```
-locations         — id, name, address, owner_name, owner_phone, invite_code, settings (JSON), created_at
-users             — id, email, location_id, role (admin|owner|employee), display_name, first_name, last_name, phone, avatar_url
-days              — id, location_id, date, data (JSON), created_at
-inventory         — id, location_id, data (JSON), saved_at  [also stores order plans: data._type='order_plan']
-product_updates   — id, location_id, changes (JSON), status, pushed_at, reviewed_at, created_at
-purchases         — id, location_id, date, description, amount, type, created_at
-gcal_tokens       — location_id (PK), refresh_token, updated_at
-organizations     — org table for multi-tenant SaaS
-location_requests — id, ..., status, denial_reason, created_at
-app_settings      — key (PK), value
-```
-
----
-
-## Pending To-Dos
-1. Location comparison filtered by org
-2. End-to-end onboarding testing with clean email
-3. Profile photos in owner's operator list view — code shipped, needs live testing
-4. Mobile-friendly improvements sitewide
-5. Verify all Order + Payouts tab fixes end-to-end on live site
-6. Test partial product update approval flow end-to-end
-7. Co-owners (low priority)
-
----
-
-## Completed This Session (April 11, 2026)
-
-### Order Tab
-- ✅ **Saved plan not loading** — `loadOrderPlan` restores `invHave` from saved items; items save `cat`+`par`
-- ✅ **Skip button clipping** — DV Subtotal 88→76px, skip col 28→36px
-- ✅ **Operator cards not expandable** — `max-height:2000px` replaces `scrollHeight`
-- ✅ **Skipped state not persisting** — `skipped[]` array in all save payloads; restored on load
-- ✅ **Can't save more than 1 plan** — confirm dialog: OK=overwrite, Cancel=save as new copy
-- ✅ **DV total showing PAR instead of DV Need** — root cause: old saved plans have no `par` field, so `invHave` reconstructed to 0, making `need = par`. Fix: `_planNeedOverride={sku:need}` populated from `plan.data.items` on load; `renderOrderBody` uses this directly instead of recomputing.
-- ✅ **Layout — operator chips moved to top** — now inside the Order Planning card, below the data widgets
-- ✅ **New data widgets** — "Items to Order" and "Assigned (X/Y)" added to planning card header (4 widgets total)
-- ✅ **Redundant "Operator Summary" label removed** from bottom of product list
-
-### Payouts Tab
-- ✅ **CC Ledger "+ Add Entry" moved to top**
-- ✅ **CC amount saves $1 instead of $1,120** — commas stripped before `parseFloat`
-- ✅ **Payment Register collapsible**
-- ✅ **Running Bank Balance** — past-week presets show "This range + This week = Est. balance"
-- ✅ **Posted indicator** — card dims + "✓ Posted" after Review & Post
-- ✅ **Operator + Hourly sections collapsible**
-
----
-
-## Key Terminology
-| Term | Meaning |
-|------|---------| 
-| DV | Daily Volume |
-| VP | Value Points |
-| PAR | Reorder threshold |
-| DVΔ | DV delta % |
-| OH | Overhead rate |
-| Operator | UI term; DB value is `employee` |
+- **onclick with dynamic string values: always use `data-*` attributes, never inline string concatenation with quotes**
 
 ---
 
 ## Critical Rules (never violate)
 - Jeffrey prefers **complete ready-to-upload files** over snippets or diffs
+- Testing is done logged in as **Mary** (`bestlifeever247@gmail.com`) — not Jeffrey admin
 - Always **repeat back the described bug** before fixing
 - Always `try/catch/finally` around `init()`
 - Never apostrophes in single-quoted JS strings
@@ -340,3 +218,15 @@ app_settings      — key (PK), value
 - **DV = VP × need qty — never VP × par**
 - When chaining file edits across a session, always build on the latest working file — never the original ZIP
 - **Always output an updated `SESSION_SUMMARY.md` at end of session**
+
+---
+
+## Key Terminology
+| Term | Meaning |
+|------|---------|
+| DV | Daily Volume |
+| VP | Value Points |
+| PAR | Reorder threshold |
+| DVΔ | DV delta % |
+| OH | Overhead rate |
+| Operator | UI term; DB value is `employee` |
