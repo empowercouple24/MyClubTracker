@@ -11150,6 +11150,7 @@ function getPayeeList() {
 }
 
 let _pregSortCol = 'date', _pregSortDir = -1; // newest first by default
+let _pregRowLimit = 20; // rows shown before "Show more"
 
 function renderPaymentRegister() {
   const el = document.getElementById('preg-list');
@@ -11219,6 +11220,9 @@ function renderPaymentRegister() {
   }
 
   const total = sorted.reduce((s,e) => s+(parseFloat(e.amount)||0), 0);
+  const visibleCount = Math.min(_pregRowLimit, sorted.length);
+  const hasMore = sorted.length > _pregRowLimit;
+  const visible = sorted.slice(0, visibleCount);
 
   const thead = `<thead><tr>
     <th ${thClick('payee')}style="min-width:110px;">Payee${sortArr('payee')}</th>
@@ -11256,7 +11260,7 @@ function renderPaymentRegister() {
     return null;
   }
 
-  const rows = sorted.map(e => {
+  const rows = visible.map(e => {
     const checkDisp = e.checkNum ? '#'+e.checkNum : (e.method&&e.method!=='check'?({venmo:'Venmo',cash:'Cash',direct_deposit:'Dir. Dep.',other:'Other'}[e.method]||e.method):'—');
     const memberColor = _resolvePayeeColor(e.payee||'');
     const rowBg = memberColor ? `background:${memberColor}18;` : '';
@@ -11272,14 +11276,20 @@ function renderPaymentRegister() {
     </tr>`;
   }).join('');
 
+  const showMoreRow = hasMore ? `<tr><td colspan="7" style="text-align:center;padding:10px 0;"><button onclick="pregShowMore()" style="font-family:DM Sans,sans-serif;font-size:12px;font-weight:700;color:var(--b6);background:var(--b0);border:1px solid var(--b3);border-radius:20px;padding:6px 20px;cursor:pointer;">Show ${sorted.length - visibleCount} more</button></td></tr>` : '';
+
+  const entryLabel = hasMore
+    ? `Showing ${visibleCount} of ${sorted.length} entries`
+    : `${sorted.length} entries`;
+
   const tfoot = `<tfoot><tr>
-    <td style="font-weight:700;color:var(--text);">${sorted.length} entries</td>
+    <td style="font-weight:700;color:var(--text);">${entryLabel}</td>
     <td class="preg-td-amt" style="font-weight:700;">${fmt$(total)}</td>
     <td colspan="5"></td>
   </tr></tfoot>`;
 
   el.innerHTML = sorted.length
-    ? `<table class="preg-tbl">${thead}<tbody>${rows}</tbody>${tfoot}</table>`
+    ? `<table class="preg-tbl">${thead}<tbody>${rows}${showMoreRow}</tbody>${tfoot}</table>`
     : '<div class="preg-empty" style="padding:24px;text-align:center;color:var(--text-faint);">No payments in this period.</div>';
 
   if (footerTotal) footerTotal.textContent = (_pregFilter!=='all') ? 'Filtered: '+sorted.length+' of '+allLog.length+' entries' : '';
@@ -11541,9 +11551,15 @@ async function deletePregEntry(id) {
   renderPaymentRegister();
 }
 
+function pregShowMore() {
+  _pregRowLimit += 20;
+  renderPaymentRegister();
+}
+
 function pregSortBy(col) {
   if (_pregSortCol === col) _pregSortDir *= -1;
   else { _pregSortCol = col; _pregSortDir = col==='date' ? -1 : 1; }
+  _pregRowLimit = 20;
   renderPaymentRegister();
 }
 
@@ -11557,6 +11573,7 @@ let _ccData = [];          // full dataset from Supabase
 let _ccFilter = 'all';     // all | products | overhead | purchases | payments
 let _ccSort   = 'date_desc';
 let _ccOpen   = false;
+let _ccRowLimit = 20;      // rows shown before "Show more"
 let _pregOpen = false; // Payment Register collapsed by default
 
 async function loadCCLedger() {
@@ -11622,8 +11639,14 @@ function toggleCCLedger() {
   if (_ccOpen) renderCCLedger();
 }
 
+function ccShowMore() {
+  _ccRowLimit += 20;
+  renderCCLedger();
+}
+
 function setCCFilter(f, btn) {
   _ccFilter = f;
+  _ccRowLimit = 20;
   document.querySelectorAll('.cc-fchip').forEach(c => c.classList.remove('active'));
   if (btn) btn.classList.add('active');
   renderCCLedger();
@@ -11631,6 +11654,7 @@ function setCCFilter(f, btn) {
 
 function setCCSort(val) {
   _ccSort = val;
+  _ccRowLimit = 20;
   renderCCLedger();
 }
 
@@ -11719,7 +11743,12 @@ function renderCCLedger() {
     <th style="width:32px;"></th>
   </tr></thead>`;
 
-  const trows = rows.map(r => {
+  const filtTotal = rows.reduce((s,r)=>s+(parseFloat(r.amount)||0),0);
+  const visibleCount = Math.min(_ccRowLimit, rows.length);
+  const hasMore = rows.length > _ccRowLimit;
+  const visible = rows.slice(0, visibleCount);
+
+  const trows = visible.map(r => {
     const amt = parseFloat(r.amount)||0;
     const isPurch = amt > 0;
     const bal = balMap[r.id] !== undefined ? balMap[r.id] : null;
@@ -11739,14 +11768,21 @@ function renderCCLedger() {
     </tr>`;
   }).join('');
 
-  const filtTotal = rows.reduce((s,r)=>s+(parseFloat(r.amount)||0),0);
+  const showMoreRow = hasMore
+    ? `<tr><td colspan="6" style="text-align:center;padding:10px 0;"><button onclick="ccShowMore()" style="font-family:DM Sans,sans-serif;font-size:12px;font-weight:700;color:var(--b6);background:var(--b0);border:1px solid var(--b3);border-radius:20px;padding:6px 20px;cursor:pointer;">Show ${rows.length - visibleCount} more</button></td></tr>`
+    : '';
+
+  const entryLabel = hasMore
+    ? `Showing ${visibleCount} of ${rows.length} entries`
+    : `${rows.length} entries`;
+
   const tfoot = `<tfoot><tr>
-    <td colspan="2" style="font-weight:700;color:var(--text);">${rows.length} entries</td>
+    <td colspan="2" style="font-weight:700;color:var(--text);">${entryLabel}</td>
     <td style="font-family:Outfit,sans-serif;font-weight:700;text-align:right;color:var(--text);">${fmtAmt(filtTotal)}</td>
     <td colspan="3"></td>
   </tr></tfoot>`;
 
-  listEl.innerHTML = `<table class="cc-tbl">${thead}<tbody>${trows}</tbody>${tfoot}</table>`;
+  listEl.innerHTML = `<table class="cc-tbl">${thead}<tbody>${trows}${showMoreRow}</tbody>${tfoot}</table>`;
   if (footEl) footEl.textContent = (_ccFilter!=='all') ? `Filtered: ${rows.length} of ${_ccData.length} entries` : '';
 }
 
@@ -13202,6 +13238,7 @@ let _pregAccountFilter = '';      // single account name ('' = all)
 
 function setPregFilter(filter, btn) {
   _pregFilter = filter;
+  _pregRowLimit = 20;
   document.querySelectorAll('.preg-fchip').forEach(c => c.classList.remove('active'));
   if (btn) btn.classList.add('active');
   updatePregClearBtn();
@@ -13211,6 +13248,7 @@ function setPregFilter(filter, btn) {
 function togglePregPayeeChip(payee) {
   if (_pregPayeeFilter.has(payee)) _pregPayeeFilter.delete(payee);
   else _pregPayeeFilter.add(payee);
+  _pregRowLimit = 20;
   updatePregClearBtn();
   renderPaymentRegister();
 }
