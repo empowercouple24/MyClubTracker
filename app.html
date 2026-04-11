@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-11 01:30:00 -->
+<!-- CACHE BUST: 2026-04-11 02:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -1891,11 +1891,14 @@ if('serviceWorker' in navigator){
         <div class="inv-dv-row">
           <div class="inv-dv-card"><div class="inv-dv-item-label">Total DV Need</div><div class="inv-dv-item-val" id="order-total-dvneed">—</div></div>
           <div class="inv-dv-card"><div class="inv-dv-item-label">Orderable DV</div><div class="inv-dv-item-val" id="order-total-orderable">—</div><div style="font-size:10px;opacity:0.7;margin-top:4px;font-weight:600;" id="order-oos-note">DV you can actually order today</div></div>
+          <div class="inv-dv-card"><div class="inv-dv-item-label">Items to Order</div><div class="inv-dv-item-val" id="order-total-items">—</div></div>
+          <div class="inv-dv-card"><div class="inv-dv-item-label">Assigned</div><div class="inv-dv-item-val" id="order-total-assigned">—</div><div style="font-size:10px;opacity:0.7;margin-top:4px;font-weight:600;" id="order-assigned-note"></div></div>
         </div>
       </div>
+      <!-- Operator DV summary chips — moved above the product list -->
+      <div id="order-summary-card-wrap" style="margin-top:4px;"></div>
     </div>
     <div style="max-width:900px;margin:0 auto;padding:6px 12px 0;">
-      <div id="order-summary-card-wrap"></div>
       <div id="order-vol-tracker" style="display:none;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:6px;display:none;">
         <div style="display:flex;align-items:center;gap:14px;">
           <div>
@@ -9205,7 +9208,8 @@ async function deleteSnap(snapId){
 
 // ── ORDER TAB ──
 var ORDER_PLANS=[];
-var _orderPlanActive=null; // {id, name, assignments:{sku:opName}, saved_at} — working plan in memory
+var _orderPlanActive=null;
+var _planNeedOverride={}; // {sku:need} — from saved plan items, overrides invHave-computed need // {id, name, assignments:{sku:opName}, saved_at} — working plan in memory
 var _orderSkipped={}; // {sku:true} — skipped products for this session
 var _orderOrdered={}; // {opName:true} — operators marked as ordered
 
@@ -9256,7 +9260,7 @@ function startNewOrderPlan(){
     if(!confirm('Starting a new plan will clear your ' + existingCount + ' current assignment' + (existingCount!==1?'s':'') + '. Continue?')) return;
   }
   _orderPlanActive={id:null,assignments:{},saved_at:new Date().toISOString()};
-  _orderSkipped={};_orderOrdered={};
+  _orderSkipped={};_orderOrdered={};_planNeedOverride={};
   const picker=document.getElementById('order-plan-picker');
   if(picker)picker.value='';
   const renameBtn=document.getElementById('order-rename-btn');
@@ -9270,7 +9274,7 @@ function startNewOrderPlan(){
 }
 
 function unloadOrderPlan(){
-  _orderPlanActive=null;_orderSkipped={};_orderOrdered={};
+  _orderPlanActive=null;_orderSkipped={};_orderOrdered={};_planNeedOverride={};
   const picker=document.getElementById('order-plan-picker');
   if(picker)picker.value='';
   const unloadBtn=document.getElementById('order-unload-btn');
@@ -9302,16 +9306,18 @@ function loadOrderPlan(id){
   // Restore skipped state from saved plan
   const savedSkipped=plan.data?.skipped||[];
   savedSkipped.forEach(function(sku){_orderSkipped[sku]=true;});
-  // Restore invHave from saved plan items so renderOrderBody can build the need list
-  // even when no inventory snapshot is currently loaded
+  // Restore need quantities and invHave from saved plan items
+  _planNeedOverride={};
   const savedItems=plan.data?.items||[];
   if(savedItems.length){
     savedItems.forEach(function(item){
       if(item.sku==null)return;
-      const have=(item.par||0)-(item.need||0);
-      // Only restore if this sku isn't already entered in the current session
+      // Always store exact saved need — used directly in renderOrderBody
+      _planNeedOverride[item.sku]=item.need||0;
+      // Also restore invHave so inventory tab isn't blank (use par-need when par known)
       if(invHave[item.sku]==null){
-        invHave[item.sku]=Math.max(0,have);
+        const have=item.par!=null?(item.par-(item.need||0)):null;
+        if(have!=null)invHave[item.sku]=Math.max(0,have);
       }
     });
   }
@@ -9324,20 +9330,26 @@ function loadOrderPlan(id){
 
 function renderOrderBody(){
   if(!_orderPlanActive)return;
-  // Build need list: only products with Need >= 1 (have entered and have < par)
+  // Build need list: only products with Need >= 1
+  // Use _planNeedOverride (from loaded plan) when present — guarantees correct need qty
+  // regardless of whether invHave was reconstructed accurately from old saved plans
   const needItems=[];
   PRODUCTS.forEach(p=>{
-    const haveRaw=invHave[p[2]];
+    const sku=p[2];
+    const haveRaw=invHave[sku];
     const haveEntered=haveRaw!=null;
     const have=haveRaw||0;
-    const need=Math.max(0,(p[4]||0)-have);
-    if(haveEntered&&need>=1){
-      needItems.push({cat:p[0],name:p[1],sku:p[2],vp:p[3],par:p[4],need,have});
+    // If plan was loaded and has a saved need for this sku, use it directly
+    const need=(_planNeedOverride[sku]!=null)?_planNeedOverride[sku]:Math.max(0,(p[4]||0)-have);
+    const include=(_planNeedOverride[sku]!=null)?need>=1:(haveEntered&&need>=1);
+    if(include){
+      needItems.push({cat:p[0],name:p[1],sku,vp:p[3],par:p[4],need,have});
     }
   });
   if(!needItems.length){
     document.getElementById('order-body').innerHTML='<div class="empty-state">No confirmed needs yet -- enter Have quantities on the Inventory tab first, then come back here.</div>';
     setText('order-total-dvneed','--');setText('order-total-orderable','--');setText('order-oos-note','');
+    setText('order-total-items','--');setText('order-total-assigned','--');
     return;
   }
   // Totals
@@ -9365,6 +9377,11 @@ function renderOrderBody(){
   const totalAssigned=needItems.filter(p=>_orderPlanActive.assignments[p.sku]&&!invOos[p.sku]).length;
   const totalOrderable=needItems.filter(p=>!invOos[p.sku]).length;
   const allAssigned=totalAssigned>=totalOrderable&&totalOrderable>0;
+  // Update header widgets
+  setText('order-total-items',needItems.length.toString());
+  setText('order-total-assigned',totalAssigned+'/'+totalOrderable);
+  const assignedNoteEl=document.getElementById('order-assigned-note');
+  if(assignedNoteEl)assignedNoteEl.textContent=allAssigned?'all assigned':(totalOrderable-totalAssigned)+' remaining';
   // Build operator chips in summary card
   let chipHtml='<div class="order-summary-card" id="order-summary-card">';
   ops.forEach((o,i)=>{
@@ -9438,7 +9455,6 @@ function renderOrderBody(){
   // Operator summary cards
   html+='<div style="margin-top:16px;" id="order-op-cards-wrap">';
   if(ops.length){
-    html+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:6px;padding:0 2px;">Operator Summary</div>';
     ops.forEach(function(op){
       const opItems=needItems.filter(function(p){return _orderPlanActive.assignments[p.sku]===op&&!invOos[p.sku]&&!_orderSkipped[p.sku];});
       const opDv=opItems.reduce(function(s,p){return s+(p.vp||0)*p.need;},0);

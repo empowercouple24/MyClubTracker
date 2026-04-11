@@ -67,7 +67,7 @@ At the end of every working session, Claude must:
 | Mary Nemecek | Owner, Empower | `9097fb68-963e-492e-93c2-52adea57c6b8` |
 | Mike Cripe | Org leader | `25ce3db4-dc58-4648-bf23-cc5b677ab70a` |
 
-- **Jeffrey's admin account** (`empowercouple24@gmail.com`) is detached from Empower (`location_id = NULL`, `role = admin`). He accesses clubs via admin drill-in only.
+- **Jeffrey's admin account** (`empowercouple24@gmail.com`) is detached from Empower (`location_id = NULL`, `role = admin`). Accesses clubs via admin drill-in only.
 - **Mary** (`bestlifeever247@gmail.com`) is the Empower owner — `role = owner`, `location_id = b021a4c4-8ba3-43fa-8e78-d87c870c9e05`
 - **Private email** (`empowercouple24@gmail.com`) must never appear in app-facing code
 - **Public contact:** `support@myclubtracker.com`
@@ -125,35 +125,60 @@ At the end of every working session, Claude must:
 - **Partial approve** now supported; **"Skip for now"** stays pending
 - **Pending Updates badge** in Settings → Products
 
-### products.html — Global Mode
-- `?mode=global` always loads fresh from `DEFAULT_PRODUCTS`
-- **Sort headers** on Name and SKU — visual only until Save; no push prompt on sort-only saves
-
 ---
 
 ## Order Tab — Full Feature State
 
+### Sticky Header Layout (top → bottom)
+1. **Order Planning card** — `inv-header` block containing:
+   - Title: "Order Planning"
+   - Data widgets (4 across): Total DV Need | Orderable DV | Items to Order | Assigned (X/Y)
+   - **Operator DV summary chips** (`order-summary-card-wrap`) — colored chips per operator showing their assigned DV and product count; Unassigned chip when items remain
+2. **Volume tracker** (`order-vol-tracker`) — remaining DV + assigned/ordered progress bars; shown only when plan active
+3. **Toolbar** — plan picker dropdown | Save Plan | Rename | Delete | + New Plan | Unload
+
 ### Toolbar
-- **Load a saved plan** (dropdown) | **💾 Save Plan** | **✎ Rename** | **🗑** | **+ New Plan** | **✕ Unload**
-- **Save Plan (unsaved):** prompts for name → inserts new record
-- **Save Plan (already saved):** confirm dialog — OK = overwrite, Cancel = save as new copy
+- **Save Plan (unsaved):** prompts name → inserts new record
+- **Save Plan (already saved):** confirm — OK = overwrite, Cancel = save as new copy with new name
 - **Rename:** renames in place only
 
 ### Saved Plan Data Structure (`inventory` table, `data._type='order_plan'`)
-- `name`, `assignments` `{sku:opName}`, `skipped` `[sku,...]`, `items` `[{cat,sku,name,need,vp,par,assignedTo}]`
+- `name`, `assignments` `{sku:opName}`, `skipped` `[sku,...]`
+- `items` `[{cat,sku,name,need,vp,par,assignedTo}]` — full snapshot; `need` and `par` both required for accurate DV restore
 
-### Loading a Saved Plan
-- Restores `_orderPlanActive.assignments`, `_orderSkipped`, and `invHave` (from `par-need`)
+### Loading a Saved Plan — _planNeedOverride
+- `loadOrderPlan` populates `_planNeedOverride={sku:need}` directly from `plan.data.items`
+- `renderOrderBody` checks `_planNeedOverride[sku]` first — if present, uses it verbatim instead of recomputing `par - invHave`
+- This fixes the DV-shows-PAR bug: old plans without `par` field had `have` reconstruct to 0, making `need = par` (full PAR quantity). Now need is always taken directly from the saved value.
+- `_planNeedOverride` cleared on: new plan, unload, start new plan
 
-### Operator Summary Cards
-- Collapsed by default; expand uses `max-height:2000px` (never `scrollHeight`)
-- Mark ordered, inline row edit (reassign/skip)
+### Operator Summary Chips (top of page)
+- Live-updated via `renderOrderSummaryCards()` on every assignment change
+- Shows per-operator: name, DV total (VP × need, not VP × PAR), product count
+- Unassigned chip shows remaining item count
+- Chips use operator color with `cc` alpha overlay
+
+### Operator Detail Cards (bottom of product list)
+- Collapsible per-card via `orderToggleOpCard` — uses `max-height:2000px`
+- Shows Product / SKU / Need / DV columns
+- Mark ordered button; inline row edit (reassign/skip)
+- "Operator Summary" section label removed (chips at top serve that role)
+
+### Skip Product
+- `—` button per row; `_orderSkipped` persisted via `skipped[]` array in saved plan
 
 ### Volume Tracker
-- Remaining/assigned/ordered DV with dual progress bars
+- Remaining/assigned/ordered DV with dual progress bars; updates live
 
 ### Order Table Column Widths
 - Product (auto) | Need 72px | DV 76px | Assign 150px | DV Subtotal 76px | Skip 36px
+
+### State Variables
+- `_orderPlanActive` — `{id, assignments:{sku:opName}, saved_at}`
+- `_orderSkipped` — `{sku:true}` — persisted in saved plan
+- `_orderOrdered` — `{opName:true}` — session-only
+- `_planNeedOverride` — `{sku:need}` — from loaded plan, cleared on unload/new plan
+- `ORDER_PLANS` — array of plan rows from DB
 
 ---
 
@@ -161,42 +186,30 @@ At the end of every working session, Claude must:
 
 ### Section Structure (top → bottom)
 1. **Sticky top:** Operator preset chips + date range | Hourly preset chips + date range
-2. **Operator Payouts** — collapsible section (toggle `togglePayoutsSection()`, state `_payoutsOpen`)
-   - `<div id="payouts-body">` — rendered by `renderPayouts()`
-3. **Hourly Employees** — collapsible section (toggle `toggleHourlySection()`, state `_hourlyOpen`)
-   - `<div id="hourly-payout-section">` → `<div id="unified-hourly-body">`
+2. **Operator Payouts** — collapsible (`togglePayoutsSection`, `_payoutsOpen=true`)
+3. **Hourly Employees** — collapsible (`toggleHourlySection`, `_hourlyOpen=true`)
 4. Snapshot save / saved snapshots
 5. Payee Lookup
-6. **Payment Register** — collapsible (toggle `togglePaymentRegister()`, state `_pregOpen`, open by default)
-7. **Credit Card Ledger** — collapsible (toggle `toggleCCLedger()`, state `_ccOpen`, closed by default)
+6. **Payment Register** — collapsible (`togglePaymentRegister`, `_pregOpen=true`)
+7. **Credit Card Ledger** — collapsible (`toggleCCLedger`, `_ccOpen=false`)
 
-### Operator Payouts — per-card features
-- **Posted indicator (Fix 5):** After "Review & Post" completes, card dims to 0.7 opacity; amount turns grey; green "✓ Posted" badge replaces the button. State tracked in `_postedOps` object keyed by `'payee|from|to'`. Session-only (resets on page reload).
-- **Running Bank Balance (Fix 4):** When viewing Last Week, Wk Before Last, or Last 2 Wks (any range where `to < thisWeekSunday`), each operator card shows a breakdown: "This range + This week so far = Est. balance". Lets you know what their bank account balance should be. Uses `getSunWeekRange(0)` to compute this-week days live.
-
-### Preset chips (Operator)
-Order: `This Week` | `Last Week` | `Wk Before Last` | `Last 2 Wks` | `This Month` | `Last Month` | ✕
-
-### Preset chips (Hourly) — same order
+### Operator Cards — per-card features
+- **Posted indicator:** After Review & Post, card dims to 0.7 opacity; amount grey; "✓ Posted" badge. State in `_postedOps {'payee|from|to': true}`, session-only.
+- **Running Bank Balance:** When `to < thisWeekSunday`, shows "This range + This week so far = Est. balance" per operator.
 
 ### Payment Register
-- Now **collapsible** — clickable header with chevron, open by default
-- "+ Add Payment" button in header (stops propagation so click doesn't toggle collapse)
+- Collapsible, open by default; "+ Add Payment" in header
 
 ### Credit Card Ledger
-- Collapsible (closed by default), balance shown in header
-- **"+ Add Entry" button now at top** (in controls row alongside filter chips) — not in footer
-- **Amount field strips commas before `parseFloat`** — fixes "$1 saved instead of $1,120.96" bug
-- Filter chips: All / Products / Overhead / Purchases / Payments
-- Sort: Date ↓ / Date ↑ / Amount ↓ / Amount ↑ / Description A–Z / Type
-- 478 historical rows (July 2024 – April 2026, Empower)
+- "+ Add Entry" at top in controls row
+- Amount strips commas: `parseFloat(amtRaw.replace(/,/g,''))`
+- Filter: All / Products / Overhead / Purchases / Payments
+- Sort: Date ↓ / ↑ / Amount ↓ / ↑ / Description A–Z / Type
 
 ### State Variables (Payouts)
-- `_postedOps` — `{key:true}` keyed by `'payee|from|to'`, session-only
-- `_payoutsOpen` — operator section expanded, default `true`
-- `_hourlyOpen` — hourly section expanded, default `true`
-- `_pregOpen` — payment register expanded, default `true`
-- `_ccOpen` — CC ledger expanded, default `false`
+- `_postedOps` — session-only posted tracking
+- `_payoutsOpen`, `_hourlyOpen`, `_pregOpen` — section collapse state (all default true)
+- `_ccOpen` — CC ledger (default false)
 
 ---
 
@@ -230,7 +243,8 @@ Order: `This Week` | `Last Week` | `Wk Before Last` | `Last 2 Wks` | `This Month
 - **Never `JSON.stringify()` in inline onclick/onchange** — use `data-*` + `addEventListener`
 - `saveSettings()` does not exist — use `sb.from('locations').update({settings:SETTINGS}).eq('id',LOCATION_ID)`
 - **max-height accordion: always use `2000px`, never `scrollHeight`**
-- **CC/payout amount fields: always strip commas before `parseFloat`** — `parseFloat(val.replace(/,/g,''))`
+- **Amount parsing: always `parseFloat(val.replace(/,/g,''))` — never bare `parseFloat`**
+- **DV calculation: always `vp * need` (need qty from invHave or _planNeedOverride), never `vp * par`**
 
 ### CSS Variables / Theme
 - Blues: `--b0`–`--b9` | Greens: `--g0`–`--g6` | Reds: `--r3`–`--r5` | Ambers: `--a0`–`--a6`
@@ -254,10 +268,10 @@ users             — id, email, location_id, role (admin|owner|employee), displ
 days              — id, location_id, date, data (JSON), created_at
 inventory         — id, location_id, data (JSON), saved_at  [also stores order plans: data._type='order_plan']
 product_updates   — id, location_id, changes (JSON), status, pushed_at, reviewed_at, created_at
-purchases         — id, location_id, date, description, amount, type, created_at  ← CC Ledger
+purchases         — id, location_id, date, description, amount, type, created_at
 gcal_tokens       — location_id (PK), refresh_token, updated_at
 organizations     — org table for multi-tenant SaaS
-location_requests — id, club_name, street, city, state, zip, ..., status, denial_reason, created_at
+location_requests — id, ..., status, denial_reason, created_at
 app_settings      — key (PK), value
 ```
 
@@ -268,7 +282,7 @@ app_settings      — key (PK), value
 2. End-to-end onboarding testing with clean email
 3. Profile photos in owner's operator list view — code shipped, needs live testing
 4. Mobile-friendly improvements sitewide
-5. Verify all Order tab fixes end-to-end on live site
+5. Verify all Order + Payouts tab fixes end-to-end on live site
 6. Test partial product update approval flow end-to-end
 7. Co-owners (low priority)
 
@@ -276,21 +290,24 @@ app_settings      — key (PK), value
 
 ## Completed This Session (April 11, 2026)
 
-### Order Tab — Bug Fixes
-- ✅ **Saved plan not loading** — `loadOrderPlan` now restores `invHave` from saved items (`have=par-need`); items now save `cat`+`par`
+### Order Tab
+- ✅ **Saved plan not loading** — `loadOrderPlan` restores `invHave` from saved items; items save `cat`+`par`
 - ✅ **Skip button clipping** — DV Subtotal 88→76px, skip col 28→36px
-- ✅ **Operator cards not expandable** — `max-height:2000px` instead of `scrollHeight` (same fix in 3 places)
-- ✅ **Skipped state not persisting** — `skipped:[sku,...]` in all save payloads; restored on load
+- ✅ **Operator cards not expandable** — `max-height:2000px` replaces `scrollHeight`
+- ✅ **Skipped state not persisting** — `skipped[]` array in all save payloads; restored on load
 - ✅ **Can't save more than 1 plan** — confirm dialog: OK=overwrite, Cancel=save as new copy
-- ✅ **Rename confusion** — rename stays rename-only; branching via Save→Cancel→new name
+- ✅ **DV total showing PAR instead of DV Need** — root cause: old saved plans have no `par` field, so `invHave` reconstructed to 0, making `need = par`. Fix: `_planNeedOverride={sku:need}` populated from `plan.data.items` on load; `renderOrderBody` uses this directly instead of recomputing.
+- ✅ **Layout — operator chips moved to top** — now inside the Order Planning card, below the data widgets
+- ✅ **New data widgets** — "Items to Order" and "Assigned (X/Y)" added to planning card header (4 widgets total)
+- ✅ **Redundant "Operator Summary" label removed** from bottom of product list
 
-### Payouts Tab — New Features & Fixes
-- ✅ **CC Ledger "+ Add Entry" moved to top** — now in controls row alongside filter chips
-- ✅ **CC Ledger saves wrong amount** — `parseFloat(amtRaw.replace(/,/g,''))` strips commas first
-- ✅ **Payment Register collapsible** — clickable header with chevron, open by default; "+ Add Payment" in header
-- ✅ **Running Bank Balance** — when viewing Last Week / Wk Before Last / Last 2 Wks, each operator card shows "This range + This week so far = Est. balance" row
-- ✅ **Posted indicator** — after Review & Post, card dims, amount greys out, "✓ Posted" badge replaces button; tracked in `_postedOps` session variable
-- ✅ **Operator + Hourly sections collapsible** — each has a section header with chevron (`togglePayoutsSection`, `toggleHourlySection`), both open by default
+### Payouts Tab
+- ✅ **CC Ledger "+ Add Entry" moved to top**
+- ✅ **CC amount saves $1 instead of $1,120** — commas stripped before `parseFloat`
+- ✅ **Payment Register collapsible**
+- ✅ **Running Bank Balance** — past-week presets show "This range + This week = Est. balance"
+- ✅ **Posted indicator** — card dims + "✓ Posted" after Review & Post
+- ✅ **Operator + Hourly sections collapsible**
 
 ---
 
@@ -320,5 +337,6 @@ app_settings      — key (PK), value
 - Template literal nested quotes silently kill script blocks
 - **max-height accordion: always use `2000px`, never `scrollHeight`**
 - **Amount parsing: always `parseFloat(val.replace(/,/g,''))` — never bare `parseFloat`**
+- **DV = VP × need qty — never VP × par**
 - When chaining file edits across a session, always build on the latest working file — never the original ZIP
 - **Always output an updated `SESSION_SUMMARY.md` at end of session**
