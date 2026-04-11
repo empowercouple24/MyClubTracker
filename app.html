@@ -3242,6 +3242,7 @@ if('serviceWorker' in navigator){
         <div id="snap-save-avatar-preview" style="width:36px;height:36px;border-radius:50%;background:var(--b5);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;">?</div>
         <input type="text" id="snap-save-initials-input" maxlength="3" placeholder="e.g. JN"
           style="width:72px;font-family:DM Sans,sans-serif;font-size:16px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;outline:none;text-align:center;box-sizing:border-box;"
+          onfocus="this.readOnly=false;this.style.opacity='';this.style.cursor='';document.querySelectorAll('#snap-save-op-chips > div').forEach(function(c){c.style.borderColor='var(--border-light)';c.style.background='var(--bg)';})"
           oninput="snapSaveInitialsInput(this.value)"/>
         <div style="font-size:11px;color:var(--text-faint);line-height:1.5;">Clears operator<br>selection above</div>
       </div>
@@ -9208,11 +9209,12 @@ function saveInvSnapshot(){
   if(IS_ADMIN_VIEW){showToast('Admin view -- cannot save','error');return;}
   _snapSaveInitials='';
   _snapSaveColor='';
-  // Build team member chips (operators/owners only) for snapshot save
+  // Build chips — operators/owners AND hourly employees
   const chips=document.getElementById('snap-save-op-chips');
   if(chips){
     chips.innerHTML='';
-    getOperatorMembers().forEach(function(m,i){
+    const allMembers=[...getOperatorMembers(),...getHourlyMembers()];
+    allMembers.forEach(function(m){
       const initials=m.name.trim().split(/\s+/).map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
       const color=getOpColor(m.name);
       const chip=document.createElement('div');
@@ -9224,7 +9226,9 @@ function saveInvSnapshot(){
       chip.onclick=function(){
         document.querySelectorAll('#snap-save-op-chips > div').forEach(function(c){c.style.borderColor='var(--border-light)';c.style.background='var(--bg)';});
         chip.style.borderColor=color;chip.style.background=color+'22';
-        document.getElementById('snap-save-initials-input').value='';
+        // Auto-fill initials and make field read-only
+        const initialsEl=document.getElementById('snap-save-initials-input');
+        if(initialsEl){initialsEl.value=initials;initialsEl.readOnly=true;initialsEl.style.opacity='0.6';initialsEl.style.cursor='default';}
         document.getElementById('snap-save-avatar-preview').textContent=initials;
         document.getElementById('snap-save-avatar-preview').style.background=color;
         _snapSaveInitials=initials;_snapSaveColor=color;
@@ -9233,17 +9237,20 @@ function saveInvSnapshot(){
       chips.appendChild(chip);
     });
   }
+  // Reset initials input
   const inp=document.getElementById('snap-save-initials-input');
-  if(inp)inp.value='';
+  if(inp){inp.value='';inp.readOnly=false;inp.style.opacity='';inp.style.cursor='';}
+  // Prefill snapshot name with today's date
+  const todayStr=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
   const nameInp=document.getElementById('snap-save-name');
-  if(nameInp)nameInp.value='';
+  if(nameInp)nameInp.value='Inventory Count - '+todayStr;
   const dateInp=document.getElementById('snap-save-date-input');
   if(dateInp)dateInp.value=new Date().toISOString().slice(0,10);
   const prev=document.getElementById('snap-save-avatar-preview');
   if(prev){prev.textContent='?';prev.style.background='var(--b5)';}
   snapSaveUpdatePreview();
   const modal=document.getElementById('snap-save-modal');
-  if(modal){modal.style.display='flex';setTimeout(function(){var n=document.getElementById('snap-save-name');if(n)n.focus();},80);}
+  if(modal){modal.style.display='flex';setTimeout(function(){var n=document.getElementById('snap-save-name');if(n){n.focus();n.select();}},80);}
 }
 
 function snapSaveInitialsInput(val){
