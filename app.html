@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-16 14:20:00 -->
+<!-- CACHE BUST: 2026-04-16 15:10:00 -->
 <html lang="en">
 <head>
 <script>
@@ -1439,6 +1439,17 @@ if('serviceWorker' in navigator){
     </div>
     </div><!-- /summary-box-full -->
   </div><!-- /summary-box -->
+
+  <!-- MISSING DV BANNER -->
+  <div id="enter-missing-dv-banner" style="display:none;background:#FAEEDA;border:1.5px solid #e6c76e;border-radius:var(--radius);padding:10px 14px;margin-bottom:8px;display:none;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="font-size:14px;flex-shrink:0;">&#9679;</span>
+      <div style="flex:1;">
+        <div style="font-size:12px;font-weight:700;color:#854F0B;">DV not entered for this day</div>
+        <div style="font-size:11px;color:#6b5414;margin-top:2px;">Payout calculations require DV. Enter the DV value below.</div>
+      </div>
+    </div>
+  </div>
 
   <!-- SECTION LABEL -->
   <div class="section-label">Sales &mdash; <span id="sales-oh-label" style="font-weight:600;"></span></div>
@@ -7065,6 +7076,13 @@ function recalc(userChanged=false){
   setText('sum-sales-slim', c.group1?fmt$(c.totalSales):'--');
   setText('sum-sq-slim', c.group1?fmt$(c.cardDeposits):'--');
   syncSlimDots();
+  // Missing DV banner on Enter tab
+  var dvBanner=document.getElementById('enter-missing-dv-banner');
+  if(dvBanner){
+    var hasSales=c.totalSales>0;
+    var hasDv=pv('f-dv')>0;
+    dvBanner.style.display=(hasSales&&!hasDv)?'block':'none';
+  }
   // OH rate badges on Other Sales card
   const badgeOther=document.getElementById('badge-otherRate');
   const badgeMerch=document.getElementById('badge-merchRate');
@@ -9274,6 +9292,8 @@ function toggleOos(sku,name,checkbox){
       delete invOos[sku];
       saveOosToSettings();
       renderInventory();
+      // Refresh Order tab if a plan is active so OOS changes reflect immediately
+      if(_orderPlanActive){renderOrderBody();renderOrderSummaryCards();orderUpdateVolumeTracker();renderOrderMarkSection();}
     } else {
       // First click -- enter confirm state
       checkbox.dataset.confirming='1';
@@ -9307,6 +9327,8 @@ async function saveOos(){
   _oosPendingSku=null;_oosPendingName=null;_oosPendingChecked=false;
   await saveOosToSettings();
   renderInventory();
+  // Refresh Order tab if a plan is active so OOS changes reflect immediately
+  if(_orderPlanActive){renderOrderBody();renderOrderSummaryCards();orderUpdateVolumeTracker();renderOrderMarkSection();}
 }
 async function saveOosToSettings(){
   SETTINGS.invOos=invOos;
@@ -9748,8 +9770,8 @@ function renderOrderBody(){
   const totalAssigned=needItems.filter(p=>_orderPlanActive.assignments[p.sku||p.name]&&!invOos[p.sku]&&!_orderSkipped[p.sku||p.name]).length;
   const totalOrderable=needItems.filter(p=>!invOos[p.sku]&&!_orderSkipped[p.sku||p.name]).length;
   const allAssigned=totalAssigned>=totalOrderable&&totalOrderable>0;
-  // Update header widgets — Items to Order excludes skipped
-  const totalItems=needItems.filter(p=>!_orderSkipped[p.sku||p.name]).length;
+  // Update header widgets — Items to Order excludes skipped and OOS
+  const totalItems=needItems.filter(p=>!_orderSkipped[p.sku||p.name]&&!invOos[p.sku]).length;
   setText('order-total-items',totalItems.toString());
   setText('order-total-assigned',totalAssigned+'/'+totalOrderable);
   const assignedNoteEl=document.getElementById('order-assigned-note');
@@ -10670,6 +10692,27 @@ function renderPayouts(){
     </div>`;
   }
 
+  // ── Missing DV banner ──
+  const missingDvDays = fl.filter(d => {
+    const data = d.data || {};
+    if (data.closedDay) return false;
+    return calSales(data) > 0 && !(parseFloat(data.dv) || 0);
+  });
+  let missingDvBanner = '';
+  if (missingDvDays.length) {
+    const dayLinks = missingDvDays.map(d => {
+      const lbl = new Date(d.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+      return `<a href="javascript:void(0)" onclick="jumpToDateForOp('${d.date}')" style="color:#854F0B;font-weight:700;text-decoration:underline;white-space:nowrap;">${lbl}</a>`;
+    }).join(', ');
+    missingDvBanner = `<div style="background:#FAEEDA;border:1.5px solid #e6c76e;border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;gap:10px;align-items:flex-start;">
+      <span style="font-size:18px;flex-shrink:0;line-height:1.2;">&#9679;</span>
+      <div>
+        <div style="font-size:13px;font-weight:700;color:#854F0B;margin-bottom:3px;">${missingDvDays.length} day${missingDvDays.length>1?'s have':' has'} sales but missing DV</div>
+        <div style="font-size:12px;color:#6b5414;line-height:1.5;">Payouts will be inaccurate. Fill DV for: ${dayLinks}</div>
+      </div>
+    </div>`;
+  }
+
   // Build operator cards
   // Fix 4: compute "This Week" per-operator totals for running balance when viewing past weeks
   const twRange = getSunWeekRange(0);
@@ -10752,6 +10795,7 @@ function renderPayouts(){
 
   el.innerHTML=`
     ${missingOpBanner}
+    ${missingDvBanner}
     <div class="section-label">Summary - ${fromFmt} &#8211; ${toFmt}</div>
     ${opCards}
     <div class="card" style="margin-bottom:10px;padding:0;">
@@ -10901,7 +10945,28 @@ function renderHourlyPayrollInline() {
         + '</div>';
     });
 
+    // Missing DV banner for hourly section
+    var hMissingDvDays = ALL_DAYS.filter(function(d){ return d.date >= from && d.date <= to; }).filter(function(d){
+      var dd = d.data || {};
+      if (dd.closedDay) return false;
+      return calSales(dd) > 0 && !(parseFloat(dd.dv) || 0);
+    });
+    var hMissingDvBanner = '';
+    if (hMissingDvDays.length) {
+      var hDayLinks = hMissingDvDays.map(function(d){
+        var lbl = new Date(d.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+        return '<a href="javascript:void(0)" onclick="jumpToDateForOp(\x27'+d.date+'\x27)" style="color:#854F0B;font-weight:700;text-decoration:underline;white-space:nowrap;">'+lbl+'</a>';
+      }).join(', ');
+      hMissingDvBanner = '<div style="background:#FAEEDA;border:1.5px solid #e6c76e;border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;gap:10px;align-items:flex-start;">'
+        + '<span style="font-size:18px;flex-shrink:0;line-height:1.2;">&#9679;</span>'
+        + '<div>'
+        + '<div style="font-size:13px;font-weight:700;color:#854F0B;margin-bottom:3px;">'+hMissingDvDays.length+' day'+(hMissingDvDays.length>1?'s have':' has')+' sales but missing DV</div>'
+        + '<div style="font-size:12px;color:#6b5414;line-height:1.5;">Hourly payouts may be inaccurate. Fill DV for: '+hDayLinks+'</div>'
+        + '</div></div>';
+    }
+
     var html = '<div class="section-label" style="margin-top:4px;">Hourly Employees — ' + fromFmt + ' – ' + toFmt + '</div>'
+      + hMissingDvBanner
       + rowsHtml;
 
     if (grandTotal > 0) {
@@ -11001,6 +11066,25 @@ function openPayrollApproveForOne(payee, amount, type) {
       });
       const preview = dayLabels.slice(0,5).join(', ') + (dayLabels.length > 5 ? ' +' + (dayLabels.length-5) + ' more' : '');
       showToast('Cannot post — ' + unallocDays.length + ' day' + (unallocDays.length>1?'s have':' has') + ' unallocated payout: ' + preview, 'error', 6000);
+      return;
+    }
+  }
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  // ── Missing DV guard (both operator and hourly) ────────────────────────────
+  {
+    const rangeDays = ALL_DAYS.filter(function(d){ return d.date >= from && d.date <= to; });
+    const missingDvDays = rangeDays.filter(function(d){
+      const data = d.data || {};
+      if (data.closedDay) return false;
+      return calSales(data) > 0 && !(parseFloat(data.dv) || 0);
+    });
+    if (missingDvDays.length) {
+      const dayLabels = missingDvDays.map(function(d){
+        return new Date(d.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+      });
+      const preview = dayLabels.slice(0,5).join(', ') + (dayLabels.length > 5 ? ' +' + (dayLabels.length-5) + ' more' : '');
+      showToast('Cannot post — ' + missingDvDays.length + ' day' + (missingDvDays.length>1?'s have':' has') + ' missing DV: ' + preview + '. Fill DV on the Enter or History tab first.', 'error', 7000);
       return;
     }
   }

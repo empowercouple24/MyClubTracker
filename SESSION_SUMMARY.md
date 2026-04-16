@@ -153,6 +153,19 @@ At the end of every working session, Claude must:
 - ✅ **Toolbar compacted** — gap 8px→4px, button/select font sizes reduced
 - ✅ **Mark-as-ordered section** — tighter margin
 
+### Order Tab — OOS Refresh Fix
+- ✅ **Root cause** — `toggleOos()` and `saveOos()` called `renderInventory()` but never refreshed the Order tab. So after toggling OOS on a product from the Order tab, the row dimming, header widgets, volume tracker, operator chips, and unassigned count all stayed stale.
+- ✅ **Fix** — after both `saveOos()` (marking OOS) and the OOS removal path in `toggleOos()` (clearing OOS), now calls `renderOrderBody()` + `renderOrderSummaryCards()` + `orderUpdateVolumeTracker()` + `renderOrderMarkSection()` when `_orderPlanActive` is truthy.
+- ✅ **"Items to Order" header widget now excludes OOS** — was `!_orderSkipped` only, now `!_orderSkipped && !invOos[p.sku]`
+- ✅ **Row dimming already existed** — `.inv-row-oos td{opacity:0.55}` + `text-decoration:line-through` were already in CSS; `renderOrderBody` already applied the class. Issue was just that the re-render wasn't triggered.
+
+### Finances Tab — Missing DV Guard
+- ✅ **"Review & Post" now blocked for BOTH operator and hourly** when any day in the date range has sales but missing DV. Shows toast: "Cannot post — X days have missing DV: [day list]. Fill DV on the Enter or History tab first."
+- ✅ **Missing DV warning banner on Operator Payouts** — amber banner with clickable day links (same pattern as existing missing-operator banner). Shown above operator summary when a preset range includes days with sales but no DV.
+- ✅ **Missing DV warning banner on Hourly Employees** — identical amber banner injected at top of hourly section output after shifts load.
+- ✅ **Enter tab missing DV banner** — `#enter-missing-dv-banner` shown when viewing a day that has total sales > 0 but DV field is empty/zero. Message: "DV not entered for this day — Payout calculations require DV. Enter the DV value below." Automatically hides when DV is filled (via `recalc`).
+- ✅ **Existing operator-only unallocated guard preserved** — the "no operators assigned" guard still fires for operator payouts only (before the new missing DV guard which fires for both types).
+
 ---
 
 ## CC Ledger Architecture Notes (new)
