@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-16 15:10:00 -->
+<!-- CACHE BUST: 2026-04-16 15:45:00 -->
 <html lang="en">
 <head>
 <script>
@@ -869,20 +869,20 @@ if('serviceWorker' in navigator){
     .preg-period-input{font-family:DM Sans,sans-serif;font-size:13px;color:var(--text);background:var(--b0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 7px;outline:none;width:115px;text-align:center;}
 
     /* ── PAYOUT DATE RANGE PICKER ── */
-    .payout-preset-row{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;padding:10px 12px 10px;}
-    .payout-preset-chip{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:5px 4px;border-radius:6px;border:none;border-top:3px solid var(--border-light);background:var(--b0);cursor:pointer;transition:background 0.12s,border-top-color 0.12s;}
-    .payout-preset-chip:hover{background:var(--b1);border-top-color:var(--b4);}
-    .payout-preset-chip.active{background:var(--b1);border-top-color:var(--b6);}
-    .payout-preset-chip.reset-chip{border-top-color:var(--r3);background:#fff5f5;}
-    .payout-preset-chip.reset-chip .ppc-name{color:var(--r5);}
+    .payout-preset-row{display:flex;gap:0;align-items:stretch;padding:10px 12px 10px;}
+    .payout-preset-seg{display:flex;gap:0;border:1.5px solid var(--border-light);border-radius:8px;overflow:hidden;flex:1;}
+    .payout-preset-chip{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:7px 4px;background:var(--surface);cursor:pointer;transition:background 0.12s;flex:1;text-align:center;border-right:0.5px solid var(--border-light);line-height:1.1;}
+    .payout-preset-chip:last-child{border-right:none;}
+    .payout-preset-chip:hover{background:var(--b0);}
+    .payout-preset-chip.active{background:var(--b7);color:#fff;}
+    .payout-preset-chip.active .ppc-name{color:#fff;}
+    .payout-preset-chip.active .ppc-range{color:rgba(255,255,255,0.7);}
+    .payout-preset-chip.hourly-chip.active{background:var(--g5);}
+    .payout-preset-chip.hourly-chip:hover{background:var(--g0);}
     .ppc-name{font-size:10px;font-weight:700;color:var(--text-muted);}
     .ppc-range{font-size:9px;color:var(--text-faint);letter-spacing:0.1px;}
-    .payout-preset-chip.active .ppc-name{color:var(--b7);}
-    .payout-preset-chip.active .ppc-range{color:var(--b6);}
-    .payout-preset-chip.hourly-chip.active{background:var(--g0);border-top-color:var(--g5);}
-    .payout-preset-chip.hourly-chip.active .ppc-name{color:var(--g6);}
-    .payout-preset-chip.hourly-chip.active .ppc-range{color:var(--g5);}
-    .payout-preset-chip.hourly-chip:hover{background:var(--g0);border-top-color:var(--g4);}
+    .payout-reset-btn{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:50%;border:1.5px solid var(--border-light);background:var(--surface);color:var(--text-faint);cursor:pointer;flex-shrink:0;margin-left:6px;font-size:13px;font-weight:600;transition:background 0.12s,color 0.12s;align-self:center;}
+    .payout-reset-btn:hover{background:var(--r0);color:var(--r5);border-color:var(--r3);}
     .payout-range-bar{display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;background:var(--b0);border-bottom:1px solid var(--border-light);}
     .payout-range-bar:hover{background:var(--b1);}
     .payout-range-val{font-size:13px;font-weight:600;color:var(--text);}
@@ -2076,14 +2076,17 @@ if('serviceWorker' in navigator){
       </div>
       <div id="payouts-body-wrap">
         <div style="padding:0 12px 10px;border-top:1px solid var(--border-light);">
-          <div class="payout-preset-row" style="flex-wrap:wrap;gap:4px;padding-top:10px;">
-            <div class="payout-preset-chip" onclick="setPayoutPreset('thisweek',this)"><span class="ppc-name">This Week</span><span class="ppc-range" id="ppc-range-thisweek"></span></div>
-            <div class="payout-preset-chip" onclick="setPayoutPreset('lastweek',this)"><span class="ppc-name">Last Week</span><span class="ppc-range" id="ppc-range-lastweek"></span></div>
-            <div class="payout-preset-chip" onclick="setPayoutPreset('weekbeforelast',this)"><span class="ppc-name">Wk Before Last</span><span class="ppc-range" id="ppc-range-weekbeforelast"></span></div>
-            <div class="payout-preset-chip" onclick="setPayoutPreset('last2weeks',this)"><span class="ppc-name">Last 2 Wks</span><span class="ppc-range" id="ppc-range-last2weeks"></span></div>
-            <div class="payout-preset-chip" onclick="setPayoutPreset('thismonth',this)"><span class="ppc-name">This Month</span><span class="ppc-range" id="ppc-range-thismonth"></span></div>
-            <div class="payout-preset-chip" onclick="setPayoutPreset('lastmonth',this)"><span class="ppc-name">Last Month</span><span class="ppc-range" id="ppc-range-lastmonth"></span></div>
-            <div class="payout-preset-chip reset-chip" onclick="resetPayouts()"><span class="ppc-name">&#10005;</span></div>
+          <div class="payout-preset-row" style="padding-top:10px;">
+            <div class="payout-preset-seg">
+              <div class="payout-preset-chip" onclick="setPayoutPreset('thisweek',this)"><span class="ppc-name">This Wk</span><span class="ppc-range" id="ppc-range-thisweek"></span></div>
+              <div class="payout-preset-chip" onclick="setPayoutPreset('lastweek',this)"><span class="ppc-name">Last Wk</span><span class="ppc-range" id="ppc-range-lastweek"></span></div>
+              <div class="payout-preset-chip" onclick="setPayoutPreset('weekbeforelast',this)"><span class="ppc-name">Wk Before</span><span class="ppc-range" id="ppc-range-weekbeforelast"></span></div>
+              <div class="payout-preset-chip" onclick="setPayoutPreset('last2weeks',this)"><span class="ppc-name">2 Wks</span><span class="ppc-range" id="ppc-range-last2weeks"></span></div>
+              <div class="payout-preset-chip" onclick="setPayoutPreset('thismonth',this)"><span class="ppc-name">This Mo</span><span class="ppc-range" id="ppc-range-thismonth"></span></div>
+              <div class="payout-preset-chip" onclick="setPayoutPreset('lastmonth',this)"><span class="ppc-name">Last Mo</span><span class="ppc-range" id="ppc-range-lastmonth"></span></div>
+              <div class="payout-preset-chip" onclick="setPayoutPreset('thisandlast',this)"><span class="ppc-name">This+Last</span><span class="ppc-range" id="ppc-range-thisandlast"></span></div>
+            </div>
+            <div class="payout-reset-btn" onclick="resetPayouts()" title="Clear">&#10005;</div>
           </div>
           <div class="payout-range-bar" onclick="openCalPicker()" style="margin-top:6px;">
             <div style="flex:1;display:flex;align-items:center;gap:5px;min-width:0;">
@@ -2116,14 +2119,17 @@ if('serviceWorker' in navigator){
       </div>
       <div id="hourly-payout-section">
         <div style="padding:0 12px 10px;border-top:1px solid var(--border-light);">
-          <div class="payout-preset-row" id="hourly-preset-row" style="flex-wrap:wrap;gap:4px;padding-top:10px;">
-            <div class="payout-preset-chip hourly-chip" onclick="setHourlyPreset('thisweek',this)"><span class="ppc-name">This Week</span><span class="ppc-range" id="hppc-thisweek"></span></div>
-            <div class="payout-preset-chip hourly-chip" onclick="setHourlyPreset('lastweek',this)"><span class="ppc-name">Last Week</span><span class="ppc-range" id="hppc-lastweek"></span></div>
-            <div class="payout-preset-chip" onclick="setHourlyPreset('weekbeforelast',this)"><span class="ppc-name">Wk Before Last</span><span class="ppc-range" id="hppc-weekbeforelast"></span></div>
-            <div class="payout-preset-chip" onclick="setHourlyPreset('last2weeks',this)"><span class="ppc-name">Last 2 Wks</span><span class="ppc-range" id="hppc-last2weeks"></span></div>
-            <div class="payout-preset-chip" onclick="setHourlyPreset('thismonth',this)"><span class="ppc-name">This Month</span><span class="ppc-range" id="hppc-thismonth"></span></div>
-            <div class="payout-preset-chip" onclick="setHourlyPreset('lastmonth',this)"><span class="ppc-name">Last Month</span><span class="ppc-range" id="hppc-lastmonth"></span></div>
-            <div class="payout-preset-chip reset-chip" onclick="resetHourlyPayouts()"><span class="ppc-name">&#10005;</span></div>
+          <div class="payout-preset-row" id="hourly-preset-row" style="padding-top:10px;">
+            <div class="payout-preset-seg">
+              <div class="payout-preset-chip hourly-chip" onclick="setHourlyPreset('thisweek',this)"><span class="ppc-name">This Wk</span><span class="ppc-range" id="hppc-thisweek"></span></div>
+              <div class="payout-preset-chip hourly-chip" onclick="setHourlyPreset('lastweek',this)"><span class="ppc-name">Last Wk</span><span class="ppc-range" id="hppc-lastweek"></span></div>
+              <div class="payout-preset-chip hourly-chip" onclick="setHourlyPreset('weekbeforelast',this)"><span class="ppc-name">Wk Before</span><span class="ppc-range" id="hppc-weekbeforelast"></span></div>
+              <div class="payout-preset-chip hourly-chip" onclick="setHourlyPreset('last2weeks',this)"><span class="ppc-name">2 Wks</span><span class="ppc-range" id="hppc-last2weeks"></span></div>
+              <div class="payout-preset-chip hourly-chip" onclick="setHourlyPreset('thismonth',this)"><span class="ppc-name">This Mo</span><span class="ppc-range" id="hppc-thismonth"></span></div>
+              <div class="payout-preset-chip hourly-chip" onclick="setHourlyPreset('lastmonth',this)"><span class="ppc-name">Last Mo</span><span class="ppc-range" id="hppc-lastmonth"></span></div>
+              <div class="payout-preset-chip hourly-chip" onclick="setHourlyPreset('thisandlast',this)"><span class="ppc-name">This+Last</span><span class="ppc-range" id="hppc-thisandlast"></span></div>
+            </div>
+            <div class="payout-reset-btn" onclick="resetHourlyPayouts()" title="Clear">&#10005;</div>
           </div>
           <div class="payout-range-bar" onclick="openHourlyCalPicker()" style="margin-top:6px;">
             <div style="flex:1;display:flex;align-items:center;gap:5px;min-width:0;">
@@ -13700,6 +13706,9 @@ function setPayoutPreset(preset, btn) {
   } else if (preset === 'thismonth') {
     from = fmtDateStr(new Date(today.getFullYear(), today.getMonth(), 1));
     to = localToday();
+  } else if (preset === 'thisandlast') {
+    from = getSunWeekRange(1).from;
+    to = getSunWeekRange(0).to;
   }
   applyPayoutDates(from, to);
   renderPayouts();
@@ -13732,6 +13741,9 @@ function setHourlyPreset(preset, btn) {
   } else if (preset === 'thismonth') {
     from = fmtDateStr(new Date(today.getFullYear(), today.getMonth(), 1));
     to   = localToday();
+  } else if (preset === 'thisandlast') {
+    from = getSunWeekRange(1).from;
+    to = getSunWeekRange(0).to;
   }
   applyHourlyPayoutDates(from, to);
   renderHourlyPayrollInline();
@@ -13786,6 +13798,7 @@ function initHourlyPresetChipLabels() {
   el('hppc-last2weeks',r(l2.from,lw.to));
   el('hppc-thismonth', r(tmf,localToday()));
   el('hppc-lastmonth', r(lmf,lmt));
+  el('hppc-thisandlast', r(getSunWeekRange(1).from, getSunWeekRange(0).to));
 }
 
 function initPresetChipLabels() {
@@ -13811,6 +13824,7 @@ function initPresetChipLabels() {
   el('ppc-range-last2weeks',r(l2.from, l2end.to));
   el('ppc-range-thismonth', r(tm_from, tm_to));
   el('ppc-range-lastmonth', r(lm_from, lm_to));
+  el('ppc-range-thisandlast', r(getSunWeekRange(1).from, getSunWeekRange(0).to));
 }
 
 function applyPayoutDates(from, to) {

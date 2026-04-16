@@ -166,6 +166,14 @@ At the end of every working session, Claude must:
 - ✅ **Enter tab missing DV banner** — `#enter-missing-dv-banner` shown when viewing a day that has total sales > 0 but DV field is empty/zero. Message: "DV not entered for this day — Payout calculations require DV. Enter the DV value below." Automatically hides when DV is filled (via `recalc`).
 - ✅ **Existing operator-only unallocated guard preserved** — the "no operators assigned" guard still fires for operator payouts only (before the new missing DV guard which fires for both types).
 
+### Finances Tab — Segmented Control Presets + "This + Last Wk"
+- ✅ **Segmented control redesign** — preset chips replaced with a connected segmented bar (`.payout-preset-seg`) + floating circle ✕ reset button (`.payout-reset-btn`). All 7 presets fit in a single row without wrapping.
+- ✅ **Shorter labels** — "This Week" → "This Wk", "Last Week" → "Last Wk", "Wk Before Last" → "Wk Before", "Last 2 Wks" → "2 Wks", "This Month" → "This Mo", "Last Month" → "Last Mo". Sub-date ranges remain on each segment.
+- ✅ **New preset "This+Last"** — key `thisandlast`, logic: `from = getSunWeekRange(1).from`, `to = getSunWeekRange(0).to`. Spans last week's Sunday through this week's current day. Added to both Operator Payouts and Hourly Employees.
+- ✅ **Label init** — `initPresetChipLabels()` and `initHourlyPresetChipLabels()` both populate the new `ppc-range-thisandlast` / `hppc-thisandlast` sub-labels.
+- ✅ **Active state** — operator active: `var(--b7)` background + white text; hourly active: `var(--g5)` background + white text. Matching existing color scheme.
+- ✅ **Reset button** — floating 30px circle with ✕, hover turns red-tinted. Calls `resetPayouts()` / `resetHourlyPayouts()` as before.
+
 ---
 
 ## CC Ledger Architecture Notes (new)
