@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-16 19:00:00 -->
+<!-- CACHE BUST: 2026-04-16 19:15:00 -->
 <html lang="en">
 <head>
 <script>
@@ -1087,23 +1087,23 @@ if('serviceWorker' in navigator){
     #hist-sticky-header .recon-widget{margin-bottom:6px;border-radius:0;}
     #hist-sticky-header #history-cal-nav{padding:0 10px;}
     .recon-widget{border-radius:var(--radius);overflow:hidden;margin-bottom:8px;}
-    .recon-banner{background:var(--b2);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;transition:background 0.15s;}
-    .recon-banner:hover{background:var(--b1);}
+    .recon-banner{background:linear-gradient(135deg,var(--b9),var(--b7));padding:10px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;transition:background 0.15s;}
+    .recon-banner:hover{background:var(--b8);}
     .recon-banner-left{}
-    .recon-banner-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--b7);margin-bottom:3px;}
-    .recon-banner-val{font-family:Outfit,sans-serif;font-size:20px;font-weight:800;color:var(--b9);line-height:1;}
-    .recon-banner-sub{font-size:10px;color:var(--b6);margin-top:2px;}
+    .recon-banner-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.6);margin-bottom:3px;}
+    .recon-banner-val{font-family:Outfit,sans-serif;font-size:20px;font-weight:800;color:white;line-height:1;}
+    .recon-banner-sub{font-size:10px;color:rgba(255,255,255,0.45);margin-top:2px;}
     .recon-banner-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
-    .recon-bank-pill{display:flex;align-items:center;gap:7px;background:var(--b3);border-radius:20px;padding:5px 12px;}
-    .recon-bank-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--b7);white-space:nowrap;}
-    .recon-bank-div{width:0.5px;height:13px;background:var(--b5);flex-shrink:0;}
-    .recon-bank-input{font-size:12px;font-weight:700;background:none;border:none;outline:none;color:var(--b9);width:95px;text-align:right;font-family:DM Sans,sans-serif;}
-    .recon-bank-input::placeholder{color:var(--b4);font-weight:400;}
+    .recon-bank-pill{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,0.12);border-radius:20px;padding:5px 12px;}
+    .recon-bank-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:rgba(255,255,255,0.55);white-space:nowrap;}
+    .recon-bank-div{width:0.5px;height:13px;background:rgba(255,255,255,0.2);flex-shrink:0;}
+    .recon-bank-input{font-size:12px;font-weight:700;background:none;border:none;outline:none;color:white;width:95px;text-align:right;font-family:DM Sans,sans-serif;}
+    .recon-bank-input::placeholder{color:rgba(255,255,255,0.3);font-weight:400;}
     .recon-match-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;flex-shrink:0;}
     .recon-match-badge.ok{background:var(--g0);color:var(--g5);}
     .recon-match-badge.off{background:var(--a0);color:var(--a6);}
-    .recon-match-badge.none{background:var(--b1);color:var(--b4);}
-    .recon-chev{font-size:11px;color:var(--b6);transition:transform 0.2s;flex-shrink:0;}
+    .recon-match-badge.none{background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.4);}
+    .recon-chev{font-size:11px;color:rgba(255,255,255,0.45);transition:transform 0.2s;flex-shrink:0;}
     .recon-chev.open{transform:rotate(180deg);}
     .recon-body{background:var(--bg);border-top:1px solid var(--border-light);display:none;}
     .recon-body.open{display:block;}
@@ -1678,9 +1678,9 @@ if('serviceWorker' in navigator){
             <div class="recon-bank-div"></div>
             <input class="recon-bank-input" id="recon-pending-input" placeholder="$0.00" oninput="updateReconMatch()" onfocus="reconPendingFocus()" onblur="reconPendingBlur()" type="text" inputmode="decimal"/>
           </div>
-          <button onclick="event.stopPropagation();fillPendingFromToday()" id="recon-fill-today-btn" title="Fill Pending from today's unsettled card deposits" style="background:var(--b4);border:none;border-radius:20px;padding:3px 9px;font-size:11px;font-weight:700;color:#fff;cursor:pointer;flex-shrink:0;white-space:nowrap;">+ Today</button>
+          <button onclick="event.stopPropagation();fillPendingFromToday()" id="recon-fill-today-btn" title="Fill Pending from today's unsettled card deposits" style="background:rgba(255,255,255,0.12);border:none;border-radius:20px;padding:3px 9px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.7);cursor:pointer;flex-shrink:0;white-space:nowrap;">+ Today</button>
           <span class="recon-match-badge none" id="recon-match-badge" style="display:none;">&#8212;</span>
-          <button onclick="event.stopPropagation();openReconDiag()" title="Diagnose discrepancy" style="background:var(--b3);border:none;border-radius:20px;padding:4px 8px;font-size:16px;cursor:pointer;flex-shrink:0;line-height:1;">🔍</button>
+          <button onclick="event.stopPropagation();openReconDiag()" title="Diagnose discrepancy" style="background:rgba(255,255,255,0.12);border:none;border-radius:20px;padding:4px 8px;font-size:16px;cursor:pointer;flex-shrink:0;line-height:1;">🔍</button>
           <span class="recon-chev" id="recon-chev">&#9662;</span>
         </div>
       </div>
