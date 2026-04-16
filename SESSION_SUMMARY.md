@@ -100,11 +100,10 @@ At the end of every working session, Claude must:
 ---
 
 ## Pending To-Dos
-1. Location comparison filtered by org
-2. End-to-end onboarding testing with clean email
-3. Mobile-friendly improvements sitewide
-4. Co-owners (low priority)
-5. Test partial product update approval flow end-to-end
+1. End-to-end onboarding testing with clean email
+2. Mobile-friendly improvements sitewide (ongoing)
+3. Test partial product update approval flow end-to-end
+4. Order tab — full single-row product layout redesign (approved mockup with SKU/Need priority, not yet built — Option A CSS workaround currently live)
 
 ---
 
@@ -166,6 +165,20 @@ At the end of every working session, Claude must:
 - ✅ **Enter tab missing DV banner** — `#enter-missing-dv-banner` shown when viewing a day that has total sales > 0 but DV field is empty/zero. Message: "DV not entered for this day — Payout calculations require DV. Enter the DV value below." Automatically hides when DV is filled (via `recalc`).
 - ✅ **Existing operator-only unallocated guard preserved** — the "no operators assigned" guard still fires for operator payouts only (before the new missing DV guard which fires for both types).
 
+### Finances Tab — CC Ledger Open by Default
+- ✅ **CC Ledger section expanded on load** — `_ccOpen = true`, `cc-ledger-body` starts with `display:block`. Summary, filters, search, "+ Add Entry" all visible immediately without clicking.
+- ✅ **Transaction rows still behind chevron** — "Transaction History" toggle with chevron keeps actual rows collapsed by default.
+
+### Finances Tab — Payout Balance Recon Widget (new feature)
+- ✅ **New widget between Operator Payouts and Hourly Employees** — `#payout-recon-widget`, hidden by default, shown when a payout preset loads.
+- ✅ **Light blue banner** (`var(--b2)`) matching History tab recon style. Shows: "Payout Account Balance", net owed amount, date range sub-label, Bank pill input, match/off badge, chevron.
+- ✅ **Expandable body** — page background with daily breakdown: each day shows operator initials + amounts. Also shows total allocated payouts, payments already posted (from Payment Register), and net owed.
+- ✅ **Match logic** — user enters bank balance, widget compares against net owed. Shows green "✓ Match" or amber "Off $X.XX" badge. Expanded result bar explains direction ("Bank is higher/lower than owed payouts").
+- ✅ **`renderPayoutRecon()`** — called at end of `renderPayouts()`. Reads `payout-from`/`payout-to`, calculates daily payouts excluding owner reinvest, subtracts posted payments from Payment Register in the same range.
+- ✅ **`updatePayoutReconMatch()`** — called on bank input change. Compares bank vs net owed with 2-cent tolerance.
+- ✅ **`togglePayoutRecon()`** — expand/collapse body with chevron rotation.
+- ✅ **Hidden on clear** — `clearPayouts()` hides the widget.
+
 ### Finances Tab — Segmented Control Presets + "This + Last Wk"
 - ✅ **Segmented control redesign** — preset chips replaced with a connected segmented bar (`.payout-preset-seg`) + floating circle ✕ reset button (`.payout-reset-btn`). All 7 presets fit in a single row without wrapping.
 - ✅ **Shorter labels** — "This Week" → "This Wk", "Last Week" → "Last Wk", "Wk Before Last" → "Wk Before", "Last 2 Wks" → "2 Wks", "This Month" → "This Mo", "Last Month" → "Last Mo". Sub-date ranges remain on each segment.
@@ -173,6 +186,31 @@ At the end of every working session, Claude must:
 - ✅ **Label init** — `initPresetChipLabels()` and `initHourlyPresetChipLabels()` both populate the new `ppc-range-thisandlast` / `hppc-thisandlast` sub-labels.
 - ✅ **Active state** — operator active: `var(--b7)` background + white text; hourly active: `var(--g5)` background + white text. Matching existing color scheme.
 - ✅ **Reset button** — floating 30px circle with ✕, hover turns red-tinted. Calls `resetPayouts()` / `resetHourlyPayouts()` as before.
+
+### Enter Tab — 2×2 Widget Grid (mobile)
+- ✅ **Layout changed from horizontal scroll to 2×2 grid** — `#dw-mobile-strip` now uses `display:grid; grid-template-columns:1fr 1fr` on mobile. All 4 widgets visible without scrolling.
+- ✅ **Tight vertical padding** — card padding 5px 8px, emoji 14px, gaps 5px. Minimal vertical footprint.
+- ✅ **Inventory freshness dot** — green dot (≤1 day old) or amber dot (2+ days) next to the relative date
+- ✅ **Inventory sub-label restored** — shows full date + time (e.g. "Apr 16 11:03 AM") instead of being hidden on mobile
+- ✅ **Colored left border accent** — inventory tile gets `border-left: 3px solid green/amber` matching freshness state
+- ✅ **Old mobile hiding rules removed** — `#dw-m-inv-label`, `#dw-m-inv-sub`, `#dw-m-inv` no longer hidden
+
+### History Tab — Weekly Calendar Averages
+- ✅ **Daily averages added to weekly summary bars** — each week bar now shows "avg $825/day" and "avg 370/day" as sub-text under the Sales and DV totals (Option D style).
+- ✅ **Averages computed from days with sales data only** — closed days and empty days excluded from the divisor.
+- ✅ **Styling** — 10px, font-weight 600, 50% opacity white. Sits directly under each total with 1px top margin.
+
+### History Tab — Recon Widget Color Flip
+- ✅ **Banner = dark blue gradient** matching weekly summary bars — `linear-gradient(135deg, var(--b9), var(--b7))`. White text, white-on-dark bank pills, translucent buttons. Visually belongs with the calendar.
+- ✅ **Expanded body = page background** (`var(--bg)`) with dark text — clean contrast against the dark banner. All breakdown rows, inputs, chips, day rows use standard dark-on-light styling with CSS variables.
+- ✅ **"+ Today" and 🔍 buttons** — translucent white on dark banner.
+- ✅ **Chevron** — translucent white on dark banner.
+- ✅ **Match badge** — `.none` state: translucent white bg. `.ok` and `.off` stay green/amber.
+- ✅ **Breakdown rows** — labels `var(--text-muted)`, incoming `var(--g5)`, outgoing `var(--a6)`.
+- ✅ **Bulk mark section** — dark text on light bg, chips use `var(--surface)` + `var(--border)`, active `var(--b1)` + `var(--b7)`.
+- ✅ **Day rows** — dark text, amber amounts, hover `var(--b0)`.
+- ✅ **Date inputs / arrow buttons** — standard form styling on light bg.
+- ✅ **Result bar** — green/amber on light bg, unchanged.
 
 ---
 
