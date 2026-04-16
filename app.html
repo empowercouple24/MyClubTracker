@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-16 18:45:00 -->
+<!-- CACHE BUST: 2026-04-16 19:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -8420,16 +8420,24 @@ function renderHistCal(){
     html+=`</div>`;
 
     if(weekHasData){
+      const weekDaysWithData=weekDays.filter(d=>{
+        const dateStr=`${yr}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        return !!dayMap[dateStr]&&calSales(dayMap[dateStr]||{})>0;
+      }).length;
+      const avgSales=weekDaysWithData>0?weekTotal/weekDaysWithData:0;
+      const avgDv=weekDaysWithData>0?weekDvTotal/weekDaysWithData:0;
       html+=`<div class="hcal-week-summary">
         <span class="hcal-week-label">Week ${wi+1}</span>
         <div style="display:flex;align-items:center;gap:20px;">
           <div style="text-align:right;">
             <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:white;">Sales</div>
             <div class="hcal-week-total">${fmt$(weekTotal)}</div>
+            <div style="font-size:10px;font-weight:600;color:rgba(255,255,255,0.5);margin-top:1px;">avg ${fmt$(avgSales)}/day</div>
           </div>
           <div style="text-align:right;">
             <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:white;">DV</div>
             <div class="hcal-week-total">${fmtN(weekDvTotal)}</div>
+            <div style="font-size:10px;font-weight:600;color:rgba(255,255,255,0.5);margin-top:1px;">avg ${fmtN(avgDv)}/day</div>
           </div>
         </div>
       </div>`;
