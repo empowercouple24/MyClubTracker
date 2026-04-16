@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-16 17:50:00 -->
+<!-- CACHE BUST: 2026-04-16 18:45:00 -->
 <html lang="en">
 <head>
 <script>
@@ -680,14 +680,21 @@ if('serviceWorker' in navigator){
       /* ── ORDER TAB ── */
       #panel-order .inv-table th:nth-child(3),
       #panel-order .inv-table td:nth-child(3) { display: none; }
-      #panel-order .inv-table th { font-size: 8px !important; padding: 5px 4px !important; }
-      #panel-order .inv-table td { font-size: 12px !important; padding: 5px 4px !important; }
-      #panel-order .inv-cat-header { font-size: 14px !important; padding: 8px 10px !important; }
+      #panel-order .inv-table th:nth-child(5),
+      #panel-order .inv-table td:nth-child(5) { display: none; }
+      #panel-order .inv-table th { font-size: 8px !important; padding: 4px 3px !important; }
+      #panel-order .inv-table td { font-size: 12px !important; padding: 4px 3px !important; }
+      #panel-order .inv-table th:nth-child(1) { width: auto !important; }
+      #panel-order .inv-table th:nth-child(2) { width: 38px !important; text-align: center; }
+      #panel-order .inv-table th:nth-child(4) { width: 68px !important; }
+      #panel-order .inv-table th:nth-child(6) { width: 28px !important; }
+      #panel-order .inv-table td:nth-child(2) { font-size: 14px !important; font-weight: 800 !important; color: var(--b6) !important; text-align: center; }
+      #panel-order .inv-cat-header { font-size: 13px !important; padding: 6px 10px !important; }
+      .op-assign-btn { font-size: 9px !important; padding: 4px 6px !important; min-height: 26px !important; min-width: 0 !important; }
       .order-summary-card { gap: 6px !important; padding: 10px 10px !important; flex-wrap: wrap; }
       .order-op-chip { min-width: calc(50% - 6px) !important; padding: 8px 10px !important; flex: 1 1 calc(50% - 6px); }
       .order-op-chip-dv { font-size: 20px !important; }
       .order-op-chip-unassigned { min-width: 80px !important; }
-      .op-assign-btn { font-size: 11px !important; padding: 5px 8px !important; min-height: 32px; }
       .order-toolbar { gap: 6px; }
       .order-plan-select { font-size: 12px !important; }
 
@@ -2047,6 +2054,7 @@ if('serviceWorker' in navigator){
       </div>
     </div>
   </div>
+  <div id="order-op-cards-above" style="max-width:900px;margin:0 auto;padding:0 12px;"></div>
   <div style="max-width:900px;margin:0 auto;padding:8px 12px 20px;" id="order-body">
     <div class="empty-state">Start a new order plan or load a saved one above.</div>
   </div>
@@ -2103,6 +2111,31 @@ if('serviceWorker' in navigator){
           <input type="hidden" id="payout-to"/>
         </div>
         <div id="payouts-body" style="padding:0 12px 10px;"></div>
+      </div>
+    </div>
+
+    <!-- ═══ PAYOUT BALANCE RECON ═══ -->
+    <div id="payout-recon-widget" style="display:none;border-radius:var(--radius);overflow:hidden;margin-bottom:10px;border:1px solid var(--border-light);">
+      <div onclick="togglePayoutRecon()" style="background:var(--b2);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;">
+        <div>
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--b7);margin-bottom:3px;">Payout Account Balance</div>
+          <div style="font-family:Outfit,sans-serif;font-size:18px;font-weight:800;color:var(--b9);line-height:1;" id="payout-recon-total">$0.00</div>
+          <div style="font-size:10px;color:var(--b6);margin-top:2px;" id="payout-recon-sub"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+          <div style="display:flex;align-items:center;gap:6px;background:var(--b3);border-radius:20px;padding:4px 10px;" onclick="event.stopPropagation()">
+            <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--b7);">Bank</span>
+            <div style="width:0.5px;height:13px;background:var(--b5);flex-shrink:0;"></div>
+            <input id="payout-recon-bank" type="text" inputmode="decimal" placeholder="$0.00" oninput="updatePayoutReconMatch()"
+              style="font-size:12px;font-weight:700;background:none;border:none;outline:none;color:var(--b9);width:80px;text-align:right;font-family:DM Sans,sans-serif;"/>
+          </div>
+          <span id="payout-recon-badge" style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;background:var(--b1);color:var(--b4);">&#8212;</span>
+          <span id="payout-recon-chev" style="font-size:11px;color:var(--b6);transition:transform 0.2s;">&#9662;</span>
+        </div>
+      </div>
+      <div id="payout-recon-body" style="display:none;background:var(--bg);border-top:1px solid var(--border-light);padding:8px 14px;">
+        <div id="payout-recon-breakdown"></div>
+        <div id="payout-recon-result" style="display:none;margin-top:6px;padding:7px 10px;border-radius:7px;font-size:12px;font-weight:600;text-align:center;"></div>
       </div>
     </div>
 
@@ -2253,7 +2286,7 @@ if('serviceWorker' in navigator){
           <span style="font-size:11px;color:var(--text-faint);transition:transform 0.2s;" id="cc-chevron">&#9660;</span>
         </div>
       </div>
-      <div id="cc-ledger-body" style="display:none;">
+      <div id="cc-ledger-body" style="display:block;">
       <div style="border-top:1px solid var(--border-light);">
         <!-- Summary card -->
         <div class="cc-summary-card" id="cc-summary-card"></div>
@@ -9679,6 +9712,9 @@ function unloadOrderPlan(){
   // Clear operator summary chips
   const summaryWrap=document.getElementById('order-summary-card-wrap');
   if(summaryWrap)summaryWrap.innerHTML='';
+  // Clear operator review cards
+  const opCardsAbove=document.getElementById('order-op-cards-above');
+  if(opCardsAbove)opCardsAbove.innerHTML='';
   // Clear mark as ordered section
   const markWrap=document.getElementById('order-mark-ordered-wrap');
   if(markWrap){markWrap.style.display='none';markWrap.innerHTML='';}
@@ -9873,8 +9909,8 @@ function renderOrderBody(){
     html+='</tbody></table>';
   });
 
-  // Operator summary cards
-  html+='<div style="margin-top:16px;" id="order-op-cards-wrap">';
+  // Operator summary cards — render into above-body container
+  let opCardsHtml='';
   if(ops.length){
     ops.forEach(function(op){
       const opItems=needItems.filter(function(p){return _orderPlanActive.assignments[p.sku]===op&&!invOos[p.sku]&&!_orderSkipped[p.sku||p.name];});
@@ -9882,14 +9918,14 @@ function renderOrderBody(){
       const isOrdered=!!_orderOrdered[op];
       const col=getOpColor(op);
       const initials=op.split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
-      html+='<div class="order-op-card'+(isOrdered?' order-op-card-ordered':'')+'" id="order-opcard-'+op.replace(/[^a-z0-9]/gi,'_')+'" style="margin-bottom:8px;border-radius:10px;border:1px solid '+(isOrdered?'var(--b4)':'var(--border-light)')+';background:var(--surface);overflow:hidden;">'+
-        '<div class="order-op-card-head" onclick="orderToggleOpCard(\''+op.replace(/[^a-z0-9]/gi,'_')+'\')" style="display:flex;align-items:center;padding:9px 12px;gap:9px;cursor:pointer;">'+
-        '<div style="width:30px;height:30px;border-radius:50%;background:'+col+'33;color:'+col+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">'+initials+'</div>'+
+      opCardsHtml+='<div class="order-op-card'+(isOrdered?' order-op-card-ordered':'')+'" id="order-opcard-'+op.replace(/[^a-z0-9]/gi,'_')+'" style="margin-bottom:4px;border-radius:10px;border:1px solid '+(isOrdered?'var(--b4)':'var(--border-light)')+';background:var(--surface);overflow:hidden;">'+
+        '<div class="order-op-card-head" onclick="orderToggleOpCard(\''+op.replace(/[^a-z0-9]/gi,'_')+'\')" style="display:flex;align-items:center;padding:7px 10px;gap:8px;cursor:pointer;">'+
+        '<div style="width:26px;height:26px;border-radius:50%;background:'+col+'33;color:'+col+';display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;">'+initials+'</div>'+
         '<div style="flex:1;min-width:0;">'+
-        '<div style="font-size:13px;font-weight:600;color:var(--text);">'+escHtml(op)+'</div>'+
-        '<div id="order-opmeta-'+op.replace(/[^a-z0-9]/gi,'_')+'" style="font-size:11px;color:'+(isOrdered?'var(--b6)':'var(--text-faint)')+';">'+opItems.length+' items &middot; '+fmtVP(opDv)+' DV'+(isOrdered?' &mdash; ordered':' &mdash; tap to review')+'</div>'+
+        '<div style="font-size:12px;font-weight:600;color:var(--text);">'+escHtml(op)+'</div>'+
+        '<div id="order-opmeta-'+op.replace(/[^a-z0-9]/gi,'_')+'" style="font-size:10px;color:'+(isOrdered?'var(--b6)':'var(--text-faint)')+';">'+opItems.length+' items &middot; '+fmtVP(opDv)+' DV'+(isOrdered?' &mdash; ordered':' &mdash; tap to review')+'</div>'+
         '</div>'+
-        '<span id="order-opchev-'+op.replace(/[^a-z0-9]/gi,'_')+'" style="font-size:10px;color:var(--text-faint);margin-left:2px;transition:transform 0.2s;display:inline-block;">&#9660;</span>'+
+        '<span id="order-opchev-'+op.replace(/[^a-z0-9]/gi,'_')+'" style="font-size:9px;color:var(--text-faint);transition:transform 0.2s;display:inline-block;">&#9660;</span>'+
         '</div>'+
         '<div id="order-opbody-'+op.replace(/[^a-z0-9]/gi,'_')+'" style="max-height:0;overflow:hidden;transition:max-height 0.25s ease;border-top:0 solid var(--border-light);">'+
         '<div style="display:flex;align-items:center;padding:4px 10px;gap:8px;background:var(--b0);border-bottom:1px solid var(--border-light);">'+
@@ -9902,7 +9938,7 @@ function renderOrderBody(){
         '</div>';
       opItems.forEach(function(p){
         const opKey=op.replace(/[^a-z0-9]/gi,'_');
-        html+='<div class="order-oprow'+(isOrdered?' order-oprow-ordered':'')+'" id="order-oprow-'+opKey+'-'+p.sku+'"'+
+        opCardsHtml+='<div class="order-oprow'+(isOrdered?' order-oprow-ordered':'')+'" id="order-oprow-'+opKey+'-'+p.sku+'"'+
           ' data-op="'+escHtml(op)+'" data-sku="'+escHtml(p.sku)+'" data-name="'+escHtml(p.name)+'"'+
           ' onclick="orderOpenRowEdit(event,this.dataset.op,this.dataset.sku,this.dataset.name)"'+
           ' style="display:flex;align-items:center;padding:6px 10px;gap:8px;border-bottom:1px solid var(--border-light);cursor:pointer;'+(isOrdered?'opacity:0.4;':'')+'">'+
@@ -9914,15 +9950,15 @@ function renderOrderBody(){
           '<div style="width:16px;font-size:10px;color:var(--text-faint);opacity:0.5;">&#9998;</div>'+
           '</div>';
       });
-      // Edit action sheet placeholder
-      html+='<div id="order-opedit-'+op.replace(/[^a-z0-9]/gi,'_')+'" style="display:none;border-top:1px solid var(--border-light);padding:10px 12px;background:var(--b0);">'+
+      opCardsHtml+='<div id="order-opedit-'+op.replace(/[^a-z0-9]/gi,'_')+'" style="display:none;border-top:1px solid var(--border-light);padding:10px 12px;background:var(--b0);">'+
         '<div id="order-opedit-title-'+op.replace(/[^a-z0-9]/gi,'_')+'" style="font-size:11px;font-weight:600;color:var(--text-faint);margin-bottom:8px;"></div>'+
         '<div id="order-opedit-btns-'+op.replace(/[^a-z0-9]/gi,'_')+'" style="display:flex;gap:6px;flex-wrap:wrap;"></div>'+
         '</div>';
-      html+='</div></div>';
+      opCardsHtml+='</div></div>';
     });
   }
-  html+='</div>';
+  const opCardsAbove=document.getElementById('order-op-cards-above');
+  if(opCardsAbove)opCardsAbove.innerHTML=opCardsHtml;
 
   document.getElementById('order-body').innerHTML=html;
   document.getElementById('order-vol-tracker').style.display='block';
@@ -10835,6 +10871,7 @@ function renderPayouts(){
 
   if(snapWrap)snapWrap.style.display='block';
   renderPayoutSnapshots();
+  renderPayoutRecon();
 }
 
 // ── UNIFIED PAYOUTS — operators + hourly employees ───────────────────────────
@@ -12109,7 +12146,7 @@ function expandPregRegister() { renderPaymentRegister(); } // no longer needed s
 let _ccData = [];          // full dataset from Supabase
 let _ccFilter = 'all';     // all | products | overhead | purchases | payments
 let _ccSort   = 'date_desc';
-let _ccOpen   = false;
+let _ccOpen   = true;
 let _ccRowsOpen = false;
 let _ccRowLimit = 10;      // rows shown before "Show more"
 let _ccSearchQuery = '';   // text search filter
@@ -13875,6 +13912,156 @@ function clearPayouts() {
   const snapWrap = document.getElementById('payout-snapshot-wrap');
   if (snapWrap) snapWrap.style.display = 'none';
   window._gcalShiftCountsForPayout = {};
+  // Hide payout recon widget
+  const reconW = document.getElementById('payout-recon-widget');
+  if (reconW) reconW.style.display = 'none';
+}
+
+// ── PAYOUT BALANCE RECON WIDGET ──────────────────────────────────────────────
+let _payoutReconOpen = false;
+
+function togglePayoutRecon() {
+  _payoutReconOpen = !_payoutReconOpen;
+  const body = document.getElementById('payout-recon-body');
+  const chev = document.getElementById('payout-recon-chev');
+  if (body) body.style.display = _payoutReconOpen ? 'block' : 'none';
+  if (chev) chev.style.transform = _payoutReconOpen ? 'rotate(180deg)' : '';
+}
+
+function renderPayoutRecon() {
+  const from = document.getElementById('payout-from')?.value;
+  const to = document.getElementById('payout-to')?.value;
+  const widget = document.getElementById('payout-recon-widget');
+  if (!widget || !from || !to) { if (widget) widget.style.display = 'none'; return; }
+
+  // Calculate total allocated payouts for this range
+  const rangeDays = ALL_DAYS.filter(function(d) { return d.date >= from && d.date <= to; }).sort(function(a,b) { return a.date.localeCompare(b.date); });
+  const ownerName = getOwnerOpName();
+  let totalAllocated = 0;
+  const dayBreakdown = [];
+
+  rangeDays.forEach(function(d) {
+    const data = d.data || {};
+    if (data.closedDay) return;
+    const py = data.payouts || 0;
+    if (!py) return;
+    const ops = [data.op1, data.op2, data.op3, data.op4].filter(Boolean);
+    const share = ops.length > 0 ? py / ops.length : 0;
+    const opParts = [];
+    let dayTotal = 0;
+    ops.forEach(function(o) {
+      const isOwnerReinvest = ownerName && o === ownerName && data.ownerReinvest;
+      if (!isOwnerReinvest) {
+        const resolved = resolveAlias(o);
+        const alias = getTeamMembers().find(function(m) { return m.name === o; });
+        const display = (alias && alias.alias && alias.alias.trim()) ? alias.alias.trim() : resolved;
+        const initials = display.split(' ').map(function(w) { return w[0] || ''; }).join('').toUpperCase().slice(0, 2);
+        opParts.push(initials + ' ' + fmt$(share));
+        dayTotal += share;
+      }
+    });
+    if (dayTotal > 0) {
+      totalAllocated += dayTotal;
+      const lbl = new Date(d.date + 'T00:00:00').toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'});
+      dayBreakdown.push({ date: d.date, label: lbl, total: dayTotal, ops: opParts.join(' · ') });
+    }
+  });
+
+  // Payments posted in this range from Payment Register
+  const postedPayments = (SETTINGS.paymentLog || []).filter(function(e) {
+    return e.date >= from && e.date <= to;
+  });
+  const totalPosted = postedPayments.reduce(function(s, e) { return s + (parseFloat(e.amount) || 0); }, 0);
+  const netOwed = totalAllocated - totalPosted;
+
+  // Update banner
+  const totalEl = document.getElementById('payout-recon-total');
+  if (totalEl) totalEl.textContent = fmt$(netOwed);
+  const subEl = document.getElementById('payout-recon-sub');
+  if (subEl) {
+    const fromLbl = new Date(from + 'T00:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric'});
+    const toLbl = new Date(to + 'T00:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric'});
+    subEl.textContent = fromLbl + ' \u2013 ' + toLbl + ' \u00b7 Net owed to operators';
+  }
+
+  // Build breakdown HTML
+  const bd = document.getElementById('payout-recon-breakdown');
+  if (bd) {
+    let html = '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border-light);">' +
+      '<span style="font-size:11px;font-weight:700;color:var(--text);">Total allocated payouts</span>' +
+      '<span style="font-size:11px;font-weight:700;color:var(--g5);">' + fmt$(totalAllocated) + '</span></div>';
+
+    dayBreakdown.forEach(function(d) {
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border-light);">' +
+        '<div><div style="font-size:11px;color:var(--text-muted);">' + d.label + '</div>' +
+        '<div style="font-size:9px;color:var(--text-faint);">' + d.ops + '</div></div>' +
+        '<span style="font-size:11px;font-weight:700;color:var(--text);">' + fmt$(d.total) + '</span></div>';
+    });
+
+    if (totalPosted > 0) {
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-top:2px solid var(--border);margin-top:4px;">' +
+        '<span style="font-size:11px;font-weight:700;color:var(--text);">Payments posted this range</span>' +
+        '<span style="font-size:11px;font-weight:700;color:var(--r5);">\u2212' + fmt$(totalPosted) + '</span></div>';
+    }
+
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-top:1px solid var(--border-light);margin-top:2px;">' +
+      '<span style="font-size:12px;font-weight:700;color:var(--text);">Net owed</span>' +
+      '<span style="font-family:Outfit,sans-serif;font-size:14px;font-weight:800;color:var(--text);">' + fmt$(netOwed) + '</span></div>';
+
+    bd.innerHTML = html;
+  }
+
+  // Store net owed for match calculation
+  widget.dataset.netOwed = netOwed.toFixed(2);
+  widget.style.display = 'block';
+  updatePayoutReconMatch();
+}
+
+function updatePayoutReconMatch() {
+  const widget = document.getElementById('payout-recon-widget');
+  const bankInput = document.getElementById('payout-recon-bank');
+  const badge = document.getElementById('payout-recon-badge');
+  const resultBar = document.getElementById('payout-recon-result');
+  if (!widget || !bankInput || !badge) return;
+
+  const netOwed = parseFloat(widget.dataset.netOwed) || 0;
+  const rawBank = bankInput.value.replace(/[$,]/g, '').trim();
+  const bankVal = parseFloat(rawBank);
+
+  if (!rawBank || isNaN(bankVal)) {
+    badge.style.background = 'var(--b1)';
+    badge.style.color = 'var(--b4)';
+    badge.textContent = '\u2014';
+    if (resultBar) resultBar.style.display = 'none';
+    return;
+  }
+
+  const diff = Math.abs(bankVal - netOwed);
+  const isMatch = diff < 0.02;
+
+  if (isMatch) {
+    badge.style.background = 'var(--g0)';
+    badge.style.color = 'var(--g5)';
+    badge.textContent = '\u2713 Match';
+  } else {
+    badge.style.background = 'var(--a0)';
+    badge.style.color = 'var(--a6)';
+    badge.textContent = 'Off ' + fmt$(diff);
+  }
+
+  if (resultBar) {
+    resultBar.style.display = 'block';
+    if (isMatch) {
+      resultBar.style.background = 'var(--g0)';
+      resultBar.style.color = 'var(--g5)';
+      resultBar.textContent = '\u2713 Balanced \u2014 bank matches net owed payouts';
+    } else {
+      resultBar.style.background = 'var(--a0)';
+      resultBar.style.color = 'var(--a6)';
+      var direction = bankVal > netOwed ? 'Bank is higher than owed payouts' : 'Bank is lower than owed payouts';
+      resultBar.textContent = 'Off by ' + fmt$(diff) + ' \u2014 ' + direction;
+    }
+  }
 }
 
 // ── CALENDAR DATE RANGE PICKER ────────────────────────────────────────────────
