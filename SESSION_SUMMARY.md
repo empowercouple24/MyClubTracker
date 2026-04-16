@@ -1,5 +1,5 @@
 # MyClubTracker — Session Summary
-**Last updated:** April 11, 2026 (overnight session)
+**Last updated:** April 16, 2026
 **Continue in a new conversation — upload this file to GitHub repo root and paste at session start**
 
 ---
@@ -53,7 +53,7 @@ At the end of every working session, Claude must:
 | `oauth-callback.html` | Google OAuth redirect handler |
 | `manifest.json` | PWA manifest (icons `?v=2` cache-busted) |
 | `sw.js` | Service worker |
-| `favicon.ico` | Favicon — green bolt (rebuilt this session) |
+| `favicon.ico` | Favicon — green bolt |
 | `icon-16.png` | 16×16 bolt favicon PNG |
 | `icon-32.png` | 32×32 bolt favicon PNG |
 | `icon-72.png` through `icon-512.png` | PWA icons — green bolt, all 9 sizes |
@@ -108,68 +108,36 @@ At the end of every working session, Claude must:
 
 ---
 
-## Completed This Session (April 11, 2026)
+## Completed This Session (April 16, 2026)
 
-### Club Team Section (Settings → Profile)
-- ✅ **Unified Club Team section** — merged "Club Team" config list and "Team Members" Supabase list into one card-style section
-- ✅ **Card layout** — each member: 44px avatar (photo if linked, else initials) · color dot · name/alias inputs · linked email or "Link to account" dropdown · role dropdown · active/inactive or hourly rate · unlink button
-- ✅ **userId linking** — `SETTINGS.teamMembers` entries now carry `userId` field; owner links slots to Supabase accounts via dropdown; unlink button (non-destructive, keeps location access)
-- ✅ **Sort order** — Owner → Operators A–Z → Hourly A–Z
-- ✅ **`getUnlinkedLocationUsers`** — no longer excludes current user (Mary can link herself to her own slot)
-- ✅ **Unlink replaces Remove** — "Unlink" button clears userId only; destructive remove is no longer on cards
-- ✅ **"Not signed up yet"** label only shows when dropdown is empty
+### CC Ledger — Purchase / Payment toggle
+- ✅ **Root-cause diagnosed** — the banking-style dollar input (`initBankInput`) blocks every non-digit keystroke; typing `-` is silently dropped. `_bankRender` also mangles negative buffers (`Math.floor(-12345/100)` → `-124.-45`). So negative entry was hard-locked.
+- ✅ **Purchase / Payment toggle added** to CC Ledger modal — two-segment pill above the Amount row. Purchase (default) tinted red (`--r0` / `--r5`); Payment tinted green (`--g0` / `--g5`), matching the existing row colors in the ledger. Bank-input stays positive-only; sign is carried by the toggle.
+- ✅ **Sign prefix reacts to toggle** — `$` shown in muted when Purchase is active; `−$` shown in green when Payment is active (`cc-amt-sign` span).
+- ✅ **`setCCKind(kind)`** — new function; flips button active state, swaps sign prefix and its color, stores kind on `overlay.dataset.kind`.
+- ✅ **`openCCModal` detects sign on edit** — for existing entries, reads `entry.amount`, puts `Math.abs` in the input, seeds `_buf` correctly, and calls `setCCKind('payment')` if the stored amount is negative, else Purchase. For new entries, defaults to Purchase.
+- ✅ **`saveCCEntry` applies sign from toggle** — `(kind === 'payment' ? -1 : 1) * Math.abs(parsed)`; also now rejects zero as invalid (previously `isNaN` only).
+- ✅ **`handleCCAmountPaste` auto-flips toggle** — pasting a negative value (e.g. `-326.61`, `-$1,044.55`) sets absolute value in the field and calls `setCCKind('payment')`. Positive pastes don't touch the toggle (so a user who has manually picked Payment keeps their choice).
+- ✅ **Latent `_buf` bug fixed** — `openCCModal` now resets `amtEl._buf = ''` at the top and re-seeds it from `entry.amount`. Previously, re-opening the modal for a different entry could carry a stale `_buf` value that garbled subsequent typing.
+- ✅ **Helper text simplified** — was "Positive amount = purchase. Negative amount = payment to card." Now just "Payment reduces the card balance." (toggle makes the rest self-explanatory.)
+- ✅ **New CSS class `.cc-kind-toggle` / `.cc-kind-btn`** — added after `.cc-type-badge` rules. Matches the pill-toggle pattern used elsewhere in the app (Projections mode switch, History view switcher).
 
-### Order Tab — Major Fixes
-- ✅ **Loaded plan volume tracker** — `loadOrderPlan` now calls `renderOrderSummaryCards()` and `orderUpdateVolumeTracker()` immediately after render
-- ✅ **DV Need showing PAR** — `renderOrderSummaryCards`, `orderUpdateVolumeTracker`, `orderRebuildOpCards`, `orderUpdateOpMeta` all use `_planNeedOverride` first
-- ✅ **Operator card DV** — `orderRebuildOpCards` and `orderUpdateOpMeta` now use `_planNeedOverride`
-- ✅ **Save plan prompt reworked** — same name = overwrite confirm; different name = auto save as new (no extra prompt)
-- ✅ **Assign All button alias** — category header Assign All now shows operator alias on load (not full name)
-- ✅ **Unsaved changes warning** — `_orderDirty` flag tracks changes to a saved plan; switching to a different plan prompts "You have unsaved changes"
-- ✅ **Go to Order flow** — if saved plan loaded: prompt sends user to Order tab to save first; if unsaved plan with assignments: confirm discard
-- ✅ **Unload button** clears operator chips, header widgets, and mark-as-ordered section
-- ✅ **Category header restored** — was accidentally dropped; category name + Assign All + Skip All buttons all back
-- ✅ **Skip All button** — white `—` button per category header; toggles all/none skipped for that category
-- ✅ **Gram Zero skip bug** — all Gram Zero products had empty SKU `""` causing shared skip key; fixed with `sku||name` key throughout
-- ✅ **Skipped items excluded from counts** — Items to Order, Assigned X/Y, Unassigned chip, operator chip counts all exclude skipped rows
-
-### Order Tab — Mark as Ordered (redesigned)
-- ✅ **Moved above toolbar** — "Mark as Ordered" section now sits between vol tracker and toolbar (non-sticky)
-- ✅ **Gated** — only operators with ≥1 assigned item or DV > 0 appear
-- ✅ **Expandable product list** — each operator row has ▼ chevron; tap to expand/collapse list of product name, SKU, need qty, VP, DV subtotal
-- ✅ **Product row dimming** — `.order-row-ordered` CSS (opacity 0.45) applied live when operator marked ordered; rows stay editable
-- ✅ **Mark ordered button removed from card heads** — cards now just show avatar + name + meta + chevron
-
-### Payment Register
-- ✅ **Show more → 10 increments** — was 20; now shows 10 at a time with Reset button
-- ✅ **Payee chips colored** — each chip uses that team member's assigned color from SETTINGS
-- ✅ **Payee chip sort order** — Owner → Operator → Hourly, alphabetical within each group
-
-### CC Ledger
-- ✅ **Amount paste fix** — pasting `326.61`, `1,044.55`, `$1,044.55` all work; `_buf` seeded correctly so bank input blur doesn't wipe the value
-- ✅ **Description autocomplete** — datalist suggestions from existing entries as you type
-- ✅ **Search bar** — filters ledger in real time; dropdown of up to 8 matching descriptions; click or Enter opens edit modal; arrow key navigation; ✕ clear button
-
-### Finances / Payouts Tab
-- ✅ **Clear button removed** — standalone Clear above Daily Breakdown removed (redundant)
-- ✅ **Show more text** — CC Ledger and Payment Register both say "Show 20 more" / "Show 10 more" consistently
-
-### Enter Tab
-- ✅ **Allocation preservation on re-save** — `saveDay()` now preserves `data.transfers` from existing record; cash deposited / confirmed allocations survive entry edits
-
-### Inventory Snapshot
-- ✅ **Hourly employees in pills** — `getHourlyMembers()` now included alongside operators
-- ✅ **Initials auto-fill, read-only** — selecting a pill fills initials field and makes it read-only; clicking field directly clears chip selection and restores editability
-- ✅ **Snapshot name prefilled** — opens with "Inventory Count - [today's date]"; field focused + selected for easy overwrite
-
-### Favicon
-- ✅ **favicon.ico rebuilt** — from uploaded `MyClubTracker_Logo_Bolt.png` (1080×1080); resized to 16/32/48px and packed as ICO
-- ✅ **icon-16.png and icon-32.png** — rebuilt from same source
-- ✅ **Cache-bust strings** — `?v=3` added to all favicon `<link>` tags in app.html
+**Not changed this session** — Payment Register, Operator Payouts, and Hourly Employees bank-inputs are unchanged (they remain positive-only, since negatives there would be refunds/clawbacks and Jeffrey only asked for this fix in CC Ledger).
 
 ---
 
-## Order Tab Architecture Notes (updated)
+## CC Ledger Architecture Notes (new)
+
+### Modal kind toggle
+- Kind state lives on `document.getElementById('cc-modal-overlay').dataset.kind` — either `'purchase'` or `'payment'`
+- Always read via `overlay.dataset.kind || 'purchase'` (default purchase)
+- `setCCKind(kind)` is the single source of truth for updating the buttons + sign prefix + dataset
+- The bank-input (`#cc-f-amount`) never stores a sign; always a positive dollar value. Sign is applied only at save time.
+- On edit: `rawAmt = parseFloat(entry.amount)`; `absAmt = Math.abs(rawAmt)`; input displays `absAmt.toFixed(2)`; `_buf = String(Math.round(absAmt*100))`; kind set from `rawAmt < 0`.
+
+---
+
+## Order Tab Architecture Notes
 
 ### Mark as Ordered Section
 - `renderOrderMarkSection()` — builds the section; called from `renderOrderBody`, `loadOrderPlan`, `orderAssign`, `unloadOrderPlan`
@@ -197,6 +165,8 @@ At the end of every working session, Claude must:
 - **Amount parsing: always `parseFloat(val.replace(/,/g,''))` — never bare `parseFloat`**
 - **DV calculation: always `vp * need` (need qty from invHave or _planNeedOverride), never `vp * par`**
 - **onclick with dynamic string values: always use `data-*` attributes, never inline string concatenation with quotes**
+- **Bank-input (`.bank-input`) is positive-only by design.** To accept negatives, wrap the input with a kind toggle (see CC Ledger Purchase/Payment pattern); don't modify the bank-input helpers themselves.
+- **Always reset `el._buf = ''` when opening a bank-input modal for edit**, then re-seed from the stored value. Otherwise a stale buffer from a prior open poisons subsequent typing.
 
 ---
 
@@ -230,3 +200,5 @@ At the end of every working session, Claude must:
 | DVΔ | DV delta % |
 | OH | Overhead rate |
 | Operator | UI term; DB value is `employee` |
+| Purchase | Positive CC Ledger amount — increases card balance |
+| Payment | Negative CC Ledger amount — reduces card balance |

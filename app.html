@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-11 16:30:00 -->
+<!-- CACHE BUST: 2026-04-16 13:15:00 -->
 <html lang="en">
 <head>
 <script>
@@ -906,6 +906,12 @@ if('serviceWorker' in navigator){
     .cc-type-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;}
     .cc-type-badge.products{background:var(--b1);color:var(--b7);}
     .cc-type-badge.overhead{background:var(--a0);color:var(--a6);}
+    /* CC modal Purchase/Payment toggle */
+    .cc-kind-toggle{display:inline-flex;gap:0;background:var(--b0);border-radius:8px;padding:2px;border:1px solid var(--border-light);}
+    .cc-kind-btn{font-family:DM Sans,sans-serif;font-size:12px;font-weight:700;padding:6px 14px;border:none;background:transparent;color:var(--text-muted);cursor:pointer;border-radius:6px;transition:all 0.15s;letter-spacing:0.2px;}
+    .cc-kind-btn:hover{color:var(--text);}
+    .cc-kind-btn.active.purchase{background:var(--r0);color:var(--r5);box-shadow:var(--shadow-sm);}
+    .cc-kind-btn.active.payment{background:var(--g0);color:var(--g5);box-shadow:var(--shadow-sm);}
     .cc-td-balance{font-family:Outfit,sans-serif;font-weight:700;text-align:right;color:var(--text-muted);}
     .cc-td-balance.negative{color:var(--r4);}
     .cc-footer-bar{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;border-top:1px solid var(--border-light);background:var(--b0);}
@@ -2215,10 +2221,17 @@ if('serviceWorker' in navigator){
         <datalist id="cc-desc-suggestions"></datalist>
       </div>
       <div class="preg-sheet-field">
+        <span class="preg-sheet-label">Kind</span>
+        <div class="cc-kind-toggle">
+          <button type="button" id="cc-kind-purchase" class="cc-kind-btn purchase active" onclick="setCCKind('purchase')">Purchase</button>
+          <button type="button" id="cc-kind-payment" class="cc-kind-btn payment" onclick="setCCKind('payment')">Payment</button>
+        </div>
+      </div>
+      <div class="preg-sheet-field">
         <span class="preg-sheet-label">Amount</span>
         <div style="display:flex;align-items:center;gap:4px;flex:1;justify-content:flex-end;">
-          <span style="font-size:13px;font-weight:600;color:var(--text-muted);">$</span>
-          <input type="text" inputmode="decimal" id="cc-f-amount" class="preg-sheet-input bank-input" placeholder="0.00 (negative = payment)" style="width:110px;" onpaste="handleCCAmountPaste(event)"/>
+          <span id="cc-amt-sign" style="font-size:13px;font-weight:700;color:var(--text-muted);">$</span>
+          <input type="text" inputmode="decimal" id="cc-f-amount" class="preg-sheet-input bank-input" placeholder="0.00" style="width:110px;" onpaste="handleCCAmountPaste(event)"/>
         </div>
       </div>
       <div class="preg-sheet-field">
@@ -2229,7 +2242,7 @@ if('serviceWorker' in navigator){
         </select>
       </div>
       <div style="padding:8px 16px 4px;">
-        <p style="font-size:11px;color:var(--text-faint);margin:0;">Positive amount = purchase. Negative amount = payment to card.</p>
+        <p style="font-size:11px;color:var(--text-faint);margin:0;">Payment reduces the card balance.</p>
       </div>
     </div>
     <div style="padding:12px 16px;flex-shrink:0;border-top:1px solid var(--border-light);display:flex;gap:8px;">
@@ -12114,6 +12127,9 @@ function openCCModal(id) {
   const amtEl   = document.getElementById('cc-f-amount');
   const typeEl  = document.getElementById('cc-f-type');
 
+  // Reset bank-input buffer so stale value from a prior open does not poison this one
+  if (amtEl) amtEl._buf = '';
+
   if (id) {
     const entry = _ccData.find(r=>r.id===id);
     if (!entry) return;
@@ -12122,8 +12138,12 @@ function openCCModal(id) {
     idEl.value   = entry.id;
     dateEl.value = entry.date || '';
     descEl.value = entry.description || '';
-    amtEl.value  = entry.amount !== undefined ? String(entry.amount) : '';
+    const rawAmt = (entry.amount !== undefined && entry.amount !== null) ? parseFloat(entry.amount) : NaN;
+    const absAmt = isNaN(rawAmt) ? 0 : Math.abs(rawAmt);
+    amtEl.value  = isNaN(rawAmt) ? '' : absAmt.toFixed(2);
+    amtEl._buf   = isNaN(rawAmt) ? '' : String(Math.round(absAmt * 100));
     typeEl.value = entry.type || 'Products';
+    setCCKind(rawAmt < 0 ? 'payment' : 'purchase');
   } else {
     titleEl.textContent = 'Add Entry';
     delBtn.style.display = 'none';
@@ -12132,6 +12152,7 @@ function openCCModal(id) {
     descEl.value = '';
     amtEl.value  = '';
     typeEl.value = 'Products';
+    setCCKind('purchase');
   }
   overlay.style.display = 'flex';
   initBankInput(amtEl);
@@ -12142,6 +12163,26 @@ function closeCCModal() {
 }
 function closeCCModalOnBg(e) {
   if (e.target === document.getElementById('cc-modal-overlay')) closeCCModal();
+}
+
+function setCCKind(kind) {
+  if (kind !== 'payment') kind = 'purchase';
+  const pBtn = document.getElementById('cc-kind-purchase');
+  const yBtn = document.getElementById('cc-kind-payment');
+  if (pBtn) pBtn.classList.toggle('active', kind === 'purchase');
+  if (yBtn) yBtn.classList.toggle('active', kind === 'payment');
+  const sign = document.getElementById('cc-amt-sign');
+  if (sign) {
+    if (kind === 'payment') {
+      sign.textContent = '\u2212$';
+      sign.style.color = 'var(--g5)';
+    } else {
+      sign.textContent = '$';
+      sign.style.color = 'var(--text-muted)';
+    }
+  }
+  const overlay = document.getElementById('cc-modal-overlay');
+  if (overlay) overlay.dataset.kind = kind;
 }
 
 function updateCCDescSuggestions(val) {
@@ -12168,11 +12209,12 @@ function handleCCAmountPaste(e) {
   const cleaned = raw.replace(/[$,\s]/g,'').trim();
   const num = parseFloat(cleaned);
   if (!isNaN(num)) {
-    const formatted = num.toFixed(2);
-    e.target.value = formatted;
-    // Seed _buf so _bankInputBlur doesn't wipe the value
-    e.target._buf = String(Math.round(Math.abs(num) * 100));
-    if (num < 0) e.target._buf = '-' + e.target._buf;
+    const absN = Math.abs(num);
+    e.target.value = absN.toFixed(2);
+    // Seed _buf with positive cents only — sign is carried by the kind toggle
+    e.target._buf = String(Math.round(absN * 100));
+    // If pasted value is negative, flip the toggle to Payment
+    if (num < 0) setCCKind('payment');
   } else {
     e.target.value = cleaned;
   }
@@ -12285,11 +12327,13 @@ async function saveCCEntry() {
   const desc  = document.getElementById('cc-f-desc').value.trim();
   const amtRaw= document.getElementById('cc-f-amount').value.trim();
   const type  = document.getElementById('cc-f-type').value;
+  const kind  = (document.getElementById('cc-modal-overlay').dataset.kind || 'purchase');
 
   if (!date)   { showToast('Date is required','error'); return; }
   if (!desc)   { showToast('Description is required','error'); return; }
-  const amount = parseFloat(amtRaw.replace(/,/g,''));
-  if (isNaN(amount)) { showToast('Enter a valid amount','error'); return; }
+  const parsed = parseFloat(amtRaw.replace(/,/g,''));
+  if (isNaN(parsed) || parsed === 0) { showToast('Enter a valid amount','error'); return; }
+  const amount = (kind === 'payment' ? -1 : 1) * Math.abs(parsed);
   if (!type)   { showToast('Type is required','error'); return; }
 
   const payload = { location_id: LOCATION_ID, date, description: desc, amount, type };
