@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-16 13:15:00 -->
+<!-- CACHE BUST: 2026-04-16 14:20:00 -->
 <html lang="en">
 <head>
 <script>
@@ -188,6 +188,13 @@ if('serviceWorker' in navigator){
     .sq-deposit-label{color:rgba(125,232,138,0.75);font-weight:700;display:flex;align-items:center;gap:5px}
     .sq-deposit-formula{font-size:10px;color:rgba(255,255,255,0.75);margin-top:1px}
     .sq-deposit-val{font-family:Outfit,sans-serif;font-size:14px;font-weight:800;color:#7de88a}
+    .summary-box-slim{display:none;align-items:center;justify-content:space-between;gap:8px;}
+    .summary-box-slim-total{font-family:Outfit,sans-serif;font-size:20px;font-weight:800;color:#7de88a;letter-spacing:-0.5px;line-height:1;}
+    .summary-box-slim-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;opacity:0.6;color:white;}
+    .summary-box-slim-dots{display:flex;gap:5px;align-items:center;}
+    .summary-slim-dot{width:10px;height:10px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.3);background:transparent;flex-shrink:0;}
+    .summary-slim-dot.allocated{background:#7de88a;border-color:#7de88a;}
+    .summary-slim-dot-label{font-size:8px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:0.3px;text-transform:uppercase;}
     .sq-dot{width:13px;height:13px;background:#7de88a;border-radius:3px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
     .sq-dot-inner{width:5px;height:5px;background:#1a2e20;border-radius:1px}
     .oh-badge{display:inline-block;font-size:10px;font-weight:700;padding:1px 5px;border-radius:3px;white-space:nowrap;margin-left:5px;vertical-align:middle}
@@ -751,6 +758,64 @@ if('serviceWorker' in navigator){
       .sgrid td:first-child { font-size: 8px !important; padding: 2px 5px !important; }
       .sgrid tr.s-section td { font-size: 7px !important; padding: 2px 5px !important; }
 
+      /* ── ENTER TAB — compact daily summary ── */
+      .summary-box { padding: 10px 10px 8px !important; position: sticky; top: 0; z-index: 25; transition: padding 0.2s, border-radius 0.2s; }
+      .summary-title { font-size: 9px !important; margin-bottom: 3px !important; }
+      .summary-hero { margin-bottom: 6px !important; gap: 6px !important; }
+      .summary-net-label { font-size: 9px !important; letter-spacing: 0.5px; margin-bottom: 1px !important; }
+      .summary-net-val { font-size: 26px !important; letter-spacing: -1px !important; }
+      .summary-fund-val { font-size: 18px !important; }
+      .summary-fund-label { font-size: 9px !important; }
+      .summary-fund-breakdown { font-size: 9px !important; }
+      .summary-cards { gap: 4px !important; margin-bottom: 4px !important; }
+      .summary-card { padding: 6px 10px !important; min-height: 0 !important; }
+      .summary-card-label { font-size: 11px !important; }
+      .summary-card-val { font-size: 17px !important; }
+      .summary-card-rate { font-size: 9px !important; }
+      .summary-card-sub { font-size: 9px !important; }
+      .sc-radio { width: 15px !important; height: 15px !important; margin-left: 8px !important; }
+      .sum-copy-btn { padding: 3px 6px !important; font-size: 10px !important; margin-left: 4px !important; margin-right: 8px !important; }
+      .summary-balance { font-size: 10px !important; padding-top: 5px !important; margin-top: 1px !important; }
+      .sq-deposit-row { font-size: 10px !important; margin-top: 3px !important; padding-top: 3px !important; }
+      .sq-deposit-val { font-size: 12px !important; }
+
+      /* ── ENTER TAB — collapsed sticky summary ── */
+      .summary-box.collapsed { padding: 6px 10px !important; border-radius: 0 0 var(--radius) var(--radius) !important; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+      .summary-box.collapsed .summary-box-full { display: none !important; }
+      .summary-box.collapsed .summary-box-slim { display: flex !important; }
+
+      /* ── ORDER TAB — compact header cards ── */
+      #panel-order .inv-header { padding: 8px 8px !important; margin-bottom: 6px !important; }
+      #panel-order .inv-header-title { font-size: 9px !important; margin-bottom: 4px !important; }
+      #panel-order .inv-dv-row { gap: 4px !important; flex-wrap: nowrap !important; overflow-x: auto; }
+      #panel-order .inv-dv-card { padding: 6px 8px !important; min-width: 0; flex: 1 1 0; }
+      #panel-order .inv-dv-item-val { font-size: 18px !important; }
+      #panel-order .inv-dv-card > div[style*="font-size:10px"] { font-size: 8px !important; margin-top: 2px !important; }
+
+      /* ── ORDER TAB — compact operator chips + unassigned inline ── */
+      .order-summary-card { padding: 6px 6px !important; gap: 4px !important; margin-bottom: 4px !important; flex-wrap: nowrap !important; }
+      .order-op-chip { min-width: 0 !important; padding: 6px 8px !important; flex: 1 1 0 !important; }
+      .order-op-chip-name { font-size: 8px !important; margin-bottom: 1px !important; letter-spacing: 0.3px !important; }
+      .order-op-chip-dv { font-size: 16px !important; }
+      .order-op-chip-sub { font-size: 9px !important; margin-top: 1px !important; }
+      .order-op-chip-unassigned { min-width: 0 !important; padding: 6px 8px !important; flex: 0 0 auto !important; }
+      .order-op-chip-unassigned .order-op-chip-dv { font-size: 14px !important; }
+      .order-op-chip-unassigned .order-op-chip-sub { font-size: 8px !important; }
+
+      /* ── ORDER TAB — compact volume tracker ── */
+      #order-vol-tracker { padding: 6px 10px !important; margin-bottom: 4px !important; }
+      #order-vol-tracker #order-vol-remaining { font-size: 16px !important; }
+      #order-vol-tracker [style*="font-size:11px"] { font-size: 10px !important; }
+      #order-vol-tracker [style*="font-size:9px"] { font-size: 8px !important; }
+
+      /* ── ORDER TAB — compact toolbar ── */
+      .order-toolbar { gap: 4px !important; margin-bottom: 6px !important; }
+      .order-toolbar .btn { font-size: 11px !important; padding: 4px 8px !important; }
+      #order-plan-picker { font-size: 11px !important; padding: 4px 8px !important; }
+
+      /* ── ORDER TAB — compact mark-as-ordered ── */
+      #order-mark-ordered-wrap { margin-bottom: 4px !important; }
+
     }
 
     /* ── THEMES ── */
@@ -1277,7 +1342,27 @@ if('serviceWorker' in navigator){
   </div>
 
   <!-- DAILY SUMMARY -->
-  <div class="summary-box">
+  <div id="summary-sentinel"></div>
+  <div class="summary-box" id="daily-summary-box">
+    <!-- Collapsed slim bar (hidden by default, shown when sticky-collapsed on mobile) -->
+    <div class="summary-box-slim">
+      <div>
+        <div class="summary-box-slim-label">Total Sales</div>
+        <div class="summary-box-slim-total" id="sum-sales-slim">—</div>
+      </div>
+      <div class="summary-box-slim-dots">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:1px;"><div class="summary-slim-dot" id="slim-dot-tax"></div><div class="summary-slim-dot-label">Tax</div></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:1px;"><div class="summary-slim-dot" id="slim-dot-oh"></div><div class="summary-slim-dot-label">OH</div></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:1px;"><div class="summary-slim-dot" id="slim-dot-herb"></div><div class="summary-slim-dot-label">HL</div></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:1px;"><div class="summary-slim-dot" id="slim-dot-pay"></div><div class="summary-slim-dot-label">Pay</div></div>
+      </div>
+      <div style="text-align:right;">
+        <div class="summary-box-slim-label">Sq Deposit</div>
+        <div style="font-family:Outfit,sans-serif;font-size:13px;font-weight:800;color:#7de88a;line-height:1;" id="sum-sq-slim">--</div>
+      </div>
+    </div>
+    <!-- Full summary content -->
+    <div class="summary-box-full">
     <div class="summary-title">Daily Summary</div>
     <div class="summary-hero">
       <div>
@@ -1352,7 +1437,8 @@ if('serviceWorker' in navigator){
       </div>
       <div class="sq-deposit-val" id="sum-sq-deposit">--</div>
     </div>
-  </div>
+    </div><!-- /summary-box-full -->
+  </div><!-- /summary-box -->
 
   <!-- SECTION LABEL -->
   <div class="section-label">Sales &mdash; <span id="sales-oh-label" style="font-weight:600;"></span></div>
@@ -6975,6 +7061,10 @@ function recalc(userChanged=false){
   setText('sum-pay-rate',  '');
   // Square deposit footer
   setText('sum-sq-deposit', c.group1?fmt$(c.cardDeposits):'--');
+  // Sync collapsed slim bar values
+  setText('sum-sales-slim', c.group1?fmt$(c.totalSales):'--');
+  setText('sum-sq-slim', c.group1?fmt$(c.cardDeposits):'--');
+  syncSlimDots();
   // OH rate badges on Other Sales card
   const badgeOther=document.getElementById('badge-otherRate');
   const badgeMerch=document.getElementById('badge-merchRate');
@@ -8949,7 +9039,39 @@ function refreshSumCardAllocState(date) {
     if (!el) return;
     el.classList.toggle('sc-allocated', !!transfers[k]);
   });
+  syncSlimDots();
 }
+
+// ── Sticky summary slim bar sync ─────────────────────────────────────────────
+function syncSlimDots(){
+  const scMap={tax:'slim-dot-tax',overhead:'slim-dot-oh',herbalife:'slim-dot-herb',payouts:'slim-dot-pay'};
+  const scIds={tax:'sc-tax',overhead:'sc-overhead',herbalife:'sc-herbalife',payouts:'sc-payouts'};
+  Object.keys(scMap).forEach(function(k){
+    const dot=document.getElementById(scMap[k]);
+    const card=document.getElementById(scIds[k]);
+    if(dot&&card)dot.classList.toggle('allocated',card.classList.contains('sc-allocated'));
+  });
+}
+
+// ── IntersectionObserver for sticky summary collapse (mobile only) ───────────
+(function(){
+  if(typeof IntersectionObserver==='undefined')return;
+  var sentinel=document.getElementById('summary-sentinel');
+  var box=document.getElementById('daily-summary-box');
+  if(!sentinel||!box)return;
+  var mq=window.matchMedia('(max-width:480px)');
+  var observer=new IntersectionObserver(function(entries){
+    if(!mq.matches){box.classList.remove('collapsed');return;}
+    entries.forEach(function(entry){
+      box.classList.toggle('collapsed',!entry.isIntersecting);
+    });
+  },{threshold:0,rootMargin:'0px 0px 0px 0px'});
+  observer.observe(sentinel);
+  // Also remove collapsed when going back to desktop
+  mq.addEventListener('change',function(e){
+    if(!e.matches)box.classList.remove('collapsed');
+  });
+})();
 
 function copySummaryVal(valId, btnId) {
   const el = document.getElementById(valId);

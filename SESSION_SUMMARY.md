@@ -122,7 +122,36 @@ At the end of every working session, Claude must:
 - ✅ **Helper text simplified** — was "Positive amount = purchase. Negative amount = payment to card." Now just "Payment reduces the card balance." (toggle makes the rest self-explanatory.)
 - ✅ **New CSS class `.cc-kind-toggle` / `.cc-kind-btn`** — added after `.cc-type-badge` rules. Matches the pill-toggle pattern used elsewhere in the app (Projections mode switch, History view switcher).
 
-**Not changed this session** — Payment Register, Operator Payouts, and Hourly Employees bank-inputs are unchanged (they remain positive-only, since negatives there would be refunds/clawbacks and Jeffrey only asked for this fix in CC Ledger).
+### Enter Tab — Compact Daily Summary (mobile)
+- ✅ **All summary elements compressed** — within `@media (max-width: 480px)`:
+  - Total Sales Deposits font: 38px → 26px
+  - Summary card val: 22px → 17px
+  - Summary card padding: 10px 12px → 6px 10px
+  - Card gap: 7px → 4px
+  - Labels, rates, subs all reduced 1–2px
+  - Radio dots: 18px → 15px
+  - Balance check + Square deposit rows tightened
+- ✅ **Net effect:** full Daily Summary fits in ~half of iPhone screen height
+
+### Enter Tab — Sticky + Collapsing Daily Summary (mobile)
+- ✅ **Sticky on scroll** — `.summary-box` gets `position: sticky; top: 0; z-index: 25` on mobile
+- ✅ **Sentinel element** — `#summary-sentinel` (zero-height div) placed above summary box; IntersectionObserver watches it
+- ✅ **Collapsed slim bar** — when sentinel scrolls off screen, `summary-box` gets `.collapsed` class:
+  - `.summary-box-full` (all detail rows) hidden
+  - `.summary-box-slim` shown: single row with Total Sales amount + 4 allocation dots (Tax/OH/HL/Pay) + Square deposit amount
+  - Collapsed bar has bottom-only border-radius and subtle shadow for visual separation
+- ✅ **Auto-expand** — scrolling back up makes sentinel visible again → `.collapsed` removed → full summary returns
+- ✅ **Desktop-safe** — observer only applies `.collapsed` when `matchMedia('max-width:480px')` is true; also cleans up on resize
+- ✅ **Slim bar values synced** — `recalc()` and `refreshSumCardAllocState()` both call `syncSlimDots()` to keep slim dot states matching the full allocation radio buttons
+- ✅ **New CSS classes** — `.summary-box-slim`, `.summary-box-slim-total`, `.summary-box-slim-label`, `.summary-slim-dot`, `.summary-slim-dot.allocated`, `.summary-slim-dot-label`
+
+### Order Tab — Mobile Optimization
+- ✅ **Header stat cards compacted** — padding 10px→6px 8px, font 28px→18px, `flex-wrap:nowrap` + `overflow-x:auto` so all 4 cards visible without clipping
+- ✅ **Operator chips + Unassigned on one row** — `flex-wrap:nowrap` on `.order-summary-card`, operator chips `flex:1 1 0`, unassigned chip inline as `flex:0 0 auto` — all fit on same row, saving an entire vertical row
+- ✅ **Operator chip names/DV/sub all smaller** — name 10px→8px, DV 20px→16px, sub 11px→9px
+- ✅ **Volume tracker compacted** — padding reduced, remaining DV font 22px→16px
+- ✅ **Toolbar compacted** — gap 8px→4px, button/select font sizes reduced
+- ✅ **Mark-as-ordered section** — tighter margin
 
 ---
 
@@ -134,6 +163,25 @@ At the end of every working session, Claude must:
 - `setCCKind(kind)` is the single source of truth for updating the buttons + sign prefix + dataset
 - The bank-input (`#cc-f-amount`) never stores a sign; always a positive dollar value. Sign is applied only at save time.
 - On edit: `rawAmt = parseFloat(entry.amount)`; `absAmt = Math.abs(rawAmt)`; input displays `absAmt.toFixed(2)`; `_buf = String(Math.round(absAmt*100))`; kind set from `rawAmt < 0`.
+
+## Sticky Daily Summary Architecture Notes (new)
+
+### Sentinel + IntersectionObserver pattern
+- `#summary-sentinel` — zero-height div placed immediately above `#daily-summary-box`
+- IntersectionObserver watches the sentinel; when it goes off-viewport, `.collapsed` class is added to `#daily-summary-box`
+- Observer only fires collapse when `matchMedia('(max-width:480px)')` matches — desktop is unaffected
+- `.summary-box-full` contains all existing summary rows (hero, cards, balance, sq deposit)
+- `.summary-box-slim` is the collapsed bar (total + 4 allocation dots + sq deposit)
+
+### Slim bar value sync
+- `recalc()` calls `syncSlimDots()` and sets `#sum-sales-slim` / `#sum-sq-slim`
+- `refreshSumCardAllocState()` calls `syncSlimDots()` to update dot allocated states
+- `syncSlimDots()` reads `.sc-allocated` class from the full summary cards and mirrors to slim dots
+
+### Sticky mechanics
+- `position:sticky; top:0; z-index:25` on mobile only
+- topnav and tabbar are `position:relative` (not sticky), so they scroll away — summary sticks to viewport top
+- Collapsed state: `border-radius: 0 0 var(--radius) var(--radius)` + `box-shadow` for visual separation
 
 ---
 
@@ -167,6 +215,8 @@ At the end of every working session, Claude must:
 - **onclick with dynamic string values: always use `data-*` attributes, never inline string concatenation with quotes**
 - **Bank-input (`.bank-input`) is positive-only by design.** To accept negatives, wrap the input with a kind toggle (see CC Ledger Purchase/Payment pattern); don't modify the bank-input helpers themselves.
 - **Always reset `el._buf = ''` when opening a bank-input modal for edit**, then re-seed from the stored value. Otherwise a stale buffer from a prior open poisons subsequent typing.
+- **Daily Summary has two child wrappers**: `.summary-box-full` (all detail rows) and `.summary-box-slim` (collapsed bar). Never put content between them or outside them within `#daily-summary-box`.
+- **`#summary-sentinel`** must stay immediately before `#daily-summary-box` in the DOM — the IntersectionObserver depends on it.
 
 ---
 
