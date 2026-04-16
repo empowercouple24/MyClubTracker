@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-16 19:15:00 -->
+<!-- CACHE BUST: 2026-04-16 19:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -294,6 +294,14 @@ if('serviceWorker' in navigator){
     .alloc-bucket.transferred .alloc-bucket-check{background:var(--g4);border-color:var(--g4);}
     .alloc-check-svg{width:10px;height:8px;fill:none;stroke:white;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;opacity:0;transition:opacity 0.15s;}
     .alloc-bucket.transferred .alloc-check-svg{opacity:1;}
+    .alloc-copy-pad{display:flex;align-items:center;justify-content:center;gap:4px;margin-top:8px;padding:6px 0;background:var(--b0);border-radius:6px;font-family:DM Sans,sans-serif;font-size:11px;font-weight:700;color:var(--text-faint);cursor:pointer;transition:all 0.12s;border:none;width:100%;}
+    .alloc-copy-pad:hover{background:var(--b1);color:var(--b6);}
+    .alloc-copy-pad:active{transform:scale(0.97);}
+    .alloc-copy-pad.copied{background:var(--g0);color:var(--g5);}
+    .alloc-bucket.transferred .alloc-copy-pad{background:#d4f0d8;color:var(--g5);}
+    .alloc-bucket.transferred .alloc-copy-pad:hover{background:#c0e8c6;}
+    .alloc-bucket.cash-deposit .alloc-copy-pad{background:var(--b1);}
+    .alloc-bucket.cash-deposit.transferred .alloc-copy-pad{background:#c5ddf0;color:var(--b6);}
     /* PROJ MINI CAL */
     .pcal-dow-row{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px;}
     .pcal-dow{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-faint);text-align:center;padding:3px 0;}
@@ -2997,32 +3005,38 @@ if('serviceWorker' in navigator){
           <div class="alloc-bucket-label">Cash Deposit</div>
           <div class="alloc-bucket-amt" id="alloc-amt-cashdeposit">—</div>
           <div class="alloc-bucket-check"><svg class="alloc-check-svg" viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>
+          <button class="alloc-copy-pad" onclick="event.stopPropagation();copyAllocVal('alloc-amt-cashdeposit',this)"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="1" width="9" height="11" rx="1.5"/><rect x="2" y="4" width="9" height="11" rx="1.5"/></svg> Copy</button>
         </div>
         <div class="alloc-bucket" id="alloc-b-tax" onclick="toggleAllocBucket('tax')">
           <div class="alloc-bucket-label">Taxes</div>
           <div class="alloc-bucket-amt" id="alloc-amt-tax">—</div>
           <div class="alloc-bucket-check"><svg class="alloc-check-svg" viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>
+          <button class="alloc-copy-pad" onclick="event.stopPropagation();copyAllocVal('alloc-amt-tax',this)"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="1" width="9" height="11" rx="1.5"/><rect x="2" y="4" width="9" height="11" rx="1.5"/></svg> Copy</button>
         </div>
         <div class="alloc-bucket" id="alloc-b-overhead" onclick="toggleAllocBucket('overhead')">
           <div class="alloc-bucket-label">Overhead</div>
           <div class="alloc-bucket-amt" id="alloc-amt-overhead">—</div>
           <div class="alloc-bucket-check"><svg class="alloc-check-svg" viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>
+          <button class="alloc-copy-pad" onclick="event.stopPropagation();copyAllocVal('alloc-amt-overhead',this)"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="1" width="9" height="11" rx="1.5"/><rect x="2" y="4" width="9" height="11" rx="1.5"/></svg> Copy</button>
         </div>
         <div class="alloc-bucket" id="alloc-b-herbalife" onclick="toggleAllocBucket('herbalife')">
           <div class="alloc-bucket-label">Herbalife</div>
           <div class="alloc-bucket-amt" id="alloc-amt-herbalife">—</div>
           <div class="alloc-bucket-check"><svg class="alloc-check-svg" viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>
+          <button class="alloc-copy-pad" onclick="event.stopPropagation();copyAllocVal('alloc-amt-herbalife',this)"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="1" width="9" height="11" rx="1.5"/><rect x="2" y="4" width="9" height="11" rx="1.5"/></svg> Copy</button>
         </div>
         <div class="alloc-bucket" id="alloc-b-payouts" onclick="toggleAllocBucket('payouts')">
           <div class="alloc-bucket-label">Payouts</div>
           <div class="alloc-bucket-amt" id="alloc-amt-payouts">—</div>
           <div class="alloc-bucket-check"><svg class="alloc-check-svg" viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>
+          <button class="alloc-copy-pad" onclick="event.stopPropagation();copyAllocVal('alloc-amt-payouts',this)"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="1" width="9" height="11" rx="1.5"/><rect x="2" y="4" width="9" height="11" rx="1.5"/></svg> Copy</button>
         </div>
         <div class="alloc-bucket fundraiser-bucket" id="alloc-b-fundraiser" onclick="toggleAllocBucket('fundraiser')">
           <div class="alloc-bucket-label">Fundraisers</div>
           <div class="alloc-bucket-amt" id="alloc-amt-fundraiser">—</div>
           <div class="alloc-fund-sub" id="alloc-sub-fundraiser"></div>
           <div class="alloc-bucket-check"><svg class="alloc-check-svg" viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>
+          <button class="alloc-copy-pad" onclick="event.stopPropagation();copyAllocVal('alloc-amt-fundraiser',this)"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="1" width="9" height="11" rx="1.5"/><rect x="2" y="4" width="9" height="11" rx="1.5"/></svg> Copy</button>
         </div>
       </div>
     </div>
@@ -11648,6 +11662,27 @@ function openAllocDetail(dateStr) {
   });
 
   document.getElementById('alloc-detail-overlay').classList.add('open');
+}
+
+function copyAllocVal(amtId, btn) {
+  var el = document.getElementById(amtId);
+  if (!el) return;
+  var raw = el.textContent.replace(/[$,\s]/g, '').trim();
+  if (!raw || raw === '\u2014' || isNaN(parseFloat(raw))) return;
+  var origHtml = btn.innerHTML;
+  navigator.clipboard.writeText(raw).then(function() {
+    btn.textContent = '\u2713 Copied';
+    btn.classList.add('copied');
+    setTimeout(function() { btn.innerHTML = origHtml; btn.classList.remove('copied'); }, 1500);
+  }).catch(function() {
+    var ta = document.createElement('textarea');
+    ta.value = raw; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    btn.textContent = '\u2713 Copied';
+    btn.classList.add('copied');
+    setTimeout(function() { btn.innerHTML = origHtml; btn.classList.remove('copied'); }, 1500);
+  });
 }
 
 function closeAllocDetail() {
