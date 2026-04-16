@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-16 15:55:00 -->
+<!-- CACHE BUST: 2026-04-16 17:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -704,7 +704,7 @@ if('serviceWorker' in navigator){
 
       /* ── ENTER TAB — compact widget strip ── */
       .dashboard-widgets { display: none !important; }
-      #dw-mobile-strip { display: flex !important; }
+      #dw-mobile-strip { display: grid !important; }
 
       /* ── INVENTORY TOOLBAR — single row ── */
       .filter-row { flex-wrap: nowrap !important; overflow-x: auto; gap: 5px !important; padding: 4px 0 !important; }
@@ -732,11 +732,7 @@ if('serviceWorker' in navigator){
       #hist-cal-label { font-size: 13px !important; }
       .hvt-btn { font-size: 11px !important; padding: 4px 8px !important; }
 
-      /* ── ENTER TAB — Inventory tile: emoji-only on mobile ── */
-      #dw-m-inv-label { display: none; }
-      #dw-m-inv-sub   { display: none; }
-      #dw-m-inv       { display: none; }
-      #dw-m-inv-tile  { padding: 8px 10px !important; gap: 0 !important; }
+      /* ── ENTER TAB — Inventory tile: show all in 2x2 grid ── */
 
       /* ── INVENTORY TOOLBAR — 2 rows: filter chips top, snapshot bottom ── */
       #inv-sticky-wrap .filter-row { flex-wrap: wrap !important; overflow-x: visible !important; }
@@ -1272,22 +1268,22 @@ if('serviceWorker' in navigator){
   </div>
 
   <!-- Mobile compact widget strip (hidden on desktop, shown on mobile) -->
-  <div id="dw-mobile-strip" style="gap:6px;overflow-x:auto;padding-bottom:2px;margin-bottom:8px;padding-right:12px;">
-    <div style="flex:0 0 auto;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:7px 10px;display:flex;align-items:center;gap:7px;">
-      <span style="font-size:15px;">🔥</span>
-      <div><div style="font-size:15px;font-weight:800;color:var(--b7);line-height:1;" id="dw-m-streak">—</div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);margin-top:2px;">Streak</div></div>
+  <div id="dw-mobile-strip" style="display:none;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:6px;">
+    <div style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:5px 8px;display:flex;align-items:center;gap:6px;">
+      <span style="font-size:14px;">🔥</span>
+      <div><div style="font-size:15px;font-weight:800;color:var(--b7);line-height:1;" id="dw-m-streak">—</div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--text-faint);margin-top:1px;">Streak</div></div>
     </div>
-    <div style="flex:0 0 auto;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:7px 10px;display:flex;align-items:center;gap:7px;">
-      <span style="font-size:15px;">📊</span>
-      <div><div style="font-size:15px;font-weight:800;color:var(--a6);line-height:1;" id="dw-m-month">—</div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);margin-top:2px;">This Month</div><div style="font-size:9px;color:var(--text-faint);" id="dw-m-month-sub"></div></div>
+    <div style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:5px 8px;display:flex;align-items:center;gap:6px;">
+      <span style="font-size:14px;">📊</span>
+      <div><div style="font-size:15px;font-weight:800;color:var(--a6);line-height:1;" id="dw-m-month">—</div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--text-faint);margin-top:1px;">This Month</div><div style="font-size:8px;color:var(--text-faint);" id="dw-m-month-sub"></div></div>
     </div>
-    <div style="flex:0 0 auto;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:7px 10px;display:flex;align-items:center;gap:7px;">
-      <span style="font-size:15px;">📈</span>
-      <div><div style="font-size:15px;font-weight:800;color:var(--b5);line-height:1;" id="dw-m-dv">—</div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);margin-top:2px;">Month DV</div><div style="font-size:9px;color:var(--text-faint);" id="dw-m-dv-sub"></div></div>
+    <div style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:5px 8px;display:flex;align-items:center;gap:6px;">
+      <span style="font-size:14px;">📈</span>
+      <div><div style="font-size:15px;font-weight:800;color:var(--b5);line-height:1;" id="dw-m-dv">—</div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--text-faint);margin-top:1px;">Month DV</div><div style="font-size:8px;color:var(--text-faint);" id="dw-m-dv-sub"></div></div>
     </div>
-    <div id="dw-m-inv-tile" style="flex:0 0 auto;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:7px 10px;display:flex;align-items:center;gap:7px;cursor:pointer;" onclick="switchTab('inv')">
-      <span style="font-size:15px;">📦</span>
-      <div><div style="font-size:15px;font-weight:800;color:var(--text);line-height:1;" id="dw-m-inv">—</div><div id="dw-m-inv-label" style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-faint);margin-top:2px;">Inventory</div><div style="font-size:9px;color:var(--text-faint);" id="dw-m-inv-sub"></div></div>
+    <div id="dw-m-inv-tile" style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:5px 8px;display:flex;align-items:center;gap:6px;cursor:pointer;" onclick="switchTab('inv')">
+      <span style="font-size:14px;">📦</span>
+      <div><div style="font-size:15px;font-weight:800;color:var(--text);line-height:1;display:flex;align-items:center;gap:4px;" id="dw-m-inv-wrap"><span id="dw-m-inv-dot" style="width:6px;height:6px;border-radius:50%;flex-shrink:0;"></span><span id="dw-m-inv">—</span></div><div id="dw-m-inv-label" style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--text-faint);margin-top:1px;">Inventory</div><div style="font-size:8px;color:var(--text-faint);" id="dw-m-inv-sub"></div></div>
     </div>
   </div>
   <div class="date-nav">
@@ -2289,6 +2285,13 @@ if('serviceWorker' in navigator){
           <span id="cc-search-clear" onclick="clearCCSearch()" style="display:none;position:absolute;right:20px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:14px;color:var(--text-faint);">✕</span>
           <div id="cc-search-dropdown" style="display:none;position:absolute;left:12px;right:12px;top:100%;z-index:200;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);box-shadow:0 4px 16px rgba(0,0,0,0.12);max-height:220px;overflow-y:auto;"></div>
         </div>
+        <!-- Rows toggle -->
+        <div onclick="toggleCCRows()" style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;cursor:pointer;user-select:none;border-bottom:1px solid var(--border-light);">
+          <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);">Transaction History</span>
+          <span style="font-size:11px;color:var(--text-faint);transition:transform 0.2s;" id="cc-rows-chevron">&#9660;</span>
+        </div>
+        <!-- Collapsible rows area -->
+        <div id="cc-rows-body" style="display:none;">
         <!-- Table -->
         <div style="overflow-x:auto;width:100%;">
           <div id="cc-list"></div>
@@ -2296,6 +2299,7 @@ if('serviceWorker' in navigator){
         <!-- Footer -->
         <div class="cc-footer-bar">
           <span class="cc-footer-total" id="cc-footer-total"></span>
+        </div>
         </div>
         </div>
       </div><!-- /cc-ledger-body -->
@@ -7556,15 +7560,22 @@ function renderDashboardWidgets(){
   // Mirror to mobile strip
   const mInvEl=document.getElementById('dw-m-inv');
   const mInvSubEl=document.getElementById('dw-m-inv-sub');
+  const mInvDot=document.getElementById('dw-m-inv-dot');
+  const mInvTile=document.getElementById('dw-m-inv-tile');
   if(mInvEl&&mInvSubEl){
     if(INV_SNAPSHOTS.length){
       const last=INV_SNAPSHOTS[0];
       const savedAt=new Date(last.saved_at);
       const diffDays=Math.floor((new Date()-savedAt)/86400000);
+      const fresh=diffDays<=1;
       mInvEl.textContent=diffDays===0?'Today':diffDays===1?'Yesterday':diffDays+'d ago';
-      mInvSubEl.textContent=savedAt.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      mInvSubEl.textContent=savedAt.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' '+savedAt.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+      if(mInvDot){mInvDot.style.background=fresh?'var(--g4)':'var(--a4)';mInvDot.style.display='inline-block';}
+      if(mInvTile){mInvTile.style.borderLeft='3px solid '+(fresh?'var(--g4)':'var(--a4)');}
     } else {
       mInvEl.textContent='Never';mInvSubEl.textContent='No snapshots';
+      if(mInvDot)mInvDot.style.display='none';
+      if(mInvTile)mInvTile.style.borderLeft='';
     }
   }
 }
@@ -12099,7 +12110,8 @@ let _ccData = [];          // full dataset from Supabase
 let _ccFilter = 'all';     // all | products | overhead | purchases | payments
 let _ccSort   = 'date_desc';
 let _ccOpen   = false;
-let _ccRowLimit = 20;      // rows shown before "Show more"
+let _ccRowsOpen = false;
+let _ccRowLimit = 10;      // rows shown before "Show more"
 let _ccSearchQuery = '';   // text search filter
 let _ccSearchIdx = -1;     // keyboard nav index in dropdown
 let _pregOpen = false; // Payment Register collapsed by default
@@ -12167,14 +12179,22 @@ function toggleCCLedger() {
   if (_ccOpen) renderCCLedger();
 }
 
+function toggleCCRows() {
+  _ccRowsOpen = !_ccRowsOpen;
+  const body = document.getElementById('cc-rows-body');
+  const chev = document.getElementById('cc-rows-chevron');
+  if (body) body.style.display = _ccRowsOpen ? 'block' : 'none';
+  if (chev) chev.style.transform = _ccRowsOpen ? '' : 'rotate(-90deg)';
+}
+
 function ccShowMore() {
-  _ccRowLimit += 20;
+  _ccRowLimit += 10;
   renderCCLedger();
 }
 
 function setCCFilter(f, btn) {
   _ccFilter = f;
-  _ccRowLimit = 20;
+  _ccRowLimit = 10;
   _ccSearchQuery = '';
   _ccSearchIdx = -1;
   const inp = document.getElementById('cc-search-input');
@@ -12189,7 +12209,7 @@ function setCCFilter(f, btn) {
 
 function setCCSort(val) {
   _ccSort = val;
-  _ccRowLimit = 20;
+  _ccRowLimit = 10;
   renderCCLedger();
 }
 
@@ -12310,7 +12330,7 @@ function renderCCLedger() {
   }).join('');
 
   const showMoreRow = hasMore
-    ? `<tr><td colspan="6" style="text-align:center;padding:10px 0;"><button onclick="ccShowMore()" style="font-family:DM Sans,sans-serif;font-size:12px;font-weight:700;color:var(--b6);background:var(--b0);border:1px solid var(--b3);border-radius:20px;padding:6px 20px;cursor:pointer;">Show 20 more</button></td></tr>`
+    ? `<tr><td colspan="6" style="text-align:center;padding:10px 0;"><button onclick="ccShowMore()" style="font-family:DM Sans,sans-serif;font-size:12px;font-weight:700;color:var(--b6);background:var(--b0);border:1px solid var(--b3);border-radius:20px;padding:6px 20px;cursor:pointer;">Show 10 more</button></td></tr>`
     : '';
 
   const entryLabel = hasMore
@@ -12436,7 +12456,7 @@ function handleCCAmountPaste(e) {
 function handleCCSearch(val) {
   _ccSearchQuery = val.trim();
   _ccSearchIdx = -1;
-  _ccRowLimit = 20;
+  _ccRowLimit = 10;
   const clearBtn = document.getElementById('cc-search-clear');
   if (clearBtn) clearBtn.style.display = _ccSearchQuery ? 'block' : 'none';
   renderCCLedger();
@@ -12519,7 +12539,7 @@ function clearCCSearch() {
   if (inp) inp.value = '';
   _ccSearchQuery = '';
   _ccSearchIdx = -1;
-  _ccRowLimit = 20;
+  _ccRowLimit = 10;
   const clearBtn = document.getElementById('cc-search-clear');
   if (clearBtn) clearBtn.style.display = 'none';
   hideCCSearchDropdown();
