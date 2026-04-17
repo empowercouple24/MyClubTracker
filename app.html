@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-16 19:30:00 -->
+<!-- CACHE BUST: 2026-04-16 20:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -14010,8 +14010,11 @@ function renderPayoutRecon() {
     }
   });
 
-  // Payments posted in this range from Payment Register
+  // Payments posted for this range from Payment Register (match by period, not posting date)
   const postedPayments = (SETTINGS.paymentLog || []).filter(function(e) {
+    if (e.periodFrom && e.periodTo) {
+      return e.periodFrom <= to && e.periodTo >= from;
+    }
     return e.date >= from && e.date <= to;
   });
   const totalPosted = postedPayments.reduce(function(s, e) { return s + (parseFloat(e.amount) || 0); }, 0);

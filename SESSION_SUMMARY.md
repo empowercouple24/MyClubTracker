@@ -103,7 +103,13 @@ At the end of every working session, Claude must:
 1. End-to-end onboarding testing with clean email
 2. Mobile-friendly improvements sitewide (ongoing)
 3. Test partial product update approval flow end-to-end
-4. Order tab — full single-row product layout redesign (approved mockup with SKU/Need priority, not yet built — Option A CSS workaround currently live)
+4. Order tab — full single-row product layout redesign (approved mockup with SKU/Need priority, assign on right — not yet built, CSS Option A workaround currently live)
+
+### Eliminated
+- ~~Location comparison filtered by org~~
+- ~~Co-owners~~
+- ~~Daily sales summary email via Resend/Edge Function~~
+- ~~Operator performance dashboard on Payouts tab~~
 
 ---
 
@@ -158,6 +164,19 @@ At the end of every working session, Claude must:
 - ✅ **"Items to Order" header widget now excludes OOS** — was `!_orderSkipped` only, now `!_orderSkipped && !invOos[p.sku]`
 - ✅ **Row dimming already existed** — `.inv-row-oos td{opacity:0.55}` + `text-decoration:line-through` were already in CSS; `renderOrderBody` already applied the class. Issue was just that the re-render wasn't triggered.
 
+### Order Tab — Product Table Optimized (mobile CSS)
+- ✅ **DV Product column (col 3) AND DV Subtotal column (col 5) hidden on mobile** — frees ~150px for product name
+- ✅ **Need column (col 2) enlarged** — 14px bold blue (`var(--b6)`) with center alignment. Priority #1 visual element.
+- ✅ **Assign button compressed** — 9px font, 4px 6px padding, min-height 26px. Just shows "Jes", "MN", or "Assign" as tiny pill.
+- ✅ **Category header + padding tightened** — 13px font, 6px 10px padding.
+- ✅ **Desktop layout unchanged** — all changes scoped to `@media (max-width:480px)`.
+
+### Order Tab — Operator Cards Moved Up
+- ✅ **New container `#order-op-cards-above`** — positioned between toolbar and `#order-body`, above all product categories.
+- ✅ **Operator review cards render into new container** — separate from product table HTML. `opCardsHtml` built independently, inserted via `opCardsAbove.innerHTML`.
+- ✅ **Slightly more compact** — 26px avatars (was 30px), 7px padding (was 9px), 4px margins (was 8px).
+- ✅ **Cleared on unload** — `unloadOrderPlan()` now also empties `#order-op-cards-above`.
+
 ### Finances Tab — Missing DV Guard
 - ✅ **"Review & Post" now blocked for BOTH operator and hourly** when any day in the date range has sales but missing DV. Shows toast: "Cannot post — X days have missing DV: [day list]. Fill DV on the Enter or History tab first."
 - ✅ **Missing DV warning banner on Operator Payouts** — amber banner with clickable day links (same pattern as existing missing-operator banner). Shown above operator summary when a preset range includes days with sales but no DV.
@@ -174,10 +193,11 @@ At the end of every working session, Claude must:
 - ✅ **Light blue banner** (`var(--b2)`) matching History tab recon style. Shows: "Payout Account Balance", net owed amount, date range sub-label, Bank pill input, match/off badge, chevron.
 - ✅ **Expandable body** — page background with daily breakdown: each day shows operator initials + amounts. Also shows total allocated payouts, payments already posted (from Payment Register), and net owed.
 - ✅ **Match logic** — user enters bank balance, widget compares against net owed. Shows green "✓ Match" or amber "Off $X.XX" badge. Expanded result bar explains direction ("Bank is higher/lower than owed payouts").
-- ✅ **`renderPayoutRecon()`** — called at end of `renderPayouts()`. Reads `payout-from`/`payout-to`, calculates daily payouts excluding owner reinvest, subtracts posted payments from Payment Register in the same range.
+- ✅ **`renderPayoutRecon()`** — called at end of `renderPayouts()`. Reads `payout-from`/`payout-to`, calculates daily payouts excluding owner reinvest, subtracts posted payments from Payment Register matched by period.
 - ✅ **`updatePayoutReconMatch()`** — called on bank input change. Compares bank vs net owed with 2-cent tolerance.
 - ✅ **`togglePayoutRecon()`** — expand/collapse body with chevron rotation.
 - ✅ **Hidden on clear** — `clearPayouts()` hides the widget.
+- ✅ **Payment period matching fix** — payments are now matched by `periodFrom`/`periodTo` (overlap check: `e.periodFrom <= to && e.periodTo >= from`) instead of posting date. Falls back to posting date if period fields are missing. This prevents payments for prior periods (e.g. Wk Before checks posted during current week) from being counted against the current range.
 
 ### Finances Tab — Segmented Control Presets + "This + Last Wk"
 - ✅ **Segmented control redesign** — preset chips replaced with a connected segmented bar (`.payout-preset-seg`) + floating circle ✕ reset button (`.payout-reset-btn`). All 7 presets fit in a single row without wrapping.
@@ -211,6 +231,40 @@ At the end of every working session, Claude must:
 - ✅ **Day rows** — dark text, amber amounts, hover `var(--b0)`.
 - ✅ **Date inputs / arrow buttons** — standard form styling on light bg.
 - ✅ **Result bar** — green/amber on light bg, unchanged.
+
+### History Tab — Allocator Copy-to-Clipboard
+- ✅ **Full-width copy pad button** added below each allocation card (Cash Deposit, Taxes, Overhead, Herbalife, Payouts, Fundraisers).
+- ✅ **`copyAllocVal(amtId, btn)`** — strips `$` and commas, copies raw number to clipboard. Shows "✓ Copied" green feedback for 1.5s. Falls back to `document.execCommand('copy')` if clipboard API unavailable.
+- ✅ **`event.stopPropagation()`** — tapping Copy doesn't toggle the allocation check.
+- ✅ **Adaptive styling** — `.alloc-copy-pad` has different background tints for normal (`var(--b0)`), transferred/complete (`#d4f0d8`), and cash-deposit (`var(--b1)`) states.
+- ✅ **CSS class `.alloc-copy-pad`** — full-width bar with clipboard SVG icon, 6px padding, 6px border-radius. Hover darkens, active scales 0.97, `.copied` turns green.
+
+---
+
+## Bank Reconciliation Analysis (April 16, 2026)
+Cross-referenced app payouts (Apr 5–16) against bank transfers:
+- 8 of 10 days match exactly
+- Apr 6: $67.34 discrepancy — $917.60 batch transfer covered Apr 1–6 payouts ($917.47 calculated = $0.13 rounding)
+- Apr 13: $12.31 discrepancy — single operator day (MN $104.90), bank transfer was $117.21
+- Separate $160.49 transfer on 04/06 = Apr 1 payout, reversed on 04/09 (nets to zero)
+- Three checks on 04/10 ($846.04 + $257.82 + $311.65) are Wk Before payments for MN + JG
+- Total drift: $12.44 — bank has $1,642.85, app says $1,630.41
+- **Root cause of widget inaccuracy:** payments were matched by posting date, not period covered. Fix applied — now uses `periodFrom`/`periodTo` overlap check.
+
+---
+
+## Payout Balance Recon Architecture Notes
+
+### Payment period matching
+- Payments matched by `periodFrom`/`periodTo` overlap (`e.periodFrom <= to && e.periodTo >= from`), not posting date
+- Falls back to posting date (`e.date`) if period fields are missing
+- This prevents payments posted during the current range but covering a prior period (e.g. Wk Before checks posted mid-week) from skewing the net owed calculation
+
+### Widget flow
+- `renderPayoutRecon()` called at end of `renderPayouts()` — reads `payout-from`/`payout-to` hidden inputs
+- Calculates daily payout allocations, excludes owner reinvest days
+- Subtracts period-matched payments from Payment Register
+- `updatePayoutReconMatch()` fires on bank input change — 2-cent tolerance for match
 
 ---
 
