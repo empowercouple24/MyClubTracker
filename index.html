@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-30 11:53:57 -->
+<!-- CACHE BUST: 2026-04-18 19:30:00 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -556,16 +556,13 @@ async function doRejoin(){
   // Sign in first to get session
   const{data:signInData,error:signInErr}=await sb.auth.signInWithPassword({email,password});
   if(signInErr){msgEl.style.display='block';msgEl.style.color='#dc2626';msgEl.textContent='Sign in failed: '+signInErr.message;return;}
-  // Find location by invite code
-  const{data:locations}=await sb.from('locations').select('id,name,settings');
-  const match=locations?.find(l=>
-    (l.settings?.employeeInviteCode&&l.settings.employeeInviteCode.toUpperCase()===code)||
-    (l.invite_code&&l.invite_code.toUpperCase()===code)
-  );
+  // Find location by invite code via security-definer RPC (no full-table read)
+  const{data:lookupRows,error:lookupErr}=await sb.rpc('lookup_location_by_invite_code',{p_code:code});
+  if(lookupErr){await sb.auth.signOut();msgEl.style.display='block';msgEl.style.color='#dc2626';msgEl.textContent='Could not verify invite code. Try again.';return;}
+  const match=Array.isArray(lookupRows)&&lookupRows.length?lookupRows[0]:null;
   if(!match){await sb.auth.signOut();msgEl.style.display='block';msgEl.style.color='#dc2626';msgEl.textContent='Invalid invite code. Check with your club owner.';return;}
-  // Re-link user to location
-  const role=match.invite_code?.toUpperCase()===code?'owner':'employee';
-  const{error:updateErr}=await sb.from('users').update({location_id:match.id,role}).eq('id',signInData.user.id);
+  // Re-link user to location (role comes from RPC: 'owner' or 'employee')
+  const{error:updateErr}=await sb.from('users').update({location_id:match.id,role:match.role}).eq('id',signInData.user.id);
   if(updateErr){await sb.auth.signOut();msgEl.style.display='block';msgEl.style.color='#dc2626';msgEl.textContent='Could not rejoin: '+updateErr.message;return;}
   window.location.href='app.html';
 }
@@ -577,20 +574,15 @@ async function doVerifyCode(){
   var code=document.getElementById('reg-code').value.trim().toUpperCase();
   if(!code){showMsg('reg-msg1','Please enter an invite code.','error');return;}
   setBtn('verify-btn',true,'Checking…');clearMsg('reg-msg1');
-  // Fetch all locations and check both owner code and employee code simultaneously
-  var lr=await sb.from('locations').select('id,name,invite_code,settings');
+  // Look up via security-definer RPC (no full-table invite-code leak)
+  var lr=await sb.rpc('lookup_location_by_invite_code',{p_code:code});
   setBtn('verify-btn',false,'Verify');
   if(lr.error){showMsg('reg-msg1','Could not verify code. Try again.','error');return;}
-  var locations=lr.data||[];
-  // Check owner code first (invite_code column)
-  var ownerMatch=locations.find(function(l){return l.invite_code&&l.invite_code.toUpperCase()===code;});
-  if(ownerMatch){verifiedLocation={id:ownerMatch.id,name:ownerMatch.name,role:'owner'};selectedRole='owner';}
-  else{
-    // Check employee code (settings.employeeInviteCode)
-    var empMatch=locations.find(function(l){return l.settings&&l.settings.employeeInviteCode&&l.settings.employeeInviteCode.toUpperCase()===code;});
-    if(empMatch){verifiedLocation={id:empMatch.id,name:empMatch.name,role:'employee'};selectedRole='employee';}
-    else{showMsg('reg-msg1','Invalid invite code. Check with your admin.','error');return;}
-  }
+  var rows=Array.isArray(lr.data)?lr.data:[];
+  var match=rows.length?rows[0]:null;
+  if(!match){showMsg('reg-msg1','Invalid invite code. Check with your admin.','error');return;}
+  verifiedLocation={id:match.id,name:match.name,role:match.role};
+  selectedRole=match.role;
   document.getElementById('verified-badge').classList.add('show');
   document.getElementById('verified-text').textContent=(verifiedLocation.role==='owner'?'🏪 Club Owner':'👤 Operator')+' — '+verifiedLocation.name;
   document.getElementById('reg-next-btn').disabled=false;
