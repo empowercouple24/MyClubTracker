@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-20 20:32:00 -->
+<!-- CACHE BUST: 2026-04-20 20:40:00 -->
 <html lang="en">
 <head>
 <script>
@@ -4005,10 +4005,14 @@ async function sendEmpInviteEmail(){
   if(btn){btn.disabled=true;btn.textContent='Sending...';}
   try{
     const _signupLink=window.location.origin+'/index.html?tab=register&code='+encodeURIComponent(code)+'&email='+encodeURIComponent(email);
-    const{data:fnData,error}=await sb.functions.invoke('send-org-invite',{
-      body:{email,role:'employee',inviteCode:code,clubName:SETTINGS.clubName||'',locationId:LOCATION_ID,signupLink:_signupLink}
+    const _r=await fetch(`${SUPABASE_URL}/functions/v1/send-org-invite`,{
+      method:'POST',
+      headers:{'apikey':SUPABASE_ANON_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({email,role:'employee',inviteCode:code,clubName:SETTINGS.clubName||'',locationId:LOCATION_ID,signupLink:_signupLink})
     });
-    if(error)throw error;
+    const _txt=await _r.text();
+    let fnData=null;try{fnData=JSON.parse(_txt);}catch(e){}
+    if(!_r.ok)throw new Error((fnData&&fnData.error)||_txt||`HTTP ${_r.status}`);
     if(msg){msg.style.display='block';msg.style.background='#f0fdf4';msg.style.color='var(--g6)';msg.textContent=`Invite sent to ${email}`;}
     document.getElementById('emp-invite-email').value='';
   }catch(e){

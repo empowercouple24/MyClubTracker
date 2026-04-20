@@ -1103,8 +1103,8 @@ async function submitInviteOrg() {
 
   // Fire edge function for email
   try {
-    const { data: fnData, error: fnErr } = await sb.functions.invoke('send-org-invite', {
-      body: { to: email, orgName: orgName || 'your organization', inviteLink, expiresAt }
+    const { data: fnData, error: fnErr } = await invokeEdge('send-org-invite', {
+      to: email, orgName: orgName || 'your organization', inviteLink, expiresAt
     });
     console.log('send-org-invite response:', JSON.stringify(fnData), 'error:', fnErr);
     const sent = fnData?.sent === true;
@@ -1152,8 +1152,8 @@ async function resendInvite(orgId, e) {
 
   // Try email
   try {
-    const { data: fnData, error: fnErr } = await sb.functions.invoke('send-org-invite', {
-      body: { to: org.leader_email, orgName: org.name, inviteLink, expiresAt }
+    const { data: fnData, error: fnErr } = await invokeEdge('send-org-invite', {
+      to: org.leader_email, orgName: org.name, inviteLink, expiresAt
     });
     const sent = fnData?.sent === true;
     if (fnErr || !sent) {
@@ -1327,11 +1327,22 @@ function showOrgModalAlert(id, msg) {
   const el = document.getElementById(id); el.textContent = msg; el.classList.add('show');
 }
 
-// -- AUTH HEADER HELPER --
-async function getAuthHeader() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (session?.access_token) return { 'Authorization': `Bearer ${session.access_token}` };
-  return {};
+// -- EDGE FUNCTION HELPER (raw fetch, bypasses supabase-js auto-auth) --
+async function invokeEdge(fnName, body) {
+  try {
+    const r = await fetch(`${SURL}/functions/v1/${fnName}`, {
+      method: 'POST',
+      headers: { 'apikey': SKEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const text = await r.text();
+    let data = null;
+    try { data = JSON.parse(text); } catch(e) {}
+    if (!r.ok) return { data, error: new Error((data && data.error) || text || `HTTP ${r.status}`) };
+    return { data, error: null };
+  } catch(e) {
+    return { data: null, error: e };
+  }
 }
 
 // -- ORG REQUESTS --
@@ -1415,8 +1426,8 @@ async function approveOrgRequest(reqId, email, name, orgName, btn) {
   // Send invite email
   const inviteLink = `${window.location.origin}/onboard.html?token=${token}`;
   try {
-    await sb.functions.invoke('send-org-invite', {
-      body: { to: email, orgName, inviteLink, expiresAt }
+    await invokeEdge('send-org-invite', {
+      to: email, orgName, inviteLink, expiresAt
     });
   } catch(e) { console.warn('Invite email failed:', e); }
 
@@ -1448,8 +1459,8 @@ async function declineOrgRequest(reqId, email, name, btn) {
 
   // Send polite decline email
   try {
-    await sb.functions.invoke('send-org-invite', {
-      body: { role: 'decline', to: email, name }
+    await invokeEdge('send-org-invite', {
+      role: 'decline', to: email, name
     });
   } catch(e) { console.warn('Decline email failed:', e); }
 
