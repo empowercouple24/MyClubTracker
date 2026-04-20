@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-18 19:50:00 -->
+<!-- CACHE BUST: 2026-04-20 20:32:00 -->
 <html lang="en">
 <head>
 <script>
@@ -4004,11 +4004,8 @@ async function sendEmpInviteEmail(){
   const btn=document.querySelector('#emp-invite-panel .btn-primary');
   if(btn){btn.disabled=true;btn.textContent='Sending...';}
   try{
-    const{data:{session:_ses}}=await sb.auth.getSession();
-    const _authHdr=_ses?.access_token?{'Authorization':`Bearer ${_ses.access_token}`}:{};
     const _signupLink=window.location.origin+'/index.html?tab=register&code='+encodeURIComponent(code)+'&email='+encodeURIComponent(email);
     const{data:fnData,error}=await sb.functions.invoke('send-org-invite',{
-      headers:_authHdr,
       body:{email,role:'employee',inviteCode:code,clubName:SETTINGS.clubName||'',locationId:LOCATION_ID,signupLink:_signupLink}
     });
     if(error)throw error;
@@ -7188,8 +7185,8 @@ function recalc(userChanged=false){
   // Balance check
   const balEl=document.getElementById('sum-balance');
   if(c.balanced===null){balEl.textContent='Enter Cash Sales, Card Sales & Card Fees';balEl.className='balance-pending';}
-  else if(c.balanced){balEl.textContent='✓ Balanced';balEl.className='balance-ok';}
-  else{balEl.textContent='✗ Off by '+fmt$(Math.abs(c.balDiff));balEl.className='balance-fail';}
+  else if(c.balanced){balEl.textContent='ok Balanced';balEl.className='balance-ok';}
+  else{balEl.textContent='&#10007; Off by '+fmt$(Math.abs(c.balDiff));balEl.className='balance-fail';}
   renderOpsEarningsPreview();
 }
 

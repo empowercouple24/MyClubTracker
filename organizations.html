@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-18 19:50:00 -->
+<!-- CACHE BUST: 2026-03-30 20:25:29 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -1007,7 +1007,7 @@ async function deleteOrg(orgId, orgName, btn, e) {
   if (!btn.classList.contains('confirm')) {
     btn.textContent = 'Confirm delete';
     btn.classList.add('confirm');
-    setTimeout(() => { if(btn.classList.contains('confirm')){ btn.textContent = '🗑 Delete'; btn.classList.remove('confirm'); }}, 3500);
+    setTimeout(() => { if(btn.classList.contains('confirm')){ btn.textContent = '&#128465; Delete'; btn.classList.remove('confirm'); }}, 3500);
     return;
   }
   btn.disabled = true; btn.textContent = 'Deleting...';
@@ -1017,7 +1017,7 @@ async function deleteOrg(orgId, orgName, btn, e) {
     deleted_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   }).eq('id', orgId);
-  if (error) { btn.disabled = false; btn.textContent = '🗑 Delete'; btn.classList.remove('confirm'); showSaToast('Failed to delete org.'); return; }
+  if (error) { btn.disabled = false; btn.textContent = '&#128465; Delete'; btn.classList.remove('confirm'); showSaToast('Failed to delete org.'); return; }
   allOrgs = allOrgs.filter(o => o.id !== orgId);
   renderOrgSummary();
   renderOrgs();
@@ -1104,7 +1104,6 @@ async function submitInviteOrg() {
   // Fire edge function for email
   try {
     const { data: fnData, error: fnErr } = await sb.functions.invoke('send-org-invite', {
-      headers: await getAuthHeader(),
       body: { to: email, orgName: orgName || 'your organization', inviteLink, expiresAt }
     });
     console.log('send-org-invite response:', JSON.stringify(fnData), 'error:', fnErr);
@@ -1118,7 +1117,7 @@ async function submitInviteOrg() {
     showOrgModalAlert('io-success', `Org created. Copy the link below to send manually.`);
   }
 
-  btn.textContent = 'Sent ✓';
+  btn.textContent = 'Sent &#10003;';
   allOrgs.unshift(org);
   renderOrgSummary();
   renderOrgs();
@@ -1154,7 +1153,6 @@ async function resendInvite(orgId, e) {
   // Try email
   try {
     const { data: fnData, error: fnErr } = await sb.functions.invoke('send-org-invite', {
-      headers: await getAuthHeader(),
       body: { to: org.leader_email, orgName: org.name, inviteLink, expiresAt }
     });
     const sent = fnData?.sent === true;
@@ -1405,7 +1403,7 @@ async function approveOrgRequest(reqId, email, name, orgName, btn) {
     invited_at: new Date().toISOString(),
   }).select().single();
 
-  if (orgErr) { btn.disabled = false; btn.textContent = '✓ Approve'; showSaToast('Failed to create org.'); return; }
+  if (orgErr) { btn.disabled = false; btn.textContent = '&#10003; Approve'; showSaToast('Failed to create org.'); return; }
 
   // Mark request approved
   await sb.from('org_requests').update({
@@ -1418,7 +1416,6 @@ async function approveOrgRequest(reqId, email, name, orgName, btn) {
   const inviteLink = `${window.location.origin}/onboard.html?token=${token}`;
   try {
     await sb.functions.invoke('send-org-invite', {
-      headers: await getAuthHeader(),
       body: { to: email, orgName, inviteLink, expiresAt }
     });
   } catch(e) { console.warn('Invite email failed:', e); }
@@ -1452,7 +1449,6 @@ async function declineOrgRequest(reqId, email, name, btn) {
   // Send polite decline email
   try {
     await sb.functions.invoke('send-org-invite', {
-      headers: await getAuthHeader(),
       body: { role: 'decline', to: email, name }
     });
   } catch(e) { console.warn('Decline email failed:', e); }
