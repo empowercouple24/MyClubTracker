@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-25 00:10:00 -->
+<!-- CACHE BUST: 2026-04-25 00:25:00 -->
 <html lang="en">
 <head>
 <script>
@@ -422,6 +422,8 @@ if('serviceWorker' in navigator){
     .report-dot.posted{background:var(--g4);box-shadow:0 0 0 2px rgba(46,122,53,0.12);}
     .report-dot.missed{background:var(--r0);border:1.5px solid var(--r5);box-sizing:border-box;}
     .report-dot.pending{background:transparent;border:1.5px dashed var(--text-faint);box-sizing:border-box;opacity:0.55;}
+    .report-dot.closed{background:transparent;border:none;position:relative;}
+    .report-dot.closed::after{content:'';position:absolute;top:50%;left:25%;right:25%;height:2px;background:var(--text-faint);border-radius:1px;transform:translateY(-50%);opacity:0.55;}
     .report-sum.perfect{color:var(--g5);}
     .report-sum.alert{color:var(--r5);}
     .report-sum.pending{color:var(--text-faint);font-weight:500;}
@@ -636,6 +638,7 @@ if('serviceWorker' in navigator){
       <div class="report-legend">
         <div class="report-legend-item"><span class="report-dot posted" style="width:12px;height:12px;"></span> Posted</div>
         <div class="report-legend-item"><span class="report-dot missed" style="width:12px;height:12px;"></span> Missed (active club)</div>
+        <div class="report-legend-item"><span class="report-dot closed" style="width:12px;height:12px;"></span> Closed (scheduled off)</div>
         <div class="report-legend-item"><span class="report-dot pending" style="width:12px;height:12px;"></span> Pending setup (no expectation)</div>
       </div>
     </div>
@@ -3413,7 +3416,7 @@ function renderReportingConsistency(){
       var opDays = (loc.settings && loc.settings.opDays) || [false,true,true,true,true,true,true];
       var operating = opDays[day.dow];
       if(has){posted++;return '<td class="cell-day"><span class="report-dot posted" title="Posted"></span></td>';}
-      if(!operating){return '<td class="cell-day"><span class="report-dot pending" title="Not an operating day"></span></td>';}
+      if(!operating){return '<td class="cell-day"><span class="report-dot closed" title="Closed (scheduled off)"></span></td>';}
       missed++;
       return '<td class="cell-day"><span class="report-dot missed" title="Missed"></span></td>';
     }).join('');
