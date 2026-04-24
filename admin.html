@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-25 00:25:00 -->
+<!-- CACHE BUST: 2026-04-25 00:40:00 -->
 <html lang="en">
 <head>
 <script>
@@ -581,19 +581,29 @@ if('serviceWorker' in navigator){
           <span class="goal-title">Annual Sales Goal</span>
           <span class="goal-title-sub" id="goal-year-sub">2026 · org-wide</span>
         </div>
-        <button class="goal-edit" onclick="openEditGoal()">&#9998; Edit goal</button>
+        <button class="goal-edit" id="goal-breakdown-btn" onclick="toggleGoalBreakdown()" style="display:none;">&#128203; Breakdown</button>
       </div>
-      <div class="goal-numbers">
-        <span class="goal-current" id="goal-current">—</span>
-        <span class="goal-of">of</span>
-        <span class="goal-target" id="goal-target">—</span>
-        <span class="goal-pct" id="goal-pct">—</span>
+      <div id="goal-empty-state" style="display:none;text-align:center;padding:14px 8px;color:var(--text-muted);">
+        <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">No annual goals set yet</div>
+        <div style="font-size:11px;color:var(--text-faint);line-height:1.5;">Annual goals are set per-club in the club app under <strong>Compare tab &rarr; Goals</strong>. Once set, they sum here automatically. Admin view is read-only.</div>
       </div>
-      <div class="goal-bar-wrap">
-        <div class="goal-bar-fill" id="goal-bar-fill" style="width:0%;"></div>
-        <div class="goal-bar-pace" id="goal-bar-pace" style="left:0%;"><span class="goal-bar-pace-label">expected pace</span></div>
+      <div id="goal-content">
+        <div class="goal-numbers">
+          <span class="goal-current" id="goal-current">—</span>
+          <span class="goal-of">of</span>
+          <span class="goal-target" id="goal-target">—</span>
+          <span class="goal-pct" id="goal-pct">—</span>
+        </div>
+        <div class="goal-bar-wrap">
+          <div class="goal-bar-fill" id="goal-bar-fill" style="width:0%;"></div>
+          <div class="goal-bar-pace" id="goal-bar-pace" style="left:0%;"><span class="goal-bar-pace-label">expected pace</span></div>
+        </div>
+        <div class="goal-status" id="goal-status">Loading…</div>
+        <div id="goal-breakdown" style="display:none;margin-top:14px;padding-top:12px;border-top:1px solid var(--border-light);">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.8px;color:var(--text-faint);text-transform:uppercase;margin-bottom:8px;">Per-club contributions</div>
+          <div id="goal-breakdown-list"></div>
+        </div>
       </div>
-      <div class="goal-status" id="goal-status">Loading…</div>
     </div>
 
     <!-- Comparison chart + Alerts -->
@@ -3330,39 +3340,64 @@ async function deleteOrgNow(orgId){
   closeDrawer();
 }
 
-/* ── Goal Progress widget ── */
-function getOrgGoal(){
-  var stored = parseFloat(localStorage.getItem('mct_org_annual_goal'));
-  return (stored && stored>0) ? stored : 340000;
+/* ── Goal Progress widget (sums per-club annual goals from locations.settings.salesGoalByYear) ── */
+function computeOrgGoal(){
+  var year = new Date().getFullYear();
+  var total = 0;
+  var contributors = [];
+  allLocations.forEach(function(loc){
+    var sg = loc.settings && loc.settings.salesGoalByYear;
+    if(!sg) return;
+    var g = parseFloat(sg[year]) || parseFloat(sg[String(year)]) || 0;
+    if(g>0){
+      total += g;
+      contributors.push({name: loc.name||'Untitled', goal: g, locId: loc.id});
+    }
+  });
+  return {total:total, contributors:contributors, year:year};
 }
-function setOrgGoal(v){localStorage.setItem('mct_org_annual_goal', String(v));}
-function openEditGoal(){
-  var current = getOrgGoal();
-  var input = prompt('Annual sales goal (org-wide):', String(current));
-  if(input===null) return;
-  var v = parseFloat(input.replace(/,/g,'').replace(/[^0-9.]/g,''));
-  if(!v||v<=0){showToast('Invalid amount','error');return;}
-  setOrgGoal(v);
-  renderGoalProgress();
-  showToast('Goal updated \u2713','success');
+function toggleGoalBreakdown(){
+  var bd = document.getElementById('goal-breakdown');
+  if(!bd) return;
+  bd.style.display = bd.style.display==='none' ? 'block' : 'none';
 }
 function renderGoalProgress(){
-  var goal = getOrgGoal();
+  var data = computeOrgGoal();
+  var goal = data.total;
+  var year = data.year;
+  var emptyEl = document.getElementById('goal-empty-state');
+  var contentEl = document.getElementById('goal-content');
+  var breakdownBtn = document.getElementById('goal-breakdown-btn');
+  var subEl = document.getElementById('goal-year-sub');
+
+  if(!goal){
+    if(emptyEl) emptyEl.style.display='block';
+    if(contentEl) contentEl.style.display='none';
+    if(breakdownBtn) breakdownBtn.style.display='none';
+    if(subEl) subEl.textContent = year+' · org-wide';
+    return;
+  }
+
+  if(emptyEl) emptyEl.style.display='none';
+  if(contentEl) contentEl.style.display='block';
+  if(breakdownBtn) breakdownBtn.style.display='inline-block';
+
+  var clubLabel = data.contributors.length===1 ? '1 club' : data.contributors.length+' clubs';
+  if(subEl) subEl.textContent = year+' · sum of '+clubLabel;
+
   var now = new Date();
-  var year = now.getFullYear();
   var jan1 = new Date(year,0,1);
   var dec31 = new Date(year,11,31);
   var dayOfYear = Math.floor((now - jan1)/86400000) + 1;
   var totalDays = Math.floor((dec31 - jan1)/86400000) + 1;
   var pacePct = dayOfYear/totalDays;
-  // YTD sales = sum of allDays where date >= jan1
   var ytdStart = year+'-01-01';
   var ytd = allDays.filter(function(d){return d.date>=ytdStart;}).reduce(function(s,d){return s + (parseFloat(d.data && d.data.totalSales)||0);}, 0);
   var pct = goal>0 ? (ytd/goal) : 0;
   var paceDollars = goal*pacePct;
   var diff = ytd - paceDollars;
   var remaining = Math.max(0, goal-ytd);
-  var statusEl = document.getElementById('goal-status');
+
   var pillCls,pillTxt,sentence;
   if(Math.abs(diff) < goal*0.01){
     pillCls='onpace';pillTxt='\u2192 On pace';
@@ -3379,9 +3414,23 @@ function renderGoalProgress(){
   document.getElementById('goal-pct').textContent = (pct*100).toFixed(1)+'%';
   document.getElementById('goal-bar-fill').style.width = Math.min(100, pct*100)+'%';
   document.getElementById('goal-bar-pace').style.left = (pacePct*100)+'%';
-  document.getElementById('goal-year-sub').textContent = year+' \u00b7 org-wide';
+  var statusEl = document.getElementById('goal-status');
   if(statusEl){
     statusEl.innerHTML = '<span class="goal-status-pill '+pillCls+'">'+pillTxt+'</span><span>'+sentence+'</span>';
+  }
+
+  // Per-club breakdown list
+  var listEl = document.getElementById('goal-breakdown-list');
+  if(listEl){
+    var sorted = data.contributors.slice().sort(function(a,b){return b.goal-a.goal;});
+    listEl.innerHTML = sorted.map(function(c){
+      var clubYtd = allDays.filter(function(d){return d.location_id===c.locId && d.date>=ytdStart;}).reduce(function(s,d){return s+(parseFloat(d.data && d.data.totalSales)||0);},0);
+      var clubPct = c.goal>0 ? (clubYtd/c.goal*100) : 0;
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;font-size:12px;border-bottom:1px solid var(--border-light);">'+
+        '<span style="color:var(--text);font-weight:600;cursor:pointer;" onclick="openClubDrawer(\''+c.locId+'\')">'+escHtml(c.name)+'</span>'+
+        '<span style="color:var(--text-muted);">$'+clubYtd.toLocaleString('en-US',{maximumFractionDigits:0})+' / $'+c.goal.toLocaleString('en-US',{maximumFractionDigits:0})+' <strong style="color:'+(clubPct>=pacePct*100?'var(--g5)':'var(--a5)')+';">('+clubPct.toFixed(0)+'%)</strong></span>'+
+      '</div>';
+    }).join('');
   }
 }
 
