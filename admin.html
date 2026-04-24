@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-24 23:30:00 -->
+<!-- CACHE BUST: 2026-04-24 23:55:00 -->
 <html lang="en">
 <head>
 <script>
@@ -1612,8 +1612,8 @@ function setChartMetric(m){
 
 function renderCompChart(){
   const section=document.getElementById('chart-section');
-  if(!allLocations.length){section.style.display='none';return;}
-  section.style.display='block';
+  if(!allLocations.length){if(section)section.style.display='none';return;}
+  if(section)section.style.display='block';
   
   const yday=yesterday(),w0=last7Start(),m0=last30Start(),today=todayStr();
   const isDark=document.documentElement.classList.contains('dark');
@@ -3278,6 +3278,13 @@ async function deleteLocationNow(locId){
   var loc=allLocations.find(function(l){return l.id===locId;});
   if(!loc)return;
   var name=loc.name||'this club';
+  // Detach ALL users tied to this location (any role, including 'pending')
+  // This satisfies the users_location_id_fkey FK constraint
+  var detachRes=await sb.from('users').update({location_id:null,role:'pending'}).eq('location_id',locId);
+  if(detachRes.error){showToast('Detach users failed: '+detachRes.error.message,'error');return;}
+  // Delete days for this location (in case there's a FK there too)
+  await sb.from('days').delete().eq('location_id',locId);
+  // Now safe to delete the location
   var res=await sb.from('locations').delete().eq('id',locId);
   if(res.error){showToast('Delete failed: '+res.error.message,'error');return;}
   allLocations=allLocations.filter(function(l){return l.id!==locId;});
