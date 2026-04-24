@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-24 23:55:00 -->
+<!-- CACHE BUST: 2026-04-25 00:10:00 -->
 <html lang="en">
 <head>
 <script>
@@ -3540,12 +3540,17 @@ function updateTopTabReqBadge(){
 })();
 
 /* ── Auto-open drawer if URL has ?loc=<id> (for app.html redirects) ── */
+/* ── Or switch to a specific tab if URL has ?tab=<dashboard|orgs|products|requests> ── */
 window.addEventListener('load', function(){
   var params = new URLSearchParams(window.location.search);
+  var tab = params.get('tab');
   var locId = params.get('loc');
+  if(tab && ['dashboard','orgs','products','requests'].indexOf(tab) !== -1){
+    setTimeout(function(){try{switchTopTab(tab);}catch(e){console.error(e);}}, 100);
+  }
   if(locId){
     setTimeout(function(){
-      try{openClubDrawer(locId, params.get('tab')||'details');}catch(e){console.error(e);}
+      try{openClubDrawer(locId, params.get('drawerTab')||'details');}catch(e){console.error(e);}
     }, 600); // wait for init to load data
   }
 });

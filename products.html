@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- CACHE BUST: 2026-04-25 00:10:00 -->
 <html lang="en">
 <head>
 <script>
@@ -876,7 +877,7 @@ function goBack(){
   if(unsaved){
     if(!confirm('You have unsaved changes. Leave without saving?'))return;
   }
-  if(IS_GLOBAL){window.location.href='settings.html';return;}
+  if(IS_GLOBAL){window.location.href='admin.html?tab=products';return;}
   const base=IS_ADMIN?`app.html?location_id=${LOCATION_ID}&admin=1`:`app.html?location_id=${LOCATION_ID}`;
   window.location.href=base;
 }
