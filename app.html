@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-20 20:40:00 -->
+<!-- CACHE BUST: 2026-04-24 16:45:00 -->
 <html lang="en">
 <head>
 <script>
@@ -2407,6 +2407,7 @@ if('serviceWorker' in navigator){
   <div style="display:flex;gap:0;background:var(--b0);border-radius:var(--radius-sm);padding:2px;width:fit-content;margin-bottom:14px;">
     <button id="exp-btn-proj" onclick="switchExpSub('proj')" style="padding:6px 16px;font-size:12px;font-weight:600;border:none;background:transparent;color:var(--text-muted);cursor:pointer;border-radius:6px;font-family:DM Sans,sans-serif;transition:all 0.15s;">Projections</button>
     <button id="exp-btn-csa" onclick="switchExpSub('csa')" style="padding:6px 16px;font-size:12px;font-weight:600;border:none;background:var(--surface);color:var(--b7);cursor:pointer;border-radius:6px;font-family:DM Sans,sans-serif;transition:all 0.15s;box-shadow:var(--shadow-sm);">Club Viability Analyzer</button>
+    <button id="exp-btn-comp" onclick="switchExpSub('comp')" style="padding:6px 16px;font-size:12px;font-weight:600;border:none;background:transparent;color:var(--text-muted);cursor:pointer;border-radius:6px;font-family:DM Sans,sans-serif;transition:all 0.15s;">Compare</button>
   </div>
 
   <!-- ── PROJECTIONS ── -->
@@ -2947,6 +2948,97 @@ if('serviceWorker' in navigator){
     </div>
 
   </div>
+
+  <!-- ══════════ COMPARE ══════════ -->
+  <div id="exp-sub-comp" style="display:none;">
+
+    <!-- Preset chips -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+      <button id="comp-chip-ytd" onclick="compSetPreset('ytd')" style="padding:5px 14px;font-size:12px;font-weight:700;background:var(--surface);border:1px solid var(--border);border-radius:20px;color:var(--b7);cursor:pointer;font-family:DM Sans,sans-serif;box-shadow:var(--shadow-sm);">YoY YTD</button>
+      <button id="comp-chip-mc" onclick="compSetPreset('mc')" style="padding:5px 14px;font-size:12px;font-weight:600;background:transparent;border:1px solid var(--border-light);border-radius:20px;color:var(--text-muted);cursor:pointer;font-family:DM Sans,sans-serif;">Month concurrent</button>
+      <button id="comp-chip-myoy" onclick="compSetPreset('myoy')" style="padding:5px 14px;font-size:12px;font-weight:600;background:transparent;border:1px solid var(--border-light);border-radius:20px;color:var(--text-muted);cursor:pointer;font-family:DM Sans,sans-serif;">Month YoY</button>
+    </div>
+
+    <!-- Period caption -->
+    <div style="text-align:center;margin-bottom:12px;padding-top:6px;">
+      <div id="comp-period-title" style="font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);font-weight:700;">YTD vs last year</div>
+      <div id="comp-period-sub" style="font-size:13px;color:var(--text-faint);margin-top:3px;">Loading…</div>
+    </div>
+
+    <!-- Dual hero -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+      <div style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:18px 14px;text-align:center;box-shadow:var(--shadow-sm);">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:10px;font-weight:700;">Avg sales / op day</div>
+        <div id="comp-hero-sales" style="font-family:Outfit,sans-serif;font-size:42px;line-height:1;font-weight:800;color:var(--text);letter-spacing:-0.02em;">$0</div>
+        <div id="comp-hero-sales-delta" style="font-size:16px;font-weight:700;color:var(--g5);margin-top:10px;font-family:DM Sans,sans-serif;">—</div>
+        <div id="comp-hero-sales-vs" style="font-size:13px;color:var(--text-muted);margin-top:3px;">—</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:18px 14px;text-align:center;box-shadow:var(--shadow-sm);">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:10px;font-weight:700;">Avg DV / op day</div>
+        <div id="comp-hero-dv" style="font-family:Outfit,sans-serif;font-size:42px;line-height:1;font-weight:800;color:var(--text);letter-spacing:-0.02em;">0</div>
+        <div id="comp-hero-dv-delta" style="font-size:16px;font-weight:700;color:var(--g5);margin-top:10px;font-family:DM Sans,sans-serif;">—</div>
+        <div id="comp-hero-dv-vs" style="font-size:13px;color:var(--text-muted);margin-top:3px;">—</div>
+      </div>
+    </div>
+
+    <!-- Totals row -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:13px;box-shadow:var(--shadow-sm);">
+        <div id="comp-total-sales-title" style="font-size:11px;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.4px;font-weight:700;">Total net sales · YTD</div>
+        <div style="display:flex;align-items:baseline;gap:8px;margin:5px 0 3px;flex-wrap:wrap;">
+          <div id="comp-total-sales" style="font-family:Outfit,sans-serif;font-size:20px;font-weight:800;color:var(--text);">$0</div>
+          <div id="comp-total-sales-vs" style="font-size:12px;color:var(--text-faint);">—</div>
+        </div>
+        <div id="comp-total-sales-delta" style="font-size:12px;font-weight:700;color:var(--g5);">—</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:13px;box-shadow:var(--shadow-sm);">
+        <div id="comp-total-dv-title" style="font-size:11px;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.4px;font-weight:700;">Total DV · YTD</div>
+        <div style="display:flex;align-items:baseline;gap:8px;margin:5px 0 3px;flex-wrap:wrap;">
+          <div id="comp-total-dv" style="font-family:Outfit,sans-serif;font-size:20px;font-weight:800;color:var(--text);">0</div>
+          <div id="comp-total-dv-vs" style="font-size:12px;color:var(--text-faint);">—</div>
+        </div>
+        <div id="comp-total-dv-delta" style="font-size:12px;font-weight:700;color:var(--g5);">—</div>
+      </div>
+    </div>
+
+    <!-- Annual goals divider -->
+    <div style="display:flex;align-items:center;gap:10px;margin:24px 0 12px;">
+      <div style="flex:1;height:1px;background:var(--border-light);"></div>
+      <div id="comp-goals-divider-label" style="font-size:12px;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);font-weight:700;">Annual goals</div>
+      <div style="flex:1;height:1px;background:var(--border-light);"></div>
+    </div>
+    <div id="comp-goals-container"></div>
+
+    <!-- Quarterly divider -->
+    <div style="display:flex;align-items:center;gap:10px;margin:24px 0 6px;">
+      <div style="flex:1;height:1px;background:var(--border-light);"></div>
+      <div id="comp-quarter-divider-label" style="font-size:12px;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);font-weight:700;">This quarter</div>
+      <div style="flex:1;height:1px;background:var(--border-light);"></div>
+    </div>
+    <div id="comp-quarter-sub" style="text-align:center;font-size:12px;color:var(--text-faint);margin-bottom:10px;">—</div>
+    <div id="comp-quarter-container"></div>
+
+    <!-- Ways to accelerate (hidden unless something is behind pace) -->
+    <div id="comp-accelerate" style="display:none;margin-top:14px;background:var(--a0);border:1px solid var(--a2);border-radius:var(--radius);padding:14px 16px;">
+      <div style="margin-bottom:10px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--a7);font-weight:700;">Ways to accelerate</div>
+        <div id="comp-accelerate-sub" style="font-size:13px;color:var(--a7);margin-top:2px;">—</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px 16px;font-size:13px;line-height:1.5;color:var(--text);">
+        <div>• Schedule more pop-ups this month</div>
+        <div>• Host a BOM or HOM this week</div>
+        <div>• Invite 10 new guests to the club</div>
+        <div>• Run a bring-a-friend day</div>
+        <div>• Book a business in-service locally</div>
+        <div>• Launch a member referral challenge</div>
+        <div>• Add support days over next 2 weeks</div>
+        <div>• Host a wellness or fitness challenge</div>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:14px;font-size:12px;color:var(--text-faint);">Goals set in Settings → Annual goals</div>
+
+  </div><!-- /exp-sub-comp -->
 
 </div>
 </div>
@@ -3511,6 +3603,22 @@ if('serviceWorker' in navigator){
         <div class="settings-row"><label>Merchandise Rate</label><select id="s-merchrate"></select></div>
         <div class="settings-row"><label>DV △ Rate</label><select id="s-dvdelta"></select></div>
       </div>
+      <!-- Annual Goals -->
+      <div class="settings-group">
+        <div class="settings-group-title">Annual Goals</div>
+        <div class="settings-row">
+          <label>Sales goal</label>
+          <div style="display:flex;align-items:center;gap:4px;">
+            <span style="font-size:14px;color:var(--text-faint);">$</span>
+            <input type="number" id="s-sales-goal" min="0" step="1000" placeholder="0" style="font-family:DM Sans,sans-serif;font-size:14px;background:var(--b0);border:1px solid var(--border);border-radius:6px;padding:7px 10px;outline:none;width:130px;text-align:right;"/>
+          </div>
+        </div>
+        <div class="settings-row">
+          <label>DV goal</label>
+          <input type="number" id="s-dv-goal" min="0" step="100" placeholder="0" style="font-family:DM Sans,sans-serif;font-size:14px;background:var(--b0);border:1px solid var(--border);border-radius:6px;padding:7px 10px;outline:none;width:130px;text-align:right;"/>
+        </div>
+        <div style="font-size:11px;color:var(--text-faint);padding:2px 0 0;">For the current year. Leave blank to hide goal tracking on the Compare tab.</div>
+      </div>
       <!-- ── CLUB TEAM (unified) ── -->
       <div class="settings-group" id="prof-role-section">
         <div class="settings-group-title" style="display:flex;align-items:center;justify-content:space-between;">
@@ -3911,6 +4019,16 @@ async function saveProfileAndSettings(){
     SETTINGS.otherRate=parseFloat(document.getElementById('s-otherrate')?.value||SETTINGS.otherRate);
     SETTINGS.merchRate=parseFloat(document.getElementById('s-merchrate')?.value||SETTINGS.merchRate);
     SETTINGS.dvDelta=parseFloat(document.getElementById('s-dvdelta')?.value||SETTINGS.dvDelta);
+    // Annual goals — store by year so history is preserved
+    if(!SETTINGS.salesGoalByYear) SETTINGS.salesGoalByYear = {};
+    if(!SETTINGS.dvGoalByYear) SETTINGS.dvGoalByYear = {};
+    var _goalYr = new Date().getFullYear();
+    var _sgv = document.getElementById('s-sales-goal')?.value;
+    var _dgv = document.getElementById('s-dv-goal')?.value;
+    if(_sgv && parseFloat(_sgv)>0) SETTINGS.salesGoalByYear[_goalYr] = parseFloat(_sgv);
+    else delete SETTINGS.salesGoalByYear[_goalYr];
+    if(_dgv && parseFloat(_dgv)>0) SETTINGS.dvGoalByYear[_goalYr] = parseFloat(_dgv);
+    else delete SETTINGS.dvGoalByYear[_goalYr];
     // Collect teamMembers live from DOM (names/rates/roles updated live, just collect and persist)
     SETTINGS.teamMembers = collectTeamMembersFromDOM();
     // Keep legacy operators array in sync for any server-side or admin reads
@@ -4526,15 +4644,465 @@ function switchTab(name){
 
 // ── EXPANSION TAB: Club Viability Analyzer ──
 function switchExpSub(sub){
-  var bp=document.getElementById('exp-btn-proj'),bc=document.getElementById('exp-btn-csa');
+  var bp=document.getElementById('exp-btn-proj'),bc=document.getElementById('exp-btn-csa'),bm=document.getElementById('exp-btn-comp');
   bp.style.background=sub==='proj'?'var(--surface)':'transparent';
   bp.style.color=sub==='proj'?'var(--b7)':'var(--text-muted)';
   bp.style.boxShadow=sub==='proj'?'var(--shadow-sm)':'none';
   bc.style.background=sub==='csa'?'var(--surface)':'transparent';
   bc.style.color=sub==='csa'?'var(--b7)':'var(--text-muted)';
   bc.style.boxShadow=sub==='csa'?'var(--shadow-sm)':'none';
+  if(bm){
+    bm.style.background=sub==='comp'?'var(--surface)':'transparent';
+    bm.style.color=sub==='comp'?'var(--b7)':'var(--text-muted)';
+    bm.style.boxShadow=sub==='comp'?'var(--shadow-sm)':'none';
+  }
   document.getElementById('exp-sub-proj').style.display=sub==='proj'?'block':'none';
   document.getElementById('exp-sub-csa').style.display=sub==='csa'?'block':'none';
+  var compEl=document.getElementById('exp-sub-comp');
+  if(compEl)compEl.style.display=sub==='comp'?'block':'none';
+  if(sub==='comp' && typeof compRender==='function') compRender();
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// COMPARE SUB-TAB: YoY / Month comparison + annual goal tracker
+// ══════════════════════════════════════════════════════════════════════
+
+var _compPreset='ytd'; // 'ytd' | 'mc' | 'myoy'
+
+// ── formatters (whole-number dollar, integer, decimal) ──
+function compFmt$0(n){if(!n||isNaN(n))return '$0';return '$'+Math.round(n).toLocaleString('en-US');}
+function compFmtInt(n){if(!n||isNaN(n))return '0';return Math.round(n).toLocaleString('en-US');}
+function compFmtDec(n){if(!n||isNaN(n))return '0.0';return (Math.round(n*10)/10).toFixed(1);}
+function compYmd(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
+
+function compFormatDeltaLine(val,pct,isDollar){
+  var sign=val>=0?'+':'−';
+  var mag=Math.abs(val);
+  var valStr;
+  if(isDollar){valStr=sign+'$'+Math.round(mag).toLocaleString('en-US');}
+  else{valStr=sign+(mag>=10?Math.round(mag).toLocaleString('en-US'):compFmtDec(mag));}
+  var pctSign=pct>=0?'+':'−';
+  var pctStr=pctSign+Math.abs(pct).toFixed(1)+'%';
+  return valStr+' · '+pctStr;
+}
+function compDeltaDollar(val){var s=val>=0?'+':'−';return s+'$'+Math.round(Math.abs(val)).toLocaleString('en-US');}
+function compDeltaInt(val){var s=val>=0?'+':'−';return s+Math.round(Math.abs(val)).toLocaleString('en-US');}
+function compColorEl(id,val){var el=document.getElementById(id);if(el)el.style.color=val>=0?'var(--g5)':'var(--a5)';}
+function compPct(v,b){if(!b||b===0)return 0;return (v/b)*100;}
+
+// ── goal accessors ──
+function compGetSalesGoal(){
+  var y=new Date().getFullYear();
+  if(!SETTINGS.salesGoalByYear)return 0;
+  return parseFloat(SETTINGS.salesGoalByYear[y])||0;
+}
+function compGetDvGoal(){
+  var y=new Date().getFullYear();
+  if(!SETTINGS.dvGoalByYear)return 0;
+  return parseFloat(SETTINGS.dvGoalByYear[y])||0;
+}
+
+// ── date range utilities ──
+function compIsOpDay(ds){
+  var dow=new Date(ds+'T12:00:00').getDay();
+  var opDays=SETTINGS.opDays||[false,true,true,true,true,true,true];
+  var closedDays=SETTINGS.closedDays||{};
+  var isClosed=(!opDays[dow]||!!closedDays[ds])&&closedDays[ds]!=='open';
+  return !isClosed;
+}
+function compCountOpDays(startDs,endDs){
+  if(!startDs||!endDs||startDs>endDs)return 0;
+  var n=0;
+  var d=new Date(startDs+'T12:00:00');
+  var end=new Date(endDs+'T12:00:00');
+  while(d<=end){if(compIsOpDay(fmtDate(d)))n++;d.setDate(d.getDate()+1);}
+  return n;
+}
+function compSumRange(startDs,endDs){
+  if(!startDs||!endDs||startDs>endDs)return {sales:0,dv:0};
+  var days=(ALL_DAYS||[]).filter(function(d){return d.date>=startDs&&d.date<=endDs;});
+  var sales=days.reduce(function(s,d){return s+calSales(d.data||{});},0);
+  var dv=days.reduce(function(s,d){return s+(parseFloat(d.data&&d.data.dv)||0);},0);
+  return {sales:sales,dv:dv};
+}
+
+// ── preset period definitions ──
+function compPresetYoyYtd(){
+  var today=new Date();
+  var y=today.getFullYear();
+  var startA=compYmd(y,0,1);
+  var endA=fmtDate(today);
+  var startB=compYmd(y-1,0,1);
+  var endB=compYmd(y-1,today.getMonth(),today.getDate());
+  // handle Feb 29 in leap vs non-leap
+  var prevLastDay=new Date(y-1,today.getMonth()+1,0).getDate();
+  if(today.getDate()>prevLastDay){endB=compYmd(y-1,today.getMonth(),prevLastDay);}
+  var opA=compCountOpDays(startA,endA);
+  var monthName=today.toLocaleDateString('en-US',{month:'short'});
+  var dayN=today.getDate();
+  return {
+    startA:startA,endA:endA,startB:startB,endB:endB,
+    captionA:'YTD vs last year',
+    captionB:'Jan 1 – '+monthName+' '+dayN+' · '+opA+' operating days',
+    totalTitleA:'Total net sales · YTD',
+    totalTitleB:'Total DV · YTD',
+    vsSuffix:'last year'
+  };
+}
+function compPresetMonthConcurrent(){
+  var today=new Date();
+  var y=today.getFullYear();var m=today.getMonth();var d=today.getDate();
+  var startA=compYmd(y,m,1);
+  var endA=fmtDate(today);
+  var pm=m-1;var py=y;if(pm<0){pm=11;py--;}
+  var startB=compYmd(py,pm,1);
+  var prevMonthLastDay=new Date(py,pm+1,0).getDate();
+  var endDayB=Math.min(d,prevMonthLastDay);
+  var endB=compYmd(py,pm,endDayB);
+  var monthThis=today.toLocaleDateString('en-US',{month:'short'});
+  var monthPrev=new Date(py,pm,1).toLocaleDateString('en-US',{month:'short'});
+  var opA=compCountOpDays(startA,endA);
+  var opB=compCountOpDays(startB,endB);
+  var opStr=(opA===opB)?(opA+' operating days each'):(opA+' / '+opB+' operating days');
+  return {
+    startA:startA,endA:endA,startB:startB,endB:endB,
+    captionA:monthThis+' vs '+monthPrev,
+    captionB:monthThis+' 1 – '+d+' vs '+monthPrev+' 1 – '+endDayB+' · '+opStr,
+    totalTitleA:monthThis+' net sales · to date',
+    totalTitleB:monthThis+' DV · to date',
+    vsSuffix:'last month'
+  };
+}
+function compPresetMonthYoy(){
+  var today=new Date();
+  var y=today.getFullYear();var m=today.getMonth();var d=today.getDate();
+  var startA=compYmd(y,m,1);
+  var endA=fmtDate(today);
+  var startB=compYmd(y-1,m,1);
+  var lastYrMonthEnd=new Date(y-1,m+1,0).getDate();
+  var endDayB=Math.min(d,lastYrMonthEnd);
+  var endB=compYmd(y-1,m,endDayB);
+  var monthThis=today.toLocaleDateString('en-US',{month:'long'});
+  var opA=compCountOpDays(startA,endA);
+  var opB=compCountOpDays(startB,endB);
+  var opStr=(opA===opB)?(opA+' operating days each'):(opA+' / '+opB+' operating days');
+  return {
+    startA:startA,endA:endA,startB:startB,endB:endB,
+    captionA:monthThis+' '+y+' vs '+monthThis+' '+(y-1),
+    captionB:monthThis+' 1 – '+d+' (to date) · '+opStr,
+    totalTitleA:monthThis+' '+y+' net sales',
+    totalTitleB:monthThis+' '+y+' DV',
+    vsSuffix:'in '+monthThis+' '+(y-1)
+  };
+}
+
+// ── preset pill activation ──
+function compSetPreset(p){
+  _compPreset=p;
+  var pairs=[['comp-chip-ytd','ytd'],['comp-chip-mc','mc'],['comp-chip-myoy','myoy']];
+  pairs.forEach(function(pair){
+    var el=document.getElementById(pair[0]);if(!el)return;
+    var active=pair[1]===p;
+    el.style.background=active?'var(--surface)':'transparent';
+    el.style.border=active?'1px solid var(--border)':'1px solid var(--border-light)';
+    el.style.color=active?'var(--b7)':'var(--text-muted)';
+    el.style.fontWeight=active?'700':'600';
+    el.style.boxShadow=active?'var(--shadow-sm)':'none';
+  });
+  compRender();
+}
+
+// ── main render ──
+function compRender(){
+  if(!document.getElementById('exp-sub-comp'))return;
+  var periods=(_compPreset==='mc')?compPresetMonthConcurrent()
+            :(_compPreset==='myoy')?compPresetMonthYoy()
+            :compPresetYoyYtd();
+
+  var a=compSumRange(periods.startA,periods.endA);
+  var b=compSumRange(periods.startB,periods.endB);
+  var opA=compCountOpDays(periods.startA,periods.endA);
+  var opB=compCountOpDays(periods.startB,periods.endB);
+  var avgSalesA=opA>0?a.sales/opA:0;
+  var avgSalesB=opB>0?b.sales/opB:0;
+  var avgDvA=opA>0?a.dv/opA:0;
+  var avgDvB=opB>0?b.dv/opB:0;
+
+  // Caption
+  setText('comp-period-title',periods.captionA);
+  setText('comp-period-sub',periods.captionB);
+
+  // Hero — sales
+  setText('comp-hero-sales',compFmt$0(avgSalesA));
+  var dSales=avgSalesA-avgSalesB;
+  setText('comp-hero-sales-delta',compFormatDeltaLine(dSales,compPct(dSales,avgSalesB),true));
+  compColorEl('comp-hero-sales-delta',dSales);
+  setText('comp-hero-sales-vs','vs '+compFmt$0(avgSalesB)+' '+periods.vsSuffix);
+
+  // Hero — DV
+  setText('comp-hero-dv',compFmtDec(avgDvA));
+  var dDv=avgDvA-avgDvB;
+  setText('comp-hero-dv-delta',compFormatDeltaLine(dDv,compPct(dDv,avgDvB),false));
+  compColorEl('comp-hero-dv-delta',dDv);
+  setText('comp-hero-dv-vs','vs '+compFmtDec(avgDvB)+' '+periods.vsSuffix);
+
+  // Totals
+  setText('comp-total-sales-title',periods.totalTitleA);
+  setText('comp-total-sales',compFmt$0(a.sales));
+  setText('comp-total-sales-vs','vs '+compFmt$0(b.sales));
+  var dTotSales=a.sales-b.sales;
+  setText('comp-total-sales-delta',compFormatDeltaLine(dTotSales,compPct(dTotSales,b.sales),true));
+  compColorEl('comp-total-sales-delta',dTotSales);
+
+  setText('comp-total-dv-title',periods.totalTitleB);
+  setText('comp-total-dv',compFmtInt(a.dv));
+  setText('comp-total-dv-vs','vs '+compFmtInt(b.dv));
+  var dTotDv=a.dv-b.dv;
+  setText('comp-total-dv-delta',compFormatDeltaLine(dTotDv,compPct(dTotDv,b.dv),false));
+  compColorEl('comp-total-dv-delta',dTotDv);
+
+  // Goals + quarter (always visible, always based on YTD regardless of preset)
+  compRenderGoals();
+  compRenderQuarter();
+  compRenderAccelerate();
+}
+
+// ── goals section ──
+function compRenderGoals(){
+  var salesGoal=compGetSalesGoal();
+  var dvGoal=compGetDvGoal();
+  var year=new Date().getFullYear();
+  setText('comp-goals-divider-label',year+' annual goals');
+
+  var container=document.getElementById('comp-goals-container');
+  if(!container)return;
+
+  if(!salesGoal && !dvGoal){
+    container.innerHTML=
+      '<div style="background:var(--surface);border:1px dashed var(--border-light);border-radius:var(--radius);padding:18px 16px;text-align:center;">'+
+        '<div style="font-size:13px;color:var(--text-muted);font-weight:600;">No annual goals set yet</div>'+
+        '<div style="font-size:12px;color:var(--text-faint);margin-top:4px;">Set your '+year+' goals in Settings → Annual goals</div>'+
+      '</div>';
+    return;
+  }
+
+  var today=new Date();
+  var y=today.getFullYear();
+  var ytdStart=compYmd(y,0,1);
+  var ytdEnd=fmtDate(today);
+  var ytd=compSumRange(ytdStart,ytdEnd);
+  var ytdOp=compCountOpDays(ytdStart,ytdEnd);
+  var annualOp=compCountOpDays(compYmd(y,0,1),compYmd(y,11,31));
+  var paceFrac=annualOp>0?ytdOp/annualOp:0;
+
+  var salesCard=salesGoal?compBuildGoalCard({
+    label:'Sales goal',goalValue:salesGoal,goalFmt:'dollar',
+    actual:ytd.sales,paceFrac:paceFrac,ytdOp:ytdOp,annualOp:annualOp,
+    currentPerDay:ytdOp>0?ytd.sales/ytdOp:0
+  }):'';
+  var dvCard=dvGoal?compBuildGoalCard({
+    label:'DV goal',goalValue:dvGoal,goalFmt:'int',
+    actual:ytd.dv,paceFrac:paceFrac,ytdOp:ytdOp,annualOp:annualOp,
+    currentPerDay:ytdOp>0?ytd.dv/ytdOp:0
+  }):'';
+
+  if(salesCard && dvCard){
+    container.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'+salesCard+dvCard+'</div>';
+  }else{
+    container.innerHTML=salesCard||dvCard;
+  }
+}
+
+function compBuildGoalCard(opts){
+  var paceExpected=opts.goalValue*opts.paceFrac;
+  var diff=opts.actual-paceExpected;
+  var pctOff=paceExpected>0?(diff/paceExpected)*100:0;
+  // 5% threshold: ahead | amber (0 to -5%) | red (worse than -5%)
+  var state=diff>=0?'ahead':(pctOff>=-5?'amber':'red');
+  var color=state==='ahead'?'var(--g5)':(state==='amber'?'var(--a5)':'var(--r5,#dc2626)');
+  var stateLabel=state==='ahead'?'Ahead of pace':'Behind pace';
+
+  var progressPct=opts.goalValue>0?(opts.actual/opts.goalValue)*100:0;
+  var pacePct=opts.paceFrac*100;
+  var fillPct=Math.min(100,Math.max(0,progressPct));
+  var markerPct=Math.min(100,Math.max(0,pacePct));
+
+  var remOp=opts.annualOp-opts.ytdOp;
+  var projected=opts.actual+opts.currentPerDay*remOp;
+  var overUnder=projected-opts.goalValue;
+  var overUnderFmt=opts.goalFmt==='dollar'?compDeltaDollar(overUnder):compDeltaInt(overUnder);
+  var overUnderColor=overUnder>=0?'var(--g5)':color;
+
+  var neededRemaining=Math.max(0,opts.goalValue-opts.actual);
+  var neededPerDay=remOp>0?neededRemaining/remOp:0;
+  var currentOnPace=opts.currentPerDay>=neededPerDay;
+  var currentColor=currentOnPace?'var(--g5)':color;
+
+  var goalStr=opts.goalFmt==='dollar'?compFmt$0(opts.goalValue):compFmtInt(opts.goalValue);
+  var actualStr=opts.goalFmt==='dollar'?compFmt$0(opts.actual):compFmtInt(opts.actual);
+  var projectedStr=opts.goalFmt==='dollar'?compFmt$0(projected):compFmtInt(projected);
+  var diffStr=(diff>=0?'+':'−')+(opts.goalFmt==='dollar'?compFmt$0(Math.abs(diff)):compFmtInt(Math.abs(diff)));
+  var needStr=opts.goalFmt==='dollar'?compFmt$0(neededPerDay):compFmtDec(neededPerDay);
+  var currentStr=opts.goalFmt==='dollar'?compFmt$0(opts.currentPerDay):compFmtDec(opts.currentPerDay);
+
+  return '<div style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow-sm);">'+
+    '<div style="font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);font-weight:700;margin-bottom:10px;">'+opts.label+' &nbsp;·&nbsp; '+goalStr+'</div>'+
+    '<div style="font-size:11px;color:'+color+';text-transform:uppercase;letter-spacing:0.4px;font-weight:700;">'+stateLabel+'</div>'+
+    '<div style="font-family:Outfit,sans-serif;font-size:26px;font-weight:800;color:'+color+';letter-spacing:-0.01em;margin-top:2px;">'+diffStr+'</div>'+
+    '<div style="margin:14px 0 6px;">'+
+      '<div style="position:relative;height:10px;background:var(--b0);border-radius:3px;">'+
+        '<div style="position:absolute;left:0;top:0;height:100%;width:'+fillPct+'%;background:'+color+';border-radius:3px;"></div>'+
+        '<div style="position:absolute;left:'+markerPct+'%;top:-3px;bottom:-3px;width:2px;background:var(--text);"></div>'+
+      '</div>'+
+      '<div style="position:relative;margin-top:3px;height:14px;">'+
+        '<div style="position:absolute;left:'+markerPct+'%;transform:translateX(-50%);font-size:11px;color:var(--text-muted);white-space:nowrap;">pace '+pacePct.toFixed(1)+'%</div>'+
+      '</div>'+
+    '</div>'+
+    '<div style="font-size:12px;line-height:1.55;">'+
+      '<div><span style="font-weight:700;">'+actualStr+'</span> <span style="color:var(--text-faint);">of '+goalStr+' ('+progressPct.toFixed(1)+'%)</span></div>'+
+      '<div style="margin-top:3px;">Projected EOY <span style="font-weight:700;">'+projectedStr+'</span> &nbsp;<span style="color:'+overUnderColor+';font-weight:700;">'+overUnderFmt+'</span></div>'+
+    '</div>'+
+    '<div style="margin-top:12px;padding-top:10px;border-top:1px dashed var(--border-light);">'+
+      '<div style="font-size:11px;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.4px;font-weight:700;">Pace to hit goal</div>'+
+      '<div style="font-size:13px;margin-top:4px;line-height:1.4;">'+
+        '<span style="font-weight:700;">'+needStr+'/day</span> needed<br/>'+
+        '<span style="color:var(--text-muted);">currently at</span> <span style="color:'+currentColor+';font-weight:700;">'+currentStr+'</span>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
+
+// ── quarterly section ──
+function compRenderQuarter(){
+  var today=new Date();
+  var y=today.getFullYear();
+  var m=today.getMonth();
+  var currentQ=Math.floor(m/3);
+  var qLabelShort=['Q1','Q2','Q3','Q4'][currentQ];
+  var qMonthRange=['Jan–Mar','Apr–Jun','Jul–Sep','Oct–Dec'][currentQ];
+  var qDateRange=['Jan 1 – Mar 31','Apr 1 – Jun 30','Jul 1 – Sep 30','Oct 1 – Dec 31'][currentQ];
+  setText('comp-quarter-divider-label','This quarter · '+qLabelShort+' '+y);
+
+  var qStartMonth=currentQ*3;
+  var qStartDate=compYmd(y,qStartMonth,1);
+  var qEndMonthLastDay=new Date(y,qStartMonth+3,0).getDate();
+  var qEndDate=compYmd(y,qStartMonth+2,qEndMonthLastDay);
+  var todayStr=fmtDate(today);
+  var qToDateEnd=todayStr<qEndDate?todayStr:qEndDate;
+
+  var qStartD=new Date(qStartDate+'T12:00:00');
+  var qEndD=new Date(qEndDate+'T12:00:00');
+  var daysInQ=Math.round((qEndD-qStartD)/86400000)+1;
+  var daysElapsed=Math.round((new Date(qToDateEnd+'T12:00:00')-qStartD)/86400000)+1;
+  if(daysElapsed>daysInQ)daysElapsed=daysInQ;
+  if(daysElapsed<1)daysElapsed=1;
+  var pctThrough=(daysElapsed/daysInQ)*100;
+
+  var cur=compSumRange(qStartDate,qToDateEnd);
+  var lyEndD=new Date(y-1,qStartMonth,daysElapsed);
+  var lyQEnd=fmtDate(lyEndD);
+  var lyQStart=compYmd(y-1,qStartMonth,1);
+  var ly=compSumRange(lyQStart,lyQEnd);
+
+  setText('comp-quarter-sub',qDateRange+' · '+daysElapsed+' of '+daysInQ+' days · '+pctThrough.toFixed(1)+'% through');
+
+  var container=document.getElementById('comp-quarter-container');
+  if(!container)return;
+
+  var dSales=cur.sales-ly.sales;
+  var dSalesPct=ly.sales>0?(dSales/ly.sales)*100:0;
+  var dDv=cur.dv-ly.dv;
+  var dDvPct=ly.dv>0?(dDv/ly.dv)*100:0;
+  var sColor=dSales>=0?'var(--g5)':'var(--a5)';
+  var dvColor=dDv>=0?'var(--g5)':'var(--a5)';
+
+  var cardSales='<div style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:13px;box-shadow:var(--shadow-sm);">'+
+    '<div style="font-size:11px;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.4px;font-weight:700;">'+qLabelShort+' sales to date</div>'+
+    '<div style="font-family:Outfit,sans-serif;font-size:24px;font-weight:800;color:var(--text);margin:5px 0;">'+compFmt$0(cur.sales)+'</div>'+
+    '<div style="font-size:12px;font-weight:700;color:'+sColor+';">'+compFormatDeltaLine(dSales,dSalesPct,true)+'</div>'+
+    '<div style="font-size:11px;color:var(--text-faint);margin-top:1px;">vs '+qLabelShort+' '+(y-1)+' same period</div>'+
+  '</div>';
+  var cardDv='<div style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:13px;box-shadow:var(--shadow-sm);">'+
+    '<div style="font-size:11px;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.4px;font-weight:700;">'+qLabelShort+' DV to date</div>'+
+    '<div style="font-family:Outfit,sans-serif;font-size:24px;font-weight:800;color:var(--text);margin:5px 0;">'+compFmtInt(cur.dv)+'</div>'+
+    '<div style="font-size:12px;font-weight:700;color:'+dvColor+';">'+compFormatDeltaLine(dDv,dDvPct,false)+'</div>'+
+    '<div style="font-size:11px;color:var(--text-faint);margin-top:1px;">vs '+qLabelShort+' '+(y-1)+' same period</div>'+
+  '</div>';
+
+  // Four-quarter strip
+  var strip='';
+  var qNames=['Q1 Jan–Mar','Q2 Apr–Jun','Q3 Jul–Sep','Q4 Oct–Dec'];
+  for(var q=0;q<4;q++){
+    var qs=compYmd(y,q*3,1);
+    var qeLastDay=new Date(y,q*3+3,0).getDate();
+    var qe=compYmd(y,q*3+2,qeLastDay);
+    var isPast=qe<todayStr;
+    var isCurrent=q===currentQ;
+    var isFuture=qs>todayStr;
+    var qSumEnd=isPast?qe:(isFuture?null:todayStr);
+    var qSums=qSumEnd?compSumRange(qs,qSumEnd):{sales:0,dv:0};
+    var bg=isCurrent?'var(--b1)':'var(--surface)';
+    var border=isFuture?'1px dashed var(--border-light)':'1px solid var(--border-light)';
+    var labelColor=isCurrent?'var(--b8)':'var(--text-faint)';
+    var valColor=isCurrent?'var(--b8)':(isFuture?'var(--text-faint)':'var(--text)');
+    var opacity=isFuture?'0.6':'1';
+    var valText=isFuture?'—':compFmt$0(qSums.sales);
+    var dvText=isFuture?'upcoming':(isCurrent?compFmtInt(qSums.dv)+' DV · in progress':compFmtInt(qSums.dv)+' DV');
+    var weight=isCurrent?'700':'600';
+
+    strip+='<div style="background:'+bg+';border:'+border+';border-radius:var(--radius-sm);padding:9px 10px;opacity:'+opacity+';">'+
+      '<div style="font-size:10px;color:'+labelColor+';text-transform:uppercase;letter-spacing:0.4px;font-weight:'+weight+';">'+qNames[q]+'</div>'+
+      '<div style="font-family:Outfit,sans-serif;font-size:13px;font-weight:800;margin-top:3px;color:'+valColor+';">'+valText+'</div>'+
+      '<div style="font-size:10px;color:'+labelColor+';margin-top:1px;">'+dvText+'</div>'+
+    '</div>';
+  }
+
+  container.innerHTML=
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'+cardSales+cardDv+'</div>'+
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px;">'+strip+'</div>';
+}
+
+// ── accelerate callout ──
+function compRenderAccelerate(){
+  var el=document.getElementById('comp-accelerate');
+  if(!el)return;
+  var salesGoal=compGetSalesGoal();
+  var dvGoal=compGetDvGoal();
+  if(!salesGoal && !dvGoal){el.style.display='none';return;}
+
+  var today=new Date();
+  var y=today.getFullYear();
+  var ytdStart=compYmd(y,0,1);
+  var ytdEnd=fmtDate(today);
+  var ytd=compSumRange(ytdStart,ytdEnd);
+  var ytdOp=compCountOpDays(ytdStart,ytdEnd);
+  var annualOp=compCountOpDays(compYmd(y,0,1),compYmd(y,11,31));
+  var paceFrac=annualOp>0?ytdOp/annualOp:0;
+  var remOp=annualOp-ytdOp;
+
+  var behind=[];
+  if(salesGoal){
+    var paceExpS=salesGoal*paceFrac;
+    if(ytd.sales<paceExpS){
+      var perDayNeeded=remOp>0?(salesGoal-ytd.sales)/remOp:0;
+      var perDayCurrent=ytdOp>0?ytd.sales/ytdOp:0;
+      var gap=perDayNeeded-perDayCurrent;
+      if(gap>0)behind.push('Sales is '+compFmt$0(gap)+'/day behind pace');
+    }
+  }
+  if(dvGoal){
+    var paceExpD=dvGoal*paceFrac;
+    if(ytd.dv<paceExpD){
+      var perDayNeededD=remOp>0?(dvGoal-ytd.dv)/remOp:0;
+      var perDayCurrentD=ytdOp>0?ytd.dv/ytdOp:0;
+      var gapD=perDayNeededD-perDayCurrentD;
+      if(gapD>0)behind.push('DV is '+compFmtDec(gapD)+'/day behind pace');
+    }
+  }
+
+  if(behind.length===0){el.style.display='none';return;}
+  el.style.display='block';
+  setText('comp-accelerate-sub',behind.join(' · ')+'. Ideas to close the gap:');
 }
 var csaChartDone=false;
 function csaInitChart(){
@@ -15609,6 +16177,12 @@ function buildSettingsUI(){
   buildSelect('s-otherrate',range(30,60,2), SETTINGS.otherRate,v=>v+'%');
   buildSelect('s-merchrate',range(5,100,5), SETTINGS.merchRate,v=>v+'%');
   buildSelect('s-dvdelta', range(-10,10,1), SETTINGS.dvDelta,  v=>(v>=0?'+':'')+v+'%');
+  // Annual goals — pre-fill for current year
+  var _goalYr2 = new Date().getFullYear();
+  var _sgEl = document.getElementById('s-sales-goal');
+  if(_sgEl) _sgEl.value = (SETTINGS.salesGoalByYear && SETTINGS.salesGoalByYear[_goalYr2]) || '';
+  var _dgEl = document.getElementById('s-dv-goal');
+  if(_dgEl) _dgEl.value = (SETTINGS.dvGoalByYear && SETTINGS.dvGoalByYear[_goalYr2]) || '';
   // Pre-fill club name from location name if not set
   const _cnEl=document.getElementById('s-clubname');
   if(_cnEl) _cnEl.value=SETTINGS.clubName||'';
