@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-24 16:45:00 -->
+<!-- CACHE BUST: 2026-04-24 19:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -1183,7 +1183,10 @@ if('serviceWorker' in navigator){
       <div class="nav-drop-divider"></div>
       <div id="admin-nav-items" style="display:none;">
         <button class="nav-drop-item" onclick="goBackToAdmin();closeNavMenu()">&#8592; Club Profile</button>
-        <button class="nav-drop-item" onclick="window.location.href='admin.html';closeNavMenu()">🏠 Admin Dashboard</button>
+        <button class="nav-drop-item" onclick="window.location.href='admin.html';closeNavMenu()" style="justify-content:space-between;">
+          <span style="display:flex;align-items:center;gap:9px;">🏠 Admin Dashboard</span>
+          <span id="nav-admin-pending-badge" style="display:none;background:#c03030;color:#fff;font-size:10px;font-weight:700;min-width:18px;height:18px;padding:0 6px;border-radius:9px;align-items:center;justify-content:center;line-height:1;">0</span>
+        </button>
         <div class="nav-drop-divider"></div>
       </div>
       <button class="nav-drop-item" id="nav-switch-loc-btn" onclick="openLocSwitcher();closeNavMenu()" style="display:none;">🏪 Switch Location</button>
@@ -4381,6 +4384,26 @@ async function removeAvatar() {
 
 function toggleNavMenu(){var dd=document.getElementById('nav-dropdown');if(dd)dd.classList.toggle('open');}
 function closeNavMenu(){var dd=document.getElementById('nav-dropdown');if(dd)dd.classList.remove('open');}
+async function updateAdminNavBadge(){
+  var el=document.getElementById('nav-admin-pending-badge');
+  if(!el)return;
+  try{
+    var results=await Promise.all([
+      sb.from('org_requests').select('id',{count:'exact',head:true}).eq('status','pending'),
+      sb.from('location_requests').select('id',{count:'exact',head:true}).eq('status','pending')
+    ]);
+    var total=(results[0].count||0)+(results[1].count||0);
+    if(total>0){
+      el.textContent=total>99?'99+':String(total);
+      el.style.display='inline-flex';
+    }else{
+      el.style.display='none';
+    }
+  }catch(e){
+    // Silent fail — badge just stays hidden
+    el.style.display='none';
+  }
+}
 // Hover-open with 300ms close delay
 (function(){
   var closeTimer;
@@ -4574,6 +4597,14 @@ async function init(){
     const _adRL=document.getElementById('nav-role-label');if(_adRL)_adRL.textContent='ADMIN';
     // Show admin nav items in dropdown
     const _ani=document.getElementById('admin-nav-items');if(_ani)_ani.style.display='block';
+    // Populate Admin Dashboard pending-count badge + keep it fresh
+    try{ updateAdminNavBadge(); }catch(e){}
+    if(window._adminNavBadgeTimer)clearInterval(window._adminNavBadgeTimer);
+    window._adminNavBadgeTimer=setInterval(()=>{
+      if(document.visibilityState==='visible'){
+        try{ updateAdminNavBadge(); }catch(e){}
+      }
+    },60000);
   }
   const{data:days}=await sb.from('days').select('id,date,data').eq('location_id',LOCATION_ID).order('date',{ascending:false});
   ALL_DAYS=days||[];

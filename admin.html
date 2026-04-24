@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-02 12:45:00 -->
+<!-- CACHE BUST: 2026-04-24 19:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -381,7 +381,7 @@ if('serviceWorker' in navigator){
     <div style="display:flex;align-items:center;gap:12px;">
       <div style="font-size:22px;">📋</div>
       <div>
-        <div style="font-size:14px;font-weight:700;" id="new-requests-banner-text">New Location Request</div>
+        <div style="font-size:14px;font-weight:700;" id="new-requests-banner-text">New Pending Requests</div>
         <div style="font-size:12px;opacity:0.85;margin-top:2px;">Click to review → scroll down to Pending Requests</div>
       </div>
       <div style="margin-left:auto;font-size:20px;opacity:0.7;">↓</div>
@@ -427,14 +427,19 @@ if('serviceWorker' in navigator){
   <!-- LAYOUT BODY — toggled between list and split via JS -->
   <div id="layout-body">
 
-    <!-- LEFT / FULL: location requests + list -->
+    <!-- LEFT / FULL: pending requests + list -->
     <div id="locations-col">
-      <!-- LOCATION REQUESTS SECTION -->
+      <!-- PENDING REQUESTS SECTION (unified org + location requests) -->
       <div id="requests-section" style="display:none;margin-bottom:24px;">
         <div class="section-header" style="margin-top:0;">
-          <div style="display:flex;align-items:center;gap:10px;">
-            <div class="section-label" style="margin:0;">Location Requests</div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div class="section-label" style="margin:0;">Pending Requests</div>
             <span id="requests-badge" style="background:var(--r5);color:white;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;"></span>
+            <div style="margin-left:auto;display:flex;gap:6px;" id="req-filter-chips">
+              <button type="button" class="req-chip active" data-filter="all" onclick="setRequestFilter('all')" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:5px 12px;border-radius:16px;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text);">All <span data-count="all" style="opacity:0.7;margin-left:3px;">0</span></button>
+              <button type="button" class="req-chip" data-filter="org" onclick="setRequestFilter('org')" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:5px 12px;border-radius:16px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text-muted);">New orgs <span data-count="org" style="opacity:0.7;margin-left:3px;">0</span></button>
+              <button type="button" class="req-chip" data-filter="loc" onclick="setRequestFilter('loc')" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:5px 12px;border-radius:16px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text-muted);">New clubs <span data-count="loc" style="opacity:0.7;margin-left:3px;">0</span></button>
+            </div>
           </div>
         </div>
         <div id="requests-list" style="display:flex;flex-direction:column;gap:10px;"></div>
@@ -702,15 +707,28 @@ const sb=createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{
 const ADMIN_EMAIL='support@myclubtracker.com';
 const ADMIN_NAME='Jeff Nemecek';
 
-async function sendEmail(to, toName, subject, html){
-  // Call Supabase Edge Function (server-side, no CORS issues)
+// ── EDGE FUNCTION HELPER (raw fetch — avoids sb.functions.invoke auth header issues) ──
+async function invokeEdge(fnName, body){
   try{
-    const{data,error}=await sb.functions.invoke('send-email',{
-      body:{to, toName, subject, html}
+    const r=await fetch(`${SURL}/functions/v1/${fnName}`,{
+      method:'POST',
+      headers:{'apikey':SKEY,'Content-Type':'application/json'},
+      body:JSON.stringify(body)
     });
-    if(error){console.warn('Email send failed:',error);return false;}
-    return true;
-  }catch(e){console.warn('Email send failed:',e);return false;}
+    const text=await r.text();
+    let data=null;
+    try{data=JSON.parse(text);}catch(e){}
+    if(!r.ok)return{data,error:new Error((data&&data.error)||text||`HTTP ${r.status}`)};
+    return{data,error:null};
+  }catch(e){
+    return{data:null,error:e};
+  }
+}
+
+async function sendEmail(to, toName, subject, html){
+  const{data,error}=await invokeEdge('send-email',{to,toName,subject,html});
+  if(error){console.warn('Email send failed:',error);return false;}
+  return true;
 }
 
 
@@ -723,9 +741,14 @@ let allLocations=[];
 let allDays=[];
 let allLocationUsers=[];
 let allOrgsMap={};  // orgId -> org object, for tree view
-let allRequests=[];
+let allRequests=[];          // location_requests (pending)
+let allOrgRequests=[];       // org_requests   (pending)
+let requestFilter='all';     // 'all' | 'org' | 'loc'
 let approvingRequestId=null;
 let denyingRequestId=null;
+let currentSession=null;
+let adminProfile={};
+let requestsPollTimer=null;
 
 async function checkPendingOrgs(){
   const[{data:orgs},{data:requests},{data:locRequests}]=await Promise.all([
@@ -758,48 +781,213 @@ async function checkPendingOrgs(){
 }
 
 async function loadRequests(){
-  const{data}=await sb.from('location_requests').select('*').eq('status','pending').order('created_at',{ascending:false});
-  allRequests=data||[];
+  const[{data:locReqs},{data:orgReqs}]=await Promise.all([
+    sb.from('location_requests').select('*').eq('status','pending').order('created_at',{ascending:false}),
+    sb.from('org_requests').select('*').eq('status','pending').order('created_at',{ascending:false})
+  ]);
+  allRequests=locReqs||[];
+  allOrgRequests=orgReqs||[];
   renderRequests();
+}
+
+function setRequestFilter(f){
+  requestFilter=f;
+  // Update chip visuals
+  const chips=document.querySelectorAll('#req-filter-chips .req-chip');
+  chips.forEach(c=>{
+    const isActive=c.getAttribute('data-filter')===f;
+    c.classList.toggle('active',isActive);
+    c.style.background=isActive?'var(--surface)':'transparent';
+    c.style.color=isActive?'var(--text)':'var(--text-muted)';
+  });
+  renderRequests();
+}
+
+function timeAgo(iso){
+  if(!iso)return'';
+  const then=new Date(iso).getTime();
+  const now=Date.now();
+  const mins=Math.floor((now-then)/60000);
+  if(mins<1)return'just now';
+  if(mins<60)return mins+'m ago';
+  const hrs=Math.floor(mins/60);
+  if(hrs<24)return hrs+'h ago';
+  const days=Math.floor(hrs/24);
+  if(days<7)return days+'d ago';
+  return new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric'});
 }
 
 function renderRequests(){
   const section=document.getElementById('requests-section');
   const list=document.getElementById('requests-list');
   const badge=document.getElementById('requests-badge');
-  // Show/hide the top banner
   const newBanner=document.getElementById('new-requests-banner');
+  const totalCount=allRequests.length+allOrgRequests.length;
+  // Update filter chip counts
+  const ca=document.querySelector('#req-filter-chips [data-count="all"]');
+  const co=document.querySelector('#req-filter-chips [data-count="org"]');
+  const cl=document.querySelector('#req-filter-chips [data-count="loc"]');
+  if(ca)ca.textContent=totalCount;
+  if(co)co.textContent=allOrgRequests.length;
+  if(cl)cl.textContent=allRequests.length;
+  // Top banner
   if(newBanner){
-    if(allRequests.length){
+    if(totalCount>0){
       newBanner.style.display='block';
       const txt=document.getElementById('new-requests-banner-text');
-      if(txt)txt.textContent=allRequests.length===1?'1 New Location Request Pending Review':`${allRequests.length} Location Requests Pending Review`;
+      if(txt)txt.textContent=totalCount===1?'1 New Request Pending Review':`${totalCount} Requests Pending Review`;
     }else{
       newBanner.style.display='none';
     }
   }
-  if(!allRequests.length){section.style.display='none';return;}
+  if(!totalCount){section.style.display='none';return;}
   section.style.display='block';
-  badge.textContent=`${allRequests.length} pending`;
-  list.innerHTML=allRequests.map(r=>{
-    const addr=[r.street,r.city?`${r.city}${r.state?', '+r.state:''}${r.zip?' '+r.zip:''}`:'']. filter(Boolean).join(', ');
-    const submitted=new Date(r.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-    return`<div style="background:var(--surface);border:1px solid var(--border-light);border-left:4px solid var(--b5);border-radius:var(--radius);padding:14px 16px;">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-        <div style="flex:1;min-width:0;">
-          <div class="loc-name" style="margin-bottom:4px;text-transform:capitalize;">${escHtml(r.club_name)}</div>
-          ${addr?`<div style="font-size:13px;color:var(--text-muted);margin-bottom:2px;">📍 ${escHtml(addr)}</div>`:''}
-          <div style="font-size:13px;color:var(--text-muted);">👤 <span style="text-transform:capitalize;">${escHtml(r.owner_name||'—')}</span> ${r.phone?`· 📞 ${escHtml(r.phone)}`:''}</div>
-          <div style="font-size:13px;color:var(--b6);">✉️ ${escHtml(r.email||'—')}</div>
-          ${r.notes?`<div style="font-size:12px;color:var(--text-faint);margin-top:6px;font-style:italic;">"${escHtml(r.notes)}"</div>`:''}
-          <div style="font-size:11px;color:var(--text-faint);margin-top:6px;">Submitted ${submitted}</div>
-        </div>
-        <div style="flex-shrink:0;">
-          <button onclick="openApproveModal('${r.id}')" style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;background:linear-gradient(135deg,var(--a6),var(--a4));color:white;border:none;border-radius:6px;padding:8px 18px;cursor:pointer;white-space:nowrap;">Review</button>
-        </div>
-      </div>
-    </div>`;
+  badge.textContent=`${totalCount} pending`;
+  // Build combined, filtered list sorted by created_at desc
+  let combined=[];
+  if(requestFilter==='all'||requestFilter==='org'){
+    combined=combined.concat(allOrgRequests.map(r=>({...r,_kind:'org'})));
+  }
+  if(requestFilter==='all'||requestFilter==='loc'){
+    combined=combined.concat(allRequests.map(r=>({...r,_kind:'loc'})));
+  }
+  combined.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+  if(!combined.length){
+    list.innerHTML='<div style="font-size:13px;color:var(--text-faint);padding:10px 2px;">No requests match this filter.</div>';
+    return;
+  }
+  list.innerHTML=combined.map(r=>{
+    if(r._kind==='org')return renderOrgRequestCard(r);
+    return renderLocRequestCard(r);
   }).join('');
+}
+
+function renderOrgRequestCard(r){
+  const when=timeAgo(r.created_at);
+  const submitted=new Date(r.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  return`<div style="background:var(--surface);border:1px solid var(--border-light);border-left:3px solid #534AB7;border-radius:var(--radius);padding:12px 14px;" id="reqcard-${r.id}">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;">
+          <span style="background:#EEEDFE;color:#3C3489;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:0.3px;">NEW ORG</span>
+          <span style="font-size:14px;font-weight:700;color:var(--text);">${escHtml(r.org_name||'—')}</span>
+        </div>
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:2px;">&#128100; <span style="text-transform:capitalize;">${escHtml(r.name||'—')}</span>${r.phone?` &middot; &#128222; ${escHtml(r.phone)}`:''}</div>
+        <div style="font-size:13px;color:var(--b6);">&#9993;&#65039; ${escHtml(r.email||'—')}</div>
+        ${r.note?`<div style="font-size:12px;color:var(--text-faint);margin-top:6px;font-style:italic;">"${escHtml(r.note)}"</div>`:''}
+        <div style="font-size:11px;color:var(--text-faint);margin-top:6px;">Submitted ${submitted} &middot; ${when}</div>
+      </div>
+      <div style="flex-shrink:0;display:flex;flex-direction:column;gap:6px;">
+        <button onclick="approveOrgRequest('${r.id}',this)" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;background:linear-gradient(135deg,#1D9E75,#0F6E56);color:white;border:none;border-radius:6px;padding:7px 16px;cursor:pointer;white-space:nowrap;">&#10003; Approve</button>
+        <button id="decbtn-${r.id}" onclick="declineOrgRequest('${r.id}',this)" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;background:transparent;border:1px solid var(--border);color:var(--text-muted);border-radius:6px;padding:6px 16px;cursor:pointer;white-space:nowrap;">Decline</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderLocRequestCard(r){
+  const addr=[r.street,r.city?`${r.city}${r.state?', '+r.state:''}${r.zip?' '+r.zip:''}`:''].filter(Boolean).join(', ');
+  const submitted=new Date(r.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const when=timeAgo(r.created_at);
+  return`<div style="background:var(--surface);border:1px solid var(--border-light);border-left:3px solid var(--b5);border-radius:var(--radius);padding:12px 14px;">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;">
+          <span style="background:#E6F1FB;color:#0C447C;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:0.3px;">NEW CLUB</span>
+          <span style="font-size:14px;font-weight:700;color:var(--text);text-transform:capitalize;">${escHtml(r.club_name||'—')}</span>
+        </div>
+        ${addr?`<div style="font-size:13px;color:var(--text-muted);margin-bottom:2px;">&#128205; ${escHtml(addr)}</div>`:''}
+        <div style="font-size:13px;color:var(--text-muted);">&#128100; <span style="text-transform:capitalize;">${escHtml(r.owner_name||'—')}</span> ${r.phone?`&middot; &#128222; ${escHtml(r.phone)}`:''}</div>
+        <div style="font-size:13px;color:var(--b6);">&#9993;&#65039; ${escHtml(r.email||'—')}</div>
+        ${r.notes?`<div style="font-size:12px;color:var(--text-faint);margin-top:6px;font-style:italic;">"${escHtml(r.notes)}"</div>`:''}
+        <div style="font-size:11px;color:var(--text-faint);margin-top:6px;">Submitted ${submitted} &middot; ${when}</div>
+      </div>
+      <div style="flex-shrink:0;">
+        <button onclick="openApproveModal('${r.id}')" style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;background:linear-gradient(135deg,var(--a6),var(--a4));color:white;border:none;border-radius:6px;padding:8px 18px;cursor:pointer;white-space:nowrap;">Review</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── APPROVE ORG REQUEST (inline — creates org + sends invite) ──
+async function approveOrgRequest(reqId, btn){
+  const r=allOrgRequests.find(x=>x.id===reqId);
+  if(!r){showToast('Request not found.','error');return;}
+  btn.disabled=true;btn.textContent='Approving…';
+  const token=crypto.randomUUID();
+  const expiresAt=new Date(Date.now()+30*24*60*60*1000).toISOString();
+  // 1. Create org
+  const{data:org,error:orgErr}=await sb.from('organizations').insert({
+    name:r.org_name,
+    leader_email:r.email,
+    leader_name:r.name,
+    status:'invited',
+    billing_active:true,
+    billing_plan:'free',
+    monthly_rate:0,
+    invite_token:token,
+    invite_expires_at:expiresAt,
+    invited_at:new Date().toISOString(),
+  }).select().single();
+  if(orgErr){
+    btn.disabled=false;btn.textContent='✓ Approve';
+    showToast('Failed to create org: '+orgErr.message,'error');
+    return;
+  }
+  // 2. Mark request approved
+  await sb.from('org_requests').update({
+    status:'approved',
+    reviewed_at:new Date().toISOString(),
+    reviewed_by:currentSession?.user?.id||null,
+  }).eq('id',reqId);
+  // 3. Send onboarding invite
+  const inviteLink=`${window.location.origin}/onboard.html?token=${token}`;
+  try{
+    await invokeEdge('send-org-invite',{to:r.email,orgName:r.org_name,inviteLink,expiresAt});
+  }catch(e){console.warn('Invite email failed:',e);}
+  // 4. Remove from list + refresh
+  allOrgRequests=allOrgRequests.filter(x=>x.id!==reqId);
+  if(org){allOrgsMap[org.id]=org;}
+  renderRequests();
+  checkPendingOrgs();
+  showToast(`${r.org_name} approved — invite sent to ${r.email}`,'success');
+}
+
+// ── DECLINE ORG REQUEST (2-click confirm) ──
+async function declineOrgRequest(reqId, btn){
+  if(!btn.classList.contains('confirm')){
+    btn.textContent='Confirm decline';
+    btn.classList.add('confirm');
+    btn.style.background='var(--r5)';
+    btn.style.color='white';
+    btn.style.borderColor='var(--r5)';
+    setTimeout(()=>{
+      if(btn&&btn.classList.contains('confirm')){
+        btn.textContent='Decline';
+        btn.classList.remove('confirm');
+        btn.style.background='transparent';
+        btn.style.color='var(--text-muted)';
+        btn.style.borderColor='var(--border)';
+      }
+    },3000);
+    return;
+  }
+  const r=allOrgRequests.find(x=>x.id===reqId);
+  if(!r){showToast('Request not found.','error');return;}
+  btn.disabled=true;btn.textContent='Declining…';
+  await sb.from('org_requests').update({
+    status:'declined',
+    reviewed_at:new Date().toISOString(),
+    reviewed_by:currentSession?.user?.id||null,
+  }).eq('id',reqId);
+  // Send polite decline email (non-blocking)
+  try{
+    await invokeEdge('send-org-invite',{role:'decline',to:r.email,name:r.name});
+  }catch(e){console.warn('Decline email failed:',e);}
+  allOrgRequests=allOrgRequests.filter(x=>x.id!==reqId);
+  renderRequests();
+  checkPendingOrgs();
+  showToast(`Request from ${r.name} declined.`,'success');
 }
 
 function openApproveModal(reqId){
@@ -1311,6 +1499,14 @@ async function init(){
   document.getElementById('loading-overlay').style.display='none';
   await loadRequests();
   await checkPendingOrgs();
+  // Poll for new requests every 60s (only when tab visible)
+  if(requestsPollTimer)clearInterval(requestsPollTimer);
+  requestsPollTimer=setInterval(()=>{
+    if(document.visibilityState==='visible'){
+      loadRequests().catch(e=>console.warn('poll loadRequests failed',e));
+      checkPendingOrgs().catch(e=>console.warn('poll checkPendingOrgs failed',e));
+    }
+  },60000);
 }
 
 // ── DUPLICATE DETECTION (Levenshtein distance) ──
