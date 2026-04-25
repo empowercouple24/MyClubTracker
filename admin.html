@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-25 16:30:00 -->
+<!-- CACHE BUST: 2026-04-25 17:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -2362,7 +2362,9 @@ function renderLocations(){
       const subBits = [];
       if (status === 'invited' && org.invited_at) subBits.push('Invited ' + fmtDate(org.invited_at));
       if (status === 'invited' && org.invite_expires_at) subBits.push('expires ' + fmtDate(org.invite_expires_at));
-      if (org.leader_email) subBits.push(escHtml(org.leader_email));
+      subBits.push(org.leader_email
+        ? escHtml(org.leader_email)
+        : '<span style="font-style:italic;opacity:0.65;">no leader email</span>');
       const sub = subBits.join(' · ');
       const resendLink = status === 'invited'
         ? `<button onclick="event.stopPropagation();resendInvite('${orgId}',event)" style="background:none;border:none;color:var(--b6);font-size:12px;font-weight:600;cursor:pointer;padding:0;font-family:inherit;">Resend invite</button>`
@@ -2383,7 +2385,11 @@ function renderLocations(){
         <div class="org-row-inner">
           <div class="org-tbl-avatar">${orgInitials}</div>
           <span class="org-tbl-name">${escHtml(org.name)}</span>
-          <span class="org-tbl-meta">${locs.length} location${locs.length!==1?'s':''} &middot; ${activeCnt} active</span>
+          <span class="org-tbl-meta">${locs.length} location${locs.length!==1?'s':''} &middot; ${activeCnt} active${
+            isUnassigned ? '' : (org.leader_email
+              ? ' &middot; ' + escHtml(org.leader_email)
+              : ' &middot; <span style="font-style:italic;opacity:0.7;">no leader email</span>')
+          }</span>
           <button class="org-pin-btn${isPinned?' pinned':''}" onclick="toggleOrgPin('${orgId}')" title="${isPinned?'Unpin':'Pin to top'}">&#9733;</button>
           ${isUnassigned ? '' : `<button class="org-collapse-btn" onclick="openOrgDrawer('${orgId}')" title="Edit organization" style="margin-left:6px;">&#9998; Edit org</button>`}
           <button class="org-collapse-btn" onclick="toggleOrgCollapse('${orgId}')">${isCollapsed?'&#9656; Expand':'&#9662; Collapse'}</button>
