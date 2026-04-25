@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-25 18:30:00 -->
+<!-- CACHE BUST: 2026-04-25 19:15:00 -->
 <html lang="en">
 <head>
 <script>
@@ -305,8 +305,13 @@ const sb=supabase.createClient(SURL,SKEY,{
 
 let ME=null,MY_ORG=null,MY_LOCATIONS=[],ALL_DAYS=[],ALL_USERS=[],CO_LEADERS=[],MY_OWNED_LOCATION_IDS=[];
 
+// HTML escaping helper — used by render functions in template literals.
+// Mirrors the definition in admin.html and app.html.
+function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
 // -- INIT --
 (async()=>{
+  try{
   const{data:{session}}=await sb.auth.getSession();
   if(!session){window.location.href='index.html';return;}
 
@@ -358,8 +363,14 @@ let ME=null,MY_ORG=null,MY_LOCATIONS=[],ALL_DAYS=[],ALL_USERS=[],CO_LEADERS=[],M
   document.getElementById('org-plan-badge').textContent=
     org.billing_plan==='paid'?`$${Number(org.monthly_rate||0).toFixed(2)}/mo`:'Free Plan';
 
-  // Load data
-  await Promise.all([loadLocations(),loadCoLeaders()]);
+  // Load data — use allSettled so a failure in one (e.g., org_leaders table
+  // not yet provisioned for co-leaders feature) doesn't block the dashboard.
+  const _settled = await Promise.allSettled([loadLocations(),loadCoLeaders()]);
+  _settled.forEach(function(r,i){
+    if(r.status==='rejected'){
+      console.warn(['loadLocations','loadCoLeaders'][i]+' failed:', r.reason);
+    }
+  });
 
   // Resolve which clubs the leader actually owns (for the nav switcher and
   // for the per-card "Enter Sales" link's write-access decision).
@@ -378,8 +389,19 @@ let ME=null,MY_ORG=null,MY_LOCATIONS=[],ALL_DAYS=[],ALL_USERS=[],CO_LEADERS=[],M
   // Hidden if the user has no owned clubs (rare — pure org leader).
   renderOrgLeaderSwitcher(null);
 
-  document.getElementById('loading-state').style.display='none';
-  document.getElementById('main-page').style.display='block';
+  }catch(e){
+    console.error('org-admin init failed:', e);
+    var _err=document.getElementById('loading-state');
+    if(_err){
+      _err.innerHTML='<div style="text-align:center;padding:40px;"><div style="font-size:14px;color:var(--r5,#b91c1c);font-weight:600;margin-bottom:8px;">Dashboard failed to load</div><div style="font-size:12px;color:var(--text-faint);max-width:420px;margin:0 auto;line-height:1.5;">'+escHtml(e&&e.message||String(e))+'<br/><br/>Try refreshing. If this persists, contact support.</div></div>';
+    }
+    return;
+  }finally{
+    var _spin=document.getElementById('loading-state');
+    var _page=document.getElementById('main-page');
+    if(_spin&&!_spin.innerHTML.includes('failed to load'))_spin.style.display='none';
+    if(_page)_page.style.display='block';
+  }
 })();
 
 // -- ORG-LEADER NAV SWITCHER --
