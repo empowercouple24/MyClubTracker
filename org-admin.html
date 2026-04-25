@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-25 19:15:00 -->
+<!-- CACHE BUST: 2026-04-25 19:45:00 -->
 <html lang="en">
 <head>
 <script>
@@ -309,6 +309,10 @@ let ME=null,MY_ORG=null,MY_LOCATIONS=[],ALL_DAYS=[],ALL_USERS=[],CO_LEADERS=[],M
 // Mirrors the definition in admin.html and app.html.
 function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
+// Currency formatter — used by location stat strips and KPI cards.
+// Returns em-dash for null/NaN so empty cells render as '--' rather than '$0.00'.
+function fmt$(n){if(!n||isNaN(n))return'\u2014';return'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+
 // -- INIT --
 (async()=>{
   try{
@@ -351,8 +355,10 @@ function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/<
     if(img&&user.avatar_url){img.src=user.avatar_url+(user.avatar_url.includes('?')?'&':'?')+'r='+Date.now();img.style.display='block';if(sp)sp.style.display='none';}
   }
 
-  // Check suspended
-  if(org.status==='suspended'||!org.billing_active){
+  // Show the "Account Suspended" banner only on actual suspension. The previous
+  // condition (status==='suspended' || !billing_active) was overly aggressive and
+  // incorrectly fired on free-plan orgs that legitimately have billing_active=false.
+  if(org.status==='suspended'){
     document.getElementById('suspended-banner').style.display='block';
   }
 

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-25 18:30:00 -->
+<!-- CACHE BUST: 2026-04-25 19:45:00 -->
 <html lang="en">
 <head>
 <script>
@@ -4559,7 +4559,7 @@ async function init(){
     const navDN = document.getElementById('nav-display-name');
     if(navDN){ navDN.textContent = (u.display_name || [u.first_name,u.last_name].filter(Boolean).join(' ') || ''); }
     const navRL = document.getElementById('nav-role-label');
-    if(navRL){ navRL.textContent = (USER_ROLE==='employee'?'OPERATOR':'OWNER'); }
+    if(navRL){ navRL.textContent = USER_ROLE==='employee' ? 'OPERATOR' : USER_ROLE==='org_leader' ? 'ORG LEADER' : USER_ROLE==='admin' ? 'ADMIN' : 'OWNER'; }
     // Show Switch Location button if user has more than one location
     const _ulocs=window._USER_LOCATIONS||[];
     if(_ulocs.length>1&&!IS_ADMIN_VIEW){
