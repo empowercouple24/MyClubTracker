@@ -19,7 +19,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const SENDER_NAME  = "MyClubTracker";
-const SENDER_EMAIL = "support@myclubtracker.com";  // must be verified in Brevo
+const SENDER_EMAIL = "noreply@myclubtracker.com";  // must be on a Brevo-verified domain (myclubtracker.com is)
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
