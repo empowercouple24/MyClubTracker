@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-25 19:45:00 -->
+<!-- CACHE BUST: 2026-04-25 20:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -66,6 +66,34 @@ if('serviceWorker' in navigator){
     .org-leader-switcher button{font-size:12px;font-weight:600;padding:5px 10px;background:transparent;border:none;border-radius:6px;color:var(--text-muted);cursor:pointer;font-family:inherit;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis;}
     .org-leader-switcher button.active{background:var(--surface);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,0.06);}
     .org-leader-switcher button:hover:not(.active){color:var(--text);}
+
+    /* Org header right-side cluster (button + plan badge) */
+    .org-header-actions{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+    .org-header-btn{background:rgba(255,255,255,0.18);color:white;border:1px solid rgba(255,255,255,0.3);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;transition:background 0.15s;}
+    .org-header-btn:hover{background:rgba(255,255,255,0.28);}
+
+    /* Annual goals modal — per-club row layout + summary footer */
+    .ag-club-row{display:grid;grid-template-columns:32px 1fr 130px 110px;gap:10px;align-items:center;padding:10px 4px;border-bottom:1px solid var(--border-light);}
+    .ag-club-row:last-child{border-bottom:none;}
+    .ag-club-avatar{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--b6),var(--b4));color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;}
+    .ag-club-meta{min-width:0;}
+    .ag-club-name{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .ag-club-sub{font-size:11px;color:var(--text-faint);}
+    .ag-input-wrap{position:relative;}
+    .ag-input-prefix{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text-faint);font-size:13px;pointer-events:none;}
+    .ag-input{width:100%;padding:7px 8px 7px 18px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;background:var(--surface);}
+    .ag-input.no-prefix{padding-left:8px;}
+    .ag-input:focus{outline:none;border-color:var(--b5);box-shadow:0 0 0 2px rgba(58,84,112,0.12);}
+    .ag-summary{background:var(--b0);border-radius:8px;padding:10px 14px;margin-top:14px;font-size:12px;color:var(--text-muted);display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;}
+    .ag-summary .ag-match-ok{color:var(--g5);font-weight:600;}
+    .ag-summary .ag-match-off{color:#b45309;font-weight:600;}
+    .ag-scratch-row{background:var(--b0);border-radius:8px;padding:12px 14px;margin-bottom:14px;}
+    .ag-scratch-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;}
+    .ag-scratch-cell{display:flex;flex-direction:column;gap:6px;}
+    .ag-scratch-label{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;}
+    .ag-scratch-input-row{display:flex;gap:6px;align-items:stretch;}
+    .ag-scratch-distribute{font-size:11px;font-weight:600;padding:0 10px;background:var(--surface);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-family:inherit;color:var(--text-muted);white-space:nowrap;}
+    .ag-scratch-distribute:hover{background:var(--b0);color:var(--text);}
 
     /* Location cards */
 .locations-list{display:flex;flex-direction:column;gap:10px}
@@ -185,7 +213,10 @@ if('serviceWorker' in navigator){
       <div class="org-header-name" id="org-header-name">--</div>
       <div class="org-header-sub" id="org-header-sub">Loading…</div>
     </div>
-    <div class="org-header-badge" id="org-plan-badge">Free Plan</div>
+    <div class="org-header-actions">
+      <button class="org-header-btn" onclick="openAnnualGoalsModal()" title="Set per-club annual sales and DV goals">Set annual goals</button>
+      <div class="org-header-badge" id="org-plan-badge">Free Plan</div>
+    </div>
   </div>
 
   <!-- KPI STRIP -->
@@ -290,6 +321,52 @@ if('serviceWorker' in navigator){
   </div>
 </div>
 
+<!-- -- ANNUAL GOALS MODAL -- -->
+<div class="modal-overlay" id="annual-goals-modal" style="z-index:250;">
+  <div class="modal" style="max-width:560px;width:100%;">
+    <div class="modal-title">Annual goals</div>
+    <div class="modal-sub" id="ag-modal-sub">Loading…</div>
+    <div class="modal-alert error" id="ag-error"></div>
+    <div class="ag-scratch-row">
+      <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:2px;">Optional: top-down planning</div>
+      <div style="font-size:11px;color:var(--text-faint);line-height:1.4;">Type a target, click Distribute to fill clubs proportionally. Adjust per-club below.</div>
+      <div class="ag-scratch-grid">
+        <div class="ag-scratch-cell">
+          <div class="ag-scratch-label">Sales target</div>
+          <div class="ag-scratch-input-row">
+            <div class="ag-input-wrap" style="flex:1;">
+              <span class="ag-input-prefix">$</span>
+              <input type="text" class="ag-input" id="ag-scratch-sales" placeholder="200,000" inputmode="numeric"/>
+            </div>
+            <button class="ag-scratch-distribute" onclick="distributeAnnualGoalsScratch('sales')">Distribute</button>
+          </div>
+        </div>
+        <div class="ag-scratch-cell">
+          <div class="ag-scratch-label">DV target</div>
+          <div class="ag-scratch-input-row">
+            <div class="ag-input-wrap" style="flex:1;">
+              <input type="text" class="ag-input no-prefix" id="ag-scratch-dv" placeholder="90,000" inputmode="numeric"/>
+            </div>
+            <button class="ag-scratch-distribute" onclick="distributeAnnualGoalsScratch('dv')">Distribute</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="font-size:11px;font-weight:600;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px;">Per-club goals</div>
+    <div id="ag-clubs-list">
+      <!-- populated by openAnnualGoalsModal() -->
+    </div>
+    <div class="ag-summary" id="ag-summary">
+      <span id="ag-summary-text">--</span>
+      <span id="ag-summary-match"></span>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="closeModal('annual-goals-modal')">Cancel</button>
+      <button class="btn-primary" id="ag-save-btn" onclick="saveAnnualGoals()">Save goals</button>
+    </div>
+  </div>
+</div>
+
 <script src="nav.js?v=10"></script>
 <script>
 const SURL='https://ndaqlamzlaucigvnhgfu.supabase.co';
@@ -312,6 +389,16 @@ function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/<
 // Currency formatter — used by location stat strips and KPI cards.
 // Returns em-dash for null/NaN so empty cells render as '--' rather than '$0.00'.
 function fmt$(n){if(!n||isNaN(n))return'\u2014';return'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+// Modal toggles — this file's CSS uses `.show` (vs `.open` in admin.html).
+function openModal(id){var el=document.getElementById(id);if(el)el.classList.add('show');}
+function closeModal(id){var el=document.getElementById(id);if(el)el.classList.remove('show');}
+
+// Convenience setter used by KPI render functions.
+function setText(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
+
+// Currency parsing — strips commas/$ before parseFloat per the codebase's hard rule.
+function parseMoney(s){if(!s)return null;var n=parseFloat(String(s).replace(/[$,\s]/g,''));return isNaN(n)?null:n;}
 
 // -- INIT --
 (async()=>{
@@ -674,6 +761,204 @@ async function removeCoLeader(leaderId,name,btn){
 function toggleLoc(id){
   const card=document.getElementById('loc-'+id);
   if(card)card.classList.toggle('expanded');
+}
+
+// -- ANNUAL GOALS MODAL --
+// Opens the modal pre-populated with current per-club goal values from MY_LOCATIONS.
+function openAnnualGoalsModal(){
+  if(!MY_LOCATIONS||!MY_LOCATIONS.length){
+    showToast('Add a club first before setting goals.');
+    return;
+  }
+  document.getElementById('ag-modal-sub').textContent =
+    (MY_ORG.name||'Organization')+' \u00b7 '+new Date().getFullYear();
+  document.getElementById('ag-error').style.display='none';
+  document.getElementById('ag-error').textContent='';
+  var scratchSalesEl = document.getElementById('ag-scratch-sales');
+  var scratchDVEl = document.getElementById('ag-scratch-dv');
+  scratchSalesEl.value='';
+  scratchDVEl.value='';
+  scratchSalesEl.oninput = updateAnnualGoalsSummary;
+  scratchDVEl.oninput = updateAnnualGoalsSummary;
+
+  // Build one row per club, sorted by name. Pre-fill with stored goals.
+  var sorted = MY_LOCATIONS.slice().sort(function(a,b){
+    return (a.name||'').localeCompare(b.name||'');
+  });
+  var listEl = document.getElementById('ag-clubs-list');
+  while(listEl.firstChild)listEl.removeChild(listEl.firstChild);
+  sorted.forEach(function(loc){
+    var initials = (loc.name||'?').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+    var row = document.createElement('div');
+    row.className = 'ag-club-row';
+    var avatar = document.createElement('div');
+    avatar.className = 'ag-club-avatar';
+    avatar.textContent = initials;
+    row.appendChild(avatar);
+    var meta = document.createElement('div');
+    meta.className = 'ag-club-meta';
+    var nameDiv = document.createElement('div');
+    nameDiv.className = 'ag-club-name';
+    nameDiv.textContent = loc.name||'(unnamed)';
+    nameDiv.title = loc.name||'';
+    meta.appendChild(nameDiv);
+    var subDiv = document.createElement('div');
+    subDiv.className = 'ag-club-sub';
+    subDiv.textContent = loc.address||'';
+    meta.appendChild(subDiv);
+    row.appendChild(meta);
+    var salesWrap = document.createElement('div');
+    salesWrap.className = 'ag-input-wrap';
+    var prefix = document.createElement('span');
+    prefix.className='ag-input-prefix';
+    prefix.textContent='$';
+    salesWrap.appendChild(prefix);
+    var salesInput = document.createElement('input');
+    salesInput.type='text';
+    salesInput.inputMode='numeric';
+    salesInput.className='ag-input';
+    salesInput.setAttribute('data-club-id', loc.id);
+    salesInput.setAttribute('data-field','sales');
+    salesInput.placeholder='0';
+    if(loc.annual_sales_goal!=null){
+      salesInput.value = Number(loc.annual_sales_goal).toLocaleString('en-US');
+    }
+    salesInput.oninput = updateAnnualGoalsSummary;
+    salesWrap.appendChild(salesInput);
+    row.appendChild(salesWrap);
+    var dvInput = document.createElement('input');
+    dvInput.type='text';
+    dvInput.inputMode='numeric';
+    dvInput.className='ag-input no-prefix';
+    dvInput.setAttribute('data-club-id', loc.id);
+    dvInput.setAttribute('data-field','dv');
+    dvInput.placeholder='0 DV';
+    if(loc.annual_dv_goal!=null){
+      dvInput.value = Number(loc.annual_dv_goal).toLocaleString('en-US');
+    }
+    dvInput.oninput = updateAnnualGoalsSummary;
+    row.appendChild(dvInput);
+    listEl.appendChild(row);
+  });
+  updateAnnualGoalsSummary();
+  openModal('annual-goals-modal');
+}
+
+// Recompute and render the running sum + match indicator.
+function updateAnnualGoalsSummary(){
+  var inputs = document.querySelectorAll('#ag-clubs-list .ag-input');
+  var salesSum=0, dvSum=0;
+  inputs.forEach(function(inp){
+    var v = parseMoney(inp.value);
+    if(v==null||isNaN(v))return;
+    if(inp.getAttribute('data-field')==='sales')salesSum+=v;
+    else dvSum+=v;
+  });
+  var summaryText = 'Sum: '+(salesSum?fmt$(salesSum):'$0.00')+' \u00b7 '+dvSum.toLocaleString('en-US')+' DV';
+  document.getElementById('ag-summary-text').textContent = summaryText;
+  // Match indicator versus optional scratch fields
+  var scratchSales = parseMoney(document.getElementById('ag-scratch-sales').value);
+  var scratchDV = parseMoney(document.getElementById('ag-scratch-dv').value);
+  var bits=[];
+  if(scratchSales!=null){
+    var diffS = salesSum - scratchSales;
+    if(Math.abs(diffS)<0.01)bits.push('<span class="ag-match-ok">\u2713 sales match</span>');
+    else bits.push('<span class="ag-match-off">'+(diffS>0?'over':'under')+' sales by '+fmt$(Math.abs(diffS))+'</span>');
+  }
+  if(scratchDV!=null){
+    var diffD = dvSum - scratchDV;
+    if(Math.abs(diffD)<1)bits.push('<span class="ag-match-ok">\u2713 DV match</span>');
+    else bits.push('<span class="ag-match-off">'+(diffD>0?'over':'under')+' DV by '+Math.abs(diffD).toLocaleString('en-US')+'</span>');
+  }
+  document.getElementById('ag-summary-match').innerHTML = bits.join(' \u00b7 ');
+}
+
+// "Distribute" button: split scratch value evenly across all clubs, fill the corresponding column.
+function distributeAnnualGoalsScratch(field){
+  var scratch = parseMoney(document.getElementById(field==='sales'?'ag-scratch-sales':'ag-scratch-dv').value);
+  if(scratch==null||scratch<=0){
+    showToast('Enter a target first.');
+    return;
+  }
+  var inputs = document.querySelectorAll('#ag-clubs-list .ag-input[data-field="'+field+'"]');
+  if(!inputs.length)return;
+  var per = scratch / inputs.length;
+  inputs.forEach(function(inp){
+    var v = field==='dv' ? Math.round(per) : Math.round(per*100)/100;
+    inp.value = v.toLocaleString('en-US');
+  });
+  updateAnnualGoalsSummary();
+}
+
+// Save: validate, then write per-club rows to locations table. One round-trip per changed club.
+async function saveAnnualGoals(){
+  var btn = document.getElementById('ag-save-btn');
+  var errEl = document.getElementById('ag-error');
+  errEl.style.display='none';errEl.textContent='';
+  // Collect inputs into a per-club map
+  var rows = {};
+  var inputs = document.querySelectorAll('#ag-clubs-list .ag-input');
+  for(var i=0;i<inputs.length;i++){
+    var inp=inputs[i];
+    var locId=inp.getAttribute('data-club-id');
+    var field=inp.getAttribute('data-field');
+    if(!rows[locId])rows[locId]={};
+    var raw=inp.value.trim();
+    if(raw===''){
+      rows[locId][field]=null;
+      continue;
+    }
+    var n=parseMoney(raw);
+    if(n==null||isNaN(n)||n<0){
+      errEl.textContent='Invalid '+(field==='sales'?'sales goal':'DV goal')+' on one of the clubs. Use numbers \u2265 0 or leave blank.';
+      errEl.style.display='block';
+      return;
+    }
+    rows[locId][field] = field==='dv' ? Math.round(n) : Math.round(n*100)/100;
+  }
+  // Find which clubs actually changed (skip no-op writes)
+  var pending=[];
+  Object.keys(rows).forEach(function(locId){
+    var loc = MY_LOCATIONS.find(function(l){return l.id===locId;});
+    if(!loc)return;
+    var newSales = rows[locId].sales==null?null:rows[locId].sales;
+    var newDV = rows[locId].dv==null?null:rows[locId].dv;
+    var oldSales = loc.annual_sales_goal==null?null:Number(loc.annual_sales_goal);
+    var oldDV = loc.annual_dv_goal==null?null:Number(loc.annual_dv_goal);
+    if(newSales!==oldSales || newDV!==oldDV){
+      pending.push({locId:locId,sales:newSales,dv:newDV});
+    }
+  });
+  if(!pending.length){
+    showToast('No changes to save.');
+    closeModal('annual-goals-modal');
+    return;
+  }
+  btn.disabled=true;btn.textContent='Saving\u2026';
+  var failed=[];
+  for(var j=0;j<pending.length;j++){
+    var p = pending[j];
+    var res = await sb.from('locations').update({
+      annual_sales_goal: p.sales,
+      annual_dv_goal:    p.dv
+    }).eq('id', p.locId);
+    if(res.error){
+      failed.push(p.locId);
+      console.warn('Goal save failed for '+p.locId+':', res.error);
+    } else {
+      // Update local cache so the modal stays consistent
+      var loc = MY_LOCATIONS.find(function(l){return l.id===p.locId;});
+      if(loc){loc.annual_sales_goal=p.sales;loc.annual_dv_goal=p.dv;}
+    }
+  }
+  btn.disabled=false;btn.textContent='Save goals';
+  if(failed.length){
+    errEl.textContent=failed.length+' club'+(failed.length!==1?'s':'')+' failed to save. Check console for details.';
+    errEl.style.display='block';
+    return;
+  }
+  showToast('Saved goals for '+pending.length+' club'+(pending.length!==1?'s':'')+' \u2713');
+  closeModal('annual-goals-modal');
 }
 
 // -- SIGN OUT --
