@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-25 04:30:00 -->
+<!-- CACHE BUST: 2026-04-25 04:45:00 -->
 <html lang="en">
 <head>
 <script>
@@ -4934,7 +4934,14 @@ function compRenderGoals(){
   var ytd=compSumRange(ytdStart,ytdEnd);
   var ytdOp=compCountOpDays(ytdStart,ytdEnd);
   var annualOp=compCountOpDays(compYmd(y,0,1),compYmd(y,11,31));
-  var paceFrac=annualOp>0?ytdOp/annualOp:0;
+  // Pace fraction = calendar days through today / calendar days in year.
+  // Matches admin dashboard pace formula so single-club orgs see identical
+  // "behind pace" figures across both views. Per-day metrics below still
+  // use operating days because revenue only accrues on op days.
+  var _jan1=new Date(y,0,1), _dec31=new Date(y,11,31);
+  var _dayOfYear=Math.floor((today-_jan1)/86400000)+1;
+  var _totalDays=Math.floor((_dec31-_jan1)/86400000)+1;
+  var paceFrac=_totalDays>0?_dayOfYear/_totalDays:0;
 
   var salesCard=salesGoal?compBuildGoalCard({
     label:'Sales goal',goalValue:salesGoal,goalFmt:'dollar',
@@ -5118,7 +5125,11 @@ function compRenderAccelerate(){
   var ytd=compSumRange(ytdStart,ytdEnd);
   var ytdOp=compCountOpDays(ytdStart,ytdEnd);
   var annualOp=compCountOpDays(compYmd(y,0,1),compYmd(y,11,31));
-  var paceFrac=annualOp>0?ytdOp/annualOp:0;
+  // Calendar-day pace fraction (see comment above the YoY YTD calc).
+  var _jan1b=new Date(y,0,1), _dec31b=new Date(y,11,31);
+  var _dayOfYearB=Math.floor((today-_jan1b)/86400000)+1;
+  var _totalDaysB=Math.floor((_dec31b-_jan1b)/86400000)+1;
+  var paceFrac=_totalDaysB>0?_dayOfYearB/_totalDaysB:0;
   var remOp=annualOp-ytdOp;
 
   var behind=[];
