@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-25 04:30:00 -->
+<!-- CACHE BUST: 2026-04-25 07:10:00 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -403,6 +403,16 @@ async function init(){
       // If update affected a row, fire admin notification (first-time confirm only)
       if(_reqData&&_upd&&_upd.data&&_upd.data.length){
         try{
+          // Look up admin recipient — first admin in users; fall back to support@
+          var _adminEmail='support@myclubtracker.com';
+          var _adminName='Admin';
+          try{
+            var _adminRes=await sb.from('users').select('email,display_name').eq('role','admin').is('deleted_at',null).limit(1);
+            if(_adminRes.data&&_adminRes.data.length){
+              _adminEmail=_adminRes.data[0].email||_adminEmail;
+              _adminName=_adminRes.data[0].display_name||_adminName;
+            }
+          }catch(e){/* fallback already set */}
           var _esc=function(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');};
           var _adminLink=window.location.origin+'/admin.html';
           var _loc=[_reqData.city,_reqData.state].filter(Boolean).join(', ');
@@ -424,7 +434,7 @@ async function init(){
           await fetch(SURL+'/functions/v1/send-email',{
             method:'POST',
             headers:{'apikey':SKEY,'Content-Type':'application/json'},
-            body:JSON.stringify({to:'support@myclubtracker.com',toName:'Admin',subject:'New club request: '+(_reqData.club_name||''),html:_html})
+            body:JSON.stringify({to:_adminEmail,toName:_adminName,subject:'New club request: '+(_reqData.club_name||''),html:_html})
           });
         }catch(e){console.warn('Admin notification email failed:',e);}
       }

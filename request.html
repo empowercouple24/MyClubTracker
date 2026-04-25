@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-24 19:30:00 -->
+<!-- CACHE BUST: 2026-04-25 07:10:00 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -261,6 +261,17 @@ async function submitRequest(){
 
   // Fire notification email to admin (raw fetch — avoids sb.functions.invoke auth issues)
   try{
+    // Look up admin recipient — first admin in users; fall back to support@
+    let adminEmail='support@myclubtracker.com';
+    let adminName='Admin';
+    try{
+      const adminRes=await sb.from('users').select('email,display_name').eq('role','admin').is('deleted_at',null).limit(1);
+      if(adminRes.data&&adminRes.data.length){
+        adminEmail=adminRes.data[0].email||adminEmail;
+        adminName=adminRes.data[0].display_name||adminName;
+      }
+    }catch(e){/* fallback already set */}
+
     const adminLink=window.location.origin+'/admin.html';
     const html=
       '<div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:32px 24px;">'+
@@ -280,8 +291,8 @@ async function submitRequest(){
       method:'POST',
       headers:{'apikey':SKEY,'Content-Type':'application/json'},
       body:JSON.stringify({
-        to:'support@myclubtracker.com',
-        toName:'Admin',
+        to:adminEmail,
+        toName:adminName,
         subject:`New org request: ${org}`,
         html
       })

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-25 04:30:00 -->
+<!-- CACHE BUST: 2026-04-25 07:10:00 -->
 <html lang="en">
 <head>
 <script>
@@ -974,26 +974,6 @@ if('serviceWorker' in navigator){
   </div>
 </div>
 
-<!-- EDIT ORG RATE MODAL -->
-<div class="modal-overlay" id="edit-rate-modal" onclick="closeOrgModalOnBg(event,'edit-rate-modal')">
-  <div class="modal-box">
-    <div class="modal-title">Edit Billing Rate</div>
-    <div id="er-sub" style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.5;"></div>
-    <div class="modal-field"><label>Plan</label>
-      <select id="er-plan" style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:#fff;border:1px solid var(--b5);border-radius:8px;padding:10px 12px;outline:none;">
-        <option value="free">Free</option>
-        <option value="paid">Paid</option>
-      </select>
-    </div>
-    <div class="modal-field"><label>Monthly Rate <span style="font-size:11px;font-weight:400;color:var(--text-faint);">USD per month</span></label><input type="number" id="er-rate" placeholder="0" min="0" step="1"/></div>
-    <div class="modal-error" id="er-error"></div>
-    <div class="modal-footer">
-      <button class="btn-modal-primary" id="er-btn" onclick="submitEditRate()">Save</button>
-      <button class="btn-modal-cancel" onclick="closeOrgModal('edit-rate-modal')">Cancel</button>
-    </div>
-  </div>
-</div>
-
 <!-- ADMIN PROFILE MODAL -->
 <div class="modal-overlay" id="profile-modal" onclick="closeModalOnBg(event,'profile-modal')">
   <div class="modal-box">
@@ -1211,9 +1191,6 @@ async function quickCreateOrg(targetSelectId, leaderEmailFieldId){
   if(res.error){showToast('Failed: '+res.error.message,'error');return;}
   if(res.data){
     allOrgsMap[res.data.id] = res.data;
-    if(typeof allOrgs!=='undefined' && Array.isArray(allOrgs)){
-      allOrgs.unshift(res.data);
-    }
     populateOrgDropdown(targetSelectId, res.data.id);
     showToast('Org "'+name+'" created. Configure billing later from its drawer.','success');
   }
@@ -1440,6 +1417,7 @@ async function approveOrgRequest(reqId, btn){
   allOrgRequests=allOrgRequests.filter(x=>x.id!==reqId);
   if(org){allOrgsMap[org.id]=org;}
   renderRequests();
+  renderLocations(); // refresh org tree so the new invited org appears
   checkPendingOrgs();
   showToast(`${r.org_name} approved — invite sent to ${r.email}`,'success');
 }
@@ -2180,7 +2158,9 @@ function renderLocations(){
   const filterOrg = document.getElementById('locs-filter-org')?.value||'';
   const filterStatus = document.getElementById('locs-filter-status')?.value||'';
 
-  // Group by org
+  // Group by org. Locations attach to their org; orgs with zero locations still
+  // appear in the tree (with an empty-state row) — driven by allOrgsMap, not by
+  // which orgs happen to have locations.
   const orgGroups = {};
   const unassigned = [];
   allLocations.forEach(loc => {
@@ -2189,6 +2169,8 @@ function renderLocations(){
       orgGroups[loc.org_id].push(loc);
     } else { unassigned.push(loc); }
   });
+  // Seed every known org so empty ones render with an empty-state row.
+  Object.keys(allOrgsMap).forEach(oid => { if (!orgGroups[oid]) orgGroups[oid] = []; });
 
   // Pinned orgs stored in localStorage
   const pinned = JSON.parse(localStorage.getItem('mct_pinned_orgs')||'[]');
@@ -2199,7 +2181,7 @@ function renderLocations(){
   orgIds.sort((a,b) => {
     const ap = pinned.includes(a), bp = pinned.includes(b);
     if (ap !== bp) return ap ? -1 : 1;
-    return allOrgsMap[a].name.localeCompare(allOrgsMap[b].name);
+    return (allOrgsMap[a]?.name||'').localeCompare(allOrgsMap[b]?.name||'');
   });
 
   // Collapsed org state
@@ -2352,9 +2334,48 @@ function renderLocations(){
     const orgInitials = (org.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
     const filtered = filterLocs(sortLocs(locs));
     if (filterOrg && orgId !== filterOrg) return '';
-    if (!filtered.length && searchQ) return ''; // hide empty orgs when searching
+    // When user is searching, only hide empty orgs that have *some* clubs that filtered out.
+    // Truly empty orgs (no clubs at all) stay visible — they have no name to match anyway,
+    // but the user still needs to see them to manage the invite.
+    if (locs.length && !filtered.length && searchQ) return '';
 
     const activeCnt = locs.filter(l=>isActivated(l)).length;
+    const isEmpty = !locs.length;
+    const isUnassigned = orgId === '_unassigned';
+
+    // Empty-state row for orgs with zero clubs (typical for newly invited orgs
+    // whose leader has not yet completed onboarding). Clicking opens the drawer
+    // where admin can resend invite or delete the org.
+    let emptyRowHtml = '';
+    if (isEmpty && !isUnassigned) {
+      const status = (org.status||'active');
+      const statusLabel =
+        status === 'invited'   ? 'Pending setup' :
+        status === 'suspended' ? 'Suspended' :
+        status === 'active'    ? 'No clubs yet' :
+        status;
+      const statusPillCls =
+        status === 'invited'   ? 'pending' :
+        status === 'suspended' ? 'pending' :
+        'pending';
+      const fmtDate = d => d ? new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '';
+      const subBits = [];
+      if (status === 'invited' && org.invited_at) subBits.push('Invited ' + fmtDate(org.invited_at));
+      if (status === 'invited' && org.invite_expires_at) subBits.push('expires ' + fmtDate(org.invite_expires_at));
+      const sub = subBits.join(' · ');
+      const resendLink = status === 'invited'
+        ? `<button onclick="event.stopPropagation();resendInvite('${orgId}',event)" style="background:none;border:none;color:var(--b6);font-size:12px;font-weight:600;cursor:pointer;padding:0;font-family:inherit;">Resend invite</button>`
+        : '';
+      emptyRowHtml = `<tr class="locs-empty-org-row" onclick="openOrgDrawer('${orgId}')">
+        <td colspan="7" style="padding:12px 16px 12px 56px;background:var(--surface);border-bottom:1px solid var(--border-light);cursor:pointer;">
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text-muted);">
+            <span class="tbl-badge ${statusPillCls}">${statusLabel}</span>
+            ${sub ? `<span style="color:var(--text-faint);font-size:12px;">${sub}</span>` : ''}
+            ${resendLink ? `<span style="margin-left:auto;display:flex;gap:14px;align-items:center;">${resendLink}<span style="color:var(--text-faint);font-size:12px;">Manage \u203a</span></span>` : `<span style="margin-left:auto;color:var(--text-faint);font-size:12px;">Manage \u203a</span>`}
+          </div>
+        </td>
+      </tr>`;
+    }
 
     return `<tr class="locs-org-row">
       <td colspan="7">
@@ -2363,12 +2384,12 @@ function renderLocations(){
           <span class="org-tbl-name">${escHtml(org.name)}</span>
           <span class="org-tbl-meta">${locs.length} location${locs.length!==1?'s':''} &middot; ${activeCnt} active</span>
           <button class="org-pin-btn${isPinned?' pinned':''}" onclick="toggleOrgPin('${orgId}')" title="${isPinned?'Unpin':'Pin to top'}">&#9733;</button>
-          <button class="org-collapse-btn" onclick="openOrgDrawer('${orgId}')" title="Edit organization" style="margin-left:6px;">&#9998; Edit org</button>
+          ${isUnassigned ? '' : `<button class="org-collapse-btn" onclick="openOrgDrawer('${orgId}')" title="Edit organization" style="margin-left:6px;">&#9998; Edit org</button>`}
           <button class="org-collapse-btn" onclick="toggleOrgCollapse('${orgId}')">${isCollapsed?'&#9656; Expand':'&#9662; Collapse'}</button>
         </div>
       </td>
     </tr>
-    ${isCollapsed ? '' : filtered.map(rowHtml).join('')}`;
+    ${isCollapsed ? '' : (isEmpty ? emptyRowHtml : filtered.map(rowHtml).join(''))}`;
   }
 
   const colDefs = [
@@ -2739,10 +2760,8 @@ init();
 // ════════════════════════════════════════════════════════
 // SUPER-ADMIN ORGANIZATIONS UI
 // ════════════════════════════════════════════════════════
-
-let allOrgs = [];
-let allOrgLocations = [];
-let editingRateOrgId = null;
+// Org list state lives in allOrgsMap (loaded by loadAllData). This file's only
+// dedicated org renderer is the empty-state row inside renderLocations().
 
 // ── TAB SWITCHER ──
 function switchSaTab(tab) {
@@ -2750,222 +2769,17 @@ function switchSaTab(tab) {
   if (locsPanel) locsPanel.style.display = '';
 }
 
-// ── LOAD ORGS ──
-async function loadOrgs() {
-  const { data: orgs } = await sb.from('organizations')
-    .select('*')
-    .order('created_at', { ascending: false });
-  allOrgs = orgs || [];
-
-  // Load all locations for all orgs
-  if (allOrgs.length) {
-    const { data: locs } = await sb.from('locations')
-      .select('id,name,address,org_id')
-      .in('org_id', allOrgs.map(o => o.id));
-    allOrgLocations = locs || [];
-  }
-
-  renderOrgSummary();
-  renderOrgs();
-
-  // Update badge on tab
-  const pending = allOrgs.filter(o => o.status === 'invited').length;
-  const badge = document.getElementById('sa-orgs-badge');
-  if (badge) {
-    badge.textContent = pending;
-    badge.style.display = pending ? 'inline-flex' : 'none';
-  }
-  // Refresh pending widget
-  const countEl=document.getElementById('kpi-pending-count');
-  const subEl=document.getElementById('kpi-pending-sub');
-  const widget=document.getElementById('kpi-pending-orgs');
-  if(countEl) countEl.textContent=pending>0?pending:'0';
-  if(subEl) subEl.textContent=pending>0?'Click to review →':'All orgs active';
-  if(widget){widget.style.opacity=pending>0?'1':'0.5';widget.style.cursor=pending>0?'pointer':'default';}
-}
-
-// ── RENDER SUMMARY ──
-function renderOrgSummary() {
-  const total     = allOrgs.filter(o => o.status !== 'deleted').length;
-  const active    = allOrgs.filter(o => o.status === 'active').length;
-  const invited   = allOrgs.filter(o => o.status === 'invited').length;
-  const suspended = allOrgs.filter(o => o.status === 'suspended').length;
-  const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-  setText('os-total', total);
-  setText('os-active', active);
-  setText('os-invited', invited);
-  setText('os-suspended', suspended);
-}
-
-// ── RENDER ORG LIST ──
-function renderOrgs() {
-  const el = document.getElementById('orgs-list');
-  const visible = allOrgs.filter(o => o.status !== 'deleted');
-  if (!visible.length) {
-    el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text-faint);font-size:13px;">No organizations yet. Invite one above.</div>';
-    return;
-  }
-
-  el.innerHTML = visible.map(org => {
-    const locs = allOrgLocations.filter(l => l.org_id === org.id);
-    const initials = (org.name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
-
-    // Status badge
-    const statusBadge = {
-      invited:   '<span class="badge badge-invited">Pending Setup</span>',
-      active:    '<span class="badge badge-active">Active</span>',
-      suspended: '<span class="badge badge-suspended">Suspended</span>',
-    }[org.status] || '<span class="badge badge-deleted">Deleted</span>';
-
-    const planBadge = org.billing_plan === 'paid'
-      ? `<span class="badge badge-paid">$${Math.round(Number(org.monthly_rate||0))}/mo</span>`
-      : '<span class="badge badge-free">Free</span>';
-
-    const billingBadge = !org.billing_active
-      ? '<span class="badge badge-billing-off">Billing Off</span>' : '';
-
-    // Locations sub-list
-    const locsHtml = locs.length
-      ? locs.map(l => `
-          <div class="org-loc-row">
-            <div>
-              <div class="org-loc-name">${escHtml(l.name)}</div>
-              <div class="org-loc-addr">${escHtml(l.address || '')}</div>
-            </div>
-            <a href="app.html?location_id=${l.id}&admin=1&from=org" class="btn-sm" style="font-size:12px;">Open →</a>
-          </div>`).join('')
-      : '<div style="font-size:12px;color:var(--text-faint);">No locations yet.</div>';
-
-    // Dates
-    const fmtDate = d => d ? new Date(d).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'}) : '—';
-
-    // Billing toggle — checked = active
-    const billingChecked = org.billing_active ? 'checked' : '';
-
-    // Action buttons
-    const isSuspended = org.status === 'suspended';
-    const isInvited   = org.status === 'invited';
-    const suspendBtn  = isSuspended
-      ? `<button class="btn-sm" onclick="setOrgStatus('${org.id}','active',event)">✓ Restore Access</button>`
-      : `<button class="btn-sm" onclick="setOrgStatus('${org.id}','suspended',event)" style="color:var(--r5);border-color:var(--r5);">Suspend</button>`;
-    const resendBtn = isInvited
-      ? `<button class="btn-sm" onclick="resendInvite('${org.id}',event)">↺ Resend Invite</button>` : '';
-
-    return `<div class="org-card" id="ocard-${org.id}">
-      <div class="org-card-header" onclick="toggleOrgCard('${org.id}')">
-        <div class="org-avatar">${initials}</div>
-        <div class="org-meta">
-          <div class="org-name">${escHtml(org.name || 'Unnamed Org')}</div>
-          <div class="org-leader-label">${escHtml(org.leader_name || org.leader_email || '—')}</div>
-        </div>
-        <div class="org-badges">${statusBadge}${planBadge}${billingBadge}</div>
-        <div class="org-chevron">▼</div>
-      </div>
-
-      <div class="org-stat-strip">
-        <div class="org-stat-cell">
-          <div class="org-stat-label">Locations</div>
-          <div class="org-stat-val ${!locs.length?'dim':''}">${locs.length || '—'}</div>
-        </div>
-        <div class="org-stat-cell">
-          <div class="org-stat-label">Invited</div>
-          <div class="org-stat-val dim">${fmtDate(org.invited_at)}</div>
-        </div>
-        <div class="org-stat-cell">
-          <div class="org-stat-label">Activated</div>
-          <div class="org-stat-val dim">${fmtDate(org.activated_at)}</div>
-        </div>
-      </div>
-
-      <div class="org-expanded" id="oexp-${org.id}">
-        <div class="org-detail-grid">
-          <div class="org-detail-cell">
-            <div class="org-detail-label">Leader email</div>
-            <div class="org-detail-val muted">${escHtml(org.leader_email || '—')}</div>
-          </div>
-          <div class="org-detail-cell">
-            <div class="org-detail-label">Invite expires</div>
-            <div class="org-detail-val muted">${org.invite_expires_at ? fmtDate(org.invite_expires_at) : (org.status === 'active' ? 'Used' : '—')}</div>
-          </div>
-        </div>
-
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-faint);margin-bottom:8px;">Locations (${locs.length})</div>
-        <div class="org-locs-list">${locsHtml}</div>
-
-        <div class="org-expanded-footer">
-          <div class="billing-toggle">
-            <label class="toggle-switch" title="Toggle billing access">
-              <input type="checkbox" ${billingChecked} onchange="toggleBilling('${org.id}',this.checked)"/>
-              <span class="toggle-slider"></span>
-            </label>
-            <span>Billing active</span>
-          </div>
-          <div class="org-expanded-footer-actions">
-            ${resendBtn}
-            <button class="btn-sm" onclick="openEditRate('${org.id}','${escHtml(org.name||'')}',${Number(org.monthly_rate||0)},event)">$ Edit Rate</button>
-            ${suspendBtn}
-            <button class="btn-delete-org" id="delbtn-${org.id}" onclick="deleteOrg('${org.id}','${escHtml(org.name||'this org')}',this,event)">🗑 Delete</button>
-          </div>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-// ── TOGGLE CARD ──
-function toggleOrgCard(id) {
-  const card = document.getElementById('ocard-' + id);
-  if (card) card.classList.toggle('expanded');
-}
-
-// ── BILLING TOGGLE ──
-async function deleteOrg(orgId, orgName, btn, e) {
-  e && e.stopPropagation();
-  if (!btn.classList.contains('confirm')) {
-    btn.textContent = 'Confirm delete';
-    btn.classList.add('confirm');
-    setTimeout(() => { if(btn.classList.contains('confirm')){ btn.textContent = '🗑 Delete'; btn.classList.remove('confirm'); }}, 3500);
-    return;
-  }
-  btn.disabled = true; btn.textContent = 'Deleting…';
-  const { error } = await sb.from('organizations').update({
-    status: 'deleted',
-    billing_active: false,
-    deleted_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  }).eq('id', orgId);
-  if (error) { btn.disabled = false; btn.textContent = '🗑 Delete'; btn.classList.remove('confirm'); showSaToast('Failed to delete org.'); return; }
-  allOrgs = allOrgs.filter(o => o.id !== orgId);
-  renderOrgSummary();
-  renderOrgs();
-  showSaToast(`"${orgName}" deleted. Data retained.`);
-}
-
+// ── BILLING TOGGLE (called from drawer Billing tab) ──
 async function toggleBilling(orgId, active) {
   const { error } = await sb.from('organizations')
     .update({ billing_active: active, updated_at: new Date().toISOString() })
     .eq('id', orgId);
   if (error) { showSaToast('Failed to update billing.'); return; }
-  const org = allOrgs.find(o => o.id === orgId);
-  if (org) org.billing_active = active;
+  if (allOrgsMap[orgId]) allOrgsMap[orgId].billing_active = active;
   showSaToast(active ? 'Billing activated.' : 'Billing deactivated.');
-  renderOrgSummary();
-  renderOrgs();
+  renderLocations();
 }
 
-// ── SET ORG STATUS ──
-async function setOrgStatus(orgId, status, e) {
-  e && e.stopPropagation();
-  const { error } = await sb.from('organizations')
-    .update({ status, updated_at: new Date().toISOString() })
-    .eq('id', orgId);
-  if (error) { showSaToast('Failed to update status.'); return; }
-  const org = allOrgs.find(o => o.id === orgId);
-  if (org) org.status = status;
-  showSaToast(status === 'active' ? 'Org restored.' : 'Org suspended.');
-  renderOrgSummary();
-  renderOrgs();
-}
 
 // ── INVITE ORG ──
 function openInviteOrgModal() {
@@ -2976,7 +2790,7 @@ function openInviteOrgModal() {
   document.getElementById('io-link-wrap').style.display = 'none';
   document.getElementById('io-btn').disabled = false;
   document.getElementById('io-btn').textContent = 'Send Invite →';
-  document.getElementById('invite-org-modal').classList.add('show');
+  document.getElementById('invite-org-modal').classList.add('open');
 }
 
 async function submitInviteOrg() {
@@ -3032,20 +2846,17 @@ async function submitInviteOrg() {
   }
 
   btn.textContent = 'Sent ✓';
-  allOrgs.unshift(org);
-  renderOrgSummary();
-  renderOrgs();
-
-  // Update badge
-  const pending = allOrgs.filter(o => o.status === 'invited').length;
-  const badge = document.getElementById('sa-orgs-badge');
-  if (badge) { badge.textContent = pending; badge.style.display = pending ? 'inline-flex' : 'none'; }
+  // Write to the live state container the Organizations tab actually reads from.
+  allOrgsMap[org.id] = org;
+  renderLocations();
+  // Refresh pending-orgs widget
+  checkPendingOrgs();
 }
 
 // ── RESEND INVITE ──
 async function resendInvite(orgId, e) {
   e && e.stopPropagation();
-  const org = allOrgs.find(o => o.id === orgId);
+  const org = allOrgsMap[orgId];
   if (!org) return;
 
   const token     = crypto.randomUUID();
@@ -3063,6 +2874,7 @@ async function resendInvite(orgId, e) {
   const inviteLink = `${window.location.origin}/onboard.html?token=${token}`;
   org.invite_token = token;
   org.invite_expires_at = expiresAt;
+  org.invited_at = new Date().toISOString();
 
   // Try email (raw fetch — see hard rule on sb.functions.invoke)
   try {
@@ -3078,7 +2890,7 @@ async function resendInvite(orgId, e) {
     navigator.clipboard?.writeText(inviteLink);
     showSaToast('Email failed — link copied to clipboard.', 3500);
   }
-  renderOrgs();
+  renderLocations();
 }
 
 // ── COPY INVITE LINK ──
@@ -3088,44 +2900,8 @@ function copyInviteLink() {
   showSaToast('Link copied to clipboard.');
 }
 
-// ── EDIT RATE ──
-function openEditRate(orgId, orgName, currentRate, e) {
-  e && e.stopPropagation();
-  editingRateOrgId = orgId;
-  document.getElementById('er-sub').textContent = `Update billing rate for ${orgName}.`;
-  document.getElementById('er-rate').value = currentRate;
-  const org = allOrgs.find(o => o.id === orgId);
-  document.getElementById('er-plan').value = org?.billing_plan || 'free';
-  document.getElementById('er-error').classList.remove('show');
-  document.getElementById('er-btn').disabled = false;
-  document.getElementById('er-btn').textContent = 'Save';
-  document.getElementById('edit-rate-modal').classList.add('show');
-}
-
-async function submitEditRate() {
-  const rate = Math.round(parseFloat(document.getElementById('er-rate').value) || 0);
-  const plan = document.getElementById('er-plan').value;
-  const btn  = document.getElementById('er-btn');
-  btn.disabled = true; btn.textContent = 'Saving…';
-
-  const { error } = await sb.from('organizations').update({
-    monthly_rate: rate,
-    billing_plan: plan,
-    updated_at: new Date().toISOString(),
-  }).eq('id', editingRateOrgId);
-
-  btn.disabled = false; btn.textContent = 'Save';
-  if (error) { showOrgModalAlert('er-error', error.message); return; }
-
-  const org = allOrgs.find(o => o.id === editingRateOrgId);
-  if (org) { org.monthly_rate = rate; org.billing_plan = plan; }
-  closeOrgModal('edit-rate-modal');
-  showSaToast('Rate updated.');
-  renderOrgs();
-}
-
 // ── MODAL HELPERS ──
-function closeOrgModal(id) { document.getElementById(id).classList.remove('show'); }
+function closeOrgModal(id) { document.getElementById(id).classList.remove('open'); }
 function closeOrgModalOnBg(e, id) { if (e.target.id === id) closeOrgModal(id); }
 function showOrgModalAlert(id, msg) {
   const el = document.getElementById(id); el.textContent = msg; el.classList.add('show');
