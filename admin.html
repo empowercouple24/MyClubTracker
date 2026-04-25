@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-25 00:55:00 -->
+<!-- CACHE BUST: 2026-04-25 01:15:00 -->
 <html lang="en">
 <head>
 <script>
@@ -752,6 +752,17 @@ if('serviceWorker' in navigator){
       <div class="modal-field"><label>Owner Name</label><input type="text" id="nl-owner" placeholder="Jane Smith"/></div>
       <div class="modal-field"><label>Owner Phone</label><input type="tel" id="nl-phone" placeholder="(555) 000-0000" oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"/></div>
       <div class="modal-field"><label>Owner Email</label><input type="email" id="nl-email" placeholder="owner@example.com"/></div>
+      <!-- Org assignment -->
+      <div class="modal-field">
+        <label>Organization</label>
+        <div style="display:flex;gap:6px;">
+          <select id="nl-org" style="flex:1;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:#fff;border:1px solid var(--b5);border-radius:8px;padding:10px 12px;outline:none;">
+            <option value="">— Unassigned —</option>
+          </select>
+          <button type="button" onclick="quickCreateOrgFromAdd()" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;background:var(--b0);color:var(--b7);border:1px solid var(--border);border-radius:8px;padding:0 14px;cursor:pointer;white-space:nowrap;">+ New Org</button>
+        </div>
+        <div style="font-size:11px;color:var(--text-faint);margin-top:4px;">Leave unassigned if the club isn't tied to an org yet.</div>
+      </div>
       <!-- Second contact toggle -->
       <div class="modal-field" style="padding:10px 0 4px;">
         <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text-muted);text-transform:none;letter-spacing:0;">
@@ -845,6 +856,17 @@ if('serviceWorker' in navigator){
     <div class="modal-field"><label>Owner Name</label><input type="text" id="ap-owner" autocomplete="off" data-lpignore="true" data-form-type="other" readonly/></div>
     <div class="modal-field"><label>Owner Phone</label><input type="tel" id="ap-phone" autocomplete="off" data-lpignore="true" data-form-type="other" readonly oninput="fmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"/></div>
     <div class="modal-field"><label>Owner Email</label><input type="email" id="ap-email" autocomplete="off" data-lpignore="true" data-form-type="other" readonly/></div>
+    <!-- Org assignment -->
+    <div class="modal-field">
+      <label>Organization</label>
+      <div style="display:flex;gap:6px;">
+        <select id="ap-org" style="flex:1;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:#fff;border:1px solid var(--b5);border-radius:8px;padding:10px 12px;outline:none;">
+          <option value="">— Unassigned —</option>
+        </select>
+        <button type="button" onclick="quickCreateOrgFromApprove()" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;background:var(--b0);color:var(--b7);border:1px solid var(--border);border-radius:8px;padding:0 14px;cursor:pointer;white-space:nowrap;">+ New Org</button>
+      </div>
+      <div id="ap-org-hint" style="font-size:11px;color:var(--text-faint);margin-top:4px;">Pick an existing org or create a new one. Leave unassigned to handle later from the drawer.</div>
+    </div>
     <div class="modal-field"><label>Invite Code</label>
       <div class="modal-invite-row">
         <input type="text" id="ap-code" style="text-transform:uppercase;" autocomplete="off" data-lpignore="true" data-form-type="other" readonly/>
@@ -967,6 +989,66 @@ async function sendEmail(to, toName, subject, html){
   if(error){console.warn('Email send failed:',error);return false;}
   return true;
 }
+
+// ── ORG DROPDOWN HELPERS (used by Add Club and Approve modals) ──
+function populateOrgDropdown(selectId, currentValue){
+  var sel = document.getElementById(selectId);
+  if(!sel) return;
+  var orgs = Object.values(allOrgsMap || {}).filter(function(o){return o && o.status!=='deleted';}).sort(function(a,b){return (a.name||'').localeCompare(b.name||'');});
+  var html = '<option value="">\u2014 Unassigned \u2014</option>';
+  orgs.forEach(function(o){
+    var sel2 = (currentValue && currentValue===o.id) ? ' selected' : '';
+    html += '<option value="'+o.id+'"'+sel2+'>'+escHtml(o.name||'Untitled')+'</option>';
+  });
+  sel.innerHTML = html;
+}
+
+async function quickCreateOrg(targetSelectId, leaderEmailFieldId){
+  var name = prompt('New organization name:');
+  if(name===null) return;
+  name = name.trim();
+  if(!name){showToast('Name required','error');return;}
+  // Duplicate check
+  var dup = Object.values(allOrgsMap||{}).find(function(o){return o && o.name && o.name.toLowerCase()===name.toLowerCase() && o.status!=='deleted';});
+  if(dup){
+    if(!confirm('"'+name+'" already exists. Use it?'))return;
+    populateOrgDropdown(targetSelectId, dup.id);
+    return;
+  }
+  // Pull leader email from parent modal if available
+  var leaderEmail = null;
+  if(leaderEmailFieldId){
+    var emailEl = document.getElementById(leaderEmailFieldId);
+    if(emailEl && emailEl.value && emailEl.value.indexOf('@')!==-1) leaderEmail = emailEl.value.trim();
+  }
+  if(!leaderEmail){
+    leaderEmail = prompt('Leader email for "'+name+'":');
+    if(leaderEmail===null) return;
+    leaderEmail = leaderEmail.trim();
+    if(!leaderEmail || leaderEmail.indexOf('@')===-1){showToast('Valid leader email required','error');return;}
+  }
+  var payload = {
+    name: name,
+    leader_email: leaderEmail,
+    status: 'active',
+    monthly_rate: 0,
+    billing_active: false,
+    billing_plan: 'free'
+  };
+  var res = await sb.from('organizations').insert(payload).select().single();
+  if(res.error){showToast('Failed: '+res.error.message,'error');return;}
+  if(res.data){
+    allOrgsMap[res.data.id] = res.data;
+    if(typeof allOrgs!=='undefined' && Array.isArray(allOrgs)){
+      allOrgs.unshift(res.data);
+    }
+    populateOrgDropdown(targetSelectId, res.data.id);
+    showToast('Org "'+name+'" created. Configure billing later from its drawer.','success');
+  }
+}
+
+function quickCreateOrgFromAdd(){quickCreateOrg('nl-org','nl-email');}
+function quickCreateOrgFromApprove(){quickCreateOrg('ap-org','ap-email');}
 
 
 // ── GOOGLE PLACES AUTOCOMPLETE ──
@@ -1248,6 +1330,7 @@ function openApproveModal(reqId){
   document.getElementById('ap-code').value=code;
   document.getElementById('ap-error').classList.remove('show');
   if(typeof resetDenyChips==='function')resetDenyChips();resetManualDenyChips();resetApproveEditMode();
+  populateOrgDropdown('ap-org', null);
   // Auto-check for duplicates on open
   const dupWarning=document.getElementById('ap-duplicate-warning');
   const dupMsg=document.getElementById('ap-duplicate-msg');
@@ -1294,9 +1377,10 @@ async function executeApprove(){
   const address=addrParts.join(', ');
   const settings={};
   if(email)settings.ownerEmail=email;
+  const orgIdAp=(document.getElementById('ap-org')||{}).value || null;
   // 1. Create the location
   const{data:loc,error:locErr}=await sb.from('locations').insert({
-    name,address,owner_name:owner,owner_phone:phone,invite_code:code,settings
+    name,address,owner_name:owner,owner_phone:phone,invite_code:code,settings,org_id:orgIdAp
   }).select().single();
   if(locErr){errEl.textContent=locErr.message;errEl.classList.add('show');btn.disabled=false;btn.textContent='✓ Approve & Create Location';return;}
   // 2. Mark request as approved
@@ -2279,6 +2363,7 @@ function openAddLocation(){
   document.getElementById('nl-second-toggle').checked=false;
   document.getElementById('nl-second-fields').style.display='none';
   document.getElementById('nl-state').value = '';
+  populateOrgDropdown('nl-org', null);
   generateCode(); // silently auto-generate
   attachPlacesAutocomplete('nl-street','nl-city','nl-state','nl-zip');
   document.getElementById('nl-error').classList.remove('show');
@@ -2379,7 +2464,8 @@ async function addLocation(){
   }
   const btn=document.getElementById('nl-add-btn');
   btn.disabled=true;btn.textContent='Adding…';
-  const{data,error}=await sb.from('locations').insert({name,address,owner_name:owner,owner_phone:phone,invite_code:code,settings}).select().single();
+  const orgIdSel=(document.getElementById('nl-org')||{}).value || null;
+  const{data,error}=await sb.from('locations').insert({name,address,owner_name:owner,owner_phone:phone,invite_code:code,settings,org_id:orgIdSel}).select().single();
   btn.disabled=false;btn.textContent='✓ Add Location';
   if(error){errEl.textContent=error.message;errEl.classList.add('show');return;}
   allLocations.push(data);allLocations.sort((a,b)=>a.name.localeCompare(b.name));
@@ -2750,15 +2836,12 @@ async function submitInviteOrg() {
   document.getElementById('io-link-text').textContent = inviteLink;
   document.getElementById('io-link-wrap').style.display = 'block';
 
-  // Fire edge function for email
+  // Fire edge function for email (raw fetch — see hard rule on sb.functions.invoke)
   try {
-    const { data: fnData, error: fnErr } = await sb.functions.invoke('send-org-invite', {
-      headers: await getAuthHeader(),
-      body: { to: email, orgName: orgName || 'your organization', inviteLink, expiresAt }
-    });
-    const sent = fnData?.sent === true;
+    const { data: fnData, error: fnErr } = await invokeEdge('send-org-invite', { to: email, orgName: orgName || 'your organization', inviteLink, expiresAt });
+    const sent = fnData && fnData.sent === true;
     if (fnErr || !sent) {
-      showOrgModalAlert('io-success', `Org created but email failed (${fnErr?.message||fnData?.error||'unknown'}) — copy the link below to send manually.`);
+      showOrgModalAlert('io-success', `Org created but email failed (${(fnErr&&fnErr.message)||(fnData&&fnData.error)||'unknown'}) — copy the link below to send manually.`);
     } else {
       showOrgModalAlert('io-success', `Invite sent to ${email}. Link also shown below if needed.`);
     }
@@ -2799,13 +2882,10 @@ async function resendInvite(orgId, e) {
   org.invite_token = token;
   org.invite_expires_at = expiresAt;
 
-  // Try email
+  // Try email (raw fetch — see hard rule on sb.functions.invoke)
   try {
-    const { data: fnData, error: fnErr } = await sb.functions.invoke('send-org-invite', {
-      headers: await getAuthHeader(),
-      body: { to: org.leader_email, orgName: org.name, inviteLink, expiresAt }
-    });
-    const sent = fnData?.sent === true;
+    const { data: fnData, error: fnErr } = await invokeEdge('send-org-invite', { to: org.leader_email, orgName: org.name, inviteLink, expiresAt });
+    const sent = fnData && fnData.sent === true;
     if (fnErr || !sent) {
       navigator.clipboard?.writeText(inviteLink);
       showSaToast('Email failed — link copied to clipboard.', 3500);
