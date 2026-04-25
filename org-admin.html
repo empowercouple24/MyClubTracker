@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-25 04:30:00 -->
+<!-- CACHE BUST: 2026-04-25 18:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -60,6 +60,12 @@ if('serviceWorker' in navigator){
 /* Enter Sales button */
     .btn-enter-sales{display:inline-flex;align-items:center;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;color:white;background:linear-gradient(135deg,var(--b7),var(--b5));border:none;border-radius:8px;padding:7px 14px;cursor:pointer;text-decoration:none;white-space:nowrap;transition:opacity 0.15s;box-shadow:0 2px 6px rgba(58,84,112,0.25);}
     .btn-enter-sales:hover{opacity:0.88;}
+
+    /* Org-leader nav switcher (Org view / Club view buttons) */
+    .org-leader-switcher{display:flex;align-items:center;background:var(--b0);border:1px solid var(--border-light);border-radius:8px;padding:2px;gap:2px;flex-shrink:0;margin-left:6px;}
+    .org-leader-switcher button{font-size:12px;font-weight:600;padding:5px 10px;background:transparent;border:none;border-radius:6px;color:var(--text-muted);cursor:pointer;font-family:inherit;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis;}
+    .org-leader-switcher button.active{background:var(--surface);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,0.06);}
+    .org-leader-switcher button:hover:not(.active){color:var(--text);}
 
     /* Location cards */
 .locations-list{display:flex;flex-direction:column;gap:10px}
@@ -148,6 +154,7 @@ if('serviceWorker' in navigator){
 <!-- NAV -->
 <nav class="topnav" id="main-nav">
   <a href="org-admin.html" class="nav-logo" title="Dashboard"><svg viewBox="0 0 52 80" xmlns="http://www.w3.org/2000/svg" width="20" height="30" style="display:block;"><polygon points="38,0 14,44 26,44 12,80 46,32 30,32" fill="#1e5c35"/></svg></a>
+  <div class="org-leader-switcher" id="org-leader-switcher" style="display:none;"></div>
   <span class="nav-page-title" id="nav-org-name">MyClubTracker</span>
   <div class="nav-menu-wrap">
     <button class="nav-menu-btn" onclick="toggleNavMenu()">
@@ -296,7 +303,7 @@ const sb=supabase.createClient(SURL,SKEY,{
   }
 });
 
-let ME=null,MY_ORG=null,MY_LOCATIONS=[],ALL_DAYS=[],ALL_USERS=[],CO_LEADERS=[];
+let ME=null,MY_ORG=null,MY_LOCATIONS=[],ALL_DAYS=[],ALL_USERS=[],CO_LEADERS=[],MY_OWNED_LOCATION_IDS=[];
 
 // -- INIT --
 (async()=>{
@@ -354,9 +361,63 @@ let ME=null,MY_ORG=null,MY_LOCATIONS=[],ALL_DAYS=[],ALL_USERS=[],CO_LEADERS=[];
   // Load data
   await Promise.all([loadLocations(),loadCoLeaders()]);
 
+  // Resolve which clubs the leader actually owns (for the nav switcher and
+  // for the per-card "Enter Sales" link's write-access decision).
+  // user_locations is the canonical source; user.location_id is the legacy fallback.
+  try{
+    const{data:_uls}=await sb.from('user_locations').select('location_id').eq('user_id',ME.id);
+    var _ownedSet={};
+    (_uls||[]).forEach(function(r){if(r.location_id)_ownedSet[r.location_id]=1;});
+    if(ME.location_id)_ownedSet[ME.location_id]=1;
+    MY_OWNED_LOCATION_IDS=Object.keys(_ownedSet);
+  }catch(e){
+    MY_OWNED_LOCATION_IDS=ME.location_id?[ME.location_id]:[];
+  }
+
+  // Render the org-leader nav switcher: [Org view] + one button per owned club.
+  // Hidden if the user has no owned clubs (rare — pure org leader).
+  renderOrgLeaderSwitcher(null);
+
   document.getElementById('loading-state').style.display='none';
   document.getElementById('main-page').style.display='block';
 })();
+
+// -- ORG-LEADER NAV SWITCHER --
+// Renders [Org view] + one button per club the leader owns.
+// currentLocId: null when this page is the active view (org-admin.html);
+// would be the club id when called from app.html (in that file's inline copy).
+function renderOrgLeaderSwitcher(currentLocId){
+  var sw=document.getElementById('org-leader-switcher');
+  if(!sw)return;
+  if(!MY_OWNED_LOCATION_IDS||!MY_OWNED_LOCATION_IDS.length){
+    sw.style.display='none';
+    return;
+  }
+  // Build a name lookup from MY_LOCATIONS (already loaded for the org).
+  var nameById={};
+  (MY_LOCATIONS||[]).forEach(function(l){nameById[l.id]=l.name||'(unnamed)';});
+  // Sort owned ids by name for stable button order.
+  var ownedSorted=MY_OWNED_LOCATION_IDS.slice().sort(function(a,b){
+    return (nameById[a]||'').localeCompare(nameById[b]||'');
+  });
+  // Clear and rebuild via DOM API (avoids HTML escaping pitfalls on club names).
+  while(sw.firstChild)sw.removeChild(sw.firstChild);
+  var orgBtn=document.createElement('button');
+  orgBtn.textContent='Org view';
+  if(!currentLocId)orgBtn.className='active';
+  orgBtn.onclick=function(){window.location.href='org-admin.html';};
+  sw.appendChild(orgBtn);
+  ownedSorted.forEach(function(locId){
+    var b=document.createElement('button');
+    var nm=nameById[locId]||'(unnamed)';
+    b.textContent=nm;
+    b.title=nm;
+    if(locId===currentLocId)b.className='active';
+    b.onclick=function(){window.location.href='app.html?location_id='+encodeURIComponent(locId);};
+    sw.appendChild(b);
+  });
+  sw.style.display='flex';
+}
 
 // -- LOAD LOCATIONS --
 async function loadLocations(){
@@ -433,7 +494,7 @@ function renderLocations(){
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
           <div class="loc-badges">${badgeHtml}</div>
-          <a href="app.html?location_id=${loc.id}&admin=1&from=org" onclick="event.stopPropagation()" class="btn-enter-sales">Enter Sales &#8594;</a>
+          <a href="app.html?location_id=${loc.id}${MY_OWNED_LOCATION_IDS.indexOf(loc.id)!==-1?'':'&admin=1'}&from=org" onclick="event.stopPropagation()" class="btn-enter-sales">Enter Sales &#8594;</a>
         </div>
         <div class="loc-chevron">&#9660;</div>
       </div>

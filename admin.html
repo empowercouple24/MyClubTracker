@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-25 17:30:00 -->
+<!-- CACHE BUST: 2026-04-25 18:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -3198,16 +3198,23 @@ function renderOrgDrawer(orgId, tab){
           '<div class="dt-stat"><div class="dt-stat-label">Rate</div><div class="dt-stat-val" style="font-size:13px;">$'+Number(org.monthly_rate||0).toFixed(2)+'</div></div>'+
         '</div>'+
       '</div>'+
-      '<div class="dt-section"><div class="dt-heading">Leader</div>'+
-        '<div class="dt-field"><label class="dt-label">Email</label>'+
-          (org.leader_email
-            ? '<div style="display:flex;gap:8px;align-items:center;"><span style="font-size:14px;color:var(--text);flex:1;word-break:break-all;">'+escHtml(org.leader_email)+'</span><button class="dt-btn-outline" onclick="navigator.clipboard.writeText(\''+escHtml(org.leader_email)+'\').then(function(){showToast(\'Copied\',\'success\');})">Copy</button></div>'
-            : '<div style="font-size:13px;color:var(--text-faint);font-style:italic;">Not set</div>')+
-        '</div>'+
-        (org.leader_name
-          ? '<div class="dt-field"><label class="dt-label">Name</label><div style="font-size:14px;color:var(--text);">'+escHtml(org.leader_name)+'</div></div>'
-          : '')+
-      '</div>'+
+      ((org.status||'active')==='invited'
+        ? '<div class="dt-section"><div class="dt-heading">Leader (invite not yet claimed)</div>'+
+            '<div class="dt-field"><label class="dt-label">Email</label><input class="dt-input" id="dt-org-leader-email" value="'+escHtml(org.leader_email||'')+'" placeholder="leader@example.com" type="email" autocomplete="off"/></div>'+
+            '<div class="dt-field"><label class="dt-label">Name</label><input class="dt-input" id="dt-org-leader-name" value="'+escHtml(org.leader_name||'')+'" placeholder="\\u2014"/></div>'+
+            '<div style="font-size:11px;color:var(--text-faint);margin-top:6px;line-height:1.4;">Edits the destination address for the next Resend invite. Once the leader signs up, these become read-only.</div>'+
+          '</div>'
+        : '<div class="dt-section"><div class="dt-heading">Leader</div>'+
+            '<div class="dt-field"><label class="dt-label">Email</label>'+
+              (org.leader_email
+                ? '<div style="display:flex;gap:8px;align-items:center;"><span style="font-size:14px;color:var(--text);flex:1;word-break:break-all;">'+escHtml(org.leader_email)+'</span><button class="dt-btn-outline" onclick="navigator.clipboard.writeText(\''+escHtml(org.leader_email)+'\').then(function(){showToast(\'Copied\',\'success\');})">Copy</button></div>'
+                : '<div style="font-size:13px;color:var(--text-faint);font-style:italic;">Not set</div>')+
+            '</div>'+
+            (org.leader_name
+              ? '<div class="dt-field"><label class="dt-label">Name</label><div style="font-size:14px;color:var(--text);">'+escHtml(org.leader_name)+'</div></div>'
+              : '')+
+          '</div>'
+      )+
       '<div class="dt-section"><div class="dt-heading">Org details</div>'+
         '<div class="dt-field"><label class="dt-label">Organization name</label><input class="dt-input" id="dt-org-name" value="'+escHtml(org.name||'')+'"/></div>'+
       '</div>'+
@@ -3267,9 +3274,28 @@ async function saveClubDetails(locId){
 async function saveOrgDetails(orgId){
   var name=document.getElementById('dt-org-name').value.trim();
   if(!name){showToast('Name required','error');return;}
-  var res=await sb.from('organizations').update({name:name,updated_at:new Date().toISOString()}).eq('id',orgId);
+  var payload={name:name,updated_at:new Date().toISOString()};
+  // Leader email/name are editable only when org.status==='invited' (drawer renders inputs).
+  // Fold those into the update when the inputs exist on the page.
+  var leaderEmailEl=document.getElementById('dt-org-leader-email');
+  var leaderNameEl=document.getElementById('dt-org-leader-name');
+  if(leaderEmailEl){
+    var newEmail=leaderEmailEl.value.trim();
+    if(newEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)){
+      showToast('Invalid email format','error');return;
+    }
+    payload.leader_email=newEmail||null;
+  }
+  if(leaderNameEl){
+    payload.leader_name=leaderNameEl.value.trim()||null;
+  }
+  var res=await sb.from('organizations').update(payload).eq('id',orgId);
   if(res.error){showToast('Save failed: '+res.error.message,'error');return;}
-  if(allOrgsMap[orgId])allOrgsMap[orgId].name=name;
+  if(allOrgsMap[orgId]){
+    allOrgsMap[orgId].name=name;
+    if('leader_email' in payload)allOrgsMap[orgId].leader_email=payload.leader_email;
+    if('leader_name' in payload)allOrgsMap[orgId].leader_name=payload.leader_name;
+  }
   showToast('Saved \u2713','success');
   renderLocations();
 }

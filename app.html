@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-25 04:45:00 -->
+<!-- CACHE BUST: 2026-04-25 18:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -68,6 +68,12 @@ if('serviceWorker' in navigator){
     .nav-logo{width:36px;height:36px;background:white;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,0.1);cursor:pointer;}
     .nav-logo svg{width:24px;height:24px;}
     .nav-logo:hover{background:var(--b0);}
+
+    /* Org-leader nav switcher (Org view / Club view buttons) — duplicated inline since app.html does not load nav.css */
+    .org-leader-switcher{display:flex;align-items:center;background:var(--b0);border:1px solid var(--border-light);border-radius:8px;padding:2px;gap:2px;flex-shrink:0;margin-right:6px;}
+    .org-leader-switcher button{font-size:12px;font-weight:600;padding:5px 10px;background:transparent;border:none;border-radius:6px;color:var(--text-muted);cursor:pointer;font-family:inherit;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis;}
+    .org-leader-switcher button.active{background:var(--surface);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,0.06);}
+    .org-leader-switcher button:hover:not(.active){color:var(--text);}
     .nav-menu-btn{display:flex;align-items:center;gap:6px;font-family:DM Sans,sans-serif;font-size:13px;font-weight:700;color:var(--b7);border:1.5px solid var(--b3);border-radius:20px;padding:5px 14px;background:white;cursor:pointer;max-width:260px;}
     .nav-menu-btn:hover{background:var(--b0);}
     .nav-avatar{width:24px;height:24px;border-radius:50%;background:var(--b1);color:var(--b7);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;}
@@ -1171,6 +1177,7 @@ if('serviceWorker' in navigator){
 <nav class="topnav">
   <button class="nav-btn back" id="nav-back-btn" style="display:none;font-weight:700;color:var(--b5);font-size:13px;padding:4px 10px;background:var(--b0);border-radius:8px;border:1px solid var(--border);" onclick="goBackToAdmin()">← Locations</button>
   <div class="nav-logo" onclick="switchTab(USER_ROLE==='employee'?'inv':'enter')" title="Go to home tab"><svg viewBox="0 0 52 80" xmlns="http://www.w3.org/2000/svg" width="20" height="30" style="display:block;"><polygon points="38,0 14,44 26,44 12,80 46,32 30,32" fill="#1e5c35"/></svg></div>
+  <div class="org-leader-switcher" id="org-leader-switcher" style="display:none;"></div>
   <div style="display:flex;flex-direction:column;justify-content:center;flex:1;min-width:0;overflow:hidden;">
     <div class="nav-club-name" id="nav-club-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Loading…</div>
     <div id="nav-club-addr" style="font-size:11px;color:var(--text-faint);font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:none;"></div>
@@ -4453,6 +4460,12 @@ async function init(){
     IS_ADMIN_VIEW=true;LOCATION_ID=params.get('location_id');OPEN_SETTINGS=params.get('settings')==='1';
     USER_ROLE='admin';
   }else{
+    // Pre-pull location_id from URL so the org_leader gate below can detect
+    // requests targeting a specific club, and so direct links like
+    // app.html?location_id=X honor the URL param for non-admin users too.
+    if(!LOCATION_ID && params.get('location_id')){
+      LOCATION_ID = params.get('location_id');
+    }
     const{data:u,error:uErr}=await sb.from('users').select('role,location_id,display_name,first_name,last_name,phone,avatar_url,deleted_at').eq('id',session.user.id).single();
 
     // If user is soft-deleted, sign out and redirect to login
@@ -4486,14 +4499,22 @@ async function init(){
     }
 
     if(u.role==='admin'&&!LOCATION_ID){window.location.href='admin.html';return;}
-    if(u.role==='org_leader'&&!IS_ADMIN_VIEW){window.location.href='org-admin.html';return;}
 
-    // Load all locations this user has access to
+    // Load user_locations BEFORE the org_leader gate so we can detect
+    // whether an org_leader owns the requested club and allow direct write access.
     const{data:userLocs,error:ulErr}=await sb.from('user_locations')
       .select('location_id,is_primary')
       .eq('user_id',session.user.id);
     if(ulErr)console.warn('user_locations fetch error:',ulErr.message);
     const USER_LOCATIONS=userLocs||[];
+
+    if(u.role==='org_leader'&&!IS_ADMIN_VIEW){
+      var ownsRequestedClub = LOCATION_ID && (
+        USER_LOCATIONS.some(function(ul){return ul.location_id===LOCATION_ID;})
+        || u.location_id===LOCATION_ID
+      );
+      if(!ownsRequestedClub){window.location.href='org-admin.html';return;}
+    }
 
     // Resolve which location to load:
     // 1. URL param (admin drill-in), 2. localStorage last used, 3. primary, 4. user.location_id
@@ -4506,6 +4527,15 @@ async function init(){
     // Store multi-location data for switcher
     window._USER_LOCATIONS=USER_LOCATIONS;
     USER_ROLE=u.role||'owner';
+
+    // Render the org-leader nav switcher: [Org view] + one button per owned club.
+    // Hidden if user is not org_leader or has no owned clubs.
+    // Awaited because it fetches club names for the buttons.
+    if(USER_ROLE==='org_leader' && !IS_ADMIN_VIEW){
+      try{ await renderOrgLeaderSwitcher(LOCATION_ID, USER_LOCATIONS, u.location_id); }
+      catch(e){ console.warn('Switcher render failed:', e); }
+    }
+
     // Employee: restricted tabs, no settings
     if(USER_ROLE==='employee'){
       // Operator: hide Payouts + its divider + divider-2
@@ -16329,6 +16359,49 @@ async function setTheme(name) {
 }
 
 async function handleSignOut(){if(IS_ADMIN_VIEW){window.location.href='admin.html';return;}await sb.auth.signOut();window.location.href='index.html';}
+
+// -- ORG-LEADER NAV SWITCHER --
+// Renders [Org view] + one button per club the leader owns.
+// Inlined here because app.html does not load nav.js (per the hard rule).
+// Mirror copy in org-admin.html — keep both in sync if either changes.
+async function renderOrgLeaderSwitcher(currentLocId, userLocations, legacyLocationId){
+  var sw=document.getElementById('org-leader-switcher');
+  if(!sw)return;
+  // Build owned-id set: user_locations rows + legacy users.location_id fallback.
+  var ownedSet={};
+  (userLocations||[]).forEach(function(ul){if(ul.location_id)ownedSet[ul.location_id]=1;});
+  if(legacyLocationId)ownedSet[legacyLocationId]=1;
+  var ownedIds=Object.keys(ownedSet);
+  if(!ownedIds.length){sw.style.display='none';return;}
+  // Fetch names for the owned clubs (one round-trip; cheap, only for org_leaders).
+  var nameById={};
+  try{
+    var res=await sb.from('locations').select('id,name').in('id',ownedIds);
+    (res&&res.data?res.data:[]).forEach(function(l){nameById[l.id]=l.name||'(unnamed)';});
+  }catch(e){
+    console.warn('Owned-locations name fetch failed:',e);
+  }
+  // Sort by name for stable button order.
+  var ownedSorted=ownedIds.slice().sort(function(a,b){
+    return (nameById[a]||'').localeCompare(nameById[b]||'');
+  });
+  // Clear and rebuild via DOM API (avoids HTML escape issues on club names).
+  while(sw.firstChild)sw.removeChild(sw.firstChild);
+  var orgBtn=document.createElement('button');
+  orgBtn.textContent='Org view';
+  orgBtn.onclick=function(){window.location.href='org-admin.html';};
+  sw.appendChild(orgBtn);
+  ownedSorted.forEach(function(locId){
+    var b=document.createElement('button');
+    var nm=nameById[locId]||'(unnamed)';
+    b.textContent=nm;
+    b.title=nm;
+    if(locId===currentLocId)b.className='active';
+    b.onclick=function(){window.location.href='app.html?location_id='+encodeURIComponent(locId);};
+    sw.appendChild(b);
+  });
+  sw.style.display='flex';
+}
 
 // -- LOCATION SWITCHER --
 function openLocSwitcher(){
