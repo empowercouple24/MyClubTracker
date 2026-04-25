@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-03-30 16:32:15 -->
+<!-- CACHE BUST: 2026-04-25 04:15:00 -->
 <html lang="en">
 <head>
 <script>
@@ -7,13 +7,18 @@ if(location.protocol==='http:'&&location.hostname!=='localhost'){
   location.replace('https://'+location.host+location.pathname+location.search+location.hash);
 }
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.getRegistrations().then(regs=>{regs.forEach(r=>r.unregister());});
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('/sw.js')
+      .then(function(reg){ console.log('SW registered:', reg.scope); })
+      .catch(function(err){ console.log('SW registration failed:', err); });
+  });
 }
 </script>
 <meta charset="UTF-8"/>
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
 <title>Dashboard -- MyClubTracker</title>
+<link rel="manifest" href="/manifest.json"/>
 <meta name="theme-color" content="#e8edf4"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
