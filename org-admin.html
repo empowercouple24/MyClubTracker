@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-25 21:15:00 -->
+<!-- CACHE BUST: 2026-04-25 21:45:00 -->
 <html lang="en">
 <head>
 <script>
@@ -369,6 +369,9 @@ if('serviceWorker' in navigator){
   </div>
 </div>
 
+<!-- Toast notification container (styled by shared.css) -->
+<div class="toast" id="toast"></div>
+
 <script src="nav.js?v=10"></script>
 <script>
 const SURL='https://ndaqlamzlaucigvnhgfu.supabase.co';
@@ -401,6 +404,37 @@ function setText(id,v){var el=document.getElementById(id);if(el)el.textContent=v
 
 // Currency parsing — strips commas/$ before parseFloat per the codebase's hard rule.
 function parseMoney(s){if(!s)return null;var n=parseFloat(String(s).replace(/[$,\s]/g,''));return isNaN(n)?null:n;}
+
+// Toast notification — uses shared.css's .toast / .toast.show classes plus
+// optional .success / .error type modifiers.
+let toastTimer;
+function showToast(msg,type){
+  var t=document.getElementById('toast');
+  if(!t)return;
+  t.textContent=msg;
+  t.className='toast show'+(type?' '+type:'');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){t.classList.remove('show');},2400);
+}
+
+// Error helpers used by init and modal forms.
+function showError(msg){
+  console.error('org-admin error:', msg);
+  showToast(msg,'error');
+}
+function showModalAlert(elementId,msg){
+  var el=document.getElementById(elementId);
+  if(!el){showToast(msg,'error');return;}
+  el.textContent=msg;
+  el.style.display='block';
+}
+
+// Stubs for click-only handlers that are referenced in the markup but not yet
+// fully implemented for this file. They fail safely instead of throwing.
+// Replace with real implementations as those features are built out.
+function openProfileModal(){showToast('Profile & Settings coming soon');}
+function openAssignUserModal(){showToast('Assign user coming soon');}
+function orgAdminLookupZip(){/* no-op until the ZIP autofill helper is wired */}
 
 // -- INIT --
 (async()=>{
