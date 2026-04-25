@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-25 00:10:00 -->
+<!-- CACHE BUST: 2026-04-25 04:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -162,6 +162,43 @@ if(location.protocol==='http:'&&location.hostname!=='localhost'){
     .btn-ghost-push{background:var(--surface);color:var(--text-muted);border:1px solid var(--border);border-radius:8px;padding:11px 16px;font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;flex:1}
     /* Unsaved indicator */
     /* unsaved-dot removed — save button state used instead */
+
+    /* PROPOSE TO MASTER (club-side) */
+    .btn-propose{background:linear-gradient(135deg,var(--b6),var(--b5));color:white;border:none;border-radius:var(--radius-sm);padding:7px 12px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center;gap:6px}
+    .btn-propose:hover{opacity:0.9}
+    .btn-propose .pcount{background:rgba(255,255,255,0.25);border-radius:10px;padding:1px 7px;font-size:11px;font-weight:700;line-height:1.4}
+    .propose-overlay{position:fixed;inset:0;background:rgba(30,45,61,0.45);backdrop-filter:blur(4px);z-index:210;display:none;align-items:flex-end;justify-content:center}
+    .propose-overlay.open{display:flex}
+    .propose-sheet{background:var(--surface);border-radius:18px 18px 0 0;width:100%;max-width:600px;max-height:88vh;display:flex;flex-direction:column;animation:sheetUp 0.3s cubic-bezier(0.16,1,0.3,1)}
+    .propose-modes{display:flex;gap:6px;padding:8px 16px 10px;border-bottom:1px solid var(--border-light);background:var(--bg)}
+    .propose-mode-btn{flex:1;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:8px 6px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer}
+    .propose-mode-btn.active{background:var(--b7);color:white;border-color:var(--b7);box-shadow:0 2px 6px rgba(58,84,112,0.18)}
+    .propose-body{overflow-y:auto;flex:1;padding:12px 16px}
+    .propose-row{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+    .propose-row label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint)}
+    .propose-input,.propose-textarea{font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:8px 10px;outline:none;width:100%}
+    .propose-input:focus,.propose-textarea:focus{border-color:var(--b5);box-shadow:0 0 0 2px rgba(91,128,160,0.12)}
+    .propose-textarea{min-height:60px;resize:vertical}
+    .propose-grid{display:grid;grid-template-columns:1fr 90px 80px;gap:8px}
+    .propose-pick-list{max-height:340px;overflow-y:auto;border:1px solid var(--border-light);border-radius:8px;background:var(--surface)}
+    .propose-pick-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 12px;border-bottom:1px solid var(--border-light);cursor:pointer;transition:background 0.1s}
+    .propose-pick-row:last-child{border-bottom:none}
+    .propose-pick-row:hover{background:var(--b0)}
+    .propose-pick-name{font-size:13px;font-weight:600;color:var(--text)}
+    .propose-pick-meta{font-size:11px;color:var(--text-faint);margin-top:1px}
+    .propose-pick-vp{font-size:12px;font-weight:600;color:var(--text-muted);white-space:nowrap}
+    .propose-back{background:none;border:none;color:var(--b6);font-size:12px;font-weight:600;cursor:pointer;padding:4px 0;margin-bottom:8px;font-family:'DM Sans',sans-serif}
+    .propose-current{background:var(--b0);border:1px solid var(--border-light);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:var(--text-muted)}
+    .propose-current-label{font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:4px}
+    .propose-current strong{color:var(--text);font-size:13px}
+    .propose-empty-pick{padding:24px 12px;text-align:center;color:var(--text-faint);font-size:12px}
+    .propose-footer{padding:10px 16px;border-top:1px solid var(--border-light);flex-shrink:0;display:flex;gap:8px}
+    .propose-submit{background:linear-gradient(135deg,var(--b7),var(--b5));color:white;border:none;border-radius:8px;padding:11px 18px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;flex:2}
+    .propose-submit:hover{opacity:0.9}
+    .propose-submit:disabled{opacity:0.5;cursor:not-allowed}
+    .propose-cancel{background:var(--surface);color:var(--text-muted);border:1px solid var(--border);border-radius:8px;padding:11px 16px;font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;flex:1}
+    .propose-hint{font-size:11px;color:var(--text-faint);margin:-2px 0 10px;line-height:1.45}
+    .propose-close{background:none;border:none;font-size:20px;color:var(--text-faint);cursor:pointer;padding:0 4px;line-height:1}
   </style>
 </head>
 <body>
@@ -188,6 +225,7 @@ if(location.protocol==='http:'&&location.hostname!=='localhost'){
     </select>
     <button class="btn-add" onclick="openAddProduct()">+ Product</button>
     <button class="btn-reset" onclick="confirmReset()">↺ Reset Defaults</button>
+    <button class="btn-propose" id="btn-propose" onclick="openProposeSheet()" style="display:none;">💡 Propose to Master <span class="pcount" id="propose-pending-count" style="display:none;">0</span></button>
     <!-- Push to Clubs triggered via Save flow -->
   </div>
 
@@ -241,6 +279,27 @@ if(location.protocol==='http:'&&location.hostname!=='localhost'){
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
         Send to Selected
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- PROPOSE TO MASTER SHEET (club-side) -->
+<div class="propose-overlay" id="propose-overlay">
+  <div class="propose-sheet">
+    <div class="push-handle"></div>
+    <div class="push-header">
+      <span class="push-title">Propose to Master</span>
+      <button class="propose-close" onclick="closeProposeSheet()" aria-label="Close">×</button>
+    </div>
+    <div class="propose-modes">
+      <button class="propose-mode-btn active" data-mode="add" onclick="setProposeMode('add')">+ Add</button>
+      <button class="propose-mode-btn" data-mode="edit" onclick="setProposeMode('edit')">✎ Edit</button>
+      <button class="propose-mode-btn" data-mode="remove" onclick="setProposeMode('remove')">− Remove</button>
+    </div>
+    <div class="propose-body" id="propose-body"></div>
+    <div class="propose-footer">
+      <button class="propose-cancel" onclick="closeProposeSheet()">Cancel</button>
+      <button class="propose-submit" id="propose-submit-btn" onclick="submitProposal()" disabled>Submit Proposal</button>
     </div>
   </div>
 </div>
@@ -314,6 +373,22 @@ DEFAULT_PRODUCTS.push(..._GRAM_ZERO);
 
 
 let LOCATION_ID=null,IS_ADMIN=false,IS_GLOBAL=false,SETTINGS={},products=[],unsaved=false,dragSrcIdx=null,dragSrcCat=null;
+let _originalProducts=[];  // baseline snapshot for diffing on save (audit log)
+let PROPOSE_MODE='add', PROPOSE_PICK=null;  // propose-to-master sheet state
+
+// Audit-log writer — best-effort; never blocks the save flow
+async function writeAuditLog(entries){
+  if(!entries || !entries.length) return;
+  try {
+    const{data:{session}} = await sb.auth.getSession();
+    if(!session) return;
+    const meta = (session.user && session.user.user_metadata) || {};
+    const actorName = meta.display_name || (session.user.email||'Unknown');
+    const rows = entries.map(function(e){return Object.assign({}, e, {actor_user_id:session.user.id, actor_name:actorName});});
+    const{error} = await sb.from('product_audit_log').insert(rows);
+    if(error) console.warn('Audit log write failed:', error.message);
+  } catch(e) { console.warn('Audit log error:', e); }
+}
 // Per-category sort state: { catName: 'name'|'sku'|null, dir: 1|-1 }
 let catSortState={};
 
@@ -325,9 +400,11 @@ async function init(){
   IS_GLOBAL=params.get('mode')==='global';
 
   if(IS_GLOBAL){
-    // Global master list edit mode — load from sessionStorage (passed from admin-settings)
+    // Global master list edit mode — load from saved master, fallback to defaults
     document.getElementById('nav-title').textContent='Global Default Products';
-    products=DEFAULT_PRODUCTS.map(p=>[...p]);
+    const savedMaster = (session.user && session.user.user_metadata && session.user.user_metadata.globalProducts) || null;
+    products = (savedMaster && savedMaster.length) ? savedMaster.map(p=>[...p]) : DEFAULT_PRODUCTS.map(p=>[...p]);
+    _originalProducts = products.map(p=>[...p]);  // baseline for audit-log diff
     buildCatFilter();renderAll();
     document.getElementById('loading-overlay').classList.add('hidden');
     // Save starts disabled — activated when change detected
@@ -350,9 +427,17 @@ async function init(){
   products=(SETTINGS.customProducts&&SETTINGS.customProducts.length>0)
     ?SETTINGS.customProducts.map(p=>[...p])
     :DEFAULT_PRODUCTS.map(p=>[...p]);
+  _originalProducts = products.map(p=>[...p]);  // baseline
   buildCatFilter();
   renderAll();
   document.getElementById('loading-overlay').classList.add('hidden');
+
+  // Show "Propose to Master" button for club users (not when admin is editing the club)
+  if(!IS_ADMIN){
+    const pbtn = document.getElementById('btn-propose');
+    if(pbtn) pbtn.style.display = 'inline-flex';
+    loadMyPendingCount();
+  }
 }
 
 // ── CATEGORIES ──
@@ -535,11 +620,26 @@ function resetToDefaults(){
 // ── SAVE ──
 async function saveProducts(){
   if(IS_GLOBAL){
+    // Compute diff vs baseline so we can write audit entries
+    const changes = computeDiff(_originalProducts, products);
+    const updatedAt = new Date().toISOString();
     // Save global master list to admin's user metadata via Supabase auth
-    const{error}=await sb.auth.updateUser({data:{globalProducts:products}});
+    const{error}=await sb.auth.updateUser({data:{globalProducts:products, globalProductsUpdatedAt:updatedAt}});
     if(error){showToast('Save failed: '+error.message,'error');return;}
     // Also update sessionStorage so admin-settings page can read it back
     sessionStorage.setItem('globalProductsEdit',JSON.stringify(products));
+    // Write audit-log entries (one per change)
+    if(changes.length){
+      const auditEntries = changes.map(function(c){
+        const action = (c.type==='change') ? 'edit' : c.type;  // add | remove | edit
+        const after = (c.type==='remove') ? null : {name:c.name, cat:c.cat, sku:c.sku, vp:c.vp, par:c.par};
+        const before = (c.type==='add') ? null : (c.diffs ? {diffs:c.diffs} : null);
+        return {action:action, product_name:c.name, product_category:c.cat, before_data:before, after_data:after};
+      });
+      writeAuditLog(auditEntries);  // fire-and-forget
+    }
+    // Update baseline for next diff
+    _originalProducts = products.map(function(p){return [...p];});
     unsaved=false;
     const btn=document.getElementById('save-btn');if(btn)btn.disabled=true;
     document.getElementById('nav-count').innerHTML=`${products.length} products`;
@@ -843,6 +943,20 @@ async function executePush(){
   // Save current list as lastPushedProducts snapshot
   await sb.auth.updateUser({data:{lastPushedProducts:JSON.stringify(products)}});
 
+  // Write audit-log entries — one per pushed location, summarizing the diff
+  const adds = _pushChanges.filter(function(c){return c.type==='add';}).length;
+  const edits = _pushChanges.filter(function(c){return c.type==='change';}).length;
+  const removes = _pushChanges.filter(function(c){return c.type==='remove';}).length;
+  const summaryParts = [];
+  if(adds) summaryParts.push(adds+' add'+(adds>1?'s':''));
+  if(edits) summaryParts.push(edits+' edit'+(edits>1?'s':''));
+  if(removes) summaryParts.push(removes+' remove'+(removes>1?'s':''));
+  const summary = summaryParts.join(', ') + ' ('+_pushChanges.length+' total)';
+  const auditEntries = selected.map(function(lid){
+    return {action:'push_to_clubs', target_location_id:lid, notes:summary};
+  });
+  writeAuditLog(auditEntries);  // fire-and-forget
+
   closePushModal();
   showToast('Pushed to '+selected.length+' location'+(selected.length>1?'s':''),'success');
   if(btn){btn.disabled=false;btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Send to Selected';}
@@ -880,6 +994,283 @@ function goBack(){
   if(IS_GLOBAL){window.location.href='admin.html?tab=products';return;}
   const base=IS_ADMIN?`app.html?location_id=${LOCATION_ID}&admin=1`:`app.html?location_id=${LOCATION_ID}`;
   window.location.href=base;
+}
+
+// ── PROPOSE TO MASTER (club-side) ──
+async function loadMyPendingCount(){
+  if(!LOCATION_ID) return;
+  try{
+    const{count} = await sb.from('product_change_requests')
+      .select('id', {count:'exact', head:true})
+      .eq('location_id', LOCATION_ID)
+      .eq('status', 'pending');
+    const el = document.getElementById('propose-pending-count');
+    if(el){
+      if(count && count>0){ el.textContent = count; el.style.display = 'inline-block'; }
+      else { el.style.display = 'none'; }
+    }
+  } catch(e){ /* silent — table may not exist yet */ }
+}
+
+function openProposeSheet(){
+  PROPOSE_MODE = 'add';
+  PROPOSE_PICK = null;
+  document.getElementById('propose-overlay').classList.add('open');
+  document.querySelectorAll('.propose-mode-btn').forEach(function(b){
+    b.classList.toggle('active', b.dataset.mode==='add');
+  });
+  renderProposeBody();
+}
+
+function closeProposeSheet(){
+  document.getElementById('propose-overlay').classList.remove('open');
+  PROPOSE_PICK = null;
+}
+
+function setProposeMode(mode){
+  PROPOSE_MODE = mode;
+  PROPOSE_PICK = null;
+  document.querySelectorAll('.propose-mode-btn').forEach(function(b){
+    b.classList.toggle('active', b.dataset.mode===mode);
+  });
+  renderProposeBody();
+}
+
+function _proposePickRowHTML(p, i){
+  return '<div class="propose-pick-row" onclick="proposePickProduct('+i+')">'+
+    '<div><div class="propose-pick-name">'+escHtml(p[1])+'</div>'+
+    '<div class="propose-pick-meta">'+escHtml(p[0])+(p[2]?' \u00b7 SKU '+escHtml(p[2]):'')+'</div></div>'+
+    '<div class="propose-pick-vp">$'+(parseFloat(p[3])||0).toFixed(2)+'</div>'+
+  '</div>';
+}
+
+function renderProposeBody(){
+  const body = document.getElementById('propose-body');
+  const submit = document.getElementById('propose-submit-btn');
+  if(!body || !submit) return;
+
+  if(PROPOSE_MODE === 'add'){
+    const cats = getCategories();
+    const catOpts = cats.map(function(c){ return '<option value="'+escHtml(c)+'">'; }).join('');
+    body.innerHTML =
+      '<div class="propose-hint">Suggest a brand-new product the master catalog should include. The admin will review and apply it across all clubs.</div>'+
+      '<div class="propose-row"><label>Category</label><input class="propose-input" id="prop-cat" list="prop-cat-list" placeholder="e.g., F1, Tea, Liftoff"/><datalist id="prop-cat-list">'+catOpts+'</datalist></div>'+
+      '<div class="propose-row"><label>Product Name</label><input class="propose-input" id="prop-name" placeholder="e.g., Coconut Pineapple"/></div>'+
+      '<div class="propose-grid">'+
+        '<div class="propose-row"><label>SKU</label><input class="propose-input" id="prop-sku" placeholder="optional"/></div>'+
+        '<div class="propose-row"><label>VP $</label><input class="propose-input" id="prop-vp" type="number" step="0.01" placeholder="0.00"/></div>'+
+        '<div class="propose-row"><label>PAR</label><input class="propose-input" id="prop-par" type="number" step="1" value="1"/></div>'+
+      '</div>'+
+      '<div class="propose-row"><label>Notes for admin (optional)</label><textarea class="propose-textarea" id="prop-notes" placeholder="Why this should be added\u2026"></textarea></div>';
+    submit.textContent = 'Submit Proposal';
+    var nameEl = body.querySelector('#prop-name');
+    if(nameEl) nameEl.addEventListener('input', updateSubmitState);
+    updateSubmitState();
+    return;
+  }
+
+  if(PROPOSE_MODE === 'edit' || PROPOSE_MODE === 'remove'){
+    if(!PROPOSE_PICK){
+      const verb = PROPOSE_MODE==='edit' ? 'edit' : 'remove from master';
+      const list = products.slice(0, 200).map(function(p, i){ return _proposePickRowHTML(p, i); }).join('');
+      body.innerHTML =
+        '<div class="propose-hint">Pick the product you want to '+verb+'.</div>'+
+        '<input class="propose-input" id="prop-search" placeholder="Search products\u2026" oninput="filterProposePicks()" style="margin-bottom:10px"/>'+
+        '<div class="propose-pick-list" id="propose-pick-list">'+(list || '<div class="propose-empty-pick">No products available.</div>')+'</div>';
+      submit.disabled = true;
+      submit.textContent = 'Pick a Product First';
+      return;
+    }
+
+    const p = PROPOSE_PICK;
+    if(PROPOSE_MODE === 'edit'){
+      body.innerHTML =
+        '<button class="propose-back" onclick="proposeUnpick()">\u2190 Pick a different product</button>'+
+        '<div class="propose-current"><div class="propose-current-label">Current</div><strong>'+escHtml(p[1])+'</strong> \u00b7 '+escHtml(p[0])+(p[2]?' \u00b7 SKU '+escHtml(p[2]):'')+' \u00b7 $'+(parseFloat(p[3])||0).toFixed(2)+' \u00b7 PAR '+(parseInt(p[4])||0)+'</div>'+
+        '<div class="propose-row"><label>Category</label><input class="propose-input" id="prop-cat" value="'+escHtml(p[0])+'"/></div>'+
+        '<div class="propose-row"><label>Product Name</label><input class="propose-input" id="prop-name" value="'+escHtml(p[1])+'"/></div>'+
+        '<div class="propose-grid">'+
+          '<div class="propose-row"><label>SKU</label><input class="propose-input" id="prop-sku" value="'+escHtml(p[2])+'"/></div>'+
+          '<div class="propose-row"><label>VP $</label><input class="propose-input" id="prop-vp" type="number" step="0.01" value="'+(parseFloat(p[3])||0).toFixed(2)+'"/></div>'+
+          '<div class="propose-row"><label>PAR</label><input class="propose-input" id="prop-par" type="number" step="1" value="'+(parseInt(p[4])||0)+'"/></div>'+
+        '</div>'+
+        '<div class="propose-row"><label>Notes for admin (optional)</label><textarea class="propose-textarea" id="prop-notes" placeholder="Why this update\u2026"></textarea></div>';
+      submit.disabled = false;
+      submit.textContent = 'Submit Proposal';
+      return;
+    }
+
+    // remove
+    body.innerHTML =
+      '<button class="propose-back" onclick="proposeUnpick()">\u2190 Pick a different product</button>'+
+      '<div class="propose-current"><div class="propose-current-label">Will propose removing</div><strong>'+escHtml(p[1])+'</strong> \u00b7 '+escHtml(p[0])+(p[2]?' \u00b7 SKU '+escHtml(p[2]):'')+' \u00b7 $'+(parseFloat(p[3])||0).toFixed(2)+'</div>'+
+      '<div class="propose-row"><label>Reason for removal (optional)</label><textarea class="propose-textarea" id="prop-notes" placeholder="Why this should be removed from master\u2026"></textarea></div>';
+    submit.disabled = false;
+    submit.textContent = 'Submit Removal Proposal';
+  }
+}
+
+function updateSubmitState(){
+  const submit = document.getElementById('propose-submit-btn');
+  if(!submit) return;
+  if(PROPOSE_MODE === 'add'){
+    const nameEl = document.getElementById('prop-name');
+    const name = (nameEl && nameEl.value) || '';
+    submit.disabled = !name.trim();
+  }
+}
+
+function filterProposePicks(){
+  const searchEl = document.getElementById('prop-search');
+  const q = ((searchEl && searchEl.value) || '').toLowerCase().trim();
+  const listEl = document.getElementById('propose-pick-list');
+  if(!listEl) return;
+  const filtered = products.map(function(p,i){return {p:p,i:i};}).filter(function(o){
+    if(!q) return true;
+    return (o.p[1]||'').toLowerCase().includes(q)
+        || (o.p[0]||'').toLowerCase().includes(q)
+        || (o.p[2]||'').toLowerCase().includes(q);
+  }).slice(0, 200);
+  listEl.innerHTML = filtered.length
+    ? filtered.map(function(o){ return _proposePickRowHTML(o.p, o.i); }).join('')
+    : '<div class="propose-empty-pick">No matches.</div>';
+}
+
+function proposePickProduct(idx){
+  const p = products[idx];
+  if(!p) return;
+  PROPOSE_PICK = [...p];
+  renderProposeBody();
+}
+
+function proposeUnpick(){
+  PROPOSE_PICK = null;
+  renderProposeBody();
+}
+
+async function submitProposal(){
+  const submit = document.getElementById('propose-submit-btn');
+  if(!submit || submit.disabled) return;
+
+  const{data:{session}} = await sb.auth.getSession();
+  if(!session){ showToast('Sign-in required','error'); return; }
+
+  const meta = (session.user && session.user.user_metadata) || {};
+  const proposerName = meta.display_name || (session.user.email || 'Unknown');
+
+  let payload = null;
+
+  if(PROPOSE_MODE === 'add'){
+    const cat = ((document.getElementById('prop-cat')||{}).value || '').trim();
+    const name = ((document.getElementById('prop-name')||{}).value || '').trim();
+    const sku = ((document.getElementById('prop-sku')||{}).value || '').trim();
+    const vp = parseFloat((document.getElementById('prop-vp')||{}).value) || 0;
+    const par = parseInt((document.getElementById('prop-par')||{}).value) || 0;
+    const notes = ((document.getElementById('prop-notes')||{}).value || '').trim();
+    if(!name){ showToast('Product name required','error'); return; }
+    payload = { change_type:'add', before_data:null, after_data:{cat:cat,name:name,sku:sku,vp:vp,par:par}, admin_notes:notes };
+  } else if(PROPOSE_MODE === 'edit'){
+    if(!PROPOSE_PICK){ showToast('Pick a product first','error'); return; }
+    const cat = ((document.getElementById('prop-cat')||{}).value || '').trim();
+    const name = ((document.getElementById('prop-name')||{}).value || '').trim();
+    const sku = ((document.getElementById('prop-sku')||{}).value || '').trim();
+    const vp = parseFloat((document.getElementById('prop-vp')||{}).value) || 0;
+    const par = parseInt((document.getElementById('prop-par')||{}).value) || 0;
+    const notes = ((document.getElementById('prop-notes')||{}).value || '').trim();
+    if(!name){ showToast('Product name required','error'); return; }
+    payload = {
+      change_type:'edit',
+      before_data:{cat:PROPOSE_PICK[0],name:PROPOSE_PICK[1],sku:PROPOSE_PICK[2],vp:parseFloat(PROPOSE_PICK[3])||0,par:parseInt(PROPOSE_PICK[4])||0},
+      after_data:{cat:cat,name:name,sku:sku,vp:vp,par:par},
+      admin_notes:notes
+    };
+  } else if(PROPOSE_MODE === 'remove'){
+    if(!PROPOSE_PICK){ showToast('Pick a product first','error'); return; }
+    const notes = ((document.getElementById('prop-notes')||{}).value || '').trim();
+    payload = {
+      change_type:'remove',
+      before_data:{cat:PROPOSE_PICK[0],name:PROPOSE_PICK[1],sku:PROPOSE_PICK[2],vp:parseFloat(PROPOSE_PICK[3])||0,par:parseInt(PROPOSE_PICK[4])||0},
+      after_data:null,
+      admin_notes:notes
+    };
+  }
+
+  if(!payload) return;
+
+  submit.disabled = true;
+  submit.textContent = 'Submitting\u2026';
+
+  const{data:inserted, error} = await sb.from('product_change_requests').insert({
+    location_id: LOCATION_ID,
+    proposer_user_id: session.user.id,
+    proposer_name: proposerName,
+    change_type: payload.change_type,
+    before_data: payload.before_data,
+    after_data: payload.after_data,
+    admin_notes: payload.admin_notes,
+    status: 'pending'
+  }).select().single();
+
+  if(error){
+    showToast('Submit failed: '+error.message,'error');
+    submit.disabled = false;
+    submit.textContent = 'Submit Proposal';
+    return;
+  }
+
+  // Item 3: notify admin (fire-and-forget)
+  notifyAdminOfProposal(inserted, proposerName).catch(function(){ /* ignore */ });
+
+  showToast('Proposal sent \u00b7 admin will review','success');
+  closeProposeSheet();
+  loadMyPendingCount();
+}
+
+// ── ITEM 3: notify admin via send-email Edge Function ──
+async function notifyAdminOfProposal(proposal, proposerName){
+  if(!proposal) return;
+
+  // Find admin recipient — first admin in users table; fall back to support@
+  let adminEmail = 'support@myclubtracker.com';
+  let adminName = 'Admin';
+  try{
+    const{data:admins} = await sb.from('users').select('email,display_name').eq('role','admin').limit(1);
+    if(admins && admins.length){
+      adminEmail = admins[0].email || adminEmail;
+      adminName = admins[0].display_name || adminName;
+    }
+  } catch(e){ /* fallback already set */ }
+
+  const locName = (document.getElementById('nav-title').textContent || '').replace(/^Products\s*\u2014\s*/, '').trim() || 'a club';
+  const after = proposal.after_data || {};
+  const before = proposal.before_data || {};
+  let summary = '';
+  if(proposal.change_type === 'add'){
+    summary = 'Add <strong>'+escHtml(after.name||'?')+'</strong>'+(after.cat?' to '+escHtml(after.cat):'')+(after.vp?' at $'+parseFloat(after.vp).toFixed(2):'');
+  } else if(proposal.change_type === 'edit'){
+    summary = 'Update <strong>'+escHtml(before.name||after.name||'?')+'</strong>';
+  } else if(proposal.change_type === 'remove'){
+    summary = 'Remove <strong>'+escHtml(before.name||'?')+'</strong> from master';
+  }
+  const notes = (proposal.admin_notes||'').trim();
+
+  const html =
+    '<div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:32px 24px;">'+
+      '<div style="font-size:28px;margin-bottom:8px;">\ud83d\udca1</div>'+
+      '<h2 style="font-size:20px;font-weight:700;color:#1e2d3d;margin-bottom:8px;">New proposal from '+escHtml(locName)+'</h2>'+
+      '<p style="font-size:15px;color:#3a5470;margin-bottom:16px;">'+escHtml(proposerName)+' proposed: '+summary+'</p>'+
+      (notes ? '<div style="background:#f0f4f8;border-radius:10px;padding:14px 16px;margin-bottom:18px;font-size:13px;color:#3a5470;"><div style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#5b7087;font-weight:700;">Notes</div><div style="margin-top:4px;">'+escHtml(notes)+'</div></div>' : '')+
+      '<a href="https://myclubtracker.com/admin.html?tab=products" style="display:inline-block;background:#3a5470;color:#fff;text-decoration:none;font-size:14px;font-weight:700;padding:10px 18px;border-radius:8px;">Review in Admin \u2192</a>'+
+      '<p style="font-size:12px;color:#8fa3b3;margin-top:24px;">This message was sent because a club submitted a master-catalog proposal.</p>'+
+    '</div>';
+
+  try{
+    await fetch(SUPABASE_URL+'/functions/v1/send-email',{
+      method:'POST',
+      headers:{'apikey':SUPABASE_ANON_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({to: adminEmail, toName: adminName, subject: 'New proposal: '+(after.name||before.name||'change')+' from '+locName, html: html})
+    });
+  } catch(e){ /* silent */ }
 }
 
 // ── HELPERS ──
