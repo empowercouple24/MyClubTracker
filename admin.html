@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-25 07:10:00 -->
+<!-- CACHE BUST: 2026-04-25 16:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -2362,6 +2362,7 @@ function renderLocations(){
       const subBits = [];
       if (status === 'invited' && org.invited_at) subBits.push('Invited ' + fmtDate(org.invited_at));
       if (status === 'invited' && org.invite_expires_at) subBits.push('expires ' + fmtDate(org.invite_expires_at));
+      if (org.leader_email) subBits.push(escHtml(org.leader_email));
       const sub = subBits.join(' · ');
       const resendLink = status === 'invited'
         ? `<button onclick="event.stopPropagation();resendInvite('${orgId}',event)" style="background:none;border:none;color:var(--b6);font-size:12px;font-weight:600;cursor:pointer;padding:0;font-family:inherit;">Resend invite</button>`
@@ -3190,6 +3191,16 @@ function renderOrgDrawer(orgId, tab){
           '<div class="dt-stat"><div class="dt-stat-label">Status</div><div class="dt-stat-val" style="font-size:13px;">'+(org.status||'active')+'</div></div>'+
           '<div class="dt-stat"><div class="dt-stat-label">Rate</div><div class="dt-stat-val" style="font-size:13px;">$'+Number(org.monthly_rate||0).toFixed(2)+'</div></div>'+
         '</div>'+
+      '</div>'+
+      '<div class="dt-section"><div class="dt-heading">Leader</div>'+
+        '<div class="dt-field"><label class="dt-label">Email</label>'+
+          (org.leader_email
+            ? '<div style="display:flex;gap:8px;align-items:center;"><span style="font-size:14px;color:var(--text);flex:1;word-break:break-all;">'+escHtml(org.leader_email)+'</span><button class="dt-btn-outline" onclick="navigator.clipboard.writeText(\''+escHtml(org.leader_email)+'\').then(function(){showToast(\'Copied\',\'success\');})">Copy</button></div>'
+            : '<div style="font-size:13px;color:var(--text-faint);font-style:italic;">Not set</div>')+
+        '</div>'+
+        (org.leader_name
+          ? '<div class="dt-field"><label class="dt-label">Name</label><div style="font-size:14px;color:var(--text);">'+escHtml(org.leader_name)+'</div></div>'
+          : '')+
       '</div>'+
       '<div class="dt-section"><div class="dt-heading">Org details</div>'+
         '<div class="dt-field"><label class="dt-label">Organization name</label><input class="dt-input" id="dt-org-name" value="'+escHtml(org.name||'')+'"/></div>'+
