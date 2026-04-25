@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-25 20:30:00 -->
+<!-- CACHE BUST: 2026-04-25 21:15:00 -->
 <html lang="en">
 <head>
 <script>
@@ -55,6 +55,7 @@ if('serviceWorker' in navigator){
 .org-header-card{background:linear-gradient(135deg,var(--b7),var(--b5));border-radius:var(--radius);padding:18px 20px;margin-bottom:20px;color:white;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .org-header-name{font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;letter-spacing:-0.3px}
 .org-header-sub{font-size:12px;opacity:0.75;margin-top:3px}
+.org-header-email{font-size:11px;opacity:0.6;margin-top:2px;color:white;letter-spacing:0.2px}
 .org-header-badge{background:rgba(255,255,255,0.18);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap}
 
 /* Enter Sales button */
@@ -212,6 +213,7 @@ if('serviceWorker' in navigator){
     <div>
       <div class="org-header-name" id="org-header-name">--</div>
       <div class="org-header-sub" id="org-header-sub">Loading…</div>
+      <div class="org-header-email" id="org-header-email" style="display:none;"></div>
     </div>
     <div class="org-header-actions">
       <button class="org-header-btn" onclick="openAnnualGoalsModal()" title="Set per-club annual sales and DV goals">Set annual goals</button>
@@ -449,10 +451,25 @@ function parseMoney(s){if(!s)return null;var n=parseFloat(String(s).replace(/[$,
     document.getElementById('suspended-banner').style.display='block';
   }
 
-  // Render org header
+  // Render org header. Use the logged-in leader's actual legal name (first + last)
+  // rather than org.leader_name, which holds the value entered at invite time and
+  // may be the inviter's name rather than the claimed leader's. Fall back through
+  // display_name, then org.leader_name, then em-dash.
   document.getElementById('org-header-name').textContent=org.name||'--';
-  document.getElementById('org-header-sub').textContent=
-    `Leader: ${org.leader_name||ME.display_name||'--'} - Activated ${org.activated_at?new Date(org.activated_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'--'}`;
+  var _legal = [ME.first_name||'', ME.last_name||''].join(' ').trim();
+  var _leaderName = _legal || ME.display_name || org.leader_name || '\u2014';
+  var _activatedStr = org.activated_at
+    ? new Date(org.activated_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})
+    : '--';
+  document.getElementById('org-header-sub').textContent =
+    'Leader: '+_leaderName+' \u00b7 Activated '+_activatedStr;
+  // Leader email line (faint, below the sub). Hidden if no email is available.
+  var _leaderEmail = ME.email || org.leader_email || '';
+  var _emailEl = document.getElementById('org-header-email');
+  if(_emailEl){
+    if(_leaderEmail){ _emailEl.textContent = _leaderEmail; _emailEl.style.display=''; }
+    else { _emailEl.style.display='none'; }
+  }
   document.getElementById('org-plan-badge').textContent=
     org.billing_plan==='paid'?`$${Number(org.monthly_rate||0).toFixed(2)}/mo`:'Free Plan';
 
