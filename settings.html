@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-25 04:15:00 -->
+<!-- CACHE BUST: 2026-04-25 04:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -1029,6 +1029,7 @@ async function saveOrgKey(){
 async function loadAdmins() {
   const { data:users } = await sb.from('users')
     .select('id,email,role,location_id,display_name,first_name,last_name,phone,avatar_url')
+    .is('deleted_at', null)
     .order('role').order('display_name');
   allAdmins = users || [];
   renderAdmins();
@@ -1215,7 +1216,7 @@ function renderAdmins() {
       </div>
       ${roleControl}
       <button onclick="openEditUser('${u.id}','${escAttr(u.first_name)}','${escAttr(u.last_name)}','${escAttr(u.display_name)}','${escAttr(u.phone)}')" title="Edit profile" style="background:none;border:1px solid var(--border);border-radius:5px;padding:3px 8px;cursor:pointer;font-size:13px;color:var(--text-muted);line-height:1;flex-shrink:0;" onmouseover="this.style.background='var(--b0)'" onmouseout="this.style.background='none'">✎</button>
-      ${!isSelf ? `<button onclick="confirmRemoveUser('${u.id}','${escAttr(fullName)}')" title="Remove from location" style="background:none;border:1px solid var(--border);border-radius:5px;padding:3px 8px;cursor:pointer;font-size:13px;color:var(--r5);line-height:1;flex-shrink:0;" onmouseover="this.style.background='var(--r0)'" onmouseout="this.style.background='none'">✕</button>` : ''}
+      ${!isSelf ? `<button onclick="confirmRemoveUser('${u.id}','${escAttr(fullName)}')" title="Delete user" style="background:none;border:1px solid var(--border);border-radius:5px;padding:3px 8px;cursor:pointer;font-size:13px;color:var(--r5);line-height:1;flex-shrink:0;" onmouseover="this.style.background='var(--r0)'" onmouseout="this.style.background='none'">✕</button>` : ''}
     </div>`;
   }).join('');
 }
@@ -1253,16 +1254,16 @@ async function saveEditUser() {
   renderAdmins();
 }
 
-// ── REMOVE USER FROM LOCATION ──
+// ── SOFT-DELETE USER ──
 function confirmRemoveUser(userId, name) {
-  if(!confirm('Remove ' + name + ' from their location?\n\nThey will lose access immediately but can rejoin with an invite code.')) return;
+  if(!confirm('Delete ' + name + '?\n\nThey will lose access immediately and disappear from all user lists. Their historical records (sales, payouts, audit log) are preserved for reference.\n\nThis action cannot be undone from the UI.')) return;
   removeUser(userId, name);
 }
 
 async function removeUser(userId, name) {
-  const { error } = await sb.from('users').update({location_id: null, role: 'pending'}).eq('id', userId);
-  if(error){ showToast('Remove failed: '+error.message, 'error'); return; }
-  showToast(name + ' removed ✓', 'success');
+  const { error } = await sb.from('users').update({deleted_at: new Date().toISOString()}).eq('id', userId);
+  if(error){ showToast('Delete failed: '+error.message, 'error'); return; }
+  showToast(name + ' deleted ✓', 'success');
   await loadAdmins();
 }
 

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-25 04:15:00 -->
+<!-- CACHE BUST: 2026-04-25 04:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -306,6 +306,12 @@ let ME=null,MY_ORG=null,MY_LOCATIONS=[],ALL_DAYS=[],ALL_USERS=[],CO_LEADERS=[];
   // Load user record
   const{data:user}=await sb.from('users').select('*').eq('id',session.user.id).single();
   if(!user){await sb.auth.signOut();window.location.href='index.html';return;}
+  if(user.deleted_at){
+    await sb.auth.signOut();
+    alert('Your account has been removed. Please contact support.');
+    window.location.href='index.html';
+    return;
+  }
 
   // Must be org_leader (or admin)
   if(user.role!=='org_leader'&&user.role!=='admin'){
@@ -368,7 +374,7 @@ async function loadLocations(){
   ALL_DAYS=days||[];
 
   // Load users for all locations
-  const{data:users}=await sb.from('users').select('id,first_name,last_name,display_name,email,role,location_id').in('location_id',locIds);
+  const{data:users}=await sb.from('users').select('id,first_name,last_name,display_name,email,role,location_id').in('location_id',locIds).is('deleted_at', null);
   ALL_USERS=users||[];
 
   renderLocations();

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-25 04:15:00 -->
+<!-- CACHE BUST: 2026-04-25 04:30:00 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -484,8 +484,15 @@ async function init(){
   }
   var session=(await sb.auth.getSession()).data.session;
   if(session){
-    var r=await sb.from('users').select('role,location_id').eq('id',session.user.id).single();
+    var r=await sb.from('users').select('role,location_id,deleted_at').eq('id',session.user.id).single();
     var u=r.data;
+    // Soft-deleted account = sign out and show message
+    if(u&&u.deleted_at){
+      await sb.auth.signOut();
+      showTab('signin');
+      showMsg('si-msg','Your account has been removed. Please contact your administrator.','error');
+      return;
+    }
     // Only auto-redirect if not coming from a failed app load (no ?from=app param)
     var fromApp=params.get('from')==='app';
     if(!fromApp){
@@ -519,10 +526,16 @@ async function doSignIn(){
     var res=await sb.auth.signInWithPassword({email:email,password:pw});
     if(res.error){showMsg('si-msg',res.error.message,'error');setBtn('si-btn',false,'Sign In');return;}
     if(!res.data.user.email_confirmed_at){await sb.auth.signOut();showMsg('si-msg','Please confirm your email first. Check your inbox.','error');document.getElementById('resend-wrap').style.display='block';setBtn('si-btn',false,'Sign In');return;}
-    var ur=await sb.from('users').select('role,location_id,must_change_password').eq('id',res.data.user.id).single();
+    var ur=await sb.from('users').select('role,location_id,must_change_password,deleted_at').eq('id',res.data.user.id).single();
     if(ur.error){showMsg('si-msg','Error loading account: '+ur.error.message,'error');setBtn('si-btn',false,'Sign In');return;}
     var u=ur.data;
     if(!u){showMsg('si-msg','Account not set up. Contact your admin.','error');setBtn('si-btn',false,'Sign In');return;}
+    if(u.deleted_at){
+      await sb.auth.signOut();
+      showMsg('si-msg','Your account has been removed. Please contact your administrator.','error');
+      setBtn('si-btn',false,'Sign In');
+      return;
+    }
     if(u.role==='admin'){window.location.href='admin.html';return;}
     if(u.role==='org_leader'){
       if(u.must_change_password){

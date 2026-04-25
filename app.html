@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-24 23:30:00 -->
+<!-- CACHE BUST: 2026-04-25 04:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -3903,6 +3903,7 @@ async function openProfileModal(){
           .select('first_name,last_name,display_name,email,phone')
           .eq('location_id',LOCATION_ID)
           .eq('role','owner')
+          .is('deleted_at', null)
           .neq('id',CURRENT_SESSION.user.id);
         if(otherOwners&&otherOwners.length){
           otherOwners.forEach(o=>{
@@ -3940,7 +3941,8 @@ async function loadLocationUsersForTeam(){
   try{
     const{data,error}=await sb.from('users')
       .select('id,display_name,first_name,last_name,email,role,avatar_url')
-      .eq('location_id',LOCATION_ID);
+      .eq('location_id',LOCATION_ID)
+      .is('deleted_at', null);
     if(!error && data) _locationUsers = data;
   }catch(e){
     console.error('loadLocationUsersForTeam error:',e);
@@ -4451,7 +4453,15 @@ async function init(){
     IS_ADMIN_VIEW=true;LOCATION_ID=params.get('location_id');OPEN_SETTINGS=params.get('settings')==='1';
     USER_ROLE='admin';
   }else{
-    const{data:u,error:uErr}=await sb.from('users').select('role,location_id,display_name,first_name,last_name,phone,avatar_url').eq('id',session.user.id).single();
+    const{data:u,error:uErr}=await sb.from('users').select('role,location_id,display_name,first_name,last_name,phone,avatar_url,deleted_at').eq('id',session.user.id).single();
+
+    // If user is soft-deleted, sign out and redirect to login
+    if(u && u.deleted_at){
+      await sb.auth.signOut();
+      alert('Your account has been removed. Please contact your administrator.');
+      window.location.href='index.html';
+      return;
+    }
 
     // If no users row yet -- profile setup is still pending (trigger may not have fired)
     // Try to upsert from auth metadata then reload
@@ -4569,7 +4579,7 @@ async function init(){
     SETTINGS._ownerName  = loc.owner_name||'';
     SETTINGS._ownerPhone = loc.owner_phone||'';
     // settings.ownerEmail is authoritative (set by admin); fall back to owner user email
-    const{data:ownerUser}=await sb.from('users').select('email').eq('location_id',LOCATION_ID).eq('role','owner').limit(1).single();
+    const{data:ownerUser}=await sb.from('users').select('email').eq('location_id',LOCATION_ID).eq('role','owner').is('deleted_at', null).limit(1).single();
     SETTINGS._ownerEmail = (loc.settings&&loc.settings.ownerEmail)||ownerUser?.email||'';
   }
   if(IS_ADMIN_VIEW){
@@ -16498,11 +16508,18 @@ function autoSizeInput(el){
     if (deactivationShown || IS_ADMIN_VIEW) return;
     if (!CURRENT_SESSION) return;
     try {
-      var res = await sb.from('users').select('role,location_id').eq('id', CURRENT_SESSION.user.id).single();
+      var res = await sb.from('users').select('role,location_id,deleted_at').eq('id', CURRENT_SESSION.user.id).single();
       var u = res.data;
       // No user row — could be a Supabase hiccup, skip silently rather than logging out
       if (!u) {
         console.warn('checkDeactivation: no user row returned, skipping.');
+        return;
+      }
+      // Soft-deleted account = sign out and show deactivation overlay
+      if (u.deleted_at) {
+        deactivationShown = true;
+        await sb.auth.signOut();
+        injectDeactivationOverlay();
         return;
       }
       // Only show deactivated screen if the account is explicitly marked pending

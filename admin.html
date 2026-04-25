@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-25 04:15:00 -->
+<!-- CACHE BUST: 2026-04-25 04:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -943,6 +943,53 @@ if('serviceWorker' in navigator){
         <button class="btn-modal-primary" onclick="addLocation()" id="nl-add-btn">✓ Add Location</button>
         <button class="btn-modal-cancel" onclick="backToForm()">← Edit</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- INVITE NEW ORGANIZATION MODAL -->
+<div class="modal-overlay" id="invite-org-modal" onclick="closeOrgModalOnBg(event,'invite-org-modal')">
+  <div class="modal-box">
+    <div class="modal-title">Invite New Organization</div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.5;">
+      Send an invite link to an organization leader. They'll set up their account, add their clubs, and start tracking sales.
+    </div>
+    <div class="modal-field"><label>Leader Email</label><input type="email" id="io-email" placeholder="leader@example.com" autocomplete="off"/></div>
+    <div class="modal-field"><label>Organization Name <span style="font-size:11px;font-weight:400;color:var(--text-faint);">optional</span></label><input type="text" id="io-orgname" placeholder="e.g. Smith Org Clubs" autocomplete="off"/></div>
+    <div class="modal-field"><label>Monthly Rate <span style="font-size:11px;font-weight:400;color:var(--text-faint);">USD per month, 0 for free</span></label><input type="number" id="io-rate" placeholder="0" min="0" step="1" value="0"/></div>
+    <div class="modal-error" id="io-error"></div>
+    <div class="modal-success" id="io-success" style="display:none;background:var(--g0);color:var(--g7);padding:10px 12px;border-radius:8px;font-size:12px;line-height:1.5;margin-top:8px;"></div>
+    <div id="io-link-wrap" style="display:none;background:var(--b0);border:1px solid var(--border-light);border-radius:8px;padding:10px 12px;margin-top:10px;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);margin-bottom:6px;">Invite Link</div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <span id="io-link-text" style="flex:1;font-family:monospace;font-size:11px;color:var(--b7);word-break:break-all;line-height:1.4;"></span>
+        <button type="button" onclick="copyInviteLink()" style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;background:var(--b6);color:white;border:none;border-radius:6px;padding:6px 10px;cursor:pointer;white-space:nowrap;flex-shrink:0;">Copy</button>
+      </div>
+      <div style="font-size:11px;color:var(--text-faint);margin-top:6px;">Link expires in 30 days. Share manually if email delivery fails.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-primary" id="io-btn" onclick="submitInviteOrg()">Send Invite →</button>
+      <button class="btn-modal-cancel" onclick="closeOrgModal('invite-org-modal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT ORG RATE MODAL -->
+<div class="modal-overlay" id="edit-rate-modal" onclick="closeOrgModalOnBg(event,'edit-rate-modal')">
+  <div class="modal-box">
+    <div class="modal-title">Edit Billing Rate</div>
+    <div id="er-sub" style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.5;"></div>
+    <div class="modal-field"><label>Plan</label>
+      <select id="er-plan" style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:#fff;border:1px solid var(--b5);border-radius:8px;padding:10px 12px;outline:none;">
+        <option value="free">Free</option>
+        <option value="paid">Paid</option>
+      </select>
+    </div>
+    <div class="modal-field"><label>Monthly Rate <span style="font-size:11px;font-weight:400;color:var(--text-faint);">USD per month</span></label><input type="number" id="er-rate" placeholder="0" min="0" step="1"/></div>
+    <div class="modal-error" id="er-error"></div>
+    <div class="modal-footer">
+      <button class="btn-modal-primary" id="er-btn" onclick="submitEditRate()">Save</button>
+      <button class="btn-modal-cancel" onclick="closeOrgModal('edit-rate-modal')">Cancel</button>
     </div>
   </div>
 </div>
@@ -1916,8 +1963,14 @@ async function init(){
   const{data:{session}}=await sb.auth.getSession();
   if(!session){window.location.href='index.html';return;}
   currentSession=session;
-  const{data:u}=await sb.from('users').select('role,display_name,first_name,last_name,phone,avatar_url').eq('id',session.user.id).single();
+  const{data:u}=await sb.from('users').select('role,display_name,first_name,last_name,phone,avatar_url,deleted_at').eq('id',session.user.id).single();
   if(!u||u.role!=='admin'){window.location.href='index.html';return;}
+  if(u.deleted_at){
+    await sb.auth.signOut();
+    alert('Your account has been removed. Please contact support.');
+    window.location.href='index.html';
+    return;
+  }
   adminProfile={display_name:u.display_name||'',phone:u.phone||''};
   const displayName=u.display_name||[u.first_name,u.last_name].filter(Boolean).join(' ')||session.user.email;
   document.getElementById('nav-profile') && (document.getElementById('nav-profile').textContent=displayName);
@@ -1939,7 +1992,7 @@ async function init(){
   const{data:days}=await sb.from('days').select('location_id,date,data').gte('date',since);
   allDays = days || [];
   // Fetch all owner/employee users so we can check which locations have registered accounts
-  const{data:locUsers,error:luErr}=await sb.from('users').select('id,email,first_name,last_name,display_name,phone,role,location_id').in('role',['owner','employee']);
+  const{data:locUsers,error:luErr}=await sb.from('users').select('id,email,first_name,last_name,display_name,phone,role,location_id').in('role',['owner','employee']).is('deleted_at', null);
   if(luErr){console.warn('Could not load location users:',luErr.message);}
   allLocationUsers = locUsers || [];
   try { renderKPIs(); } catch(e) { console.error('renderKPIs error:',e); }
@@ -4200,7 +4253,7 @@ async function notifyProposerOfDecision(proposal, decision, declineReason){
 
   let toEmail = '', toName = proposal.proposer_name || 'there';
   try{
-    const{data:u} = await sb.from('users').select('email,display_name').eq('id', proposal.proposer_user_id).single();
+    const{data:u} = await sb.from('users').select('email,display_name').eq('id', proposal.proposer_user_id).is('deleted_at', null).single();
     if(u){
       toEmail = u.email || '';
       toName = u.display_name || toName;

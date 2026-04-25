@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-25 04:00:00 -->
+<!-- CACHE BUST: 2026-04-25 04:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -1234,7 +1234,7 @@ async function notifyAdminOfProposal(proposal, proposerName){
   let adminEmail = 'support@myclubtracker.com';
   let adminName = 'Admin';
   try{
-    const{data:admins} = await sb.from('users').select('email,display_name').eq('role','admin').limit(1);
+    const{data:admins} = await sb.from('users').select('email,display_name').eq('role','admin').is('deleted_at', null).limit(1);
     if(admins && admins.length){
       adminEmail = admins[0].email || adminEmail;
       adminName = admins[0].display_name || adminName;
