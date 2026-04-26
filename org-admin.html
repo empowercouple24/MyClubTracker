@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-26 02:00:00 -->
+<!-- CACHE BUST: 2026-04-26 04:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -1163,6 +1163,11 @@ const ATTN_NO_ENTRY_DAYS      = 3;    // no entry in last X days
 const ATTN_PACE_BEHIND_PCT    = 5;    // behind annual pace by > X%
 const ATTN_WOW_DECLINE_PCT    = 10;   // 7-day sales down >= X% WoW
 const ATTN_PENDING_AGE_DAYS   = 25;   // org status='invited' for >= X days
+// Grace period for newly-created clubs: skip the "no entries logged yet"
+// attention item until the club has been around long enough to reasonably
+// expect data. Without this, clubs trigger an attention item the moment they
+// land in the system, which is noise rather than signal.
+const ATTN_NEW_CLUB_GRACE_DAYS = 3;
 
 // Compute org-wide wins and attention items by walking each location's
 // metrics. Pending invite + suspended triggers operate at the org level.
@@ -1208,7 +1213,15 @@ function computeOrgCallouts(){
       attention.push({club: club, text: 'tracker at ' + m.tracker.pct + '% (' + m.tracker.entries + '/' + m.tracker.expected + ' days)'});
     }
     if(m.daysSinceEntry === null){
-      attention.push({club: club, text: 'no entries logged yet'});
+      // Skip "no entries logged yet" if club is younger than the grace period.
+      // Brand-new clubs need a few days before this trigger reads as signal.
+      let clubAgeDays = null;
+      if(loc.created_at){
+        clubAgeDays = Math.floor((Date.now() - new Date(loc.created_at).getTime()) / 864e5);
+      }
+      if(clubAgeDays === null || clubAgeDays >= ATTN_NEW_CLUB_GRACE_DAYS){
+        attention.push({club: club, text: 'no entries logged yet'});
+      }
     } else if(m.daysSinceEntry >= ATTN_NO_ENTRY_DAYS){
       attention.push({club: club, text: 'no entry in ' + m.daysSinceEntry + ' days'});
     }

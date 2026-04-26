@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-26 03:30:00 -->
+<!-- CACHE BUST: 2026-04-26 04:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -2268,9 +2268,15 @@ function renderLocations(){
 
     const lastEntryHtml = !lastFmt
       ? '<span class="last-none">Never</span>'
-      : daysSinceLast <= 2
-        ? `<span class="last-ok">${lastFmt}</span>`
-        : `<span class="last-warn">${lastFmt}</span>`;
+      : (function(){
+          let label;
+          if(daysSinceLast === 0)      label = 'Today';
+          else if(daysSinceLast === 1) label = 'Yesterday';
+          else if(daysSinceLast <= 6)  label = daysSinceLast + 'd ago';
+          else                         label = lastFmt;
+          const cls = daysSinceLast <= 2 ? 'last-ok' : 'last-warn';
+          return '<span class="'+cls+'">'+label+'</span>';
+        })();
 
     const weekDV2 = sumField(ld,'dv',w0,today);
     const monthDV2 = sumField(ld,'dv',m0,today);
