@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-26 00:30:00 -->
+<!-- CACHE BUST: 2026-04-26 01:15:00 -->
 <html lang="en">
 <head>
 <script>
@@ -82,7 +82,7 @@ if('serviceWorker' in navigator){
 .hero-bar-numbers{display:flex;align-items:baseline;gap:6px;margin-bottom:8px;}
 .hero-bar-current{font-family:'Outfit',sans-serif;font-size:24px;font-weight:800;color:var(--text);letter-spacing:-0.4px;}
 .hero-bar-target{font-size:13px;color:var(--text-muted);}
-.hero-bar-track{position:relative;height:9px;background:var(--surface-2);border-radius:5px;overflow:visible;}
+.hero-bar-track{position:relative;height:9px;background:var(--b0);border:1px solid var(--border-light);border-radius:5px;overflow:visible;}
 .hero-bar-fill{position:absolute;top:0;left:0;bottom:0;border-radius:5px;transition:width 0.4s ease;}
 .hero-bar-fill.ok,.hero-bar-fill.ahead{background:var(--g5);}
 .hero-bar-fill.warn{background:var(--a5);}
@@ -220,7 +220,7 @@ if('serviceWorker' in navigator){
 .loc-pace-pill.warn{background:#fef3c7;color:#92400e}
 .loc-pace-pill.ahead{background:var(--g0);color:var(--g6)}
 .loc-pace-pill.neutral{background:var(--surface-2);color:var(--text-muted)}
-.loc-pace-track{position:relative;height:6px;background:var(--surface-2);border-radius:3px;overflow:visible}
+.loc-pace-track{position:relative;height:6px;background:var(--b0);border:1px solid var(--border-light);border-radius:3px;overflow:visible}
 .loc-pace-fill{position:absolute;top:0;left:0;bottom:0;border-radius:3px;transition:width 0.4s ease}
 .loc-pace-fill.ok,.loc-pace-fill.ahead{background:var(--g5)}
 .loc-pace-fill.warn{background:var(--a5)}
@@ -998,6 +998,24 @@ function buildLocPaceRowHTML(m){
   </div>`;
 }
 
+// Returns the user-facing role label for a user listed inside a specific
+// club's team panel. Mirrors the role hierarchy: Admin > Owner > Org Leader >
+// Operator > Pending. The DB stores 'employee' for what the UI calls
+// 'Operator' (per the codebase's terminology hard rule).
+function teamRoleLabel(u, locId){
+  if(!u) return 'Operator';
+  if(u.role === 'admin') return 'Admin';
+  if(u.role === 'owner') return 'Owner';
+  if(u.role === 'org_leader'){
+    // An org leader who's listed under THIS club is the de-facto owner of it
+    // (they were created as the owner during org provisioning). For other
+    // clubs in the org, they appear as the leader role.
+    return u.location_id === locId ? 'Owner' : 'Org Leader';
+  }
+  if(u.role === 'pending') return 'Pending';
+  return 'Operator'; // employee + any unknown
+}
+
 function renderLocations(){
   const el=document.getElementById('locations-list');
   if(!MY_LOCATIONS.length){
@@ -1021,7 +1039,7 @@ function renderLocations(){
             <div class="team-name">${escHtml(u.display_name||[u.first_name,u.last_name].filter(Boolean).join(' ')||'--')}</div>
             <div class="team-email">${escHtml(u.email||'')}</div>
           </div>
-          <span class="team-role-badge">${u.role==='owner'?'Owner':'Operator'}</span>
+          <span class="team-role-badge">${teamRoleLabel(u, loc.id)}</span>
         </div>`).join('')
       :`<div style="font-size:12px;color:var(--text-faint);">No team members yet.</div>`;
 
