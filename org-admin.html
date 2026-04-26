@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-26 04:00:00 -->
+<!-- CACHE BUST: 2026-04-26 04:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -283,6 +283,11 @@ if('serviceWorker' in navigator){
 .team-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);margin-bottom:8px}
 .team-row{background:var(--surface);border:1px solid var(--border-light);border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;gap:8px}
 .team-row:last-child{margin-bottom:0}
+.team-row-left{display:flex;align-items:center;gap:10px;flex:1;min-width:0;}
+.team-avatar{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--b0);color:var(--b6);font-size:11px;font-weight:700;font-family:'DM Sans',sans-serif;border:1px solid var(--border-light);overflow:hidden;}
+.team-avatar img{width:100%;height:100%;object-fit:cover;display:block;}
+.team-avatar.is-owner{background:var(--g0);color:var(--g6);}
+.team-row-info{flex:1;min-width:0;}
 .team-name{font-size:13px;font-weight:700;color:var(--text)}
 .team-email{font-size:11px;color:var(--text-faint);margin-top:1px}
 .team-role-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:var(--b0);color:var(--b6);border:1px solid var(--b2)}
@@ -800,7 +805,7 @@ async function loadLocations(){
   ALL_DAYS=days||[];
 
   // Load users for all locations
-  const{data:users}=await sb.from('users').select('id,first_name,last_name,display_name,email,role,location_id').in('location_id',locIds).is('deleted_at', null);
+  const{data:users}=await sb.from('users').select('id,first_name,last_name,display_name,email,role,location_id,avatar_url').in('location_id',locIds).is('deleted_at', null);
   ALL_USERS=users||[];
 
   // Load goals for the currently-selected hero year (cached for repeat year-flips)
@@ -1392,14 +1397,27 @@ function renderLocations(){
       :`<span class="badge badge-nodata">No data</span>`;
 
     const teamHtml=locUsers.length
-      ?locUsers.map(u=>`
+      ?locUsers.map(u=>{
+        const fullName = u.display_name || [u.first_name,u.last_name].filter(Boolean).join(' ') || '--';
+        const initials = (u.first_name && u.last_name)
+          ? (u.first_name[0]+u.last_name[0]).toUpperCase()
+          : (u.display_name||u.email||'?').split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
+        const isOwnerLike = (u.role==='owner' || u.role==='org_leader' || u.role==='admin');
+        const avatarHtml = u.avatar_url
+          ? `<div class="team-avatar"><img src="${escHtml(u.avatar_url)}" alt=""/></div>`
+          : `<div class="team-avatar${isOwnerLike?' is-owner':''}">${escHtml(initials)}</div>`;
+        return `
         <div class="team-row">
-          <div>
-            <div class="team-name">${escHtml(u.display_name||[u.first_name,u.last_name].filter(Boolean).join(' ')||'--')}</div>
-            <div class="team-email">${escHtml(u.email||'')}</div>
+          <div class="team-row-left">
+            ${avatarHtml}
+            <div class="team-row-info">
+              <div class="team-name">${escHtml(fullName)}</div>
+              <div class="team-email">${escHtml(u.email||'')}</div>
+            </div>
           </div>
           <span class="team-role-badge">${teamRoleLabel(u, loc.id)}</span>
-        </div>`).join('')
+        </div>`;
+      }).join('')
       :`<div style="font-size:12px;color:var(--text-faint);">No team members yet.</div>`;
 
     return`<div class="loc-card" id="loc-${loc.id}">

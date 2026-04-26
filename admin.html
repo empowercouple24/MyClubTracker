@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-26 04:00:00 -->
+<!-- CACHE BUST: 2026-04-26 04:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -1411,7 +1411,7 @@ async function approveOrgRequest(reqId, btn){
   // 3. Send onboarding invite
   const inviteLink=`${window.location.origin}/onboard.html?token=${token}`;
   try{
-    await invokeEdge('send-org-invite',{to:r.email,orgName:r.org_name,inviteLink,expiresAt});
+    await invokeEdge('send-org-invite',{to:r.email,orgName:r.org_name,inviteLink,signupLink:inviteLink,expiresAt});
   }catch(e){console.warn('Invite email failed:',e);}
   // 4. Remove from list + refresh
   allOrgRequests=allOrgRequests.filter(x=>x.id!==reqId);
@@ -2872,7 +2872,7 @@ async function submitInviteOrg() {
 
   // Fire edge function for email (raw fetch — see hard rule on sb.functions.invoke)
   try {
-    const { data: fnData, error: fnErr } = await invokeEdge('send-org-invite', { to: email, orgName: orgName || 'your organization', inviteLink, expiresAt });
+    const { data: fnData, error: fnErr } = await invokeEdge('send-org-invite', { to: email, orgName: orgName || 'your organization', inviteLink, signupLink: inviteLink, expiresAt });
     const sent = fnData && fnData.sent === true;
     if (fnErr || !sent) {
       showOrgModalAlert('io-success', `Org created but email failed (${(fnErr&&fnErr.message)||(fnData&&fnData.error)||'unknown'}) — copy the link below to send manually.`);
@@ -2915,14 +2915,24 @@ async function resendInvite(orgId, e) {
   org.invited_at = new Date().toISOString();
 
   // Try email (raw fetch — see hard rule on sb.functions.invoke)
+  // Use the canonical primary_leader_email if available, fall back to legacy.
+  var to = org.primary_leader_email || org.leader_email;
+  if(!to){
+    showSaToast('No leader email on file — cannot resend.', 3500);
+    navigator.clipboard?.writeText(inviteLink);
+    showSaToast('Link copied to clipboard.', 3500);
+    return;
+  }
   try {
-    const { data: fnData, error: fnErr } = await invokeEdge('send-org-invite', { to: org.leader_email, orgName: org.name, inviteLink, expiresAt });
+    // Pass both inviteLink and signupLink — the deployed Edge Function may
+    // expect either name. Sending both is harmless if one is unused.
+    const { data: fnData, error: fnErr } = await invokeEdge('send-org-invite', { to: to, orgName: org.name, inviteLink, signupLink: inviteLink, expiresAt });
     const sent = fnData && fnData.sent === true;
     if (fnErr || !sent) {
       navigator.clipboard?.writeText(inviteLink);
       showSaToast('Email failed — link copied to clipboard.', 3500);
     } else {
-      showSaToast('Invite resent via email.');
+      showSaToast('Invite resent to ' + to + '.');
     }
   } catch(e) {
     navigator.clipboard?.writeText(inviteLink);
@@ -3234,6 +3244,24 @@ function renderOrgDrawer(orgId, tab){
             '<div class="dt-field"><label class="dt-label">Email</label><input class="dt-input" id="dt-org-leader-email" value="'+escHtml(org.leader_email||'')+'" placeholder="leader@example.com" type="email" autocomplete="off"/></div>'+
             '<div class="dt-field"><label class="dt-label">Name</label><input class="dt-input" id="dt-org-leader-name" value="'+escHtml(org.leader_name||'')+'" placeholder="\\u2014"/></div>'+
             '<div style="font-size:11px;color:var(--text-faint);margin-top:6px;line-height:1.4;">Edits the destination address for the next Resend invite. Once the leader signs up, these become read-only.</div>'+
+            (function(){
+              var bits = [];
+              if(org.invited_at){
+                var ageDays = Math.floor((Date.now() - new Date(org.invited_at).getTime()) / 864e5);
+                bits.push('Invited ' + ageDays + ' day' + (ageDays!==1?'s':'') + ' ago');
+              }
+              if(org.invite_expires_at){
+                var expMs = new Date(org.invite_expires_at).getTime();
+                var dLeft = Math.ceil((expMs - Date.now()) / 864e5);
+                if(dLeft <= 0) bits.push('expired');
+                else bits.push('expires in ' + dLeft + ' day' + (dLeft!==1?'s':''));
+              }
+              var meta = bits.length ? '<div style="font-size:11px;color:var(--text-faint);margin-top:10px;">'+bits.join(' \u00b7 ')+'</div>' : '';
+              return meta +
+                '<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">'+
+                  '<button class="dt-btn-outline" onclick="resendInvite(\''+org.id+'\', event)">\u21bb Resend invite</button>'+
+                '</div>';
+            })()+
           '</div>'
         : '<div class="dt-section"><div class="dt-heading">Leader</div>'+
             (function(){
