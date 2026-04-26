@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-26 04:30:00 -->
+<!-- CACHE BUST: 2026-04-26 05:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -1411,7 +1411,7 @@ async function approveOrgRequest(reqId, btn){
   // 3. Send onboarding invite
   const inviteLink=`${window.location.origin}/onboard.html?token=${token}`;
   try{
-    await invokeEdge('send-org-invite',{to:r.email,orgName:r.org_name,inviteLink,signupLink:inviteLink,expiresAt});
+    await invokeEdge('send-org-invite',{to:r.email,orgName:r.org_name,inviteLink,expiresAt});
   }catch(e){console.warn('Invite email failed:',e);}
   // 4. Remove from list + refresh
   allOrgRequests=allOrgRequests.filter(x=>x.id!==reqId);
@@ -2872,7 +2872,7 @@ async function submitInviteOrg() {
 
   // Fire edge function for email (raw fetch — see hard rule on sb.functions.invoke)
   try {
-    const { data: fnData, error: fnErr } = await invokeEdge('send-org-invite', { to: email, orgName: orgName || 'your organization', inviteLink, signupLink: inviteLink, expiresAt });
+    const { data: fnData, error: fnErr } = await invokeEdge('send-org-invite', { to: email, orgName: orgName || 'your organization', inviteLink, expiresAt });
     const sent = fnData && fnData.sent === true;
     if (fnErr || !sent) {
       showOrgModalAlert('io-success', `Org created but email failed (${(fnErr&&fnErr.message)||(fnData&&fnData.error)||'unknown'}) — copy the link below to send manually.`);
@@ -2924,9 +2924,7 @@ async function resendInvite(orgId, e) {
     return;
   }
   try {
-    // Pass both inviteLink and signupLink — the deployed Edge Function may
-    // expect either name. Sending both is harmless if one is unused.
-    const { data: fnData, error: fnErr } = await invokeEdge('send-org-invite', { to: to, orgName: org.name, inviteLink, signupLink: inviteLink, expiresAt });
+    const { data: fnData, error: fnErr } = await invokeEdge('send-org-invite', { to: to, orgName: org.name, inviteLink, expiresAt });
     const sent = fnData && fnData.sent === true;
     if (fnErr || !sent) {
       navigator.clipboard?.writeText(inviteLink);
