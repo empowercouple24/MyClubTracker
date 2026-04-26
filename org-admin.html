@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-26 04:30:00 -->
+<!-- CACHE BUST: 2026-04-26 05:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -327,6 +327,27 @@ if('serviceWorker' in navigator){
 .modal-alert.show{display:block}
 .modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
 
+/* Profile & Settings modal */
+.prof-section{padding:14px 0;border-top:1px solid var(--border-light)}
+.prof-section:first-child{border-top:none;padding-top:0}
+.prof-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-faint);margin-bottom:12px}
+.prof-row{display:flex;align-items:center;gap:10px;padding:6px 0}
+.prof-row label{flex:0 0 92px;font-size:13px;font-weight:600;color:var(--text-muted)}
+.prof-row .prof-input{flex:1;min-width:0}
+.prof-input{width:100%;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);background:var(--b0);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:8px 11px;outline:none;transition:border-color 0.15s}
+.prof-input:focus{border-color:var(--b5)}
+.prof-input:disabled{opacity:0.5;cursor:not-allowed;background:var(--surface-muted,#f5f7fa)}
+.prof-avatar-wrap{position:relative;width:80px;height:80px;cursor:pointer;border-radius:50%}
+.prof-avatar-circle{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--b7),var(--b4));color:white;display:flex;align-items:center;justify-content:center;font-family:'Outfit',sans-serif;font-size:28px;font-weight:800;overflow:hidden;box-shadow:0 4px 14px rgba(58,84,112,0.22)}
+.prof-avatar-overlay{position:absolute;bottom:0;right:0;width:26px;height:26px;border-radius:50%;background:var(--b7);border:2px solid var(--surface);color:white;display:flex;align-items:center;justify-content:center;font-size:13px}
+.prof-cp-row{display:flex;align-items:center;gap:10px;padding:6px 0}
+.prof-cp-row label{flex:0 0 130px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint)}
+.prof-pw-wrap{position:relative;flex:1;display:flex;align-items:center}
+.prof-pw-eye{position:absolute;right:8px;background:none;border:none;cursor:pointer;font-size:15px;color:#8fa3b3;padding:0;line-height:1}
+.prof-msg{display:none;padding:8px 12px;font-size:12px;border-radius:var(--radius-sm);margin-top:8px}
+.prof-msg.error{background:var(--rpale,#fff0f0);color:var(--red,#c03030);border:1px solid #fca5a5;display:block}
+.prof-msg.success{background:#dcfce7;color:#166534;border:1px solid #86efac;display:block}
+
 /* Empty state */
 .empty-state{text-align:center;padding:48px 24px;color:var(--text-faint)}
 .empty-icon{font-size:40px;margin-bottom:12px}
@@ -548,6 +569,68 @@ if('serviceWorker' in navigator){
   </div>
 </div>
 
+<!-- -- PROFILE & SETTINGS MODAL -- -->
+<div class="modal-overlay" id="profile-modal" style="z-index:260;">
+  <div class="modal" style="max-width:480px;width:100%;">
+    <div class="modal-title">Profile &amp; Settings</div>
+    <div class="modal-sub">Update your personal info. Club-level settings live inside each club.</div>
+
+    <div class="prof-section">
+      <div class="prof-section-title">My Profile</div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:6px 0 14px;">
+        <div class="prof-avatar-wrap" onclick="document.getElementById('prof-avatar-input').click()" title="Upload photo">
+          <div class="prof-avatar-circle" id="prof-avatar-circle"><span id="prof-avatar-initials"></span><img id="prof-avatar-img" alt="" style="display:none;width:80px;height:80px;object-fit:cover;border-radius:50%;"/></div>
+          <div class="prof-avatar-overlay">📷</div>
+          <input type="file" id="prof-avatar-input" accept="image/*" style="display:none;" onchange="profHandleAvatarUpload(this)"/>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:12px;font-weight:600;color:var(--text);">Profile Photo</div>
+          <div style="font-size:11px;color:var(--text-faint);margin-top:2px;">Tap to upload. Shown in nav and team views.</div>
+        </div>
+        <button id="prof-avatar-remove-btn" class="btn-sm" onclick="profRemoveAvatar()" style="display:none;font-size:11px;padding:4px 14px;color:var(--red,#dc2626);">Remove photo</button>
+      </div>
+
+      <div class="prof-row"><label>First Name</label><input type="text" class="prof-input" id="prof-firstname" placeholder="First name"/></div>
+      <div class="prof-row"><label>Last Name</label><input type="text" class="prof-input" id="prof-lastname" placeholder="Last name"/></div>
+      <div class="prof-row"><label>Display Name</label><input type="text" class="prof-input" id="prof-name" placeholder="e.g. Mary"/></div>
+      <div class="prof-row"><label>Phone</label><input type="tel" class="prof-input" id="prof-phone" placeholder="(555) 000-0000" oninput="profFmtPhone(this)" onkeypress="return /[0-9]/.test(event.key)"/></div>
+      <div class="prof-row"><label>Email</label><input type="email" class="prof-input" id="prof-email" disabled/></div>
+    </div>
+
+    <div class="prof-section">
+      <div class="prof-section-title" style="display:flex;justify-content:space-between;align-items:center;">
+        Change Password
+        <button id="prof-cp-toggle" class="btn-sm" onclick="profToggleCP()" style="font-size:11px;padding:3px 10px;">Change →</button>
+      </div>
+      <div id="prof-cp-panel" style="display:none;">
+        <div class="prof-cp-row">
+          <label>New Password</label>
+          <div class="prof-pw-wrap">
+            <input type="password" id="prof-cp-new" placeholder="New password" class="prof-input" style="padding-right:36px;"/>
+            <button type="button" onclick="profTogglePwVis('prof-cp-new',this)" tabindex="-1" class="prof-pw-eye" title="Show/hide">👁</button>
+          </div>
+        </div>
+        <div class="prof-cp-row">
+          <label>Confirm Password</label>
+          <div class="prof-pw-wrap">
+            <input type="password" id="prof-cp-confirm" placeholder="Repeat new password" class="prof-input" style="padding-right:36px;"/>
+            <button type="button" onclick="profTogglePwVis('prof-cp-confirm',this)" tabindex="-1" class="prof-pw-eye" title="Show/hide">👁</button>
+          </div>
+        </div>
+        <div id="prof-cp-msg" class="prof-msg"></div>
+        <button class="btn-primary" onclick="profDoChangePassword()" style="width:100%;margin-top:10px;">Update Password</button>
+      </div>
+    </div>
+
+    <div id="prof-save-msg" class="prof-msg"></div>
+
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="closeModal('profile-modal')">Cancel</button>
+      <button class="btn-primary" id="prof-save-btn" onclick="profSaveAndClose()">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast notification container (styled by shared.css) -->
 <div class="toast" id="toast"></div>
 
@@ -621,10 +704,197 @@ function showModalAlert(elementId,msg){
   el.style.display='block';
 }
 
+// ── Profile & Settings ──────────────────────────────────────────────
+// Personal-identity bits only: avatar, names, phone, email read-only,
+// change password. Club-level settings (rates, products, gcal, annual
+// goals, club team) live inside each club's app.html Profile modal.
+
+function profFmtPhone(input){
+  let d=input.value.replace(/\D/g,'').slice(0,10);
+  let f='';
+  if(d.length>0)f='('+d.slice(0,3);
+  if(d.length>=4)f+=') '+d.slice(3,6);
+  if(d.length>=7)f+='-'+d.slice(6,10);
+  input.value=f;
+}
+
+function profTogglePwVis(id,btn){
+  const el=document.getElementById(id);
+  if(!el)return;
+  const show=el.type==='password';
+  el.type=show?'text':'password';
+  btn.textContent=show?'🙈':'👁';
+}
+
+function profToggleCP(){
+  const panel=document.getElementById('prof-cp-panel');
+  const toggle=document.getElementById('prof-cp-toggle');
+  const open=panel.style.display==='none';
+  panel.style.display=open?'block':'none';
+  toggle.textContent=open?'Hide':'Change →';
+  if(!open){
+    document.getElementById('prof-cp-new').value='';
+    document.getElementById('prof-cp-confirm').value='';
+    const msg=document.getElementById('prof-cp-msg');
+    msg.className='prof-msg';
+    msg.textContent='';
+  }
+}
+
+function profPaintAvatar(avatarUrl, firstName, lastName, displayName){
+  const initEl=document.getElementById('prof-avatar-initials');
+  const imgEl=document.getElementById('prof-avatar-img');
+  const removeBtn=document.getElementById('prof-avatar-remove-btn');
+  const initials=((firstName||displayName||'?')[0]||'?').toUpperCase()
+    + ((lastName||'')[0]||'').toUpperCase();
+  if(initEl)initEl.textContent=initials;
+  if(avatarUrl){
+    if(imgEl){imgEl.src=avatarUrl;imgEl.style.display='block';}
+    if(initEl)initEl.style.display='none';
+    if(removeBtn)removeBtn.style.display='inline-block';
+  } else {
+    if(imgEl){imgEl.src='';imgEl.style.display='none';}
+    if(initEl)initEl.style.display='';
+    if(removeBtn)removeBtn.style.display='none';
+  }
+}
+
+function profPaintNavAvatar(avatarUrl, firstName, lastName, displayName){
+  const navAv=document.getElementById('nav-avatar');
+  if(!navAv)return;
+  const sp=navAv.querySelector('span');
+  const img=navAv.querySelector('img');
+  const initials=((firstName||displayName||'?')[0]||'?').toUpperCase();
+  if(sp)sp.textContent=initials;
+  if(avatarUrl){
+    if(img){img.src=avatarUrl+(avatarUrl.includes('?')?'&':'?')+'r='+Date.now();img.style.display='block';}
+    if(sp)sp.style.display='none';
+  } else {
+    if(img){img.src='';img.style.display='none';}
+    if(sp)sp.style.display='';
+  }
+}
+
+async function openProfileModal(){
+  if(!ME){showToast('Loading user record...');return;}
+  // Re-fetch in case data has changed since init
+  const{data:fresh}=await sb.from('users').select('id,email,first_name,last_name,display_name,phone,avatar_url').eq('id',ME.id).single();
+  const u=fresh||ME;
+  document.getElementById('prof-firstname').value=u.first_name||'';
+  document.getElementById('prof-lastname').value=u.last_name||'';
+  document.getElementById('prof-name').value=u.display_name||'';
+  const phEl=document.getElementById('prof-phone');
+  phEl.value=u.phone||'';
+  if(u.phone)profFmtPhone(phEl);
+  document.getElementById('prof-email').value=u.email||'';
+  profPaintAvatar(u.avatar_url, u.first_name, u.last_name, u.display_name);
+  // Reset change password panel
+  document.getElementById('prof-cp-panel').style.display='none';
+  document.getElementById('prof-cp-toggle').textContent='Change →';
+  document.getElementById('prof-cp-new').value='';
+  document.getElementById('prof-cp-confirm').value='';
+  const cpMsg=document.getElementById('prof-cp-msg');cpMsg.className='prof-msg';cpMsg.textContent='';
+  const sMsg=document.getElementById('prof-save-msg');sMsg.className='prof-msg';sMsg.textContent='';
+  openModal('profile-modal');
+}
+
+async function profSaveAndClose(){
+  const btn=document.getElementById('prof-save-btn');
+  const msg=document.getElementById('prof-save-msg');
+  msg.className='prof-msg';msg.textContent='';
+  const fn=document.getElementById('prof-firstname').value.trim();
+  const ln=document.getElementById('prof-lastname').value.trim();
+  const dn=document.getElementById('prof-name').value.trim();
+  const ph=document.getElementById('prof-phone').value.trim();
+  if(!fn){msg.className='prof-msg error';msg.textContent='First name is required.';return;}
+  btn.disabled=true;btn.textContent='Saving...';
+  const{error}=await sb.from('users').update({
+    first_name:fn, last_name:ln||null, display_name:dn||null, phone:ph||null
+  }).eq('id',ME.id);
+  btn.disabled=false;btn.textContent='Save';
+  if(error){msg.className='prof-msg error';msg.textContent=error.message;return;}
+  // Update local cache + nav
+  ME.first_name=fn;ME.last_name=ln||null;ME.display_name=dn||null;ME.phone=ph||null;
+  const dnEl=document.getElementById('nav-display-name');
+  if(dnEl)dnEl.textContent=dn||[fn,ln].filter(Boolean).join(' ')||ME.email;
+  profPaintNavAvatar(ME.avatar_url, fn, ln, dn);
+  closeModal('profile-modal');
+  showToast('Profile saved ✓','success');
+}
+
+async function profDoChangePassword(){
+  const newPw=document.getElementById('prof-cp-new').value;
+  const conf=document.getElementById('prof-cp-confirm').value;
+  const msg=document.getElementById('prof-cp-msg');
+  msg.className='prof-msg';msg.textContent='';
+  if(!newPw||newPw.length<8){msg.className='prof-msg error';msg.textContent='Password must be at least 8 characters.';return;}
+  if(newPw!==conf){msg.className='prof-msg error';msg.textContent='Passwords do not match.';return;}
+  const{error}=await sb.auth.updateUser({password:newPw});
+  if(error){msg.className='prof-msg error';msg.textContent=error.message;return;}
+  msg.className='prof-msg success';msg.textContent='Password updated.';
+  document.getElementById('prof-cp-new').value='';
+  document.getElementById('prof-cp-confirm').value='';
+}
+
+async function profHandleAvatarUpload(input){
+  const file=input.files[0];
+  if(!file)return;
+  input.value='';
+  if(!ME){showToast('Loading...');return;}
+  showToast('Uploading photo...');
+  try{
+    // Resize client-side to a 256×256 JPEG so we don't push huge files
+    const bitmap=await createImageBitmap(file);
+    const out=document.createElement('canvas');
+    out.width=256;out.height=256;
+    const ctx=out.getContext('2d');
+    // Center-crop square
+    const sz=Math.min(bitmap.width,bitmap.height);
+    const sx=(bitmap.width-sz)/2;
+    const sy=(bitmap.height-sz)/2;
+    ctx.beginPath();ctx.arc(128,128,128,0,Math.PI*2);ctx.clip();
+    ctx.drawImage(bitmap,sx,sy,sz,sz,0,0,256,256);
+    const blob=await new Promise(res=>out.toBlob(res,'image/jpeg',0.88));
+    const path=`${ME.id}/avatar.jpg`;
+    const{error:upErr}=await sb.storage.from('avatars').upload(path,blob,{upsert:true,contentType:'image/jpeg'});
+    if(upErr)throw upErr;
+    const{data:urlData}=sb.storage.from('avatars').getPublicUrl(path);
+    const avatarUrl=urlData.publicUrl+'?t='+Date.now();
+    const{error}=await sb.from('users').update({avatar_url:avatarUrl}).eq('id',ME.id);
+    if(error)throw error;
+    ME.avatar_url=avatarUrl;
+    const fn=document.getElementById('prof-firstname').value;
+    const ln=document.getElementById('prof-lastname').value;
+    const dn=document.getElementById('prof-name').value;
+    profPaintAvatar(avatarUrl,fn,ln,dn);
+    profPaintNavAvatar(avatarUrl,fn,ln,dn);
+    showToast('Photo saved ✓','success');
+  }catch(e){
+    showToast('Upload failed: '+(e.message||e),'error');
+  }
+}
+
+async function profRemoveAvatar(){
+  if(!ME)return;
+  try{
+    const path=`${ME.id}/avatar.jpg`;
+    await sb.storage.from('avatars').remove([path]);
+    await sb.from('users').update({avatar_url:null}).eq('id',ME.id);
+    ME.avatar_url=null;
+    const fn=document.getElementById('prof-firstname').value;
+    const ln=document.getElementById('prof-lastname').value;
+    const dn=document.getElementById('prof-name').value;
+    profPaintAvatar(null,fn,ln,dn);
+    profPaintNavAvatar(null,fn,ln,dn);
+    showToast('Photo removed','success');
+  }catch(e){
+    showToast('Remove failed: '+(e.message||e),'error');
+  }
+}
+
 // Stubs for click-only handlers that are referenced in the markup but not yet
 // fully implemented for this file. They fail safely instead of throwing.
 // Replace with real implementations as those features are built out.
-function openProfileModal(){showToast('Profile & Settings coming soon');}
 function openAssignUserModal(){showToast('Assign user coming soon');}
 function orgAdminLookupZip(){/* no-op until the ZIP autofill helper is wired */}
 
