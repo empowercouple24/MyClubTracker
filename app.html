@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-26 07:30:00 -->
+<!-- CACHE BUST: 2026-04-26 08:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -4486,6 +4486,12 @@ async function init(){
     IS_ADMIN_VIEW=true;LOCATION_ID=params.get('location_id');OPEN_SETTINGS=params.get('settings')==='1';
     USER_ROLE='admin';
   }else{
+    // Pick up location_id from URL even without admin=1. Used by the org-admin
+    // nav switcher and "View daily entries" deep-links for owned clubs, which
+    // send ?location_id=<id> without admin=1. Without this, LOCATION_ID stays
+    // null and the org_leader gate below redirects them back to org-admin.
+    // Database RLS still gates whether the user actually has access.
+    if(params.get('location_id'))LOCATION_ID=params.get('location_id');
     const{data:u,error:uErr}=await sb.from('users').select('role,location_id,display_name,first_name,last_name,phone,avatar_url,deleted_at').eq('id',session.user.id).single();
 
     // If user is soft-deleted, sign out and redirect to login
@@ -16403,7 +16409,11 @@ function closeLocSwitcher(){
 function switchToLocation(locId){
   if(!CURRENT_SESSION)return;
   localStorage.setItem('mct_last_loc_'+CURRENT_SESSION.user.id, locId);
-  window.location.reload();
+  // Navigate to a new URL with the new location_id rather than reloading the
+  // current URL -- a plain reload preserves any existing ?location_id=<old>
+  // param, which would override the localStorage value and stay on the old
+  // club. Switcher is hidden in admin view so admin=1 never needs preserving.
+  window.location.href='app.html?location_id='+encodeURIComponent(locId);
 }
 
 // Close switcher on overlay click
