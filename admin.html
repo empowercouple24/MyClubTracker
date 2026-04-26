@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-26 07:00:00 -->
+<!-- CACHE BUST: 2026-04-26 10:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -33,6 +33,12 @@ if('serviceWorker' in navigator){
   <style>
     .btn-sm{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text-muted);background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer;transition:background 0.15s;text-decoration:none;display:inline-block}
     .btn-sm:hover{background:var(--b0);color:var(--text)}
+    /* Primary action button — used by Feedback Submit, Announcements Post, etc.
+       Was previously undefined (rendered as browser default); this matches the
+       intent of .pt-btn-primary / .btn-modal-primary for consistent UX. */
+    .btn-primary{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;background:linear-gradient(135deg,var(--b7),var(--b6));color:#fff;border:none;border-radius:8px;padding:10px 20px;cursor:pointer;transition:background 0.15s,opacity 0.15s;}
+    .btn-primary:hover:not(:disabled){background:linear-gradient(135deg,var(--b6),var(--b5));}
+    .btn-primary:disabled{opacity:0.5;cursor:not-allowed;}
     /* ── SUPER-ADMIN ORGANIZATIONS UI ── */
     .sa-tabs{display:flex;gap:0;border-bottom:2px solid var(--border-light);margin-bottom:20px;}
     .sa-tab{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;padding:10px 18px;border:none;background:none;color:var(--text-faint);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.15s;}
@@ -378,6 +384,39 @@ if('serviceWorker' in navigator){
     .fb-body-text{background:var(--b0);border-left:3px solid var(--b6);padding:12px 14px;border-radius:4px;font-size:13px;color:var(--text);line-height:1.6;white-space:pre-wrap;margin:14px 0;}
     .fb-meta-row{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--text-muted);margin-bottom:10px;}
     .fb-meta-row strong{color:var(--text);font-weight:600;}
+    /* ── Announcements (compose + list) ─────────────────────────── */
+    .ann-compose-card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:20px 22px;}
+    .ann-compose-card .modal-field{margin-bottom:14px;}
+    .ann-compose-card textarea{width:100%;min-height:120px;font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.55;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;outline:none;resize:vertical;}
+    .ann-compose-card textarea:focus{border-color:var(--b5);}
+    .ann-preview{background:var(--b0);border:1px dashed var(--border);border-radius:8px;padding:14px 16px;font-size:14px;line-height:1.65;color:var(--text);min-height:64px;}
+    .ann-preview .ann-preview-empty{color:var(--text-faint);font-style:italic;font-size:13px;}
+    .ann-preview a{color:var(--b6);text-decoration:underline;}
+    .ann-preview strong{font-weight:700;color:var(--text);}
+    .ann-preview em{font-style:italic;}
+    .ann-filter-chip{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:5px 12px;border-radius:16px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text-muted);}
+    .ann-filter-chip.active{background:var(--b7);color:#fff;border-color:var(--b7);}
+    .ann-row{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden;transition:box-shadow 0.15s;}
+    .ann-row.archived{opacity:0.6;}
+    .ann-row:hover{box-shadow:0 4px 14px rgba(58,84,112,0.10);}
+    .ann-row-header{padding:14px 18px;cursor:pointer;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+    .ann-row-title{flex:1;min-width:0;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .ann-row-target{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;background:var(--b1);color:var(--b7);border:1px solid var(--b2);}
+    .ann-row-target.role-owner{background:#eef2ff;color:#3730a3;border-color:#a5b4fc;}
+    .ann-row-target.role-employee{background:#ecfdf5;color:#065f46;border-color:#6ee7b7;}
+    .ann-row-target.role-org_leader{background:#fef9c3;color:#854d0e;border-color:#fde047;}
+    .ann-row-sent{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;}
+    .ann-row-sent.sent{background:#ecfdf5;color:#065f46;border:1px solid #6ee7b7;}
+    .ann-row-sent.skipped{background:var(--b0);color:var(--text-faint);border:1px solid var(--border);}
+    .ann-row-sent.pending{background:#fef9c3;color:#854d0e;border:1px solid #fde047;}
+    .ann-row-reads{font-size:11px;color:var(--text-muted);white-space:nowrap;font-variant-numeric:tabular-nums;}
+    .ann-row-meta{font-size:11px;color:var(--text-faint);white-space:nowrap;}
+    .ann-row-chev{font-size:10px;color:var(--text-faint);transition:transform 0.2s;}
+    .ann-row.open .ann-row-chev{transform:rotate(180deg);}
+    .ann-row-body{display:none;padding:0 18px 16px;border-top:1px solid var(--border-light);}
+    .ann-row.open .ann-row-body{display:block;}
+    .ann-body-text{background:var(--b0);border-left:3px solid var(--b6);padding:12px 14px;border-radius:4px;font-size:13px;color:var(--text);line-height:1.65;margin:14px 0;}
+    .ann-body-text a{color:var(--b6);text-decoration:underline;}
     .fb-admin-area{background:var(--b0);border:1px solid var(--border-light);border-radius:8px;padding:12px;margin-top:8px;}
     .fb-admin-area textarea{width:100%;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px 10px;outline:none;resize:vertical;min-height:60px;}
     .fb-admin-area textarea:focus{border-color:var(--b5);}
@@ -651,6 +690,7 @@ if('serviceWorker' in navigator){
     <button class="top-tab active" data-toptab="orgs" onclick="switchTopTab('orgs')">🏢 Organizations</button>
     <button class="top-tab" data-toptab="products" onclick="switchTopTab('products')">📦 Products</button>
     <button class="top-tab" data-toptab="requests" onclick="switchTopTab('requests')">📋 Pending Requests <span class="top-tab-badge hidden" id="top-tab-req-badge"></span></button>
+    <button class="top-tab" data-toptab="announcements" onclick="switchTopTab('announcements')">📣 Announcements</button>
     <button class="top-tab" data-toptab="feedback" onclick="switchTopTab('feedback')">💬 Feedback <span class="top-tab-badge hidden" id="top-tab-fb-badge"></span></button>
   </div>
 
@@ -894,6 +934,62 @@ if('serviceWorker' in navigator){
         <div style="font-size:13px;color:var(--text-muted);">No pending requests right now.</div>
       </div>
     </div>
+  </div>
+
+  <!-- ────────── ANNOUNCEMENTS TAB PANE ────────── -->
+  <div class="tab-pane" id="pane-announcements">
+
+    <!-- Compose card -->
+    <div class="ann-compose-card" id="ann-compose-card">
+      <div class="section-label" style="margin:0 0 14px;">Compose announcement</div>
+
+      <div class="modal-field">
+        <label>Title</label>
+        <input type="text" id="ann-title" maxlength="200" placeholder="Short, scannable headline" oninput="updateAnnPostBtnState()" />
+      </div>
+
+      <div class="modal-field">
+        <label>Body <span style="font-size:11px;font-weight:400;color:var(--text-faint);text-transform:none;letter-spacing:0;">— Markdown: **bold**, *italic*, [link](https://...)</span></label>
+        <textarea id="ann-body" rows="6" placeholder="Write the message recipients will read in-app and (optionally) by email." oninput="renderAnnPreview();updateAnnPostBtnState()"></textarea>
+      </div>
+
+      <div class="modal-field">
+        <label>Preview</label>
+        <div class="ann-preview" id="ann-preview-render"><span class="ann-preview-empty">Preview appears here as you type</span></div>
+      </div>
+
+      <div class="modal-field" style="padding:6px 0 0;margin-bottom:0;">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text);text-transform:none;letter-spacing:0;">
+          <input type="checkbox" id="ann-send-email" checked style="width:16px;height:16px;accent-color:var(--b6);cursor:pointer;"/>
+          Also email this to all recipients
+        </label>
+        <div id="ann-recipient-count" style="font-size:11px;color:var(--text-faint);margin-top:6px;margin-left:26px;">Loading recipient count…</div>
+      </div>
+
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;">
+        <button class="btn-secondary" type="button" onclick="resetAnnForm()" style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;background:var(--surface);color:var(--text-muted);border:1px solid var(--border);border-radius:8px;padding:9px 16px;cursor:pointer;">Reset</button>
+        <button class="btn-primary" id="ann-post-btn" type="button" onclick="submitAnnouncement()" disabled>Post announcement</button>
+      </div>
+    </div>
+
+    <!-- Past announcements list -->
+    <div class="section-header" style="margin-top:24px;">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <div class="section-label" style="margin:0;">Past announcements</div>
+        <div style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;" id="ann-filter-bar">
+          <button type="button" class="ann-filter-chip active" data-annfilter="active" onclick="setAnnFilter('active')">Active <span data-anncount="active" style="opacity:0.7;margin-left:3px;">0</span></button>
+          <button type="button" class="ann-filter-chip" data-annfilter="archived" onclick="setAnnFilter('archived')">Archived <span data-anncount="archived" style="opacity:0.7;margin-left:3px;">0</span></button>
+          <button type="button" class="ann-filter-chip" data-annfilter="all" onclick="setAnnFilter('all')">All <span data-anncount="all" style="opacity:0.7;margin-left:3px;">0</span></button>
+        </div>
+      </div>
+    </div>
+    <div id="ann-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+    <div id="ann-empty-state" style="display:none;text-align:center;padding:48px 24px;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:var(--shadow-sm);">
+      <div style="font-size:36px;margin-bottom:12px;">📣</div>
+      <div style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px;">No announcements yet</div>
+      <div style="font-size:13px;color:var(--text-muted);">Compose one above to broadcast to your owners, operators, and org leaders.</div>
+    </div>
+
   </div>
 
   <!-- ────────── FEEDBACK TAB PANE ────────── -->
@@ -1709,6 +1805,380 @@ function renderLocRequestCard(r){
     </div>
   </div>`;
 }
+
+// ── Announcements (admin compose + list) ──────────────────────────
+// Phase 2 of the Announcements build. Phase 1 shipped the schema and the
+// send-announcement Edge Function. Phase 3 (recipient experience: modal-on-
+// login, nav badge, mark-as-read) is wired separately into admin/org-admin/app.
+//
+// Design contract:
+//   - target_role is hardcoded to 'all' in V1 (schema supports filtering for
+//     future use, but no picker is exposed).
+//   - Body is locked after creation (RLS makes the row visible to recipients
+//     immediately on insert -- editing afterward would create a "some saw
+//     vN1, others saw vN2" inconsistency).
+//   - Email is opt-in via checkbox, default ON. The send-announcement Edge
+//     Function handles per-recipient sends and stamps email_sent_at on
+//     completion.
+
+let allAnnouncements = [];
+let annFilter = 'active';                                 // 'active' | 'archived' | 'all'
+let ANN_RECIPIENT_COUNTS = { all: 0, owner: 0, employee: 0, org_leader: 0 };
+
+// Minimal markdown parser. MUST stay in sync with send-announcement.ts so the
+// in-app render and the email render match. Rules: bold (**x**), italic (*x*),
+// links ([text](url) limited to http/https/mailto), and newlines -> <br>.
+// Input is HTML-escaped first so user content is safe regardless of contents.
+function mdInline(input){
+  let s = escHtml(String(input == null ? '' : input));
+  s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function(_m, label, url){
+    var u = String(url).trim();
+    if(!/^(https?:\/\/|mailto:)/i.test(u)) return label;
+    return '<a href="'+u+'" target="_blank" rel="noopener">'+label+'</a>';
+  });
+  s = s.replace(/\n/g, '<br>');
+  return s;
+}
+
+function renderAnnPreview(){
+  var bodyEl = document.getElementById('ann-body');
+  var out = document.getElementById('ann-preview-render');
+  if(!bodyEl || !out) return;
+  var raw = (bodyEl.value || '').trim();
+  if(!raw){
+    out.innerHTML = '<span class="ann-preview-empty">Preview appears here as you type</span>';
+    return;
+  }
+  out.innerHTML = mdInline(raw);
+}
+
+function updateAnnPostBtnState(){
+  var titleEl = document.getElementById('ann-title');
+  var bodyEl  = document.getElementById('ann-body');
+  var btn     = document.getElementById('ann-post-btn');
+  if(!titleEl || !bodyEl || !btn) return;
+  var hasTitle = (titleEl.value || '').trim().length > 0;
+  var hasBody  = (bodyEl.value  || '').trim().length > 0;
+  btn.disabled = !(hasTitle && hasBody);
+}
+
+function resetAnnForm(){
+  var t = document.getElementById('ann-title');
+  var b = document.getElementById('ann-body');
+  var e = document.getElementById('ann-send-email');
+  if(t) t.value = '';
+  if(b) b.value = '';
+  if(e) e.checked = true;
+  renderAnnPreview();
+  updateAnnPostBtnState();
+}
+
+async function loadAnnouncementsRecipientStats(){
+  // Count active users by role for the recipient label + read-count denominator.
+  // Filter mirrors the send-announcement Edge Function recipient query.
+  try{
+    const{data, error} = await sb.from('users')
+      .select('role,deleted_at,email')
+      .in('role',['owner','employee','org_leader'])
+      .is('deleted_at', null)
+      .not('email','is',null);
+    if(error){
+      console.error('loadAnnouncementsRecipientStats err:', error.message);
+      return;
+    }
+    var r = { all: 0, owner: 0, employee: 0, org_leader: 0 };
+    (data || []).forEach(function(u){
+      r.all++;
+      if(r[u.role] !== undefined) r[u.role]++;
+    });
+    ANN_RECIPIENT_COUNTS = r;
+    var el = document.getElementById('ann-recipient-count');
+    if(el){
+      el.textContent = r.all + ' recipient' + (r.all===1?'':'s') +
+        ' (' + r.owner + ' owner' + (r.owner===1?'':'s') +
+        ', ' + r.employee + ' operator' + (r.employee===1?'':'s') +
+        ', ' + r.org_leader + ' org leader' + (r.org_leader===1?'':'s') + ')';
+    }
+  }catch(e){
+    console.error('loadAnnouncementsRecipientStats exception:', e);
+  }
+}
+
+async function loadAnnouncements(){
+  try{
+    // Recipient stats are needed for read-count denominator; load in parallel.
+    var statsPromise = loadAnnouncementsRecipientStats();
+
+    const{data, error} = await sb.from('announcements')
+      .select('*').order('created_at', {ascending: false});
+    if(error){
+      console.error('loadAnnouncements err:', error.message);
+      allAnnouncements = [];
+    } else {
+      allAnnouncements = data || [];
+    }
+
+    // Read counts for each announcement.
+    if(allAnnouncements.length){
+      var ids = allAnnouncements.map(function(a){return a.id;});
+      const{data: reads, error: rErr} = await sb.from('announcement_reads')
+        .select('announcement_id').in('announcement_id', ids);
+      if(rErr){
+        console.error('announcement_reads fetch err:', rErr.message);
+      }
+      var counts = {};
+      (reads || []).forEach(function(r){
+        counts[r.announcement_id] = (counts[r.announcement_id] || 0) + 1;
+      });
+      allAnnouncements.forEach(function(a){
+        a._read_count = counts[a.id] || 0;
+      });
+    }
+
+    await statsPromise;
+    renderAnnouncements();
+  }catch(e){
+    console.error('loadAnnouncements exception:', e);
+  }
+}
+
+function setAnnFilter(f){
+  annFilter = f;
+  document.querySelectorAll('.ann-filter-chip').forEach(function(c){
+    c.classList.toggle('active', c.dataset.annfilter === f);
+  });
+  renderAnnouncements();
+}
+
+function _annAgo(iso){
+  if(!iso) return '';
+  var dt = new Date(iso);
+  var ms = Date.now() - dt.getTime();
+  var days = Math.floor(ms / 864e5);
+  if(days === 0){
+    var hrs = Math.floor(ms / 36e5);
+    if(hrs === 0) return 'just now';
+    return hrs + 'h ago';
+  }
+  if(days === 1) return 'yesterday';
+  if(days <= 6)  return days + 'd ago';
+  return dt.toLocaleDateString('en-US', {month:'short', day:'numeric'});
+}
+
+function _annTargetBadge(role){
+  var label;
+  if(role === 'all')         label = 'Everyone';
+  else if(role === 'owner')  label = 'Owners';
+  else if(role === 'employee') label = 'Operators';
+  else if(role === 'org_leader') label = 'Org Leaders';
+  else label = role || '—';
+  var cls = role === 'all' ? '' : ' role-' + role;
+  return '<span class="ann-row-target'+cls+'">'+escHtml(label)+'</span>';
+}
+
+function _annSentBadge(a){
+  if(a.email_sent_at) return '<span class="ann-row-sent sent">Sent &#10003;</span>';
+  return '<span class="ann-row-sent skipped">No email</span>';
+}
+
+function _annDenom(targetRole){
+  if(targetRole === 'all') return ANN_RECIPIENT_COUNTS.all;
+  return ANN_RECIPIENT_COUNTS[targetRole] || 0;
+}
+
+function renderAnnouncements(){
+  var list  = document.getElementById('ann-list');
+  var empty = document.getElementById('ann-empty-state');
+  if(!list) return;
+
+  // Update filter chip counts (always against the full set).
+  var counts = { all: allAnnouncements.length, active: 0, archived: 0 };
+  allAnnouncements.forEach(function(a){ if(a.is_archived) counts.archived++; else counts.active++; });
+  document.querySelectorAll('[data-anncount]').forEach(function(el){
+    var k = el.dataset.anncount;
+    if(counts[k] !== undefined) el.textContent = counts[k];
+  });
+
+  var rows;
+  if(annFilter === 'active')        rows = allAnnouncements.filter(function(a){return !a.is_archived;});
+  else if(annFilter === 'archived') rows = allAnnouncements.filter(function(a){return  a.is_archived;});
+  else                              rows = allAnnouncements.slice();
+
+  if(!rows.length){
+    list.innerHTML = '';
+    if(empty){
+      empty.style.display = '';
+      // Tweak empty-state copy based on filter (so "0 archived" makes sense).
+      var titleEl = empty.querySelector('div[style*="font-weight:700"]');
+      if(titleEl){
+        if(annFilter === 'archived')   titleEl.textContent = 'No archived announcements';
+        else if(annFilter === 'active') titleEl.textContent = 'No active announcements';
+        else                            titleEl.textContent = 'No announcements yet';
+      }
+    }
+    return;
+  }
+  if(empty) empty.style.display = 'none';
+
+  var html = '';
+  rows.forEach(function(a){
+    var safeId   = escHtml(a.id);
+    var denom    = _annDenom(a.target_role);
+    var readNum  = a._read_count || 0;
+    var readTxt  = denom > 0 ? (readNum + '/' + denom + ' read') : (readNum + ' read');
+    var bodyHtml = mdInline(a.body || '');
+    var posted   = a.created_at ? new Date(a.created_at).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'}) : '';
+    var sentLine = a.email_sent_at
+      ? '<div><strong>Email sent:</strong> ' + escHtml(new Date(a.email_sent_at).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'})) + '</div>'
+      : '<div style="color:var(--text-faint);"><strong>Email:</strong> not sent</div>';
+    var canSendNow = !a.email_sent_at && !a.is_archived;
+    var archiveLabel = a.is_archived ? 'Unarchive' : 'Archive';
+
+    html +=
+      '<div class="ann-row'+(a.is_archived?' archived':'')+'" id="ann-row-'+safeId+'">'+
+        '<div class="ann-row-header" onclick="toggleAnnRow(\u0027'+safeId+'\u0027)">'+
+          _annTargetBadge(a.target_role)+
+          '<div class="ann-row-title">'+escHtml(a.title || '(untitled)')+'</div>'+
+          _annSentBadge(a)+
+          '<span class="ann-row-reads">'+escHtml(readTxt)+'</span>'+
+          '<span class="ann-row-meta">'+escHtml(_annAgo(a.created_at))+'</span>'+
+          '<span class="ann-row-chev">&#9662;</span>'+
+        '</div>'+
+        '<div class="ann-row-body">'+
+          '<div class="ann-body-text">'+bodyHtml+'</div>'+
+          '<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--text-muted);margin-bottom:12px;">'+
+            '<div><strong>Posted:</strong> '+escHtml(posted)+'</div>'+
+            sentLine+
+            '<div><strong>Reads:</strong> '+escHtml(readTxt)+'</div>'+
+          '</div>'+
+          '<div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">'+
+            (canSendNow
+              ? '<button class="btn-sm" onclick="sendAnnouncementEmailNow(\u0027'+safeId+'\u0027,this)">Send email now</button>'
+              : '')+
+            '<button class="btn-sm" onclick="archiveAnnouncement(\u0027'+safeId+'\u0027,'+(a.is_archived?'false':'true')+',this)">'+archiveLabel+'</button>'+
+          '</div>'+
+        '</div>'+
+      '</div>';
+  });
+  list.innerHTML = html;
+}
+
+function toggleAnnRow(id){
+  var row = document.getElementById('ann-row-'+id);
+  if(row) row.classList.toggle('open');
+}
+
+async function submitAnnouncement(){
+  var titleEl = document.getElementById('ann-title');
+  var bodyEl  = document.getElementById('ann-body');
+  var emailEl = document.getElementById('ann-send-email');
+  var btn     = document.getElementById('ann-post-btn');
+  if(!titleEl || !bodyEl || !btn) return;
+  var title = (titleEl.value || '').trim();
+  var body  = (bodyEl.value  || '').trim();
+  if(!title){ showToast('Title is required','error'); titleEl.focus(); return; }
+  if(!body) { showToast('Body is required', 'error'); bodyEl.focus();  return; }
+
+  var sendEmail = emailEl ? !!emailEl.checked : true;
+  var rcount    = ANN_RECIPIENT_COUNTS.all;
+  var msg = sendEmail
+    ? 'Post and email this to ' + rcount + ' recipient' + (rcount===1?'':'s') + '? Emails are sent immediately and cannot be unsent.'
+    : 'Post this announcement (no email)? It will appear in-app for ' + rcount + ' recipient' + (rcount===1?'':'s') + '.';
+  if(!confirm(msg)) return;
+
+  btn.disabled = true;
+  btn.textContent = sendEmail ? 'Posting…' : 'Posting…';
+
+  try{
+    const{data:{session}} = await sb.auth.getSession();
+    var userId = (session && session.user && session.user.id) || null;
+
+    const{data: inserted, error} = await sb.from('announcements').insert({
+      title: title,
+      body: body,
+      posted_by: userId,
+      target_role: 'all',
+    }).select().single();
+    if(error) throw error;
+
+    if(sendEmail && inserted){
+      btn.textContent = 'Sending emails…';
+      try{
+        const{data: result, error: fnErr} = await sb.functions.invoke('send-announcement', {
+          body: { announcementId: inserted.id }
+        });
+        if(fnErr){
+          console.error('send-announcement err:', fnErr);
+          showToast('Posted, but email blast failed. You can retry from the row.','warn');
+        } else if(result && Array.isArray(result.failures) && result.failures.length){
+          console.warn('Some emails failed:', result.failures);
+          showToast('Posted. ' + (result.okCount||0) + '/' + (result.totalRecipients||0) + ' emails sent.', 'warn');
+        } else {
+          var ok = (result && result.okCount) || 0;
+          showToast('Posted and emailed to ' + ok + ' recipient' + (ok===1?'':'s') + '.', 'success');
+        }
+      }catch(e){
+        console.error('send-announcement exception:', e);
+        showToast('Posted, but email blast failed. You can retry from the row.','warn');
+      }
+    } else {
+      showToast('Announcement posted.','success');
+    }
+
+    resetAnnForm();
+    await loadAnnouncements();
+  }catch(e){
+    console.error('submitAnnouncement err:', e);
+    showToast('Could not post: ' + (e && e.message ? e.message : e), 'error');
+  }finally{
+    btn.disabled = false;
+    btn.textContent = 'Post announcement';
+    updateAnnPostBtnState();
+  }
+}
+
+async function archiveAnnouncement(id, makeArchived, btn){
+  if(btn){ btn.disabled = true; btn.textContent = makeArchived ? 'Archiving…' : 'Unarchiving…'; }
+  try{
+    const{error} = await sb.from('announcements')
+      .update({ is_archived: !!makeArchived })
+      .eq('id', id);
+    if(error) throw error;
+    showToast(makeArchived ? 'Archived.' : 'Restored.', 'success');
+    await loadAnnouncements();
+  }catch(e){
+    console.error('archiveAnnouncement err:', e);
+    showToast('Could not update: ' + (e && e.message ? e.message : e), 'error');
+    if(btn){ btn.disabled = false; btn.textContent = makeArchived ? 'Archive' : 'Unarchive'; }
+  }
+}
+
+async function sendAnnouncementEmailNow(id, btn){
+  if(!confirm('Send the email blast for this announcement now?')) return;
+  if(btn){ btn.disabled = true; btn.textContent = 'Sending…'; }
+  try{
+    const{data: result, error: fnErr} = await sb.functions.invoke('send-announcement', {
+      body: { announcementId: id }
+    });
+    if(fnErr) throw fnErr;
+    if(result && result.alreadySent){
+      showToast('Already sent earlier.','');
+    } else if(result && Array.isArray(result.failures) && result.failures.length){
+      showToast((result.okCount||0) + '/' + (result.totalRecipients||0) + ' emails sent. Some failed.','warn');
+    } else {
+      var ok = (result && result.okCount) || 0;
+      showToast('Emailed to ' + ok + ' recipient' + (ok===1?'':'s') + '.','success');
+    }
+    await loadAnnouncements();
+  }catch(e){
+    console.error('sendAnnouncementEmailNow err:', e);
+    showToast('Email send failed: ' + (e && e.message ? e.message : e), 'error');
+    if(btn){ btn.disabled = false; btn.textContent = 'Send email now'; }
+  }
+}
+
 
 // ── APPROVE ORG REQUEST (inline — creates org + sends invite) ──
 async function approveOrgRequest(reqId, btn){
@@ -4813,14 +5283,20 @@ window.switchTopTab = function(tab){
   if(tab==='products'){
     loadProductsTabData().then(renderProductsTab);
   }
+  if(tab==='announcements'){
+    try{ loadAnnouncements(); }catch(e){ console.error('loadAnnouncements err:', e); }
+  }
 };
 
-/* Run on init too if Products is initial tab */
+/* Run on init too if Products or Announcements is initial tab */
 window.addEventListener('load', function(){
   setTimeout(function(){
     const params = new URLSearchParams(window.location.search);
     if(params.get('tab')==='products'){
       loadProductsTabData().then(renderProductsTab);
+    }
+    if(params.get('tab')==='announcements'){
+      try{ loadAnnouncements(); }catch(e){ console.error('loadAnnouncements err:', e); }
     }
   }, 700);
 });
