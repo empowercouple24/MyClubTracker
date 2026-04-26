@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-25 22:30:00 -->
+<!-- CACHE BUST: 2026-04-25 23:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -44,6 +44,66 @@ if('serviceWorker' in navigator){
 .kpi-card.blue .kpi-label{color:var(--b6)}.kpi-card.green .kpi-label{color:var(--g5)}.kpi-card.amber .kpi-label{color:var(--a5)}
 .kpi-val{font-family:'Outfit',sans-serif;font-size:26px;font-weight:800;color:var(--text);letter-spacing:-0.5px}
 .kpi-sub{font-size:12px;color:var(--text-faint);margin-top:4px}
+
+/* Annual goal hero card (Layout C — combined hero + KPI subline) */
+.hero-card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:18px 20px;margin-bottom:4px;}
+.hero-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:12px;flex-wrap:wrap;}
+.hero-head-left{display:flex;align-items:center;gap:10px;}
+.hero-label{font-size:11px;font-weight:700;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.7px;}
+.hero-day-of-year{font-size:11px;color:var(--text-faint);}
+.hero-year-select{
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  color:var(--text);
+  font-size:13px;
+  font-weight:600;
+  padding:3px 22px 3px 10px;
+  border-radius:6px;
+  cursor:pointer;
+  outline:none;
+  appearance:none;
+  -webkit-appearance:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%23888' d='M5 6L0 0h10z'/></svg>");
+  background-repeat:no-repeat;
+  background-position:right 7px center;
+  transition:border-color 0.15s;
+}
+.hero-year-select:hover{border-color:var(--text-muted);}
+.hero-year-select:focus{border-color:var(--b6);}
+.hero-bars{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:14px;}
+@media(max-width:520px){.hero-bars{grid-template-columns:1fr;gap:18px;}}
+.hero-bar-row-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;}
+.hero-bar-label{font-size:13px;color:var(--text-muted);font-weight:600;}
+.hero-status-pill{font-size:11px;font-weight:600;padding:2px 9px;border-radius:11px;letter-spacing:0.2px;}
+.hero-status-pill.ok{background:var(--g0);color:var(--g6);}
+.hero-status-pill.warn{background:#fef3c7;color:#92400e;}
+.hero-status-pill.ahead{background:var(--g0);color:var(--g6);}
+.hero-status-pill.neutral{background:var(--surface-2);color:var(--text-muted);}
+.hero-bar-numbers{display:flex;align-items:baseline;gap:6px;margin-bottom:8px;}
+.hero-bar-current{font-family:'Outfit',sans-serif;font-size:24px;font-weight:800;color:var(--text);letter-spacing:-0.4px;}
+.hero-bar-target{font-size:13px;color:var(--text-muted);}
+.hero-bar-track{position:relative;height:9px;background:var(--surface-2);border-radius:5px;overflow:visible;}
+.hero-bar-fill{position:absolute;top:0;left:0;bottom:0;border-radius:5px;transition:width 0.4s ease;}
+.hero-bar-fill.ok,.hero-bar-fill.ahead{background:var(--g5);}
+.hero-bar-fill.warn{background:var(--a5);}
+.hero-bar-fill.neutral{background:var(--text-faint);}
+/* Pace tick — vertical line indicating where progress should be on day-of-year */
+.hero-pace-tick{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--text);border-radius:1px;}
+.hero-bar-foot{display:flex;justify-content:space-between;margin-top:5px;font-size:11px;color:var(--text-faint);}
+/* KPI subline at the bottom of the combined card */
+.hero-kpi-row{display:flex;justify-content:space-around;align-items:center;padding-top:14px;border-top:1px solid var(--border-light);}
+.hero-kpi-cell{text-align:center;flex:1;min-width:0;}
+.hero-kpi-cell-label{font-size:10px;font-weight:700;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px;}
+.hero-kpi-cell-val{font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;color:var(--text);letter-spacing:-0.2px;}
+.hero-kpi-cell-sub{font-size:10px;color:var(--text-faint);margin-top:2px;}
+.hero-kpi-divider{width:1px;height:30px;background:var(--border-light);}
+/* Empty-state mode (no goal set for selected year) */
+.hero-card.empty{border-style:dashed;}
+.hero-empty-body{text-align:center;padding:14px 0 6px;}
+.hero-empty-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;}
+.hero-empty-sub{font-size:12px;color:var(--text-muted);margin-bottom:14px;}
+.hero-empty-cta{background:#1a2942;color:white;border:none;padding:8px 18px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;}
+.hero-empty-cta:hover{background:#243456;}
 
 /* Suspended banner */
 .suspended-banner{background:linear-gradient(135deg,var(--r5),var(--r6,#b91c1c));border-radius:var(--radius);padding:20px 24px;margin-bottom:20px;color:white;text-align:center}
@@ -240,22 +300,36 @@ if('serviceWorker' in navigator){
     </div>
   </div>
 
-  <!-- KPI STRIP -->
-  <div class="kpi-strip">
-    <div class="kpi-card blue">
-      <div class="kpi-label">Yesterday</div>
-      <div class="kpi-val" id="kpi-yday">--</div>
-      <div class="kpi-sub" id="kpi-yday-sub">across all locations</div>
+  <!-- ANNUAL GOAL HERO + KPI SUBLINE (Layout C) -->
+  <div class="hero-card" id="hero-card" style="display:none;">
+    <div class="hero-head">
+      <div class="hero-head-left">
+        <span class="hero-label">Annual goal</span>
+        <select id="hero-year-select" class="hero-year-select" aria-label="Goal year"></select>
+      </div>
+      <span class="hero-day-of-year" id="hero-day-of-year"></span>
     </div>
-    <div class="kpi-card green">
-      <div class="kpi-label">This Week</div>
-      <div class="kpi-val" id="kpi-week">--</div>
-      <div class="kpi-sub" id="kpi-week-sub">across all locations</div>
+    <div id="hero-body">
+      <!-- populated by renderAnnualGoalHero() -->
     </div>
-    <div class="kpi-card amber">
-      <div class="kpi-label">This Month</div>
-      <div class="kpi-val" id="kpi-month">--</div>
-      <div class="kpi-sub" id="kpi-month-sub">across all locations</div>
+    <div class="hero-kpi-row">
+      <div class="hero-kpi-cell">
+        <div class="hero-kpi-cell-label">Yesterday</div>
+        <div class="hero-kpi-cell-val" id="kpi-yday">--</div>
+        <div class="hero-kpi-cell-sub" id="kpi-yday-sub">across all locations</div>
+      </div>
+      <div class="hero-kpi-divider"></div>
+      <div class="hero-kpi-cell">
+        <div class="hero-kpi-cell-label">This week</div>
+        <div class="hero-kpi-cell-val" id="kpi-week">--</div>
+        <div class="hero-kpi-cell-sub" id="kpi-week-sub">across all locations</div>
+      </div>
+      <div class="hero-kpi-divider"></div>
+      <div class="hero-kpi-cell">
+        <div class="hero-kpi-cell-label">This month</div>
+        <div class="hero-kpi-cell-val" id="kpi-month">--</div>
+        <div class="hero-kpi-cell-sub" id="kpi-month-sub">across all locations</div>
+      </div>
     </div>
   </div>
 
@@ -416,6 +490,12 @@ let ME=null,MY_ORG=null,MY_LOCATIONS=[],ALL_DAYS=[],ALL_USERS=[],CO_LEADERS=[],M
 // AG_CURRENT_YEAR is the year currently displayed in the modal's year picker.
 let AG_CURRENT_YEAR=null;
 let MY_GOALS_BY_YEAR={};
+
+// Annual goal hero state (Layout C — combined hero + KPI subline).
+// HERO_SELECTED_YEAR is the year displayed in the hero year picker. Persists
+// across year switches so the KPI strip's YTD computation stays consistent
+// with what the user sees in the hero.
+let HERO_SELECTED_YEAR=null;
 
 // HTML escaping helper — used by render functions in template literals.
 // Mirrors the definition in admin.html and app.html.
@@ -620,12 +700,24 @@ async function loadLocations(){
   const{data:locs}=await sb.from('locations').select('*').eq('org_id',MY_ORG.id).order('name');
   MY_LOCATIONS=locs||[];
 
-  if(!MY_LOCATIONS.length){return;}
+  if(!MY_LOCATIONS.length){
+    // Even with no clubs, hide hero + render placeholder. The empty-locations
+    // path elsewhere shows an "Add your first club" CTA.
+    var _hero=document.getElementById('hero-card');
+    if(_hero)_hero.style.display='none';
+    return;
+  }
 
-  // Load days for all locations (last 35 days)
-  const since=new Date();since.setDate(since.getDate()-35);
-  const sinceStr=since.toISOString().slice(0,10);
-  const locIds=MY_LOCATIONS.map(l=>l.id);
+  // The hero needs YTD totals for the currently-selected year (default = this
+  // year). The KPI strip needs 35 days. Pull whichever range goes back further
+  // in a single query so we don't double-fetch.
+  HERO_SELECTED_YEAR = HERO_SELECTED_YEAR || new Date().getFullYear();
+  const yearStart = HERO_SELECTED_YEAR + '-01-01';
+  const thirtyFiveAgo = new Date(); thirtyFiveAgo.setDate(thirtyFiveAgo.getDate()-35);
+  const thirtyFiveAgoStr = thirtyFiveAgo.toISOString().slice(0,10);
+  const sinceStr = yearStart < thirtyFiveAgoStr ? yearStart : thirtyFiveAgoStr;
+
+  const locIds = MY_LOCATIONS.map(l=>l.id);
 
   const{data:days}=await sb.from('days').select('location_id,date,data').in('location_id',locIds).gte('date',sinceStr);
   ALL_DAYS=days||[];
@@ -634,8 +726,12 @@ async function loadLocations(){
   const{data:users}=await sb.from('users').select('id,first_name,last_name,display_name,email,role,location_id').in('location_id',locIds).is('deleted_at', null);
   ALL_USERS=users||[];
 
+  // Load goals for the currently-selected hero year (cached for repeat year-flips)
+  await loadGoalsForYear(HERO_SELECTED_YEAR);
+
   renderLocations();
   renderKPIs();
+  renderAnnualGoalHero();
 }
 
 // -- RENDER LOCATIONS --
@@ -743,6 +839,372 @@ function renderKPIs(){
   setText('kpi-yday-sub',ydayCount?`${ydayCount} location${ydayCount!==1?'s':''} reported`:'no entries yet');
   setText('kpi-week-sub',weekCount?`${weekCount} day${weekCount!==1?'s':''} entered`:'no entries yet');
   setText('kpi-month-sub',monthCount?`${monthCount} day${monthCount!==1?'s':''} entered`:'no entries yet');
+}
+
+// ════════════════════════════════════════════════════════════════════
+// ANNUAL GOAL HERO (Layout C — combined hero + KPI subline)
+// ════════════════════════════════════════════════════════════════════
+
+// Pace threshold (5%) for "On pace" status. Outside this band: ahead/behind.
+const HERO_PACE_THRESHOLD = 0.05;
+
+// Returns sorted list of years that should appear in the hero year picker.
+// Always includes the current year + (current+1) for forward planning.
+// Auto-extends backward to include any past year that has either goals saved
+// or sales records logged. Mary won't see past years until 2027 at the
+// earliest, but the logic is in place for the eventual look-back use case.
+function getHeroAvailableYears(){
+  const now = new Date().getFullYear();
+  const set = {};
+  set[now] = 1;
+  set[now+1] = 1;
+  // Past years from sales records
+  ALL_DAYS.forEach(function(d){
+    if(d.date && d.date.length>=4){
+      var y = parseInt(d.date.slice(0,4), 10);
+      if(!isNaN(y) && y < now) set[y] = 1;
+    }
+  });
+  // Past years from goals (cached map)
+  Object.keys(MY_GOALS_BY_YEAR).forEach(function(y){
+    var n = parseInt(y, 10);
+    if(!isNaN(n) && n < now) set[n] = 1;
+  });
+  return Object.keys(set).map(function(s){return parseInt(s,10);}).sort(function(a,b){return a-b;});
+}
+
+// Day-of-year (1-365 or 1-366) and total days in year, for pace tick math.
+function getHeroDayOfYear(year){
+  const today = new Date();
+  const currentYear = today.getFullYear();
+  const isLeap = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+  const daysInYear = isLeap ? 366 : 365;
+  let day;
+  if(year < currentYear){
+    day = daysInYear; // past year is 100% complete
+  } else if(year > currentYear){
+    day = 0; // future year hasn't started
+  } else {
+    const jan1 = new Date(year, 0, 1);
+    const diffMs = today - jan1;
+    day = Math.floor(diffMs / 86400000) + 1; // 1-indexed
+    if(day < 1) day = 1;
+    if(day > daysInYear) day = daysInYear;
+  }
+  return {day: day, total: daysInYear};
+}
+
+// Main entry: dispatches to empty-state or bar rendering based on goal data.
+function renderAnnualGoalHero(){
+  const heroEl = document.getElementById('hero-card');
+  if(!heroEl) return;
+
+  // Hide the hero entirely if there are no clubs at all
+  if(!MY_LOCATIONS.length){
+    heroEl.style.display='none';
+    return;
+  }
+  heroEl.style.display='block';
+
+  // Populate / sync year picker. We rebuild on every render so newly-detected
+  // past years show up automatically.
+  const sel = document.getElementById('hero-year-select');
+  if(!HERO_SELECTED_YEAR) HERO_SELECTED_YEAR = new Date().getFullYear();
+  while(sel.firstChild) sel.removeChild(sel.firstChild);
+  const years = getHeroAvailableYears();
+  years.forEach(function(y){
+    const opt = document.createElement('option');
+    opt.value = y;
+    opt.textContent = y;
+    sel.appendChild(opt);
+  });
+  sel.value = String(HERO_SELECTED_YEAR);
+  sel.onchange = onHeroYearChange;
+
+  // Sum goals for the selected year across all clubs.
+  // If no clubs have a goal saved, show empty-state CTA.
+  const goalsMap = MY_GOALS_BY_YEAR[HERO_SELECTED_YEAR] || {};
+  let salesGoal = 0, dvGoal = 0, hasAnyGoal = false;
+  MY_LOCATIONS.forEach(function(loc){
+    const g = goalsMap[loc.id];
+    if(!g) return;
+    if(g.sales != null){ salesGoal += Number(g.sales); hasAnyGoal = true; }
+    if(g.dv != null){    dvGoal    += Number(g.dv);    hasAnyGoal = true; }
+  });
+
+  if(!hasAnyGoal){
+    renderHeroEmptyState();
+    return;
+  }
+
+  // Compute YTD actuals from ALL_DAYS for the selected year. Treats missing
+  // d.data.dv as 0 (matches the d.data.totalSales fallback pattern).
+  const yearStart = HERO_SELECTED_YEAR + '-01-01';
+  const yearEnd   = HERO_SELECTED_YEAR + '-12-31';
+  let salesActual = 0, dvActual = 0;
+  ALL_DAYS.forEach(function(d){
+    if(!d.date || d.date < yearStart || d.date > yearEnd) return;
+    if(d.data){
+      salesActual += parseFloat(d.data.totalSales) || 0;
+      dvActual    += parseFloat(d.data.dv) || 0;
+    }
+  });
+
+  renderHeroBars({
+    year:        HERO_SELECTED_YEAR,
+    salesGoal:   salesGoal,
+    salesActual: salesActual,
+    dvGoal:      dvGoal,
+    dvActual:    dvActual
+  });
+}
+
+// Render the empty-state body with a "Set N goals" CTA.
+function renderHeroEmptyState(){
+  const heroEl = document.getElementById('hero-card');
+  const bodyEl = document.getElementById('hero-body');
+  const dayEl  = document.getElementById('hero-day-of-year');
+  heroEl.classList.add('empty');
+  if(dayEl) dayEl.textContent = '';
+  while(bodyEl.firstChild) bodyEl.removeChild(bodyEl.firstChild);
+  const wrap = document.createElement('div');
+  wrap.className = 'hero-empty-body';
+  const title = document.createElement('div');
+  title.className = 'hero-empty-title';
+  title.textContent = 'No '+HERO_SELECTED_YEAR+' goals set yet';
+  wrap.appendChild(title);
+  const sub = document.createElement('div');
+  sub.className = 'hero-empty-sub';
+  sub.textContent = 'Set per-club sales and DV targets to track pace through the year.';
+  wrap.appendChild(sub);
+  const cta = document.createElement('button');
+  cta.className = 'hero-empty-cta';
+  cta.textContent = 'Set '+HERO_SELECTED_YEAR+' goals';
+  cta.onclick = function(){ openAnnualGoalsModal(); };
+  wrap.appendChild(cta);
+  bodyEl.appendChild(wrap);
+}
+
+// Render the populated bar view. Mode is inferred from year vs current year:
+//   past   — bar fully filled to actual %, status pill is final achievement
+//   current — bar shows progress with pace tick + on-pace/ahead/behind status
+//   future — bar empty, pill says "Planning" with neutral color
+function renderHeroBars(args){
+  const heroEl = document.getElementById('hero-card');
+  const bodyEl = document.getElementById('hero-body');
+  const dayEl  = document.getElementById('hero-day-of-year');
+  heroEl.classList.remove('empty');
+
+  const currentYear = new Date().getFullYear();
+  const yearState = args.year < currentYear ? 'past'
+                  : args.year > currentYear ? 'future'
+                  : 'current';
+
+  const dayInfo = getHeroDayOfYear(args.year);
+  if(dayEl){
+    if(yearState === 'past'){
+      dayEl.textContent = 'Year complete';
+    } else if(yearState === 'future'){
+      dayEl.textContent = 'Starts Jan 1, '+args.year;
+    } else {
+      const pacePct = Math.round(dayInfo.day / dayInfo.total * 100);
+      dayEl.textContent = 'Day '+dayInfo.day+' of '+dayInfo.total+' \u00b7 '+pacePct+'% of year';
+    }
+  }
+
+  while(bodyEl.firstChild) bodyEl.removeChild(bodyEl.firstChild);
+  const grid = document.createElement('div');
+  grid.className = 'hero-bars';
+
+  // Build sales side
+  grid.appendChild(buildHeroBar({
+    label:      'Sales',
+    actual:     args.salesActual,
+    goal:       args.salesGoal,
+    isCurrency: true,
+    yearState:  yearState,
+    dayInfo:    dayInfo
+  }));
+
+  // Build DV side
+  grid.appendChild(buildHeroBar({
+    label:      'DV',
+    actual:     args.dvActual,
+    goal:       args.dvGoal,
+    isCurrency: false,
+    yearState:  yearState,
+    dayInfo:    dayInfo
+  }));
+
+  bodyEl.appendChild(grid);
+}
+
+// Build one half of the hero (either sales or DV column).
+function buildHeroBar(opts){
+  const wrap = document.createElement('div');
+
+  // Top row: label + status pill
+  const topRow = document.createElement('div');
+  topRow.className = 'hero-bar-row-top';
+  const labelEl = document.createElement('span');
+  labelEl.className = 'hero-bar-label';
+  labelEl.textContent = opts.label;
+  topRow.appendChild(labelEl);
+
+  // Compute progress + pace status
+  const goal = Number(opts.goal) || 0;
+  const actual = Number(opts.actual) || 0;
+  const completePct = goal > 0 ? actual / goal : 0;
+  const expectedPct = opts.dayInfo.total > 0 ? opts.dayInfo.day / opts.dayInfo.total : 0;
+
+  let pillClass, pillText;
+  if(opts.yearState === 'future'){
+    pillClass = 'neutral';
+    pillText = 'Planning';
+  } else if(opts.yearState === 'past'){
+    // Final-achievement coloring: ≥100 green, 80-99 amber, <80 red
+    const finalPct = Math.round(completePct * 100);
+    if(finalPct >= 100){ pillClass = 'ok'; pillText = '\u2713 Hit goal'; }
+    else if(finalPct >= 80){ pillClass = 'warn'; pillText = finalPct+'% of goal'; }
+    else { pillClass = 'warn'; pillText = finalPct+'% of goal'; }
+  } else {
+    // Current year — apply 5% pace threshold
+    const delta = completePct - expectedPct;
+    if(goal === 0){
+      pillClass = 'neutral';
+      pillText = 'No goal';
+    } else if(Math.abs(delta) <= HERO_PACE_THRESHOLD){
+      pillClass = 'ok';
+      pillText = '\u2713 On pace';
+    } else if(delta > 0){
+      pillClass = 'ahead';
+      pillText = '\u2191 Ahead by '+Math.round(delta*100)+'%';
+    } else {
+      pillClass = 'warn';
+      pillText = '\u26a0 Behind by '+Math.round(Math.abs(delta)*100)+'%';
+    }
+  }
+  const pill = document.createElement('span');
+  pill.className = 'hero-status-pill '+pillClass;
+  pill.textContent = pillText;
+  topRow.appendChild(pill);
+  wrap.appendChild(topRow);
+
+  // Numbers row: $X / $Y or X / Y DV
+  const numRow = document.createElement('div');
+  numRow.className = 'hero-bar-numbers';
+  const curEl = document.createElement('span');
+  curEl.className = 'hero-bar-current';
+  curEl.textContent = opts.isCurrency
+    ? '$'+Math.round(actual).toLocaleString('en-US')
+    : Math.round(actual).toLocaleString('en-US');
+  numRow.appendChild(curEl);
+  const tgtEl = document.createElement('span');
+  tgtEl.className = 'hero-bar-target';
+  tgtEl.textContent = opts.isCurrency
+    ? '/ $'+Math.round(goal).toLocaleString('en-US')
+    : '/ '+Math.round(goal).toLocaleString('en-US')+' DV';
+  numRow.appendChild(tgtEl);
+  wrap.appendChild(numRow);
+
+  // Bar track + fill + pace tick
+  const track = document.createElement('div');
+  track.className = 'hero-bar-track';
+  const fill = document.createElement('div');
+  fill.className = 'hero-bar-fill '+pillClass;
+  // Cap visual fill at 100% so over-achievement doesn't paint past the track.
+  // Status pill still reflects the actual % beyond 100.
+  const fillPct = Math.min(completePct, 1) * 100;
+  fill.style.width = fillPct.toFixed(1)+'%';
+  track.appendChild(fill);
+  // Pace tick only on current year (past = irrelevant, future = no progress to compare)
+  if(opts.yearState === 'current' && goal > 0){
+    const tick = document.createElement('div');
+    tick.className = 'hero-pace-tick';
+    tick.style.left = (expectedPct * 100).toFixed(1)+'%';
+    track.appendChild(tick);
+  }
+  wrap.appendChild(track);
+
+  // Foot row: % complete + amount remaining
+  const foot = document.createElement('div');
+  foot.className = 'hero-bar-foot';
+  const pctText = document.createElement('span');
+  pctText.textContent = (goal > 0 ? Math.round(completePct*100) : 0)+'% complete';
+  foot.appendChild(pctText);
+  const remEl = document.createElement('span');
+  if(opts.yearState === 'future'){
+    remEl.textContent = opts.isCurrency
+      ? '$'+Math.round(goal).toLocaleString('en-US')+' planned'
+      : Math.round(goal).toLocaleString('en-US')+' DV planned';
+  } else if(opts.yearState === 'past'){
+    const surplus = actual - goal;
+    if(surplus >= 0){
+      remEl.textContent = opts.isCurrency
+        ? '$'+Math.round(surplus).toLocaleString('en-US')+' over goal'
+        : Math.round(surplus).toLocaleString('en-US')+' over goal';
+    } else {
+      remEl.textContent = opts.isCurrency
+        ? '$'+Math.round(Math.abs(surplus)).toLocaleString('en-US')+' short'
+        : Math.round(Math.abs(surplus)).toLocaleString('en-US')+' short';
+    }
+  } else {
+    const remaining = Math.max(0, goal - actual);
+    remEl.textContent = opts.isCurrency
+      ? '$'+Math.round(remaining).toLocaleString('en-US')+' to go'
+      : Math.round(remaining).toLocaleString('en-US')+' to go';
+  }
+  foot.appendChild(remEl);
+  wrap.appendChild(foot);
+
+  return wrap;
+}
+
+// Year picker change handler. Re-fetches goals if the new year isn't cached,
+// then re-renders the hero. KPI strip stays fixed (always current year).
+async function onHeroYearChange(e){
+  const newYear = parseInt(e.target.value, 10);
+  if(isNaN(newYear)) return;
+  HERO_SELECTED_YEAR = newYear;
+  // Show a brief loading state in the body while we fetch
+  const bodyEl = document.getElementById('hero-body');
+  if(bodyEl){
+    while(bodyEl.firstChild) bodyEl.removeChild(bodyEl.firstChild);
+    const loading = document.createElement('div');
+    loading.style.cssText = 'padding:24px;text-align:center;color:var(--text-faint);font-size:13px;';
+    loading.textContent = 'Loading '+newYear+' goals\u2026';
+    bodyEl.appendChild(loading);
+  }
+  await loadGoalsForYear(newYear);
+  // If the selected year falls outside what's already in ALL_DAYS, fetch the
+  // missing range. Year switches that go further back than 35 days require a
+  // top-up query; current/future years stay within the existing pull.
+  const yearStart = newYear + '-01-01';
+  const yearEnd   = newYear + '-12-31';
+  const haveAny = ALL_DAYS.some(function(d){
+    return d.date >= yearStart && d.date <= yearEnd;
+  });
+  // For past years with no cached days, we'd need to top up. V1 punt:
+  // ALL_DAYS already covers Jan 1 of the originally-selected year through
+  // today. If user picks a different past year, we re-fetch the full range
+  // so that year is covered too.
+  if(!haveAny && newYear !== new Date().getFullYear()){
+    const locIds = MY_LOCATIONS.map(function(l){return l.id;});
+    if(locIds.length){
+      const{data:days} = await sb.from('days')
+        .select('location_id,date,data')
+        .in('location_id', locIds)
+        .gte('date', yearStart)
+        .lte('date', yearEnd);
+      // Merge into ALL_DAYS without duplicating existing rows
+      const have = {};
+      ALL_DAYS.forEach(function(d){ have[d.location_id+'|'+d.date] = 1; });
+      (days||[]).forEach(function(d){
+        if(!have[d.location_id+'|'+d.date]) ALL_DAYS.push(d);
+      });
+    }
+  }
+  renderAnnualGoalHero();
 }
 
 // -- LOAD CO-LEADERS --
