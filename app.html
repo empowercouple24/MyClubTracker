@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-26 06:30:00 -->
+<!-- CACHE BUST: 2026-04-26 07:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -4519,7 +4519,14 @@ async function init(){
     }
 
     if(u.role==='admin'&&!LOCATION_ID){window.location.href='admin.html';return;}
-    if(u.role==='org_leader'&&!IS_ADMIN_VIEW){window.location.href='org-admin.html';return;}
+    // Org leaders default to their org-admin dashboard, but if they've explicitly
+    // navigated to a specific club (via the switcher with ?location_id=...) or
+    // are in admin-view, let them through. The user_locations check below
+    // gates whether they actually have access to the requested club.
+    if(u.role==='org_leader' && !IS_ADMIN_VIEW && !LOCATION_ID){
+      window.location.href='org-admin.html';
+      return;
+    }
 
     // Load all locations this user has access to
     const{data:userLocs,error:ulErr}=await sb.from('user_locations')
