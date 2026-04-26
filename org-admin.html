@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-26 01:15:00 -->
+<!-- CACHE BUST: 2026-04-26 02:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -228,6 +228,50 @@ if('serviceWorker' in navigator){
 .loc-pace-tick{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--text);border-radius:1px}
 .loc-pace-foot{display:flex;justify-content:space-between;margin-top:4px;font-size:10px;color:var(--text-faint)}
 
+/* Wins / Needs attention callouts (Step 6C) */
+.callouts-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:24px;}
+@media(max-width:560px){.callouts-row{grid-template-columns:1fr;}}
+.callout-card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:14px 16px;display:flex;flex-direction:column;gap:8px;}
+.callout-card.wins{border-left:3px solid var(--g5);}
+.callout-card.attention{border-left:3px solid var(--a5);}
+.callout-head{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;}
+.callout-head.wins{color:var(--g6);}
+.callout-head.attention{color:#92400e;}
+.callout-icon{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font-size:11px;font-weight:700;}
+.callout-icon.wins{background:var(--g0);color:var(--g6);}
+.callout-icon.attention{background:#fef3c7;color:#92400e;}
+.callout-list{display:flex;flex-direction:column;gap:6px;}
+.callout-item{font-size:12px;color:var(--text-muted);line-height:1.4;display:flex;gap:6px;align-items:flex-start;}
+.callout-item .callout-club{font-weight:600;color:var(--text);}
+.callout-empty{font-size:12px;color:var(--text-faint);font-style:italic;}
+
+/* Drilldown inside expanded loc-card (Step 6C) */
+.loc-drilldown{background:var(--surface);border-bottom:1px solid var(--border-light);padding:14px 16px;}
+.loc-drill-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.loc-drill-label{font-size:11px;font-weight:700;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.6px;}
+.loc-drill-summary{font-size:11px;color:var(--text-muted);}
+.loc-drill-strip{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:14px;}
+.loc-drill-day{text-align:center;}
+.loc-drill-bar-wrap{height:36px;display:flex;align-items:flex-end;justify-content:center;}
+.loc-drill-bar{width:100%;background:var(--g5);border-radius:3px;min-height:4px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:2px;}
+.loc-drill-bar-label{font-size:9px;color:white;font-weight:600;line-height:1;}
+.loc-drill-bar.miss{background:var(--rpale,#fef2f2);border:1px dashed var(--r5,#dc2626);height:14px;}
+.loc-drill-day-label{font-size:9px;color:var(--text-faint);margin-top:3px;}
+.loc-drill-day-label.miss{color:var(--r5,#dc2626);font-weight:600;}
+.loc-drill-day-label.future{color:var(--text-faint);font-style:italic;}
+.loc-drill-bar.future{background:transparent;border:1px dashed var(--border-light);height:14px;}
+
+.loc-drill-op{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--b0);border:1px solid var(--border-light);border-radius:6px;margin-bottom:10px;}
+.loc-drill-op-avatar{width:26px;height:26px;border-radius:50%;background:var(--b2);color:var(--b6);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;}
+.loc-drill-op-meta{flex:1;min-width:0;}
+.loc-drill-op-name{font-size:12px;font-weight:600;color:var(--text);}
+.loc-drill-op-sub{font-size:10px;color:var(--text-faint);margin-top:1px;}
+.loc-drill-op-empty{font-size:11px;color:var(--text-faint);font-style:italic;text-align:center;padding:8px;}
+
+.loc-drill-actions{display:flex;gap:8px;}
+.loc-drill-action{flex:1;background:var(--surface);color:var(--text);border:1px solid var(--border);padding:7px 12px;border-radius:6px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;text-decoration:none;text-align:center;transition:background 0.15s;}
+.loc-drill-action:hover{background:var(--b0);border-color:var(--b3);}
+
 /* Expanded section */
 .loc-expanded{display:none;padding:16px;border-top:1px solid var(--border-light);background:var(--b0);animation:expandIn 0.2s ease}
 @keyframes expandIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
@@ -359,6 +403,11 @@ if('serviceWorker' in navigator){
         <div class="hero-kpi-cell-sub" id="kpi-month-sub">across all locations</div>
       </div>
     </div>
+  </div>
+
+  <!-- WINS / NEEDS ATTENTION CALLOUTS (Step 6C) -->
+  <div id="callouts-row" class="callouts-row" style="display:none;">
+    <!-- populated by renderCallouts() -->
   </div>
 
   <!-- LOCATIONS -->
@@ -760,6 +809,7 @@ async function loadLocations(){
   renderLocations();
   renderKPIs();
   renderAnnualGoalHero();
+  renderCallouts();
 }
 
 // -- RENDER LOCATIONS --
@@ -838,6 +888,102 @@ function computeLocMetrics(loc){
   const ytdDays   = locDays.filter(d => d.date >= yearStart && d.date <= yearEnd);
   const ytdSales  = ytdDays.reduce((s,d) => s + (d.data ? (parseFloat(d.data.totalSales)||0) : 0), 0);
 
+  // --- Per-operator stats over last 7 days (used by drilldown top-operator pill) ---
+  // Daily entries store up to 4 op slots (op1..op4) with hours (op1Hrs..op4Hrs).
+  // Payouts are split equally across operators on a given day. We aggregate
+  // both metrics, then pick the top-by-hours operator.
+  const opStats = {};
+  wkDays.forEach(function(d){
+    if(!d.data) return;
+    const ops = [];
+    for(let i=1; i<=4; i++){
+      const name = d.data['op'+i];
+      const hrs  = parseFloat(d.data['op'+i+'Hrs']) || 0;
+      if(name) ops.push({name: String(name).trim(), hrs: hrs});
+    }
+    if(!ops.length) return;
+    const dayPayouts = parseFloat(d.data.payouts) || 0;
+    const perOpPayout = ops.length > 0 ? dayPayouts / ops.length : 0;
+    ops.forEach(function(o){
+      if(!opStats[o.name]) opStats[o.name] = {name:o.name, hrs:0, payouts:0, days:0};
+      opStats[o.name].hrs      += o.hrs;
+      opStats[o.name].payouts  += perOpPayout;
+      opStats[o.name].days     += 1;
+    });
+  });
+  // Top operator = highest hours; payouts is the tiebreaker
+  const opList = Object.values(opStats).sort(function(a,b){
+    if(b.hrs !== a.hrs) return b.hrs - a.hrs;
+    return b.payouts - a.payouts;
+  });
+  const topOp = opList.length ? opList[0] : null;
+
+  // --- Last 7 days, day-by-day, used by drilldown sparkline ---
+  // Returns an array of 7 objects, oldest first, each {date, dateStr, dayLabel,
+  // sales, isMiss (entry expected but missing), isFuture (date > today)}.
+  // Trailing future days only matter on weeks-not-yet-finished (rare for
+  // a "last 7 days" window which always ends today).
+  const last7 = [];
+  for(let i=6; i>=0; i--){
+    const dt = new Date(Date.now() - i*864e5);
+    const ymd = dt.toISOString().slice(0,10);
+    const dayEntry = locDays.find(d => d.date === ymd);
+    const sales = dayEntry && dayEntry.data ? (parseFloat(dayEntry.data.totalSales)||0) : 0;
+    last7.push({
+      date:    ymd,
+      dayLabel: dt.toLocaleDateString('en-US',{weekday:'short'}) + ' ' + dt.getDate(),
+      sales:   sales,
+      hasEntry: !!dayEntry,
+      isMiss:  !dayEntry, // we don't know schedule, so treat all missing as misses
+      isFuture: false
+    });
+  }
+
+  // --- Entry streak (consecutive most-recent days with entries) ---
+  // Walks backward from today; stops at first missed day.
+  let entryStreak = 0;
+  for(let i=0; i<60; i++){
+    const dt = new Date(Date.now() - i*864e5);
+    const ymd = dt.toISOString().slice(0,10);
+    const has = locDays.some(d => d.date === ymd);
+    if(has) entryStreak++;
+    else break;
+  }
+
+  // --- Days since most recent entry (for "no entry in last 3 open days" trigger) ---
+  let daysSinceEntry = null;
+  if(locDays.length){
+    const sortedDates = locDays.map(d => d.date).sort();
+    const latest = sortedDates[sortedDates.length - 1];
+    daysSinceEntry = Math.floor((Date.now() - new Date(latest+'T00:00:00').getTime()) / 864e5);
+  }
+
+  // --- Best single day in last 30 + whether yesterday was that best day ---
+  let bestDay30 = 0, bestDay30Date = null;
+  moDays.forEach(function(d){
+    const s = d.data ? (parseFloat(d.data.totalSales)||0) : 0;
+    if(s > bestDay30){ bestDay30 = s; bestDay30Date = d.date; }
+  });
+  const bestDayWasYesterday = (bestDay30Date === yday) && bestDay30 > 0;
+
+  // --- Annual goal milestone crossing in last 7 days ---
+  // Detects whether YTD crossed 25/50/75% of sales goal during this 7-day window.
+  // Computes "YTD up to 7 days ago" and compares against current YTD.
+  let milestoneCrossed = null;
+  if(myGoal.sales != null && myGoal.sales > 0){
+    const sevenDaysAgo = new Date(Date.now() - 7*864e5).toISOString().slice(0,10);
+    const ytdSevenAgo = ytdDays
+      .filter(d => d.date < sevenDaysAgo)
+      .reduce((s,d) => s + (d.data ? (parseFloat(d.data.totalSales)||0) : 0), 0);
+    const pctNow    = (ytdSales      / myGoal.sales) * 100;
+    const pctBefore = (ytdSevenAgo / myGoal.sales) * 100;
+    [25, 50, 75].forEach(function(threshold){
+      if(pctBefore < threshold && pctNow >= threshold){
+        milestoneCrossed = threshold;
+      }
+    });
+  }
+
   return {
     yday: {sales: ydaySales, dv: ydayDV, hasEntry: !!ydayDay},
     week: {sales: wkSales, dv: wkDV, daysCount: wkDays.length, wowPct: wowPct},
@@ -848,6 +994,12 @@ function computeLocMetrics(loc){
       salesGoal: myGoal.sales,
       salesActual: ytdSales
     },
+    operators: {top: topOp, all: opList},
+    last7: last7,
+    entryStreak: entryStreak,
+    daysSinceEntry: daysSinceEntry,
+    bestDayWasYesterday: bestDayWasYesterday,
+    milestoneCrossed: milestoneCrossed,
     hasAnyData: locDays.length > 0
   };
 }
@@ -998,6 +1150,200 @@ function buildLocPaceRowHTML(m){
   </div>`;
 }
 
+// ════════════════════════════════════════════════════════════════════
+// WINS / NEEDS ATTENTION CALLOUTS (Step 6C)
+// ════════════════════════════════════════════════════════════════════
+
+// Trigger thresholds, kept as constants so they're easy to tune.
+const WIN_WOW_GROWTH_PCT      = 10;   // 7-day sales up >= X% WoW
+const WIN_TRACKER_HIGH_PCT    = 95;   // tracker >= X%
+const WIN_STREAK_DAYS         = 7;    // entry streak >= X days
+const ATTN_TRACKER_LOW_PCT    = 80;   // tracker < X%
+const ATTN_NO_ENTRY_DAYS      = 3;    // no entry in last X days
+const ATTN_PACE_BEHIND_PCT    = 5;    // behind annual pace by > X%
+const ATTN_WOW_DECLINE_PCT    = 10;   // 7-day sales down >= X% WoW
+const ATTN_PENDING_AGE_DAYS   = 25;   // org status='invited' for >= X days
+
+// Compute org-wide wins and attention items by walking each location's
+// metrics. Pending invite + suspended triggers operate at the org level.
+// Returns {wins:[string], attention:[string]} arrays of pre-formatted
+// human-readable lines, each with the club name as the first highlighted
+// segment for renderCallouts to wrap.
+function computeOrgCallouts(){
+  const wins = [], attention = [];
+
+  if(!MY_LOCATIONS || !MY_LOCATIONS.length){
+    return {wins:wins, attention:attention};
+  }
+
+  MY_LOCATIONS.forEach(function(loc){
+    const m = computeLocMetrics(loc);
+    const club = loc.name || '(unnamed)';
+
+    if(!m.hasAnyData){
+      // No-data clubs don't generate wins or detailed attention items.
+      // The "no entry in 3 days" trigger handles them via daysSinceEntry==null
+      // path below.
+    }
+
+    // ----- WINS -----
+    if(m.week.wowPct !== null && m.week.wowPct >= WIN_WOW_GROWTH_PCT){
+      wins.push({club: club, text: 'up ' + Math.round(m.week.wowPct) + '% week-over-week'});
+    }
+    if(m.tracker.pct !== null && m.tracker.pct >= WIN_TRACKER_HIGH_PCT){
+      wins.push({club: club, text: 'tracker at ' + m.tracker.pct + '% (' + m.tracker.entries + '/' + m.tracker.expected + ' days)'});
+    }
+    if(m.entryStreak >= WIN_STREAK_DAYS){
+      wins.push({club: club, text: m.entryStreak + '-day entry streak'});
+    }
+    if(m.bestDayWasYesterday){
+      wins.push({club: club, text: 'best day of last 30 was yesterday ($' + Math.round(m.yday.sales).toLocaleString('en-US') + ')'});
+    }
+    if(m.milestoneCrossed){
+      wins.push({club: club, text: 'crossed ' + m.milestoneCrossed + '% of annual sales goal this week'});
+    }
+
+    // ----- NEEDS ATTENTION -----
+    if(m.tracker.pct !== null && m.tracker.pct < ATTN_TRACKER_LOW_PCT){
+      attention.push({club: club, text: 'tracker at ' + m.tracker.pct + '% (' + m.tracker.entries + '/' + m.tracker.expected + ' days)'});
+    }
+    if(m.daysSinceEntry === null){
+      attention.push({club: club, text: 'no entries logged yet'});
+    } else if(m.daysSinceEntry >= ATTN_NO_ENTRY_DAYS){
+      attention.push({club: club, text: 'no entry in ' + m.daysSinceEntry + ' days'});
+    }
+    if(m.annual.salesGoal && m.annual.salesGoal > 0){
+      const dayInfo = getHeroDayOfYear(m.annual.year);
+      const expected = dayInfo.day / dayInfo.total;
+      const actual = m.annual.salesActual / m.annual.salesGoal;
+      const behind = expected - actual;
+      if(behind > (ATTN_PACE_BEHIND_PCT/100)){
+        attention.push({club: club, text: 'behind annual pace by ' + Math.round(behind*100) + '%'});
+      }
+    }
+    if(m.week.wowPct !== null && m.week.wowPct <= -ATTN_WOW_DECLINE_PCT){
+      attention.push({club: club, text: 'down ' + Math.abs(Math.round(m.week.wowPct)) + '% week-over-week'});
+    }
+  });
+
+  // ----- ORG-LEVEL ATTENTION -----
+  if(MY_ORG){
+    if(MY_ORG.status === 'suspended'){
+      attention.push({club: MY_ORG.name||'Organization', text: 'org is suspended — contact support'});
+    }
+    if(MY_ORG.status === 'invited' && MY_ORG.created_at){
+      const createdMs = new Date(MY_ORG.created_at).getTime();
+      const ageDays = Math.floor((Date.now() - createdMs) / 864e5);
+      if(ageDays >= ATTN_PENDING_AGE_DAYS){
+        attention.push({club: MY_ORG.name||'Organization', text: 'invite is ' + ageDays + ' days old, not yet accepted'});
+      }
+    }
+  }
+
+  return {wins: wins, attention: attention};
+}
+
+// Render the two callout cards. Hidden entirely if there's nothing in
+// either bucket — keeps the dashboard clean for a fresh org.
+function renderCallouts(){
+  const row = document.getElementById('callouts-row');
+  if(!row) return;
+  const callouts = computeOrgCallouts();
+
+  if(!callouts.wins.length && !callouts.attention.length){
+    row.style.display = 'none';
+    return;
+  }
+  row.style.display = '';
+
+  function buildCard(kind, items){
+    const isWins = kind === 'wins';
+    const headLabel = isWins ? 'Wins' : 'Needs attention';
+    const iconChar  = isWins ? '\u2713' : '\u26a0';
+    const itemsHtml = items.length
+      ? items.map(function(it){
+          return '<div class="callout-item"><span class="callout-club">'+escHtml(it.club)+'</span> &middot; <span>'+escHtml(it.text)+'</span></div>';
+        }).join('')
+      : '<div class="callout-empty">'+(isWins ? 'Nothing to celebrate yet — keep going.' : 'All clear across the org.')+'</div>';
+    return '<div class="callout-card '+kind+'">'
+         +    '<div class="callout-head '+kind+'">'
+         +      '<span class="callout-icon '+kind+'">'+iconChar+'</span>'
+         +      headLabel
+         +    '</div>'
+         +    '<div class="callout-list">'+itemsHtml+'</div>'
+         +  '</div>';
+  }
+
+  row.innerHTML = buildCard('wins', callouts.wins) + buildCard('attention', callouts.attention);
+}
+
+// Build the drilldown HTML inside an expanded loc-card. Lives between the
+// pace bar and the team-members section. Sparkline + top operator + action.
+function buildLocDrilldownHTML(loc, m){
+  const totalSales7 = m.last7.reduce(function(s,d){return s + (d.sales||0);}, 0);
+  const entryCount7 = m.last7.filter(function(d){return d.hasEntry;}).length;
+
+  // Find max sales in the window so bars scale relative to it
+  const maxSales = m.last7.reduce(function(mx,d){return Math.max(mx, d.sales||0);}, 0);
+
+  const stripHtml = m.last7.map(function(d){
+    const dayParts = d.dayLabel.split(' ');
+    if(d.isMiss){
+      return '<div class="loc-drill-day">'
+           +   '<div class="loc-drill-bar-wrap"><div class="loc-drill-bar miss"></div></div>'
+           +   '<div class="loc-drill-day-label miss">'+escHtml(d.dayLabel)+'</div>'
+           + '</div>';
+    }
+    // Bar height: scale 4..32px based on sales relative to max
+    const barHeight = maxSales > 0 ? Math.max(6, Math.round((d.sales / maxSales) * 32)) : 6;
+    const showLabel = d.sales >= 1000 && barHeight >= 14;
+    const labelHtml = showLabel
+      ? '<span class="loc-drill-bar-label">$'+Math.round(d.sales/1000)+'k</span>'
+      : '';
+    return '<div class="loc-drill-day">'
+         +   '<div class="loc-drill-bar-wrap"><div class="loc-drill-bar" style="height:'+barHeight+'px;">'+labelHtml+'</div></div>'
+         +   '<div class="loc-drill-day-label">'+escHtml(d.dayLabel)+'</div>'
+         + '</div>';
+  }).join('');
+
+  const opHtml = m.operators.top
+    ? (function(){
+        const op = m.operators.top;
+        const initials = op.name.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+        const subParts = [];
+        if(op.hrs > 0) subParts.push(op.hrs.toFixed(1) + ' hrs');
+        if(op.payouts > 0) subParts.push('$' + Math.round(op.payouts).toLocaleString('en-US') + ' paid');
+        subParts.push(op.days + ' day' + (op.days!==1?'s':'') + ' worked');
+        const subText = subParts.join(' \u00b7 ') + ' \u00b7 top by hours';
+        return '<div class="loc-drill-op">'
+             +   '<div class="loc-drill-op-avatar">'+escHtml(initials)+'</div>'
+             +   '<div class="loc-drill-op-meta">'
+             +     '<div class="loc-drill-op-name">'+escHtml(op.name)+'</div>'
+             +     '<div class="loc-drill-op-sub">'+escHtml(subText)+'</div>'
+             +   '</div>'
+             + '</div>';
+      })()
+    : '<div class="loc-drill-op-empty">No operator activity in the last 7 days.</div>';
+
+  // "View daily entries" deep-links into app.html for this club, in read-only
+  // admin mode (when leader doesn't own the club) or write mode (when they do).
+  // Mirrors the same logic as the header's Enter Sales button.
+  const isOwned = MY_OWNED_LOCATION_IDS.indexOf(loc.id) !== -1;
+  const href = 'app.html?location_id=' + loc.id + (isOwned ? '' : '&admin=1') + '&from=org#history';
+
+  return '<div class="loc-drilldown">'
+       +   '<div class="loc-drill-head">'
+       +     '<span class="loc-drill-label">Last 7 days</span>'
+       +     '<span class="loc-drill-summary">$'+Math.round(totalSales7).toLocaleString('en-US')+' \u00b7 '+entryCount7+' '+(entryCount7===1?'entry':'entries')+'</span>'
+       +   '</div>'
+       +   '<div class="loc-drill-strip">'+stripHtml+'</div>'
+       +   opHtml
+       +   '<div class="loc-drill-actions">'
+       +     '<a class="loc-drill-action" href="'+href+'" onclick="event.stopPropagation()">View daily entries \u2192</a>'
+       +   '</div>'
+       + '</div>';
+}
+
 // Returns the user-facing role label for a user listed inside a specific
 // club's team panel. Mirrors the role hierarchy: Admin > Owner > Org Leader >
 // Operator > Pending. The DB stores 'employee' for what the UI calls
@@ -1059,6 +1405,7 @@ function renderLocations(){
       ${buildLocStatStripHTML(m)}
       ${buildLocPaceRowHTML(m)}
       <div class="loc-expanded" id="loc-exp-${loc.id}">
+        ${buildLocDrilldownHTML(loc, m)}
         <div class="team-section">
           <div class="team-title">Team Members (${locUsers.length})</div>
           ${teamHtml}
@@ -1462,6 +1809,8 @@ async function onHeroYearChange(e){
   // Per-club pace bars in the locations list reference HERO_SELECTED_YEAR too,
   // so re-render them whenever the picker changes.
   renderLocations();
+  // Callouts include pace-behind triggers that depend on the selected year.
+  renderCallouts();
 }
 
 // -- LOAD CO-LEADERS --
