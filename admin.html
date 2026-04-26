@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-26 03:00:00 -->
+<!-- CACHE BUST: 2026-04-26 03:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -1959,9 +1959,34 @@ async function init(){
   if(locsErr){console.error('Failed to load locations:',locsErr.message);}
   allLocations = locs || [];
   // Load orgs for tree view
-  const{data:orgsData}=await sb.from('organizations').select('id,name,status,monthly_rate').neq('status','deleted').order('name');
+  const{data:orgsData}=await sb.from('organizations').select('id,name,status,monthly_rate,leader_email,leader_name,created_at').neq('status','deleted').order('name');
   allOrgsMap={};
   (orgsData||[]).forEach(o=>allOrgsMap[o.id]=o);
+
+  // Load primary leaders from org_leaders, joined to users for the actual
+  // identity (email, name). The drawer reads from this in preference to the
+  // legacy organizations.leader_email column. The legacy column is kept as
+  // fallback for orgs that pre-date the org_leaders table.
+  try{
+    const{data:leaders,error:lerr}=await sb
+      .from('org_leaders')
+      .select('org_id,user_id,is_primary,users(first_name,last_name,display_name,email)')
+      .eq('is_primary', true);
+    if(lerr){
+      console.warn('Could not load primary leaders:', lerr.message);
+    } else if(leaders){
+      leaders.forEach(function(l){
+        const o = allOrgsMap[l.org_id];
+        if(!o) return;
+        const u = l.users || {};
+        const name = u.display_name || [u.first_name,u.last_name].filter(Boolean).join(' ') || null;
+        if(u.email) o.primary_leader_email = u.email;
+        if(name)    o.primary_leader_name  = name;
+      });
+    }
+  }catch(e){
+    console.warn('org_leaders query threw:', e);
+  }
   // YTD-spanning days fetch — covers full calendar year so Goal Progress YTD math works.
   // Includes a 32-day fallback floor so brand-new years (Jan 1-2 etc.) still have last-30 data.
   const yearStart = new Date().getFullYear()+'-01-01';
@@ -2362,8 +2387,8 @@ function renderLocations(){
       const subBits = [];
       if (status === 'invited' && org.invited_at) subBits.push('Invited ' + fmtDate(org.invited_at));
       if (status === 'invited' && org.invite_expires_at) subBits.push('expires ' + fmtDate(org.invite_expires_at));
-      subBits.push(org.leader_email
-        ? escHtml(org.leader_email)
+      subBits.push((org.primary_leader_email || org.leader_email)
+        ? escHtml(org.primary_leader_email || org.leader_email)
         : '<span style="font-style:italic;opacity:0.65;">no leader email</span>');
       const sub = subBits.join(' · ');
       const resendLink = status === 'invited'
@@ -2386,8 +2411,8 @@ function renderLocations(){
           <div class="org-tbl-avatar">${orgInitials}</div>
           <span class="org-tbl-name">${escHtml(org.name)}</span>
           <span class="org-tbl-meta">${locs.length} location${locs.length!==1?'s':''} &middot; ${activeCnt} active${
-            isUnassigned ? '' : (org.leader_email
-              ? ' &middot; ' + escHtml(org.leader_email)
+            isUnassigned ? '' : ((org.primary_leader_email || org.leader_email)
+              ? ' &middot; ' + escHtml(org.primary_leader_email || org.leader_email)
               : ' &middot; <span style="font-style:italic;opacity:0.7;">no leader email</span>')
           }</span>
           <button class="org-pin-btn${isPinned?' pinned':''}" onclick="toggleOrgPin('${orgId}')" title="${isPinned?'Unpin':'Pin to top'}">&#9733;</button>
@@ -3205,14 +3230,18 @@ function renderOrgDrawer(orgId, tab){
             '<div style="font-size:11px;color:var(--text-faint);margin-top:6px;line-height:1.4;">Edits the destination address for the next Resend invite. Once the leader signs up, these become read-only.</div>'+
           '</div>'
         : '<div class="dt-section"><div class="dt-heading">Leader</div>'+
-            '<div class="dt-field"><label class="dt-label">Email</label>'+
-              (org.leader_email
-                ? '<div style="display:flex;gap:8px;align-items:center;"><span style="font-size:14px;color:var(--text);flex:1;word-break:break-all;">'+escHtml(org.leader_email)+'</span><button class="dt-btn-outline" onclick="navigator.clipboard.writeText(\''+escHtml(org.leader_email)+'\').then(function(){showToast(\'Copied\',\'success\');})">Copy</button></div>'
-                : '<div style="font-size:13px;color:var(--text-faint);font-style:italic;">Not set</div>')+
-            '</div>'+
-            (org.leader_name
-              ? '<div class="dt-field"><label class="dt-label">Name</label><div style="font-size:14px;color:var(--text);">'+escHtml(org.leader_name)+'</div></div>'
-              : '')+
+            (function(){
+              var displayEmail = org.primary_leader_email || org.leader_email || '';
+              var displayName  = org.primary_leader_name  || org.leader_name  || '';
+              return '<div class="dt-field"><label class="dt-label">Email</label>'+
+                (displayEmail
+                  ? '<div style="display:flex;gap:8px;align-items:center;"><span style="font-size:14px;color:var(--text);flex:1;word-break:break-all;">'+escHtml(displayEmail)+'</span><button class="dt-btn-outline" onclick="navigator.clipboard.writeText(\''+escHtml(displayEmail)+'\').then(function(){showToast(\'Copied\',\'success\');})">Copy</button></div>'
+                  : '<div style="font-size:13px;color:var(--text-faint);font-style:italic;">Not set</div>')+
+              '</div>'+
+              (displayName
+                ? '<div class="dt-field"><label class="dt-label">Name</label><div style="font-size:14px;color:var(--text);">'+escHtml(displayName)+'</div></div>'
+                : '');
+            })()+
           '</div>'
       )+
       '<div class="dt-section"><div class="dt-heading">Org details</div>'+
