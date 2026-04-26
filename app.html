@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-26 08:30:00 -->
+<!-- CACHE BUST: 2026-04-26 09:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -65,6 +65,12 @@ if('serviceWorker' in navigator){
     html,body{height:100%;overflow:hidden;font-family:DM Sans,sans-serif;background:var(--bg);color:var(--text);font-size:13px}
     /* NAV */
     .topnav{background:var(--surface);border-bottom:1px solid var(--border-light);display:flex;align-items:center;gap:8px;padding:var(--safe-top) 12px 0;min-height:calc(var(--nav-h) + var(--safe-top));position:relative;z-index:50;box-shadow:var(--shadow-sm)}
+    /* Org-leader nav switcher (Org view / Club view buttons) -- mirrors org-admin.html.
+       Shown only when USER_ROLE==='org_leader' and they own one or more clubs. */
+    .org-leader-switcher{display:flex;align-items:center;background:var(--b0);border:1px solid var(--border-light);border-radius:8px;padding:2px;gap:2px;flex-shrink:0;}
+    .org-leader-switcher button{font-size:12px;font-weight:600;padding:5px 10px;background:transparent;border:none;border-radius:6px;color:var(--text-muted);cursor:pointer;font-family:inherit;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis;}
+    .org-leader-switcher button.active{background:var(--surface);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,0.06);}
+    .org-leader-switcher button:hover:not(.active){color:var(--text);}
     .nav-logo{width:36px;height:36px;background:white;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,0.1);cursor:pointer;}
     .nav-logo svg{width:24px;height:24px;}
     .nav-logo:hover{background:var(--b0);}
@@ -1171,6 +1177,7 @@ if('serviceWorker' in navigator){
 <nav class="topnav">
   <button class="nav-btn back" id="nav-back-btn" style="display:none;font-weight:700;color:var(--b5);font-size:13px;padding:4px 10px;background:var(--b0);border-radius:8px;border:1px solid var(--border);" onclick="goBackToAdmin()">← Locations</button>
   <div class="nav-logo" onclick="switchTab(USER_ROLE==='employee'?'inv':'enter')" title="Go to home tab"><svg viewBox="0 0 52 80" xmlns="http://www.w3.org/2000/svg" width="20" height="30" style="display:block;"><polygon points="38,0 14,44 26,44 12,80 46,32 30,32" fill="#1e5c35"/></svg></div>
+  <div class="org-leader-switcher" id="org-leader-switcher" style="display:none;"></div>
   <div style="display:flex;flex-direction:column;justify-content:center;flex:1;min-width:0;overflow:hidden;">
     <div class="nav-club-name" id="nav-club-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Loading…</div>
     <div id="nav-club-addr" style="font-size:11px;color:var(--text-faint);font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:none;"></div>
@@ -4534,9 +4541,11 @@ async function init(){
       return;
     }
 
-    // Load all locations this user has access to
+    // Load all locations this user has access to.
+    // The locations(id,name) embed is consumed by both the modal switcher
+    // (openLocSwitcher) and the new top-nav org-leader-switcher.
     const{data:userLocs,error:ulErr}=await sb.from('user_locations')
-      .select('location_id,is_primary')
+      .select('location_id,is_primary,locations(id,name)')
       .eq('user_id',session.user.id);
     if(ulErr)console.warn('user_locations fetch error:',ulErr.message);
     const USER_LOCATIONS=userLocs||[];
@@ -4576,13 +4585,19 @@ async function init(){
     if(navDN){ navDN.textContent = (u.display_name || [u.first_name,u.last_name].filter(Boolean).join(' ') || ''); }
     const navRL = document.getElementById('nav-role-label');
     if(navRL){ navRL.textContent = (USER_ROLE==='employee'?'OPERATOR':'OWNER'); }
-    // Show Switch Location button if user has more than one location
+    // Show Switch Location modal-button if user has more than one location.
+    // Org_leaders get the prominent top-nav strip instead, so the modal entry
+    // would be a redundant duplicate -- skip it for them.
     const _ulocs=window._USER_LOCATIONS||[];
-    if(_ulocs.length>1&&!IS_ADMIN_VIEW){
+    if(_ulocs.length>1&&!IS_ADMIN_VIEW&&USER_ROLE!=='org_leader'){
       const _slb=document.getElementById('nav-switch-loc-btn');
       const _sld=document.getElementById('nav-switch-loc-divider');
       if(_slb)_slb.style.display='';
       if(_sld)_sld.style.display='';
+    }
+    // Render the top-nav org-leader switcher ([Org view] + owned clubs).
+    if(USER_ROLE==='org_leader'&&!IS_ADMIN_VIEW){
+      renderOrgLeaderSwitcher(LOCATION_ID);
     }
     // Save current location to localStorage for next visit
     if(CURRENT_SESSION&&LOCATION_ID&&!IS_ADMIN_VIEW){
@@ -16414,6 +16429,42 @@ function switchToLocation(locId){
   // param, which would override the localStorage value and stay on the old
   // club. Switcher is hidden in admin view so admin=1 never needs preserving.
   window.location.href='app.html?location_id='+encodeURIComponent(locId);
+}
+
+// Renders the top-nav [Org view] + one button per owned club switcher.
+// Mirrors org-admin.html#renderOrgLeaderSwitcher so navigation feels symmetric:
+// from org-admin, Mary clicks a club tab to enter app.html; from app.html she
+// clicks "Org view" or another club tab to leave / switch.
+function renderOrgLeaderSwitcher(currentLocId){
+  var sw=document.getElementById('org-leader-switcher');
+  if(!sw)return;
+  var locs=(window._USER_LOCATIONS||[]).filter(function(l){return l && l.locations;});
+  if(USER_ROLE!=='org_leader' || !locs.length){
+    sw.style.display='none';
+    return;
+  }
+  // Sort by name for stable order across renders.
+  var sorted=locs.slice().sort(function(a,b){
+    return ((a.locations.name||'')).localeCompare((b.locations.name||''));
+  });
+  // Clear and rebuild via DOM API (avoids HTML escaping pitfalls on club names).
+  while(sw.firstChild)sw.removeChild(sw.firstChild);
+  var orgBtn=document.createElement('button');
+  orgBtn.textContent='Org view';
+  // app.html always has a currentLocId, so the Org view button is never marked
+  // active here -- clicking it leaves the page.
+  orgBtn.onclick=function(){window.location.href='org-admin.html';};
+  sw.appendChild(orgBtn);
+  sorted.forEach(function(l){
+    var b=document.createElement('button');
+    var nm=(l.locations && l.locations.name)||'(unnamed)';
+    b.textContent=nm;
+    b.title=nm;
+    if(l.location_id===currentLocId)b.className='active';
+    b.onclick=function(){window.location.href='app.html?location_id='+encodeURIComponent(l.location_id);};
+    sw.appendChild(b);
+  });
+  sw.style.display='flex';
 }
 
 // Close switcher on overlay click
