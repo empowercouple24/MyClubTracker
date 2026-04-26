@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-26 05:30:00 -->
+<!-- CACHE BUST: 2026-04-26 06:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -291,6 +291,12 @@ if('serviceWorker' in navigator){
 .team-name{font-size:13px;font-weight:700;color:var(--text)}
 .team-email{font-size:11px;color:var(--text-faint);margin-top:1px}
 .team-role-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:var(--b0);color:var(--b6);border:1px solid var(--b2)}
+.team-role-badge.team-role-coowner{background:var(--g0);color:var(--g6);border-color:var(--g2,#bbf7d0)}
+.team-row-remove{background:none;border:none;color:var(--text-faint);font-size:14px;line-height:1;cursor:pointer;padding:4px 6px;border-radius:4px;transition:color 0.15s,background 0.15s}
+.team-row-remove:hover{color:var(--red,#dc2626);background:#fef2f2}
+.aco-cand{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border-light);transition:background 0.1s}
+.aco-cand:last-child{border-bottom:none}
+.aco-cand:hover{background:var(--surface-muted,#f5f7fa)}
 
 /* Co-leaders section */
 .coleader-row{background:var(--surface);border:1px solid var(--border-light);border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;gap:8px}
@@ -631,6 +637,39 @@ if('serviceWorker' in navigator){
   </div>
 </div>
 
+<!-- -- ADD CO-OWNER MODAL -- -->
+<div class="modal-overlay" id="add-coowner-modal" style="z-index:270;">
+  <div class="modal" style="max-width:460px;width:100%;">
+    <div class="modal-title">Add Co-owner</div>
+    <div class="modal-sub" id="aco-sub">Pick someone already in the org to share ownership of this club.</div>
+    <div class="modal-alert error" id="aco-error"></div>
+    <div class="modal-field">
+      <label class="modal-label">Search by name or email</label>
+      <input class="modal-input" type="text" id="aco-search" placeholder="Type to filter..." oninput="filterCoOwnerCandidates()" autocomplete="off"/>
+    </div>
+    <div id="aco-list" style="max-height:280px;overflow-y:auto;border:1px solid var(--border-light);border-radius:var(--radius-sm);background:var(--b0);"></div>
+    <div style="margin-top:12px;font-size:12px;color:var(--text-faint);line-height:1.5;">
+      Don't see them? <a href="#" onclick="event.preventDefault();closeModal('add-coowner-modal');showToast('Invite them as an operator first via the club app, then return here.');" style="color:var(--b6);font-weight:600;">Invite as operator first &rarr;</a>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="closeModal('add-coowner-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- -- REMOVE CO-OWNER CONFIRMATION MODAL -- -->
+<div class="modal-overlay" id="remove-coowner-modal" style="z-index:280;">
+  <div class="modal" style="max-width:420px;width:100%;">
+    <div class="modal-title">Remove Co-owner</div>
+    <div class="modal-sub" id="rco-sub">Are you sure?</div>
+    <div class="modal-alert error" id="rco-error"></div>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="closeModal('remove-coowner-modal')">Cancel</button>
+      <button class="btn-primary" id="rco-btn" style="background:var(--red,#dc2626);" onclick="submitRemoveCoOwner()">Remove</button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast notification container (styled by shared.css) -->
 <div class="toast" id="toast"></div>
 
@@ -647,7 +686,7 @@ const sb=supabase.createClient(SURL,SKEY,{
   }
 });
 
-let ME=null,MY_ORG=null,MY_LOCATIONS=[],ALL_DAYS=[],ALL_USERS=[],CO_LEADERS=[],MY_OWNED_LOCATION_IDS=[];
+let ME=null,MY_ORG=null,MY_LOCATIONS=[],ALL_DAYS=[],ALL_USERS=[],ALL_USER_LOCATIONS=[],CO_LEADERS=[],MY_OWNED_LOCATION_IDS=[];
 
 // Annual goals modal state — set when openAnnualGoalsModal() is called.
 // MY_GOALS_BY_YEAR caches fetched per-club goals keyed by year, then by location_id:
@@ -898,6 +937,195 @@ async function profRemoveAvatar(){
 function openAssignUserModal(){showToast('Assign user coming soon');}
 function orgAdminLookupZip(){/* no-op until the ZIP autofill helper is wired */}
 
+// ── Co-owner management ────────────────────────────────────────────
+// Pending state for the remove-confirm modal — set by confirmRemoveCoOwner,
+// consumed by submitRemoveCoOwner.
+let _pendingCoOwnerRemove = null;
+// Pending state for add — the location being added to.
+let _pendingCoOwnerAddLocId = null;
+
+// Candidate list cache for the open modal — recomputed each time the modal
+// opens so add/remove ops invalidate it implicitly.
+let _coOwnerCandidates = [];
+
+function openAddCoOwnerModal(locId, locName){
+  if(!canManageCoOwnersFor(locId)){
+    showToast('You do not have permission to add co-owners here.');
+    return;
+  }
+  _pendingCoOwnerAddLocId = locId;
+  document.getElementById('aco-sub').textContent = 'Pick someone already in the org to share ownership of ' + locName + '.';
+  document.getElementById('aco-error').classList.remove('show');
+  document.getElementById('aco-search').value = '';
+
+  // Build candidate list. Eligible:
+  //   - Anyone in ALL_USERS who is NOT already on this club (legacy or via user_locations)
+  //   - role must be 'owner', 'employee', or 'org_leader' (not 'pending', not 'admin')
+  // Excluded so we don't show meaningless options.
+  const onClub = new Set();
+  ALL_USERS.forEach(u => { if(u.location_id === locId) onClub.add(u.id); });
+  (ALL_USER_LOCATIONS||[]).forEach(r => { if(r.location_id === locId) onClub.add(r.user_id); });
+
+  _coOwnerCandidates = ALL_USERS.filter(u => {
+    if(onClub.has(u.id)) return false;
+    if(u.role === 'pending' || u.role === 'admin') return false;
+    return true;
+  }).sort((a,b) => {
+    const an = (a.display_name || [a.first_name,a.last_name].filter(Boolean).join(' ') || a.email || '').toLowerCase();
+    const bn = (b.display_name || [b.first_name,b.last_name].filter(Boolean).join(' ') || b.email || '').toLowerCase();
+    return an.localeCompare(bn);
+  });
+
+  renderCoOwnerCandidates(_coOwnerCandidates);
+  openModal('add-coowner-modal');
+}
+
+function renderCoOwnerCandidates(list){
+  const el = document.getElementById('aco-list');
+  if(!list.length){
+    el.innerHTML = '<div style="padding:18px;text-align:center;font-size:13px;color:var(--text-faint);">No eligible org members found.<br/><span style="font-size:12px;">Everyone is already on this club, or there are no other members yet.</span></div>';
+    return;
+  }
+  el.innerHTML = list.map(u => {
+    const fullName = u.display_name || [u.first_name,u.last_name].filter(Boolean).join(' ') || '--';
+    const initials = (u.first_name && u.last_name)
+      ? (u.first_name[0]+u.last_name[0]).toUpperCase()
+      : (u.display_name||u.email||'?').split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const isOwnerLike = (u.role==='owner' || u.role==='org_leader');
+    const avatarHtml = u.avatar_url
+      ? `<div class="team-avatar"><img src="${escHtml(u.avatar_url)}" alt=""/></div>`
+      : `<div class="team-avatar${isOwnerLike?' is-owner':''}">${escHtml(initials)}</div>`;
+    const safeName = escHtml(fullName).replace(/'/g,"&#39;");
+    return `
+      <div class="aco-cand" onclick="submitAddCoOwner('${u.id}','${safeName}')">
+        ${avatarHtml}
+        <div style="flex:1;min-width:0;">
+          <div class="team-name">${escHtml(fullName)}</div>
+          <div class="team-email">${escHtml(u.email||'')}</div>
+        </div>
+        <span class="team-role-badge">${teamRoleLabel(u, _pendingCoOwnerAddLocId)}</span>
+      </div>`;
+  }).join('');
+}
+
+function filterCoOwnerCandidates(){
+  const q = (document.getElementById('aco-search').value || '').toLowerCase().trim();
+  if(!q){ renderCoOwnerCandidates(_coOwnerCandidates); return; }
+  const filtered = _coOwnerCandidates.filter(u => {
+    const hay = ((u.display_name||'') + ' ' + (u.first_name||'') + ' ' + (u.last_name||'') + ' ' + (u.email||'')).toLowerCase();
+    return hay.indexOf(q) !== -1;
+  });
+  renderCoOwnerCandidates(filtered);
+}
+
+async function submitAddCoOwner(userId, displayName){
+  if(!_pendingCoOwnerAddLocId){ showToast('Could not determine which club.'); return; }
+  const locId = _pendingCoOwnerAddLocId;
+  const errEl = document.getElementById('aco-error');
+  errEl.classList.remove('show');
+
+  // Pick up the user record so we can promote role if needed
+  const u = ALL_USERS.find(x => x.id === userId);
+  if(!u){ errEl.textContent = 'User not found.'; errEl.classList.add('show'); return; }
+
+  try{
+    // 1. Insert user_locations row with is_primary=false. Upsert in case a row
+    //    already exists (e.g. legacy operator already had a row pointing here).
+    const{error:ulErr} = await sb.from('user_locations').upsert({
+      user_id: userId,
+      location_id: locId,
+      is_primary: false
+    }, { onConflict: 'user_id,location_id' });
+    if(ulErr) throw ulErr;
+
+    // 2. If the user's role is 'employee' (operator), promote to 'owner' so
+    //    they get owner-level privileges across the system. If they're already
+    //    'owner' or 'org_leader', leave their role alone — they retain whatever
+    //    primary affiliation they had.
+    if(u.role === 'employee'){
+      const{error:roleErr} = await sb.from('users').update({ role: 'owner' }).eq('id', userId);
+      if(roleErr) throw roleErr;
+      u.role = 'owner';  // Update local cache immediately
+    }
+
+    closeModal('add-coowner-modal');
+    showToast(displayName + ' added as co-owner.', 'success');
+
+    // 3. Reload the data slice that powers the team panel.
+    await reloadOrgUsersAndLocations();
+    renderLocations();
+  }catch(e){
+    errEl.textContent = 'Failed: ' + (e.message || String(e));
+    errEl.classList.add('show');
+  }
+}
+
+function confirmRemoveCoOwner(userId, locId, userName, locName){
+  if(!canManageCoOwnersFor(locId)){
+    showToast('You do not have permission to remove co-owners here.');
+    return;
+  }
+  _pendingCoOwnerRemove = { userId, locId, userName, locName };
+  document.getElementById('rco-sub').innerHTML =
+    'Remove <strong>' + escHtml(userName) + '</strong> as co-owner of <strong>' + escHtml(locName) + '</strong>? ' +
+    'They will lose owner access to this club. Their account and access to other clubs are unaffected.';
+  document.getElementById('rco-error').classList.remove('show');
+  openModal('remove-coowner-modal');
+}
+
+async function submitRemoveCoOwner(){
+  if(!_pendingCoOwnerRemove){ closeModal('remove-coowner-modal'); return; }
+  const { userId, locId, userName } = _pendingCoOwnerRemove;
+  const errEl = document.getElementById('rco-error');
+  const btn = document.getElementById('rco-btn');
+  errEl.classList.remove('show');
+  btn.disabled = true; btn.textContent = 'Removing...';
+
+  try{
+    // Only delete the row that's NOT the primary. Defensive: filter on
+    // is_primary=false so we never accidentally yank the primary owner from
+    // their own club via this UI.
+    const{error} = await sb
+      .from('user_locations')
+      .delete()
+      .eq('user_id', userId)
+      .eq('location_id', locId)
+      .eq('is_primary', false);
+    if(error) throw error;
+
+    btn.disabled = false; btn.textContent = 'Remove';
+    closeModal('remove-coowner-modal');
+    _pendingCoOwnerRemove = null;
+    showToast(userName + ' removed as co-owner.', 'success');
+
+    await reloadOrgUsersAndLocations();
+    renderLocations();
+  }catch(e){
+    btn.disabled = false; btn.textContent = 'Remove';
+    errEl.textContent = 'Failed: ' + (e.message || String(e));
+    errEl.classList.add('show');
+  }
+}
+
+// Reload just the users + user_locations slice for the org without re-doing
+// the whole init. Used after add/remove co-owner so the team panel reflects
+// the change immediately.
+async function reloadOrgUsersAndLocations(){
+  if(!MY_LOCATIONS || !MY_LOCATIONS.length) return;
+  const locIds = MY_LOCATIONS.map(l => l.id);
+  const usersByLegacy = await sb.from('users').select('id,first_name,last_name,display_name,email,role,location_id,avatar_url').in('location_id', locIds).is('deleted_at', null);
+  const ulRows = await sb.from('user_locations').select('user_id,location_id,is_primary').in('location_id', locIds);
+  ALL_USER_LOCATIONS = ulRows.data || [];
+  const legacyIds = new Set((usersByLegacy.data||[]).map(u=>u.id));
+  const ulUserIds = (ALL_USER_LOCATIONS||[]).map(r=>r.user_id).filter(id => id && !legacyIds.has(id));
+  let ulUsers = [];
+  if(ulUserIds.length){
+    const{data} = await sb.from('users').select('id,first_name,last_name,display_name,email,role,location_id,avatar_url').in('id', ulUserIds).is('deleted_at', null);
+    ulUsers = data || [];
+  }
+  ALL_USERS = [...(usersByLegacy.data||[]), ...ulUsers];
+}
+
 // -- INIT --
 (async()=>{
   try{
@@ -1074,9 +1302,24 @@ async function loadLocations(){
   const{data:days}=await sb.from('days').select('location_id,date,data').in('location_id',locIds).gte('date',sinceStr);
   ALL_DAYS=days||[];
 
-  // Load users for all locations
-  const{data:users}=await sb.from('users').select('id,first_name,last_name,display_name,email,role,location_id,avatar_url').in('location_id',locIds).is('deleted_at', null);
-  ALL_USERS=users||[];
+  // Load users for all locations.
+  // Two sources:
+  //   1. Legacy: users.location_id matches a club in this org
+  //   2. user_locations rows linking a user to a club in this org (co-owners)
+  // We union the two so co-owners show up in team panels even when their
+  // primary users.location_id is a different club.
+  const usersByLegacy = await sb.from('users').select('id,first_name,last_name,display_name,email,role,location_id,avatar_url').in('location_id',locIds).is('deleted_at', null);
+  const ulRows = await sb.from('user_locations').select('user_id,location_id,is_primary').in('location_id',locIds);
+  ALL_USER_LOCATIONS = ulRows.data || [];
+  // Collect user_ids reached via user_locations that aren't already in the legacy set
+  const legacyIds = new Set((usersByLegacy.data||[]).map(u=>u.id));
+  const ulUserIds = (ALL_USER_LOCATIONS||[]).map(r=>r.user_id).filter(id => id && !legacyIds.has(id));
+  let ulUsers = [];
+  if(ulUserIds.length){
+    const{data}=await sb.from('users').select('id,first_name,last_name,display_name,email,role,location_id,avatar_url').in('id', ulUserIds).is('deleted_at', null);
+    ulUsers = data||[];
+  }
+  ALL_USERS = [...(usersByLegacy.data||[]), ...ulUsers];
 
   // Load goals for the currently-selected hero year (cached for repeat year-flips)
   await loadGoalsForYear(HERO_SELECTED_YEAR);
@@ -1658,7 +1901,42 @@ function renderLocations(){
   }
 
   el.innerHTML=MY_LOCATIONS.map(loc=>{
-    const locUsers=ALL_USERS.filter(u=>u.location_id===loc.id);
+    // Build the team for this club: union of users who have either
+    //   - users.location_id == loc.id (legacy: primary owner / operators / org leader)
+    //   - a user_locations row pointing here (canonical: covers co-owners)
+    // Each entry is annotated with isCoOwner so the role label can distinguish
+    // primary "Owner" from "Co-owner".
+    const legacyHere = ALL_USERS.filter(u => u.location_id === loc.id);
+    const ulHere = (ALL_USER_LOCATIONS||[]).filter(r => r.location_id === loc.id);
+    const seen = new Set();
+    const teamMembers = [];
+    legacyHere.forEach(u => {
+      if(seen.has(u.id)) return;
+      seen.add(u.id);
+      teamMembers.push({ user: u, isCoOwner: false });
+    });
+    ulHere.forEach(r => {
+      if(seen.has(r.user_id)) return;
+      const u = ALL_USERS.find(x => x.id === r.user_id);
+      if(!u) return;
+      seen.add(u.id);
+      // A user reached only via user_locations (legacy match was empty) is a
+      // co-owner if their role is 'owner' AND they aren't this club's primary.
+      // is_primary === true on user_locations means they're THE primary owner
+      // of this club via the canonical mapping (post-legacy migration shape).
+      const isCoOwner = (u.role === 'owner') && (r.is_primary !== true);
+      teamMembers.push({ user: u, isCoOwner });
+    });
+    // Sort: primary owner / org leader first, co-owners next, operators last
+    teamMembers.sort((a,b) => {
+      const score = e => {
+        if(e.isCoOwner) return 1;
+        if(e.user.role === 'owner' || e.user.role === 'org_leader' || e.user.role === 'admin') return 0;
+        return 2;
+      };
+      return score(a) - score(b);
+    });
+
     const initials=(loc.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
 
     const m = computeLocMetrics(loc);
@@ -1666,8 +1944,9 @@ function renderLocations(){
       ?`<span class="badge badge-active">Active</span>`
       :`<span class="badge badge-nodata">No data</span>`;
 
-    const teamHtml=locUsers.length
-      ?locUsers.map(u=>{
+    const teamHtml=teamMembers.length
+      ?teamMembers.map(entry=>{
+        const u = entry.user;
         const fullName = u.display_name || [u.first_name,u.last_name].filter(Boolean).join(' ') || '--';
         const initials = (u.first_name && u.last_name)
           ? (u.first_name[0]+u.last_name[0]).toUpperCase()
@@ -1676,6 +1955,15 @@ function renderLocations(){
         const avatarHtml = u.avatar_url
           ? `<div class="team-avatar"><img src="${escHtml(u.avatar_url)}" alt=""/></div>`
           : `<div class="team-avatar${isOwnerLike?' is-owner':''}">${escHtml(initials)}</div>`;
+        const roleLabel = entry.isCoOwner ? 'Co-owner' : teamRoleLabel(u, loc.id);
+        // Co-owner remove button: visible only to admin / org_leader / primary
+        // owner of this club. The primary-owner check resolves locally because
+        // ME may also have a user_locations row here; if they do AND their
+        // role is owner, they qualify.
+        const canManageCoOwners = canManageCoOwnersFor(loc.id);
+        const removeBtn = (entry.isCoOwner && canManageCoOwners)
+          ? `<button class="team-row-remove" onclick="confirmRemoveCoOwner('${u.id}','${loc.id}','${escHtml(fullName).replace(/'/g,"&#39;")}','${escHtml(loc.name).replace(/'/g,"&#39;")}')" title="Remove co-owner">&#10005;</button>`
+          : '';
         return `
         <div class="team-row">
           <div class="team-row-left">
@@ -1685,11 +1973,15 @@ function renderLocations(){
               <div class="team-email">${escHtml(u.email||'')}</div>
             </div>
           </div>
-          <span class="team-role-badge">${teamRoleLabel(u, loc.id)}</span>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span class="team-role-badge${entry.isCoOwner?' team-role-coowner':''}">${roleLabel}</span>
+            ${removeBtn}
+          </div>
         </div>`;
       }).join('')
       :`<div style="font-size:12px;color:var(--text-faint);">No team members yet.</div>`;
 
+    const showCoOwnerBtn = canManageCoOwnersFor(loc.id);
     return`<div class="loc-card" id="loc-${loc.id}">
       <div class="loc-card-header" onclick="toggleLoc('${loc.id}')">
         <div class="loc-avatar">${initials}</div>
@@ -1708,15 +2000,32 @@ function renderLocations(){
       <div class="loc-expanded" id="loc-exp-${loc.id}">
         ${buildLocDrilldownHTML(loc, m)}
         <div class="team-section">
-          <div class="team-title">Team Members (${locUsers.length})</div>
+          <div class="team-title">Team Members (${teamMembers.length})</div>
           ${teamHtml}
         </div>
-        <div class="expanded-footer">
-          <button class="btn-sm" onclick="openAssignUserModal('${loc.id}','${escHtml(loc.name)}')">+ Assign User</button>
+        <div class="expanded-footer" style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn-sm" onclick="openAssignUserModal('${loc.id}','${escHtml(loc.name).replace(/'/g,"&#39;")}')">+ Assign User</button>
+          ${showCoOwnerBtn ? `<button class="btn-sm" onclick="openAddCoOwnerModal('${loc.id}','${escHtml(loc.name).replace(/'/g,"&#39;")}')">+ Add Co-owner</button>` : ''}
         </div>
       </div>
     </div>`;
   }).join('');
+}
+
+// Determines whether the current user can add/remove co-owners for a given
+// club. Allowed: admin, org_leader of this org, or the club's primary owner.
+function canManageCoOwnersFor(locId){
+  if(!ME) return false;
+  if(ME.role === 'admin') return true;
+  if(ME.role === 'org_leader' && ME.org_id === MY_ORG?.id) return true;
+  // Primary owner check: ME has users.location_id matching this club AND
+  // role 'owner', OR has a user_locations row with is_primary=true for it.
+  if(ME.role === 'owner'){
+    if(ME.location_id === locId) return true;
+    const myUL = (ALL_USER_LOCATIONS||[]).find(r => r.user_id === ME.id && r.location_id === locId && r.is_primary === true);
+    if(myUL) return true;
+  }
+  return false;
 }
 
 // -- RENDER KPIs --
