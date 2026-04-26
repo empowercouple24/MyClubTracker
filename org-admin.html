@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-26 06:00:00 -->
+<!-- CACHE BUST: 2026-04-26 06:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -378,6 +378,8 @@ if('serviceWorker' in navigator){
     <div class="nav-drop" id="nav-drop">
       <button class="nav-drop-item" onclick="openProfileModal();toggleNavMenu()">&#9881; Profile &amp; Settings</button>
       <div class="nav-drop-divider"></div>
+      <button class="nav-drop-item" onclick="openFeedbackModal();toggleNavMenu()">&#128172; Send feedback</button>
+      <div class="nav-drop-divider"></div>
       <button class="nav-drop-item danger" onclick="handleSignOut()">&#8618; Sign out</button>
     </div>
   </div>
@@ -671,6 +673,37 @@ if('serviceWorker' in navigator){
 </div>
 
 <!-- Toast notification container (styled by shared.css) -->
+<!-- -- FEEDBACK MODAL (shared across admin/org-admin/app) -- -->
+<div class="modal-overlay" id="feedback-modal" style="z-index:300;">
+  <div class="modal" style="max-width:520px;width:100%;">
+    <div class="modal-title">Send feedback</div>
+    <div class="modal-sub">Found a bug? Have an idea? Got a question? Tell us.</div>
+    <div class="modal-alert error" id="fb-error"></div>
+    <div class="modal-field">
+      <label class="modal-label">Category</label>
+      <select class="modal-input" id="fb-category">
+        <option value="bug">🐛 Bug</option>
+        <option value="feature">💡 Feature request</option>
+        <option value="question">❓ Question</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Subject</label>
+      <input class="modal-input" type="text" id="fb-subject" placeholder="Short summary" maxlength="200"/>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Details</label>
+      <textarea class="modal-input" id="fb-body" rows="6" placeholder="What's going on? Steps to reproduce, what you expected, etc." maxlength="4000" style="resize:vertical;font-family:inherit;"></textarea>
+      <div style="font-size:11px;color:var(--text-faint);margin-top:4px;">We'll review and get back to you if needed.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="closeModal('feedback-modal')">Cancel</button>
+      <button class="btn-primary" id="fb-submit-btn" onclick="submitFeedback()">Submit</button>
+    </div>
+  </div>
+</div>
+
+
 <div class="toast" id="toast"></div>
 
 <script src="nav.js?v=10"></script>
@@ -2895,6 +2928,124 @@ function toggleNavMenu(){
       .catch(function(){});
   }, CHECK_INTERVAL);
 })();
+
+// ── Feedback (shared across admin/org-admin/app) ──────────────────
+// Submits to public.feedback with submitter context, then triggers
+// send-feedback Edge Function for live email notification to admin.
+
+function openFeedbackModal(){
+  document.getElementById('fb-error').classList.remove('show');
+  document.getElementById('fb-category').value = 'bug';
+  document.getElementById('fb-subject').value = '';
+  document.getElementById('fb-body').value = '';
+  const overlay = document.getElementById('feedback-modal');
+  if(!overlay) return;
+  // Each file uses a different "open" pattern (some use .open, some .show);
+  // try both since the modal is shared markup.
+  overlay.classList.add('show');
+  overlay.classList.add('open');
+}
+function closeFeedbackModal(){
+  const overlay = document.getElementById('feedback-modal');
+  if(!overlay) return;
+  overlay.classList.remove('show');
+  overlay.classList.remove('open');
+}
+
+// Resolve submitter context from whatever globals this file exposes. Each
+// of admin.html, org-admin.html, app.html has different conventions for
+// where the current user / org / location lives. Best-effort lookup; any
+// missing field falls through to null in the DB row.
+async function _fbResolveContext(){
+  try{
+    let userId=null, userEmail=null, userRole=null, orgId=null, locationId=null;
+    // Try to use a cached user object if present
+    if(typeof ME!=='undefined' && ME){
+      userId    = ME.id || null;
+      userEmail = ME.email || null;
+      userRole  = ME.role || null;
+      orgId     = ME.org_id || null;
+      locationId = ME.location_id || null;
+    } else if(typeof adminProfile !=='undefined' && adminProfile){
+      // admin.html uses adminProfile + currentSession
+      if(typeof currentSession !=='undefined' && currentSession?.user){
+        userId    = currentSession.user.id;
+        userEmail = currentSession.user.email;
+      }
+      userRole = 'admin';
+    }
+    // If still missing, fall back to auth.getSession()
+    if((!userId || !userEmail) && typeof sb !=='undefined'){
+      const{data:{session}}=await sb.auth.getSession();
+      if(session?.user){
+        userId    = userId    || session.user.id;
+        userEmail = userEmail || session.user.email;
+      }
+    }
+    // app.html exposes LOCATION_ID + SETTINGS / CURRENT_USER
+    if(!locationId && typeof LOCATION_ID!=='undefined') locationId = LOCATION_ID;
+    if((!userRole || !orgId) && typeof CURRENT_USER!=='undefined' && CURRENT_USER){
+      userRole = userRole || CURRENT_USER.role || null;
+      orgId    = orgId    || CURRENT_USER.org_id || null;
+    }
+    return { userId, userEmail, userRole, orgId, locationId };
+  }catch(e){
+    console.warn('feedback context lookup failed:', e);
+    return { userId:null, userEmail:null, userRole:null, orgId:null, locationId:null };
+  }
+}
+
+async function submitFeedback(){
+  const errEl = document.getElementById('fb-error');
+  const btn   = document.getElementById('fb-submit-btn');
+  errEl.classList.remove('show');
+  const category = document.getElementById('fb-category').value;
+  const subject  = document.getElementById('fb-subject').value.trim();
+  const body     = document.getElementById('fb-body').value.trim();
+  if(!subject){ errEl.textContent='Please add a subject.'; errEl.classList.add('show'); return; }
+  if(!body){    errEl.textContent='Please add some details.'; errEl.classList.add('show'); return; }
+  if(subject.length > 200){ errEl.textContent='Subject is too long (200 char max).'; errEl.classList.add('show'); return; }
+  if(body.length > 4000){   errEl.textContent='Details are too long (4000 char max).'; errEl.classList.add('show'); return; }
+
+  const ctx = await _fbResolveContext();
+  if(!ctx.userId || !ctx.userEmail){
+    errEl.textContent = 'Could not determine your account. Please refresh and try again.';
+    errEl.classList.add('show'); return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Submitting...';
+  try{
+    const{data, error} = await sb.from('feedback').insert({
+      user_id:    ctx.userId,
+      user_email: ctx.userEmail,
+      user_role:  ctx.userRole,
+      org_id:     ctx.orgId,
+      location_id: ctx.locationId,
+      category, subject, body
+    }).select('id').single();
+    if(error) throw error;
+
+    // Fire-and-forget email notification. If this fails, the row still
+    // exists — admin can review in the dashboard regardless.
+    try{
+      await sb.functions.invoke('send-feedback', { body: { feedbackId: data.id } });
+    }catch(emailErr){
+      console.warn('send-feedback email failed (row was saved):', emailErr);
+    }
+
+    btn.disabled = false; btn.textContent = 'Submit';
+    closeFeedbackModal();
+    if(typeof showToast === 'function')      showToast('Thanks! We\'ll review your feedback.', 'success');
+    else if(typeof showSaToast === 'function') showSaToast('Thanks! We\'ll review your feedback.');
+    else alert('Thanks! We\'ll review your feedback.');
+  }catch(e){
+    btn.disabled = false; btn.textContent = 'Submit';
+    errEl.textContent = 'Failed to submit: ' + (e.message || String(e));
+    errEl.classList.add('show');
+  }
+}
+
+
 </script>
 </body>
 </html>

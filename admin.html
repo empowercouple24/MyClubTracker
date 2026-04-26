@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-26 05:00:00 -->
+<!-- CACHE BUST: 2026-04-26 06:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -355,6 +355,36 @@ if('serviceWorker' in navigator){
     .top-tab:hover:not(.active){color:var(--text-muted);background:var(--surface-muted,#f5f7fa);}
     .top-tab-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;background:var(--r5);color:white;font-size:10px;font-weight:800;border-radius:20px;padding:0 5px;}
     .top-tab-badge:empty,.top-tab-badge.hidden{display:none;}
+    .fb-status-chip.active,.fb-cat-chip.active{background:var(--b7)!important;color:#fff!important;border-color:var(--b7)!important;}
+    .fb-status-chip.active span,.fb-cat-chip.active span{opacity:0.85;color:#fff;}
+    .fb-row{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden;transition:box-shadow 0.15s;}
+    .fb-row:hover{box-shadow:0 4px 14px rgba(58,84,112,0.10);}
+    .fb-row-header{padding:14px 18px;cursor:pointer;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+    .fb-row-cat{font-size:11px;font-weight:700;padding:3px 9px;border-radius:10px;white-space:nowrap;}
+    .fb-row-cat.bug{background:#fef2f2;color:#b91c1c;border:1px solid #fca5a5;}
+    .fb-row-cat.feature{background:#eef2ff;color:#3730a3;border:1px solid #a5b4fc;}
+    .fb-row-cat.question{background:#fef9c3;color:#854d0e;border:1px solid #fde047;}
+    .fb-row-status{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;}
+    .fb-row-status.new{background:var(--r5);color:white;}
+    .fb-row-status.in_progress{background:#fde047;color:#713f12;}
+    .fb-row-status.reviewed{background:var(--b6);color:white;}
+    .fb-row-status.closed{background:var(--text-faint);color:white;}
+    .fb-row-subject{flex:1;min-width:0;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .fb-row-meta{font-size:11px;color:var(--text-faint);white-space:nowrap;}
+    .fb-row-chev{font-size:10px;color:var(--text-faint);transition:transform 0.2s;}
+    .fb-row.open .fb-row-chev{transform:rotate(180deg);}
+    .fb-row-body{display:none;padding:0 18px 16px;border-top:1px solid var(--border-light);}
+    .fb-row.open .fb-row-body{display:block;}
+    .fb-body-text{background:var(--b0);border-left:3px solid var(--b6);padding:12px 14px;border-radius:4px;font-size:13px;color:var(--text);line-height:1.6;white-space:pre-wrap;margin:14px 0;}
+    .fb-meta-row{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--text-muted);margin-bottom:10px;}
+    .fb-meta-row strong{color:var(--text);font-weight:600;}
+    .fb-admin-area{background:var(--b0);border:1px solid var(--border-light);border-radius:8px;padding:12px;margin-top:8px;}
+    .fb-admin-area textarea{width:100%;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px 10px;outline:none;resize:vertical;min-height:60px;}
+    .fb-admin-area textarea:focus{border-color:var(--b5);}
+    .fb-admin-controls{display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap;}
+    .fb-admin-controls select{font-family:'DM Sans',sans-serif;font-size:13px;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);cursor:pointer;}
+    .fb-saved-toast{font-size:12px;color:var(--g6);font-weight:600;display:none;}
+    .fb-saved-toast.show{display:inline;}
     .tab-pane{display:none;}
     .tab-pane.active{display:block;}
 
@@ -600,6 +630,8 @@ if('serviceWorker' in navigator){
       <button class="nav-drop-item nav-drop-item-active">🏠 Dashboard</button>
       <button class="nav-drop-item" onclick="window.location.href='settings.html';closeNavMenu()">⚙️ Settings</button>
       <div class="nav-drop-divider"></div>
+      <button class="nav-drop-item" onclick="openFeedbackModal();closeNavMenu()">💬 Send feedback</button>
+      <div class="nav-drop-divider"></div>
       <button class="nav-drop-item danger" onclick="handleSignOut();closeNavMenu()">↪ Sign out</button>
     </div>
   </div>
@@ -614,6 +646,7 @@ if('serviceWorker' in navigator){
     <button class="top-tab active" data-toptab="orgs" onclick="switchTopTab('orgs')">🏢 Organizations</button>
     <button class="top-tab" data-toptab="products" onclick="switchTopTab('products')">📦 Products</button>
     <button class="top-tab" data-toptab="requests" onclick="switchTopTab('requests')">📋 Pending Requests <span class="top-tab-badge hidden" id="top-tab-req-badge"></span></button>
+    <button class="top-tab" data-toptab="feedback" onclick="switchTopTab('feedback')">💬 Feedback <span class="top-tab-badge hidden" id="top-tab-fb-badge"></span></button>
   </div>
 
   <!-- ════════════ DASHBOARD TAB ════════════ -->
@@ -858,6 +891,37 @@ if('serviceWorker' in navigator){
     </div>
   </div>
 
+  <!-- ────────── FEEDBACK TAB PANE ────────── -->
+  <div class="tab-pane" id="pane-feedback">
+    <div id="feedback-section">
+      <div class="section-header" style="margin-top:0;">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <div class="section-label" style="margin:0;">Feedback</div>
+          <span id="feedback-badge" style="background:var(--r5);color:white;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;display:none;"></span>
+          <div style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;" id="fb-filter-bar">
+            <button type="button" class="fb-status-chip active" data-fbstatus="all" onclick="setFbStatusFilter('all')" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:5px 12px;border-radius:16px;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text);">All <span data-fbcount="all" style="opacity:0.7;margin-left:3px;">0</span></button>
+            <button type="button" class="fb-status-chip" data-fbstatus="new" onclick="setFbStatusFilter('new')" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:5px 12px;border-radius:16px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text-muted);">New <span data-fbcount="new" style="opacity:0.7;margin-left:3px;">0</span></button>
+            <button type="button" class="fb-status-chip" data-fbstatus="in_progress" onclick="setFbStatusFilter('in_progress')" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:5px 12px;border-radius:16px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text-muted);">In progress <span data-fbcount="in_progress" style="opacity:0.7;margin-left:3px;">0</span></button>
+            <button type="button" class="fb-status-chip" data-fbstatus="reviewed" onclick="setFbStatusFilter('reviewed')" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:5px 12px;border-radius:16px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text-muted);">Reviewed <span data-fbcount="reviewed" style="opacity:0.7;margin-left:3px;">0</span></button>
+            <button type="button" class="fb-status-chip" data-fbstatus="closed" onclick="setFbStatusFilter('closed')" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:5px 12px;border-radius:16px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text-muted);">Closed <span data-fbcount="closed" style="opacity:0.7;margin-left:3px;">0</span></button>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;" id="fb-cat-filter-bar">
+          <button type="button" class="fb-cat-chip active" data-fbcat="all" onclick="setFbCatFilter('all')" style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;padding:4px 10px;border-radius:14px;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text);">All categories</button>
+          <button type="button" class="fb-cat-chip" data-fbcat="bug" onclick="setFbCatFilter('bug')" style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;padding:4px 10px;border-radius:14px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text-muted);">🐛 Bug</button>
+          <button type="button" class="fb-cat-chip" data-fbcat="feature" onclick="setFbCatFilter('feature')" style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;padding:4px 10px;border-radius:14px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text-muted);">💡 Feature</button>
+          <button type="button" class="fb-cat-chip" data-fbcat="question" onclick="setFbCatFilter('question')" style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;padding:4px 10px;border-radius:14px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text-muted);">❓ Question</button>
+        </div>
+      </div>
+      <div id="feedback-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+      <div id="feedback-empty-state" style="display:none;text-align:center;padding:48px 24px;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:var(--shadow-sm);">
+        <div style="font-size:36px;margin-bottom:12px;">💬</div>
+        <div style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px;">No feedback yet</div>
+        <div style="font-size:13px;color:var(--text-muted);">When users submit feedback or feature requests, they'll appear here.</div>
+      </div>
+    </div>
+  </div>
+
 </div><!-- /page -->
 
 <!-- ADD LOCATION MODAL -->
@@ -1083,6 +1147,37 @@ if('serviceWorker' in navigator){
   </div>
 </div>
 
+<!-- -- FEEDBACK MODAL (shared across admin/org-admin/app) -- -->
+<div class="modal-overlay" id="feedback-modal" style="z-index:300;">
+  <div class="modal" style="max-width:520px;width:100%;">
+    <div class="modal-title">Send feedback</div>
+    <div class="modal-sub">Found a bug? Have an idea? Got a question? Tell us.</div>
+    <div class="modal-alert error" id="fb-error"></div>
+    <div class="modal-field">
+      <label class="modal-label">Category</label>
+      <select class="modal-input" id="fb-category">
+        <option value="bug">🐛 Bug</option>
+        <option value="feature">💡 Feature request</option>
+        <option value="question">❓ Question</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Subject</label>
+      <input class="modal-input" type="text" id="fb-subject" placeholder="Short summary" maxlength="200"/>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Details</label>
+      <textarea class="modal-input" id="fb-body" rows="6" placeholder="What's going on? Steps to reproduce, what you expected, etc." maxlength="4000" style="resize:vertical;font-family:inherit;"></textarea>
+      <div style="font-size:11px;color:var(--text-faint);margin-top:4px;">We'll review and get back to you if needed.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="closeModal('feedback-modal')">Cancel</button>
+      <button class="btn-primary" id="fb-submit-btn" onclick="submitFeedback()">Submit</button>
+    </div>
+  </div>
+</div>
+
+
 <div class="toast" id="toast"></div>
 
 <!-- DELETE LOCATION MODAL -->
@@ -1256,6 +1351,201 @@ async function loadRequests(){
   allRequests=locReqs||[];
   allOrgRequests=orgReqs||[];
   renderRequests();
+}
+
+// ── Feedback management ────────────────────────────────────────────
+let allFeedback = [];
+let fbStatusFilter = 'all';
+let fbCatFilter = 'all';
+
+async function loadFeedback(){
+  try{
+    const{data, error} = await sb.from('feedback').select('*').order('created_at', {ascending: false});
+    if(error){
+      console.error('loadFeedback err:', error.message);
+      allFeedback = [];
+    } else {
+      allFeedback = data || [];
+    }
+    renderFeedback();
+    updateFeedbackBadge();
+  }catch(e){
+    console.error('loadFeedback exception:', e);
+  }
+}
+
+function setFbStatusFilter(s){
+  fbStatusFilter = s;
+  document.querySelectorAll('.fb-status-chip').forEach(function(c){
+    const active = c.dataset.fbstatus === s;
+    c.classList.toggle('active', active);
+    c.style.background = active ? '' : 'transparent';
+    c.style.color = active ? '' : 'var(--text-muted)';
+  });
+  renderFeedback();
+}
+
+function setFbCatFilter(c){
+  fbCatFilter = c;
+  document.querySelectorAll('.fb-cat-chip').forEach(function(el){
+    const active = el.dataset.fbcat === c;
+    el.classList.toggle('active', active);
+    el.style.background = active ? '' : 'transparent';
+    el.style.color = active ? '' : 'var(--text-muted)';
+  });
+  renderFeedback();
+}
+
+function _fbCategoryHtml(cat){
+  if(cat==='bug')      return '<span class="fb-row-cat bug">🐛 Bug</span>';
+  if(cat==='feature')  return '<span class="fb-row-cat feature">💡 Feature</span>';
+  if(cat==='question') return '<span class="fb-row-cat question">❓ Question</span>';
+  return '<span class="fb-row-cat">'+escHtml(cat||'')+'</span>';
+}
+
+function _fbStatusHtml(status){
+  const label = status === 'in_progress' ? 'In Progress' : (status||'').charAt(0).toUpperCase() + (status||'').slice(1);
+  return '<span class="fb-row-status '+escHtml(status||'')+'">'+escHtml(label)+'</span>';
+}
+
+function _fbAgo(iso){
+  if(!iso) return '';
+  const dt = new Date(iso);
+  const ms = Date.now() - dt.getTime();
+  const days = Math.floor(ms / 864e5);
+  if(days === 0){
+    const hrs = Math.floor(ms / 36e5);
+    if(hrs === 0) return 'just now';
+    return hrs + 'h ago';
+  }
+  if(days === 1) return 'yesterday';
+  if(days <= 6)  return days + 'd ago';
+  return dt.toLocaleDateString('en-US', {month:'short', day:'numeric'});
+}
+
+function renderFeedback(){
+  const list = document.getElementById('feedback-list');
+  const empty = document.getElementById('feedback-empty-state');
+
+  // Status counts (always reflect the full set, regardless of filter)
+  const counts = { all: allFeedback.length, new: 0, in_progress: 0, reviewed: 0, closed: 0 };
+  allFeedback.forEach(f => { if(counts[f.status] !== undefined) counts[f.status]++; });
+  Object.keys(counts).forEach(k => {
+    const el = document.querySelector('[data-fbcount="'+k+'"]');
+    if(el) el.textContent = counts[k];
+  });
+
+  // Filter
+  let rows = allFeedback.slice();
+  if(fbStatusFilter !== 'all') rows = rows.filter(r => r.status === fbStatusFilter);
+  if(fbCatFilter    !== 'all') rows = rows.filter(r => r.category === fbCatFilter);
+
+  if(!rows.length){
+    list.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  list.innerHTML = rows.map(function(f){
+    const safeId = escHtml(f.id);
+    const subjectSafe = escHtml(f.subject||'(no subject)');
+    const submitter = escHtml(f.user_email||'unknown');
+    const role = f.user_role ? ' &middot; ' + escHtml(f.user_role) : '';
+    const ago = _fbAgo(f.created_at);
+    return ''+
+      '<div class="fb-row" id="fb-row-'+safeId+'">'+
+        '<div class="fb-row-header" onclick="toggleFeedbackRow(\''+safeId+'\')">'+
+          _fbCategoryHtml(f.category)+
+          _fbStatusHtml(f.status)+
+          '<span class="fb-row-subject">'+subjectSafe+'</span>'+
+          '<span class="fb-row-meta">'+submitter+role+' &middot; '+escHtml(ago)+'</span>'+
+          '<span class="fb-row-chev">&#9662;</span>'+
+        '</div>'+
+        '<div class="fb-row-body">'+
+          '<div class="fb-meta-row">'+
+            '<span><strong>From:</strong> '+submitter+'</span>'+
+            (f.user_role ? '<span><strong>Role:</strong> '+escHtml(f.user_role)+'</span>' : '')+
+            '<span><strong>Submitted:</strong> '+escHtml(new Date(f.created_at).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'}))+'</span>'+
+          '</div>'+
+          '<div class="fb-body-text">'+escHtml(f.body||'')+'</div>'+
+          '<div class="fb-admin-area">'+
+            '<label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);display:block;margin-bottom:6px;">Admin notes</label>'+
+            '<textarea id="fb-notes-'+safeId+'" placeholder="Internal notes (only you see these)...">'+escHtml(f.admin_notes||'')+'</textarea>'+
+            '<div class="fb-admin-controls">'+
+              '<label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-faint);">Status</label>'+
+              '<select id="fb-status-'+safeId+'">'+
+                '<option value="new"'+(f.status==='new'?' selected':'')+'>New</option>'+
+                '<option value="in_progress"'+(f.status==='in_progress'?' selected':'')+'>In progress</option>'+
+                '<option value="reviewed"'+(f.status==='reviewed'?' selected':'')+'>Reviewed</option>'+
+                '<option value="closed"'+(f.status==='closed'?' selected':'')+'>Closed</option>'+
+              '</select>'+
+              '<button class="btn-primary" style="font-size:12px;padding:6px 14px;" onclick="saveFeedback(\''+safeId+'\')">Save</button>'+
+              '<a href="mailto:'+escHtml(f.user_email||'')+'?subject=Re%3A%20'+encodeURIComponent(f.subject||'')+'" style="font-size:12px;color:var(--b6);text-decoration:none;font-weight:600;">&rarr; Reply via email</a>'+
+              '<span class="fb-saved-toast" id="fb-saved-'+safeId+'">Saved &check;</span>'+
+            '</div>'+
+          '</div>'+
+        '</div>'+
+      '</div>';
+  }).join('');
+}
+
+function toggleFeedbackRow(id){
+  const row = document.getElementById('fb-row-'+id);
+  if(row) row.classList.toggle('open');
+}
+
+async function saveFeedback(id){
+  const fb = allFeedback.find(f => f.id === id);
+  if(!fb) return;
+  const newStatus = document.getElementById('fb-status-'+id).value;
+  const newNotes  = document.getElementById('fb-notes-'+id).value;
+  const updates = { admin_notes: newNotes || null, status: newStatus };
+  // If transitioning out of 'new' for the first time, stamp reviewed_at + reviewed_by
+  if(fb.status === 'new' && newStatus !== 'new'){
+    updates.reviewed_at = new Date().toISOString();
+    updates.reviewed_by = currentSession?.user?.id || null;
+  }
+  const{error} = await sb.from('feedback').update(updates).eq('id', id);
+  if(error){
+    showToast('Save failed: ' + error.message, 'error');
+    return;
+  }
+  // Update local cache
+  Object.assign(fb, updates);
+  // Show saved indicator
+  const savedEl = document.getElementById('fb-saved-'+id);
+  if(savedEl){
+    savedEl.classList.add('show');
+    setTimeout(function(){ savedEl.classList.remove('show'); }, 1800);
+  }
+  // Re-render to reflect filter / status changes
+  renderFeedback();
+  updateFeedbackBadge();
+  // Re-open the row that was just edited (re-render closes everything)
+  const row = document.getElementById('fb-row-'+id);
+  if(row) row.classList.add('open');
+}
+
+function updateFeedbackBadge(){
+  const newCount = allFeedback.filter(f => f.status === 'new').length;
+  const tabBadge = document.getElementById('top-tab-fb-badge');
+  if(tabBadge){
+    if(newCount > 0){
+      tabBadge.textContent = newCount > 99 ? '99+' : String(newCount);
+      tabBadge.classList.remove('hidden');
+    } else {
+      tabBadge.classList.add('hidden');
+    }
+  }
+  const sectionBadge = document.getElementById('feedback-badge');
+  if(sectionBadge){
+    if(newCount > 0){
+      sectionBadge.textContent = newCount + ' new';
+      sectionBadge.style.display = '';
+    } else {
+      sectionBadge.style.display = 'none';
+    }
+  }
 }
 
 function setRequestFilter(f){
@@ -2005,12 +2295,17 @@ async function init(){
   document.getElementById('loading-overlay').style.display='none';
   await loadRequests();
   await checkPendingOrgs();
+  // Load feedback to populate the new-feedback nav badge. We do this in
+  // parallel with the rest because the badge is visible even before the
+  // user opens the Feedback tab.
+  loadFeedback().catch(e => console.warn('loadFeedback failed:', e));
   // Poll for new requests every 60s (only when tab visible)
   if(requestsPollTimer)clearInterval(requestsPollTimer);
   requestsPollTimer=setInterval(()=>{
     if(document.visibilityState==='visible'){
       loadRequests().catch(e=>console.warn('poll loadRequests failed',e));
       checkPendingOrgs().catch(e=>console.warn('poll checkPendingOrgs failed',e));
+      loadFeedback().catch(e=>console.warn('poll loadFeedback failed',e));
     }
   },60000);
 }
@@ -3035,6 +3330,9 @@ function switchTopTab(tab){
     try{renderGoalProgress();}catch(e){console.error('goal err:',e);}
     try{renderReportingConsistency();}catch(e){console.error('report err:',e);}
     try{renderDashAlerts();}catch(e){console.error('alerts err:',e);}
+  }
+  if(tab==='feedback'){
+    try{loadFeedback();}catch(e){console.error('loadFeedback err:',e);}
   }
   closeDrawer();
 }
@@ -4229,6 +4527,124 @@ window.addEventListener('load', function(){
     }
   }, 700);
 });
+
+// ── Feedback (shared across admin/org-admin/app) ──────────────────
+// Submits to public.feedback with submitter context, then triggers
+// send-feedback Edge Function for live email notification to admin.
+
+function openFeedbackModal(){
+  document.getElementById('fb-error').classList.remove('show');
+  document.getElementById('fb-category').value = 'bug';
+  document.getElementById('fb-subject').value = '';
+  document.getElementById('fb-body').value = '';
+  const overlay = document.getElementById('feedback-modal');
+  if(!overlay) return;
+  // Each file uses a different "open" pattern (some use .open, some .show);
+  // try both since the modal is shared markup.
+  overlay.classList.add('show');
+  overlay.classList.add('open');
+}
+function closeFeedbackModal(){
+  const overlay = document.getElementById('feedback-modal');
+  if(!overlay) return;
+  overlay.classList.remove('show');
+  overlay.classList.remove('open');
+}
+
+// Resolve submitter context from whatever globals this file exposes. Each
+// of admin.html, org-admin.html, app.html has different conventions for
+// where the current user / org / location lives. Best-effort lookup; any
+// missing field falls through to null in the DB row.
+async function _fbResolveContext(){
+  try{
+    let userId=null, userEmail=null, userRole=null, orgId=null, locationId=null;
+    // Try to use a cached user object if present
+    if(typeof ME!=='undefined' && ME){
+      userId    = ME.id || null;
+      userEmail = ME.email || null;
+      userRole  = ME.role || null;
+      orgId     = ME.org_id || null;
+      locationId = ME.location_id || null;
+    } else if(typeof adminProfile !=='undefined' && adminProfile){
+      // admin.html uses adminProfile + currentSession
+      if(typeof currentSession !=='undefined' && currentSession?.user){
+        userId    = currentSession.user.id;
+        userEmail = currentSession.user.email;
+      }
+      userRole = 'admin';
+    }
+    // If still missing, fall back to auth.getSession()
+    if((!userId || !userEmail) && typeof sb !=='undefined'){
+      const{data:{session}}=await sb.auth.getSession();
+      if(session?.user){
+        userId    = userId    || session.user.id;
+        userEmail = userEmail || session.user.email;
+      }
+    }
+    // app.html exposes LOCATION_ID + SETTINGS / CURRENT_USER
+    if(!locationId && typeof LOCATION_ID!=='undefined') locationId = LOCATION_ID;
+    if((!userRole || !orgId) && typeof CURRENT_USER!=='undefined' && CURRENT_USER){
+      userRole = userRole || CURRENT_USER.role || null;
+      orgId    = orgId    || CURRENT_USER.org_id || null;
+    }
+    return { userId, userEmail, userRole, orgId, locationId };
+  }catch(e){
+    console.warn('feedback context lookup failed:', e);
+    return { userId:null, userEmail:null, userRole:null, orgId:null, locationId:null };
+  }
+}
+
+async function submitFeedback(){
+  const errEl = document.getElementById('fb-error');
+  const btn   = document.getElementById('fb-submit-btn');
+  errEl.classList.remove('show');
+  const category = document.getElementById('fb-category').value;
+  const subject  = document.getElementById('fb-subject').value.trim();
+  const body     = document.getElementById('fb-body').value.trim();
+  if(!subject){ errEl.textContent='Please add a subject.'; errEl.classList.add('show'); return; }
+  if(!body){    errEl.textContent='Please add some details.'; errEl.classList.add('show'); return; }
+  if(subject.length > 200){ errEl.textContent='Subject is too long (200 char max).'; errEl.classList.add('show'); return; }
+  if(body.length > 4000){   errEl.textContent='Details are too long (4000 char max).'; errEl.classList.add('show'); return; }
+
+  const ctx = await _fbResolveContext();
+  if(!ctx.userId || !ctx.userEmail){
+    errEl.textContent = 'Could not determine your account. Please refresh and try again.';
+    errEl.classList.add('show'); return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Submitting...';
+  try{
+    const{data, error} = await sb.from('feedback').insert({
+      user_id:    ctx.userId,
+      user_email: ctx.userEmail,
+      user_role:  ctx.userRole,
+      org_id:     ctx.orgId,
+      location_id: ctx.locationId,
+      category, subject, body
+    }).select('id').single();
+    if(error) throw error;
+
+    // Fire-and-forget email notification. If this fails, the row still
+    // exists — admin can review in the dashboard regardless.
+    try{
+      await sb.functions.invoke('send-feedback', { body: { feedbackId: data.id } });
+    }catch(emailErr){
+      console.warn('send-feedback email failed (row was saved):', emailErr);
+    }
+
+    btn.disabled = false; btn.textContent = 'Submit';
+    closeFeedbackModal();
+    if(typeof showToast === 'function')      showToast('Thanks! We\'ll review your feedback.', 'success');
+    else if(typeof showSaToast === 'function') showSaToast('Thanks! We\'ll review your feedback.');
+    else alert('Thanks! We\'ll review your feedback.');
+  }catch(e){
+    btn.disabled = false; btn.textContent = 'Submit';
+    errEl.textContent = 'Failed to submit: ' + (e.message || String(e));
+    errEl.classList.add('show');
+  }
+}
+
+
 </script>
 
 </body>
