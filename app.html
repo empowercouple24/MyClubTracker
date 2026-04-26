@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-26 09:30:00 -->
+<!-- CACHE BUST: 2026-04-26 11:30:00 -->
 <html lang="en">
 <head>
 <script>
@@ -1187,6 +1187,10 @@ if('serviceWorker' in navigator){
     <button class="nav-menu-btn" onclick="toggleNavMenu()"><div class="nav-avatar" id="nav-avatar"><span></span><img alt=""/></div><span id="nav-display-name" style="font-size:13px;font-weight:600;color:var(--text-muted);margin-right:4px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span><span id="nav-role-label" style="font-weight:700;">OWNER</span> <span style="font-size:10px;">▾</span></button>
     <div class="nav-drop" id="nav-dropdown">
       <button class="nav-drop-item" id="nav-profile-btn" onclick="openProfileModal();closeNavMenu()">⚙ Profile &amp; Settings</button>
+      <button class="nav-drop-item" id="nav-ann-btn" onclick="openAnnouncementsModal();closeNavMenu()" style="display:none;justify-content:space-between;">
+        <span style="display:flex;align-items:center;gap:9px;">📣 Announcements</span>
+        <span id="nav-ann-badge" style="display:none;background:#c03030;color:#fff;font-size:10px;font-weight:700;min-width:18px;height:18px;padding:0 6px;border-radius:9px;align-items:center;justify-content:center;line-height:1;">0</span>
+      </button>
       <div class="nav-drop-divider"></div>
       <div id="admin-nav-items" style="display:none;">
         <button class="nav-drop-item" onclick="goBackToAdmin();closeNavMenu()">&#8592; Club Profile</button>
@@ -4599,6 +4603,9 @@ async function init(){
     if(USER_ROLE==='org_leader'&&!IS_ADMIN_VIEW){
       renderOrgLeaderSwitcher(LOCATION_ID);
     }
+    // Load announcements + populate badge / maybe auto-open modal.
+    // Function gates internally on USER_ROLE!=='admin' && !IS_ADMIN_VIEW.
+    try{ loadAnnouncementsForUser(); }catch(e){ console.error('loadAnnouncementsForUser err:',e); }
     // Save current location to localStorage for next visit
     if(CURRENT_SESSION&&LOCATION_ID&&!IS_ADMIN_VIEW){
       localStorage.setItem('mct_last_loc_'+CURRENT_SESSION.user.id, LOCATION_ID);
@@ -16467,6 +16474,189 @@ function renderOrgLeaderSwitcher(currentLocId){
   sw.style.display='flex';
 }
 
+// ── Announcements (recipient experience) ──────────────────────────
+// Phase 3 of Announcements: nav badge + modal-on-login + mark-as-read.
+// Phase 1 (schema + Edge Function) and Phase 2 (admin compose UI in admin.html)
+// shipped earlier. This block is duplicated inline in app.html and org-admin.html
+// because app.html does not load nav.js / nav.css -- shared logic lives inline.
+//
+// Behavior:
+//   - On auth complete (non-admin, not in admin-view): query announcements
+//     visible to this user (RLS handles target_role filtering) plus their reads.
+//   - Show nav-ann-btn always (so user can re-read past announcements).
+//   - Show nav-ann-badge with unread count when > 0.
+//   - Auto-open modal if there are unread announcements not yet shown this
+//     session (sessionStorage tracked by id).
+//   - "Mark as read" upserts to announcement_reads (RLS enforces user_id=auth.uid()).
+
+var _ANN_LIST = []; // [{ ann: {...row}, read: bool }]
+
+// Markdown parser -- MUST stay in sync with send-announcement.ts and admin.html.
+// Rules: bold (**x**), italic (*x*), links ([text](url) limited to http/https/mailto),
+// newlines -> <br>. Input is HTML-escaped first.
+function mdInline(input){
+  var s = escHtml(String(input == null ? '' : input));
+  s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function(_m, label, url){
+    var u = String(url).trim();
+    if(!/^(https?:\/\/|mailto:)/i.test(u)) return label;
+    return '<a href="'+u+'" target="_blank" rel="noopener" style="color:var(--b6);text-decoration:underline;">'+label+'</a>';
+  });
+  s = s.replace(/\n/g, '<br>');
+  return s;
+}
+
+async function loadAnnouncementsForUser(){
+  // Skip for admin (sender, not recipient) and for admin-view (Jeffrey browsing
+  // as another user -- the auth.uid() is still admin so RLS lets him see all,
+  // which would create misleading "unread" counts).
+  if(USER_ROLE === 'admin' || IS_ADMIN_VIEW) return;
+  if(!CURRENT_SESSION || !CURRENT_SESSION.user) return;
+  var userId = CURRENT_SESSION.user.id;
+
+  // Reveal the nav button so the user can re-read past announcements anytime.
+  var btn = document.getElementById('nav-ann-btn');
+  if(btn) btn.style.display = 'flex';
+
+  try{
+    var annQ  = sb.from('announcements').select('*').order('created_at', {ascending:false});
+    var readQ = sb.from('announcement_reads').select('announcement_id').eq('user_id', userId);
+    var annRes  = await annQ;
+    var readRes = await readQ;
+    if(annRes.error){ console.error('announcements fetch err:', annRes.error.message); return; }
+
+    var readSet = {};
+    (readRes.data || []).forEach(function(r){ readSet[r.announcement_id] = true; });
+
+    _ANN_LIST = (annRes.data || []).map(function(a){
+      return { ann: a, read: !!readSet[a.id] };
+    });
+
+    var unreadIds = _ANN_LIST.filter(function(x){return !x.read;}).map(function(x){return x.ann.id;});
+    updateAnnouncementsBadge(unreadIds.length);
+    maybeAutoShowAnnouncementsModal(unreadIds);
+  }catch(e){
+    console.error('loadAnnouncementsForUser exception:', e);
+  }
+}
+
+function updateAnnouncementsBadge(n){
+  var badge = document.getElementById('nav-ann-badge');
+  if(!badge) return;
+  if(n > 0){
+    badge.style.display = 'flex';
+    badge.textContent = n > 99 ? '99+' : String(n);
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function maybeAutoShowAnnouncementsModal(unreadIds){
+  if(!unreadIds || !unreadIds.length) return;
+  var shown = [];
+  try{ shown = JSON.parse(sessionStorage.getItem('mct_ann_shown') || '[]'); }catch(_){}
+  var newOnes = unreadIds.filter(function(id){ return shown.indexOf(id) === -1; });
+  if(!newOnes.length) return; // already shown this session
+
+  openAnnouncementsModal();
+
+  // Record all currently-unread as shown for this session (de-duped).
+  var combined = shown.slice();
+  unreadIds.forEach(function(id){ if(combined.indexOf(id) === -1) combined.push(id); });
+  try{ sessionStorage.setItem('mct_ann_shown', JSON.stringify(combined)); }catch(_){}
+}
+
+function openAnnouncementsModal(){
+  renderAnnouncementsModal();
+  var ov = document.getElementById('mct-ann-overlay');
+  if(ov) ov.style.display = 'flex';
+}
+
+function closeAnnouncementsModal(){
+  var ov = document.getElementById('mct-ann-overlay');
+  if(ov) ov.style.display = 'none';
+}
+
+function renderAnnouncementsModal(){
+  var list = document.getElementById('mct-ann-list');
+  var sub  = document.getElementById('mct-ann-head-sub');
+  if(!list) return;
+
+  // Sort: unread first, then by date desc.
+  var sorted = _ANN_LIST.slice().sort(function(a,b){
+    if(a.read !== b.read) return a.read ? 1 : -1;
+    return new Date(b.ann.created_at) - new Date(a.ann.created_at);
+  });
+  var unreadCount = sorted.filter(function(x){return !x.read;}).length;
+
+  if(sub){
+    if(!sorted.length)         sub.textContent = 'No announcements yet.';
+    else if(!unreadCount)      sub.textContent = sorted.length + ' total \u00b7 all caught up';
+    else                       sub.textContent = unreadCount + ' new \u00b7 ' + sorted.length + ' total';
+  }
+
+  if(!sorted.length){
+    list.innerHTML = '<div style="text-align:center;padding:32px 16px;color:var(--text-muted);font-size:14px;">No announcements yet.</div>';
+    return;
+  }
+
+  var html = '';
+  sorted.forEach(function(x){
+    var a = x.ann;
+    var safeId = escHtml(a.id);
+    var dt = a.created_at
+      ? new Date(a.created_at).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'})
+      : '';
+    var bodyHtml = mdInline(a.body || '');
+    var itemBg = x.read ? 'var(--surface)' : 'var(--b0)';
+    var itemBorder = x.read ? 'var(--border-light)' : 'var(--b3)';
+    var tagHtml = x.read
+      ? '<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;background:var(--b1);color:var(--b6);border:1px solid var(--b2);">Read</span>'
+      : '<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;background:#c03030;color:#fff;">New</span>';
+    var actionHtml = x.read
+      ? ''
+      : '<div style="display:flex;justify-content:flex-end;margin-top:10px;">'+
+          '<button onclick="markAnnouncementRead(\u0027'+safeId+'\u0027,this)" style="font-family:DM Sans,sans-serif;font-size:12px;font-weight:600;background:var(--b6);color:#fff;border:none;border-radius:6px;padding:7px 14px;cursor:pointer;">Mark as read</button>'+
+        '</div>';
+    html +=
+      '<div style="background:'+itemBg+';border:1px solid '+itemBorder+';border-radius:10px;padding:14px 16px;">'+
+        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap;">'+
+          '<div style="flex:1;min-width:0;font-family:DM Sans,sans-serif;font-size:14px;font-weight:700;color:var(--text);">'+escHtml(a.title || '(untitled)')+'</div>'+
+          tagHtml+
+        '</div>'+
+        '<div style="font-size:11px;color:var(--text-faint);margin-bottom:8px;">'+escHtml(dt)+'</div>'+
+        '<div style="font-size:14px;color:var(--text);line-height:1.6;">'+bodyHtml+'</div>'+
+        actionHtml+
+      '</div>';
+  });
+  list.innerHTML = html;
+}
+
+async function markAnnouncementRead(annId, btn){
+  if(btn){ btn.disabled = true; btn.textContent = 'Marking…'; }
+  try{
+    if(!CURRENT_SESSION || !CURRENT_SESSION.user) throw new Error('no session');
+    var userId = CURRENT_SESSION.user.id;
+    var r = await sb.from('announcement_reads').upsert({
+      announcement_id: annId,
+      user_id: userId,
+    }, { onConflict: 'announcement_id,user_id', ignoreDuplicates: true });
+    if(r.error) throw r.error;
+
+    // Update local state without re-fetching.
+    var item = _ANN_LIST.find(function(x){return x.ann.id === annId;});
+    if(item) item.read = true;
+    var unread = _ANN_LIST.filter(function(x){return !x.read;}).length;
+    updateAnnouncementsBadge(unread);
+    renderAnnouncementsModal();
+  }catch(e){
+    console.error('markAnnouncementRead err:', e);
+    showToast('Could not mark as read', 'error');
+    if(btn){ btn.disabled = false; btn.textContent = 'Mark as read'; }
+  }
+}
+
 // Close switcher on overlay click
 document.addEventListener('click',function(e){
   const overlay=document.getElementById('loc-switcher-overlay');
@@ -16774,6 +16964,20 @@ safeInit();
       <button onclick="closeLocSwitcher()" style="background:none;border:none;font-size:18px;color:var(--text-faint);cursor:pointer;padding:2px 6px;">✕</button>
     </div>
     <div id="loc-switcher-list" style="padding:12px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:8px;"></div>
+  </div>
+</div>
+
+<!-- ANNOUNCEMENTS MODAL (recipient view: read + unread, with mark-as-read) -->
+<div id="mct-ann-overlay" onclick="if(event.target===this)closeAnnouncementsModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;align-items:flex-start;justify-content:center;padding:60px 16px 16px;overflow-y:auto;">
+  <div style="background:var(--surface);border-radius:14px;width:100%;max-width:600px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 16px 48px rgba(0,0,0,0.25);overflow:hidden;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border-light);">
+      <div style="min-width:0;">
+        <div style="font-family:Outfit,sans-serif;font-size:17px;font-weight:800;color:var(--text);">📣 Announcements</div>
+        <div id="mct-ann-head-sub" style="font-size:12px;color:var(--text-muted);font-weight:500;margin-top:2px;">—</div>
+      </div>
+      <button onclick="closeAnnouncementsModal()" style="background:none;border:none;font-size:18px;color:var(--text-faint);cursor:pointer;padding:2px 6px;" title="Close">✕</button>
+    </div>
+    <div id="mct-ann-list" style="padding:14px 16px 16px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;flex:1;"></div>
   </div>
 </div>
 <!-- Prevent pinch-to-zoom on iOS Safari -->
