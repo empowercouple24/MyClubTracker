@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-26 06:30:00 -->
+<!-- CACHE BUST: 2026-04-26 07:00:00 -->
 <html lang="en">
 <head>
 <script>
@@ -566,11 +566,16 @@ if('serviceWorker' in navigator){
     .dt-team-row.editing{background:var(--b0);border-color:var(--b3);}
     .dt-team-avatar{width:32px;height:32px;border-radius:50%;background:var(--b0);color:var(--b6);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;overflow:hidden;}
     .dt-team-avatar.owner{background:var(--g0);color:var(--g5);}
+    .dt-team-avatar.coowner{background:var(--g0);color:var(--g6);border:2px dashed var(--g3,#86efac);}
     .dt-team-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
     .dt-team-info{flex:1;min-width:0;}
     .dt-team-name{font-size:13px;font-weight:700;color:var(--text);}
     .dt-team-role{font-size:10px;font-weight:700;color:var(--b6);margin-left:4px;}
     .dt-team-role.owner{color:var(--g5);}
+    .dt-team-role.coowner{color:var(--g6);background:var(--g0);padding:2px 6px;border-radius:8px;border:1px solid var(--g2,#bbf7d0);}
+    .aco-cand{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border-light);transition:background 0.1s;}
+    .aco-cand:last-child{border-bottom:none;}
+    .aco-cand:hover{background:var(--surface-muted,#f5f7fa);}
     .dt-team-email{font-size:11px;color:var(--text-faint);}
     .dt-team-actions{display:flex;gap:4px;}
     .dt-team-btn{font-family:'DM Sans',sans-serif;font-size:10px;font-weight:600;padding:5px 9px;background:var(--surface);color:var(--text-muted);border:1px solid var(--border);border-radius:5px;cursor:pointer;}
@@ -1147,6 +1152,43 @@ if('serviceWorker' in navigator){
   </div>
 </div>
 
+<!-- -- ADMIN ADD CO-OWNER MODAL -- -->
+<div class="modal-overlay" id="admin-add-coowner-modal" onclick="closeModalOnBg(event,'admin-add-coowner-modal')" style="z-index:310;">
+  <div class="modal-box" style="max-width:480px;">
+    <div class="form-panel">
+      <div class="modal-title">Add Co-owner</div>
+      <div class="modal-sub" id="admin-aco-sub">Pick someone already in the org.</div>
+      <div class="modal-alert error" id="admin-aco-error" style="display:none;background:#fff0f0;color:#c03030;padding:8px 12px;border-radius:6px;margin-bottom:10px;font-size:12px;border:1px solid #fca5a5;"></div>
+      <div class="modal-field">
+        <label>Search by name or email</label>
+        <input class="modal-input" type="text" id="admin-aco-search" placeholder="Type to filter..." oninput="adminFilterCoOwnerCandidates()" autocomplete="off"/>
+      </div>
+      <div id="admin-aco-list" style="max-height:280px;overflow-y:auto;border:1px solid var(--border-light);border-radius:8px;background:var(--b0);"></div>
+      <div style="margin-top:12px;font-size:12px;color:var(--text-faint);line-height:1.5;">
+        Don't see them? They need to be in the org first &mdash; invite as operator from the club app.
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:18px;">
+        <button onclick="closeModal('admin-add-coowner-modal')" style="font-family:'DM Sans',sans-serif;font-size:13px;padding:9px 18px;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:8px;cursor:pointer;">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- -- ADMIN REMOVE CO-OWNER CONFIRMATION -- -->
+<div class="modal-overlay" id="admin-remove-coowner-modal" onclick="closeModalOnBg(event,'admin-remove-coowner-modal')" style="z-index:320;">
+  <div class="modal-box" style="max-width:420px;">
+    <div class="form-panel">
+      <div class="modal-title">Remove Co-owner</div>
+      <div class="modal-sub" id="admin-rco-sub">Are you sure?</div>
+      <div class="modal-alert error" id="admin-rco-error" style="display:none;background:#fff0f0;color:#c03030;padding:8px 12px;border-radius:6px;margin-bottom:10px;font-size:12px;border:1px solid #fca5a5;"></div>
+      <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:18px;">
+        <button onclick="closeModal('admin-remove-coowner-modal')" style="font-family:'DM Sans',sans-serif;font-size:13px;padding:9px 18px;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:8px;cursor:pointer;">Cancel</button>
+        <button id="admin-rco-btn" onclick="adminSubmitRemoveCoOwner()" style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:9px 18px;border:none;background:var(--r5);color:white;border-radius:8px;cursor:pointer;">Remove</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- -- FEEDBACK MODAL (shared across admin/org-admin/app) -- -->
 <div class="modal-overlay" id="feedback-modal" style="z-index:300;">
   <div class="modal" style="max-width:520px;width:100%;">
@@ -1303,6 +1345,7 @@ function attachPlacesAutocomplete(streetInputId, cityId, stateId, zipId) {
 let allLocations=[];
 let allDays=[];
 let allLocationUsers=[];
+let allUserLocations=[];   // user_locations rows for co-owner detection
 let allOrgsMap={};  // orgId -> org object, for tree view
 let allRequests=[];          // location_requests (pending)
 let allOrgRequests=[];       // org_requests   (pending)
@@ -2284,10 +2327,26 @@ async function init(){
   const since = (yearStart < since32) ? yearStart : since32;
   const{data:days}=await sb.from('days').select('location_id,date,data').gte('date',since);
   allDays = days || [];
-  // Fetch all owner/employee users so we can check which locations have registered accounts
-  const{data:locUsers,error:luErr}=await sb.from('users').select('id,email,first_name,last_name,display_name,phone,role,location_id').in('role',['owner','employee']).is('deleted_at', null);
+  // Fetch users for the club tree.
+  // Two sources:
+  //   1. Legacy: users.location_id matches a club (primary owners + operators
+  //      created the old way + org_leaders provisioned at club creation).
+  //   2. user_locations rows pointing at any club (canonical: covers co-owners
+  //      whose primary identity points elsewhere).
+  // Both unioned and deduped so the team panel is complete.
+  const{data:legacyUsers,error:luErr}=await sb.from('users').select('id,email,first_name,last_name,display_name,phone,role,location_id,avatar_url').in('role',['owner','employee','org_leader']).is('deleted_at', null);
   if(luErr){console.warn('Could not load location users:',luErr.message);}
-  allLocationUsers = locUsers || [];
+  const{data:_ulData}=await sb.from('user_locations').select('user_id,location_id,is_primary');
+  allUserLocations = _ulData || [];
+  // Resolve any user_locations user_ids that aren't already in legacyUsers
+  const _legacyIds = new Set((legacyUsers||[]).map(u=>u.id));
+  const _ulMissingIds = (allUserLocations||[]).map(r=>r.user_id).filter(id => id && !_legacyIds.has(id));
+  let _ulUsers = [];
+  if(_ulMissingIds.length){
+    const{data}=await sb.from('users').select('id,email,first_name,last_name,display_name,phone,role,location_id,avatar_url').in('id', _ulMissingIds).is('deleted_at', null);
+    _ulUsers = data || [];
+  }
+  allLocationUsers = [...(legacyUsers||[]), ..._ulUsers];
   try { renderKPIs(); } catch(e) { console.error('renderKPIs error:',e); }
   try { renderLocations(); } catch(e) { console.error('renderLocations error:',e); }
   try { renderAlertBanner(); } catch(e) { console.error('renderAlertBanner error:',e); }
@@ -2847,6 +2906,201 @@ async function adminRemoveUser(userId, name) {
   if(error){ showToast('Remove failed: '+error.message, 'error'); return; }
   showToast(name + ' removed ✓', 'success');
   renderLocations(); renderKPIs(); renderAlertBanner(); renderCompChart();
+}
+
+// ── Admin co-owner management ────────────────────────────────────
+// Mirror of org-admin.html's co-owner UI, scoped to the admin club drawer.
+// Distinguished by adminXXX prefix to avoid colliding with org-admin handlers
+// (which only matters if both files ever loaded together — defensive).
+
+let _adminPendingCoOwnerRemove = null;
+let _adminPendingCoOwnerAddLocId = null;
+let _adminPendingCoOwnerAddOrgId = null;
+let _adminCoOwnerCandidates = [];
+
+function adminOpenAddCoOwnerModal(locId, locName, orgId){
+  _adminPendingCoOwnerAddLocId = locId;
+  _adminPendingCoOwnerAddOrgId = orgId || '';
+  document.getElementById('admin-aco-sub').textContent =
+    'Pick someone already in the org to share ownership of ' + locName + '.';
+  const errEl = document.getElementById('admin-aco-error');
+  errEl.style.display = 'none';
+  document.getElementById('admin-aco-search').value = '';
+
+  // Eligible candidates: anyone in this org who is NOT already on this club
+  // (legacy or via user_locations), and isn't 'pending' or 'admin'.
+  const onClub = {};
+  allLocationUsers.forEach(function(u){ if(u.location_id === locId) onClub[u.id] = 1; });
+  (allUserLocations||[]).forEach(function(r){ if(r.location_id === locId) onClub[r.user_id] = 1; });
+
+  // Find every user currently associated with the org (via any club in the org).
+  const clubsInOrg = new Set(
+    allLocations.filter(function(l){return l.org_id === orgId;}).map(function(l){return l.id;})
+  );
+  const candidateIds = new Set();
+  allLocationUsers.forEach(function(u){
+    if(u.location_id && clubsInOrg.has(u.location_id)) candidateIds.add(u.id);
+  });
+  (allUserLocations||[]).forEach(function(r){
+    if(clubsInOrg.has(r.location_id)) candidateIds.add(r.user_id);
+  });
+
+  _adminCoOwnerCandidates = allLocationUsers.filter(function(u){
+    if(!candidateIds.has(u.id)) return false;
+    if(onClub[u.id]) return false;
+    if(u.role === 'pending' || u.role === 'admin') return false;
+    return true;
+  }).sort(function(a,b){
+    const an = (a.display_name || [a.first_name,a.last_name].filter(Boolean).join(' ') || a.email || '').toLowerCase();
+    const bn = (b.display_name || [b.first_name,b.last_name].filter(Boolean).join(' ') || b.email || '').toLowerCase();
+    return an.localeCompare(bn);
+  });
+
+  adminRenderCoOwnerCandidates(_adminCoOwnerCandidates);
+  openModal('admin-add-coowner-modal');
+}
+
+function adminRenderCoOwnerCandidates(list){
+  const el = document.getElementById('admin-aco-list');
+  if(!list.length){
+    el.innerHTML = '<div style="padding:18px;text-align:center;font-size:13px;color:var(--text-faint);">No eligible org members found.<br/><span style="font-size:12px;">Everyone is already on this club, or there are no other members in the org yet.</span></div>';
+    return;
+  }
+  el.innerHTML = list.map(function(u){
+    const fullName = u.display_name || [u.first_name,u.last_name].filter(Boolean).join(' ') || '--';
+    const initials = (u.first_name && u.last_name)
+      ? (u.first_name[0]+u.last_name[0]).toUpperCase()
+      : (u.display_name||u.email||'?').split(/\s+/).map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+    const isOwnerLike = (u.role==='owner' || u.role==='org_leader');
+    const avatarHtml = u.avatar_url
+      ? '<div class="dt-team-avatar"><img src="'+escHtml(u.avatar_url)+'" alt=""/></div>'
+      : '<div class="dt-team-avatar'+(isOwnerLike?' owner':'')+'">'+escHtml(initials)+'</div>';
+    const roleLbl = u.role==='owner' ? 'OWNER' : (u.role==='org_leader' ? 'ORG LEADER' : 'OPERATOR');
+    const safeName = escHtml(fullName).replace(/\x27/g,"\\x27");
+    return ''+
+      '<div class="aco-cand" onclick="adminSubmitAddCoOwner(\''+u.id+'\',\''+safeName+'\')">'+
+        avatarHtml+
+        '<div style="flex:1;min-width:0;">'+
+          '<div style="font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:600;color:var(--text);">'+escHtml(fullName)+'</div>'+
+          '<div style="font-size:11px;color:var(--text-faint);">'+escHtml(u.email||'')+'</div>'+
+        '</div>'+
+        '<span class="dt-team-role">'+roleLbl+'</span>'+
+      '</div>';
+  }).join('');
+}
+
+function adminFilterCoOwnerCandidates(){
+  const q = (document.getElementById('admin-aco-search').value || '').toLowerCase().trim();
+  if(!q){ adminRenderCoOwnerCandidates(_adminCoOwnerCandidates); return; }
+  const filtered = _adminCoOwnerCandidates.filter(function(u){
+    const hay = ((u.display_name||'') + ' ' + (u.first_name||'') + ' ' + (u.last_name||'') + ' ' + (u.email||'')).toLowerCase();
+    return hay.indexOf(q) !== -1;
+  });
+  adminRenderCoOwnerCandidates(filtered);
+}
+
+async function adminSubmitAddCoOwner(userId, displayName){
+  if(!_adminPendingCoOwnerAddLocId){ showToast('Could not determine which club.','error'); return; }
+  const locId = _adminPendingCoOwnerAddLocId;
+  const errEl = document.getElementById('admin-aco-error');
+  errEl.style.display = 'none';
+
+  const u = allLocationUsers.find(function(x){return x.id === userId;});
+  if(!u){ errEl.textContent = 'User not found.'; errEl.style.display = 'block'; return; }
+
+  try{
+    // 1. Insert / upsert user_locations row with is_primary=false
+    const{error:ulErr} = await sb.from('user_locations').upsert({
+      user_id: userId, location_id: locId, is_primary: false
+    }, { onConflict: 'user_id,location_id' });
+    if(ulErr) throw ulErr;
+
+    // 2. Promote employee → owner if needed (so they get owner privileges)
+    if(u.role === 'employee'){
+      const{error:roleErr} = await sb.from('users').update({ role: 'owner' }).eq('id', userId);
+      if(roleErr) throw roleErr;
+      u.role = 'owner';
+    }
+
+    closeModal('admin-add-coowner-modal');
+    showToast(displayName + ' added as co-owner.', 'success');
+    await adminReloadUsersAndUL();
+    // Re-render the drawer if it's still open on this club
+    if(drawerEntity === 'club' && drawerEntityId === locId){
+      const tab = drawerCurrentTab || 'team';
+      document.getElementById('drawer-body').innerHTML = renderClubDrawer(locId, tab);
+    }
+    // Also refresh the main tree so badges stay in sync
+    renderLocations();
+  }catch(e){
+    errEl.textContent = 'Failed: ' + (e.message || String(e));
+    errEl.style.display = 'block';
+  }
+}
+
+function adminConfirmRemoveCoOwner(userId, locId, userName, locName){
+  _adminPendingCoOwnerRemove = { userId: userId, locId: locId, userName: userName, locName: locName };
+  document.getElementById('admin-rco-sub').innerHTML =
+    'Remove <strong>' + escHtml(userName) + '</strong> as co-owner of <strong>' + escHtml(locName) + '</strong>? ' +
+    'They will lose owner access to this club. Their account and access to other clubs are unaffected.';
+  document.getElementById('admin-rco-error').style.display = 'none';
+  openModal('admin-remove-coowner-modal');
+}
+
+async function adminSubmitRemoveCoOwner(){
+  if(!_adminPendingCoOwnerRemove){ closeModal('admin-remove-coowner-modal'); return; }
+  const { userId, locId, userName } = _adminPendingCoOwnerRemove;
+  const errEl = document.getElementById('admin-rco-error');
+  const btn = document.getElementById('admin-rco-btn');
+  errEl.style.display = 'none';
+  btn.disabled = true; btn.textContent = 'Removing...';
+
+  try{
+    // Defensive: filter on is_primary=false so we never yank the primary
+    // owner via this UI even if the data drifted.
+    const{error} = await sb
+      .from('user_locations')
+      .delete()
+      .eq('user_id', userId)
+      .eq('location_id', locId)
+      .eq('is_primary', false);
+    if(error) throw error;
+
+    btn.disabled = false; btn.textContent = 'Remove';
+    closeModal('admin-remove-coowner-modal');
+    _adminPendingCoOwnerRemove = null;
+    showToast(userName + ' removed as co-owner.', 'success');
+    await adminReloadUsersAndUL();
+    if(drawerEntity === 'club' && drawerEntityId === locId){
+      const tab = drawerCurrentTab || 'team';
+      document.getElementById('drawer-body').innerHTML = renderClubDrawer(locId, tab);
+    }
+    renderLocations();
+  }catch(e){
+    btn.disabled = false; btn.textContent = 'Remove';
+    errEl.textContent = 'Failed: ' + (e.message || String(e));
+    errEl.style.display = 'block';
+  }
+}
+
+// Reload allLocationUsers + allUserLocations after a co-owner add/remove,
+// so the team panel reflects the change without a full page reload.
+async function adminReloadUsersAndUL(){
+  try{
+    const{data:legacyUsers} = await sb.from('users').select('id,email,first_name,last_name,display_name,phone,role,location_id,avatar_url').in('role',['owner','employee','org_leader']).is('deleted_at', null);
+    const{data:_ulData} = await sb.from('user_locations').select('user_id,location_id,is_primary');
+    allUserLocations = _ulData || [];
+    const _legacyIds = new Set((legacyUsers||[]).map(function(u){return u.id;}));
+    const _missing = (allUserLocations||[]).map(function(r){return r.user_id;}).filter(function(id){ return id && !_legacyIds.has(id); });
+    let _ulUsers = [];
+    if(_missing.length){
+      const{data} = await sb.from('users').select('id,email,first_name,last_name,display_name,phone,role,location_id,avatar_url').in('id', _missing).is('deleted_at', null);
+      _ulUsers = data || [];
+    }
+    allLocationUsers = [...(legacyUsers||[]), ..._ulUsers];
+  }catch(e){
+    console.warn('adminReloadUsersAndUL failed:', e);
+  }
 }
 
 async function adminSaveUser(userId){
@@ -3453,39 +3707,82 @@ function renderClubDrawer(locId, tab){
       '</div>';
   }
   if(tab==='team'){
-    var users = allLocationUsers.filter(function(u){return u.location_id===locId;});
-    var roleOrder = {owner:0, employee:1};
-    users.sort(function(a,b){return (roleOrder[a.role]||9)-(roleOrder[b.role]||9);});
+    // Build the team list for this club: union of users.location_id matches
+    // (legacy: primary owner + operators) and user_locations rows pointing
+    // here (canonical: covers co-owners whose primary identity points
+    // elsewhere). Dedupe by user id.
+    var legacyHere = allLocationUsers.filter(function(u){return u.location_id===locId;});
+    var ulHere = (allUserLocations||[]).filter(function(r){return r.location_id===locId;});
+    var seen = {};
+    var teamEntries = [];
+    legacyHere.forEach(function(u){
+      if(seen[u.id]) return;
+      seen[u.id] = true;
+      teamEntries.push({user: u, isCoOwner: false, ulRow: null});
+    });
+    ulHere.forEach(function(r){
+      if(seen[r.user_id]) return;
+      var u = allLocationUsers.find(function(x){return x.id===r.user_id;});
+      if(!u) return;
+      seen[u.id] = true;
+      // Reached only via user_locations: this is a co-owner if their role is
+      // owner and is_primary is not true. Otherwise treat them as operator.
+      var isCoOwner = (u.role === 'owner') && (r.is_primary !== true);
+      teamEntries.push({user: u, isCoOwner: isCoOwner, ulRow: r});
+    });
+    // Sort: primary owner / org_leader first, co-owners next, operators last
+    teamEntries.sort(function(a,b){
+      var sa = a.isCoOwner ? 1 : (a.user.role==='owner'||a.user.role==='org_leader'||a.user.role==='admin' ? 0 : 2);
+      var sb_ = b.isCoOwner ? 1 : (b.user.role==='owner'||b.user.role==='org_leader'||b.user.role==='admin' ? 0 : 2);
+      return sa - sb_;
+    });
+
     var teamHtml;
-    if(users.length){
-      teamHtml = users.map(function(u){
+    if(teamEntries.length){
+      teamHtml = teamEntries.map(function(entry){
+        var u = entry.user;
         var name = [u.first_name,u.last_name].filter(Boolean).join(' ') || u.display_name || u.email;
         var initials = (name||'?').charAt(0).toUpperCase();
-        var roleLbl = u.role==='owner' ? 'OWNER' : 'OPERATOR';
+        var roleLbl;
+        if(entry.isCoOwner)            roleLbl = 'CO-OWNER';
+        else if(u.role==='owner')      roleLbl = 'OWNER';
+        else if(u.role==='org_leader') roleLbl = (u.location_id===locId ? 'OWNER' : 'ORG LEADER');
+        else if(u.role==='admin')      roleLbl = 'ADMIN';
+        else                            roleLbl = 'OPERATOR';
+        var roleClass = entry.isCoOwner ? 'coowner' : ((u.role==='owner'||u.role==='org_leader') ? 'owner' : '');
         var avatarInner = u.avatar_url
           ? '<img src="'+u.avatar_url+'" alt=""/>'
           : initials;
+        var safeName = escHtml(name).replace(/\x27/g,"\\x27");
+        var actions = '';
+        if(entry.isCoOwner){
+          // Co-owner: only show "Remove co-owner" (drops user_locations row,
+          // doesn't touch the user record). Distinct from "Remove" below.
+          actions = '<button class="dt-team-btn danger" onclick="adminConfirmRemoveCoOwner(\''+u.id+'\',\''+locId+'\',\''+safeName+'\',\''+escHtml(loc.name).replace(/\x27/g,"\\x27")+'\')">Remove co-owner</button>';
+        } else {
+          actions =
+            '<button class="dt-team-btn" onclick="adminResetPassword(\''+escHtml(u.email||'')+'\',\''+safeName+'\')">Reset PW</button>'+
+            '<button class="dt-team-btn danger" onclick="adminConfirmRemoveUser(\''+u.id+'\',\''+safeName+'\')">Remove</button>';
+        }
         return ''+
           '<div class="dt-team-row">'+
-            '<div class="dt-team-avatar '+(u.role==='owner'?'owner':'')+'">'+avatarInner+'</div>'+
+            '<div class="dt-team-avatar '+roleClass+'">'+avatarInner+'</div>'+
             '<div class="dt-team-info">'+
-              '<div class="dt-team-name">'+escHtml(name)+'<span class="dt-team-role '+(u.role==='owner'?'owner':'')+'">'+roleLbl+'</span></div>'+
+              '<div class="dt-team-name">'+escHtml(name)+'<span class="dt-team-role '+roleClass+'">'+roleLbl+'</span></div>'+
               '<div class="dt-team-email">'+escHtml(u.email||'')+'</div>'+
             '</div>'+
-            '<div class="dt-team-actions">'+
-              '<button class="dt-team-btn" onclick="adminResetPassword(\''+escHtml(u.email||'')+'\',\''+escHtml(name).replace(/\x27/g,"\\x27")+'\')">Reset PW</button>'+
-              '<button class="dt-team-btn danger" onclick="adminConfirmRemoveUser(\''+u.id+'\',\''+escHtml(name).replace(/\x27/g,"\\x27")+'\')">Remove</button>'+
-            '</div>'+
+            '<div class="dt-team-actions">'+actions+'</div>'+
           '</div>';
       }).join('');
     } else {
       teamHtml = '<div class="dt-team-empty">No registered users yet.<br/><span style="font-size:11px;">Share invite code <strong style="color:var(--b6);">'+escHtml(loc.invite_code||'—')+'</strong> to add team members.</span></div>';
     }
     return ''+
-      '<div class="dt-section"><div class="dt-heading">Team'+(users.length?' ('+users.length+')':'')+'</div>'+
+      '<div class="dt-section"><div class="dt-heading">Team'+(teamEntries.length?' ('+teamEntries.length+')':'')+'</div>'+
         '<div class="dt-team-list">'+teamHtml+'</div>'+
-        '<div class="dt-btn-row" style="margin-top:12px;">'+
+        '<div class="dt-btn-row" style="margin-top:12px;flex-wrap:wrap;">'+
           '<button class="dt-btn-outline" onclick="navigator.clipboard.writeText(\''+escHtml(loc.invite_code||'')+'\').then(function(){showToast(\'Code copied\',\'success\');})">&#128203; Share invite code</button>'+
+          '<button class="dt-btn-outline" onclick="adminOpenAddCoOwnerModal(\''+locId+'\',\''+escHtml(loc.name).replace(/\x27/g,"\\x27")+'\',\''+escHtml(loc.org_id||'')+'\')">+ Add Co-owner</button>'+
         '</div>'+
       '</div>';
   }
