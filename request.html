@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CACHE BUST: 2026-04-25 07:10:00 -->
+<!-- CACHE BUST: 2026-04-26 12:30:00 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -244,14 +244,14 @@ async function submitRequest(){
   const btn=document.getElementById('r-btn');
   btn.disabled=true;btn.textContent='Sending…';
 
-  // Insert request record
-  const{error}=await sb.from('org_requests').insert({
+  // Insert request record (capture id so we can call send-request-received).
+  const{data:inserted,error}=await sb.from('org_requests').insert({
     name:`${first} ${last}`.trim(),
     email,phone,
     org_name:org,
     note,
     status:'pending',
-  });
+  }).select().single();
 
   if(error){
     btn.disabled=false;btn.textContent='Send request →';
@@ -300,6 +300,21 @@ async function submitRequest(){
   }catch(e){
     // Notification failing shouldn't block the user
     console.warn('Admin notification email failed:',e);
+  }
+
+  // Fire requester confirmation email (independent — failure does not block UX).
+  // Uses an Edge Function so the private Reply-To address stays server-side
+  // and never appears in app-facing code.
+  if(inserted&&inserted.id){
+    try{
+      await fetch(`${SURL}/functions/v1/send-request-received`,{
+        method:'POST',
+        headers:{'apikey':SKEY,'Content-Type':'application/json'},
+        body:JSON.stringify({requestId:inserted.id})
+      });
+    }catch(e){
+      console.warn('Requester confirmation email failed:',e);
+    }
   }
 
   // Show success
